@@ -1,0 +1,9 @@
+{
+    "map": {
+        "width": 1280,
+        "height": 960,
+        "tiles": [
+            "dirt_top_left", "dirt_top", "dirt_top_right", "dirt_lower_right"
+        ]
+    }
+}
