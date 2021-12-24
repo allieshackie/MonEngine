@@ -1,12 +1,10 @@
 #pragma once
-#include <unordered_map>
-#include <memory>
 
 #include "DescriptionBase.h"
 
 class DescriptionRegistry {
 public:
-	DescriptionRegistry() {}
+	DescriptionRegistry();
 	DescriptionRegistry(const DescriptionRegistry& other) = delete;
 	DescriptionRegistry(DescriptionRegistry&& other) = default;
 	virtual ~DescriptionRegistry() = default;
