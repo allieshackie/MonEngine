@@ -1,17 +1,20 @@
-#include "Game.h"
+#include <SDL.h>
+#include <glad/glad.h>
+#include "DescriptionRegistry.h"
 #include "EntityRegistry.h"
-#include "EntityContext.h"
+#include "InputHandler.h"
+#include "GUISystem.h"
+#include "Map.h"
+#include "Renderer.h"
 #include "Window.h"
-#include "TileSetDescription.h"
-#include "MapDescription.h"
+
+#include "Game.h"
 
 int main(int argc, char** argv)
 {
-	auto app = new Game();
-	app->registerDescriptions();
+	auto app = std::make_unique<Game>();
 	app->configureLevel();
 	app->runGame();
-	delete app;
 	
 	return 0;
 }
@@ -19,32 +22,30 @@ int main(int argc, char** argv)
 Game::Game()
 {
     mWindow = std::make_unique<Window>();
-    mRenderer = &(mWindow->getRenderer());
+    mRenderer = std::make_unique<Renderer>(*mWindow);
+
+	//mRenderer->initExample();
+	
+    mInputHandler = std::make_unique<InputHandler>();
+    mInputHandler->registerEventHandler(SDL_QUIT, [=]() { mRunning = false; });
+
+
+	mWindow->LLGLExample();
+
+	//texture = new Texture(mWindow->getSDLWindow(), "ground_tileset_01.png");
+
+	//mGUISystem = std::make_unique<GUISystem>(mWindow->getSDLWindow(), mWindow->getSDLContext());
 }
 
-Game::~Game()
-{
-}
-
-Window& Game::getWindow()
+Window& Game::getWindow() const
 {
     return *mWindow;
 }
 
 void Game::configureLevel()
 {
-	mMap = std::make_unique<Map>(*mDescriptionRegistry, mWindow->getRenderer());
-}
-
-void Game::registerDescriptions()
-{
 	mDescriptionRegistry = std::make_unique<DescriptionRegistry>();
-	mDescriptionRegistry->registerDescription<TileSetDescription>(TileSetDescription::JsonName);
-	mDescriptionRegistry->registerDescription<MapDescription>(MapDescription::JsonName);
-}
-
-void Game::registerEntityTemplates()
-{
+	//mMap = std::make_unique<Map>(*mDescriptionRegistry, mRenderer->getRenderer());
 }
 
 void Game::closeGame()
@@ -52,29 +53,24 @@ void Game::closeGame()
 	mRunning = false;
 }
 
-void Game::runGame()
+void Game::runGame() const
 {
 	while (mRunning) {
-        /*
-        //Handle events on queue
-        while (SDL_PollEvent(&e) != 0)
-        {
-            //User requests quit
-            if (e.type == SDL_QUIT)
-            {
-                quit = true;
-            }
-        }
-        */
+        
+		mInputHandler->tick();
 
-        //Clear screen
-        SDL_SetRenderDrawColor(mRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
-        SDL_RenderClear(mRenderer);
+		//mGUISystem->renderGUI();
 
-        //Render texture to screen
-		mMap->Render();
+		//mRenderer->renderExample();
 
-        //Update screen
-        SDL_RenderPresent(mRenderer);
+		//texture->Render(0, 0);
+
+		//SDL_GL_SwapWindow(&mWindow->getSDLWindow());
+		/*
+		 * 
+        mRenderer->render([=]() {
+            //mMap->Render();
+        });
+		 */
 	}
 }
