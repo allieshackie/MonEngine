@@ -1,9 +1,12 @@
-#include "Map.h"
+#include "DescriptionRegistry.h"
 #include "MapDescription.h"
+#include "Texture.h"
 #include "TileSetDescription.h"
 #include "Tile.h"
-#include "Texture.h"
-#include "DescriptionRegistry.h"
+
+#include "Map.h"
+
+const float ANIMATE_TIMER = 0.5f;
 
 Map::Map(DescriptionRegistry& registry, SDL_Renderer& renderer) : 
 	mDescriptionRegistry(registry),
@@ -21,37 +24,51 @@ void Map::LoadTiles()
 	auto tileDescription = mDescriptionRegistry.getDescription<TileSetDescription>(TileSetDescription::JsonName);
 	auto mapDescription = mDescriptionRegistry.getDescription<MapDescription>(MapDescription::JsonName);
 
-	mMapTexture = new Texture(mRenderer, tileDescription->getTexturePath());
+	//mMapTexture = new Texture(mRenderer, tileDescription->getTexturePath());
 
 	const int TILE_WIDTH = tileDescription->getTileWidth();
 	const int TILE_HEIGHT = tileDescription->getTileHeight();
 
-	//The tile offsets
-	int x = 0, y = 0;
-
 	const int MAP_WIDTH = mapDescription->getMapWidth();
+	
+	int screenPosX = 0, screenPosY = 0;
+	int widthCounter = 1;
 
 	for (const auto& tile : mapDescription->getTiles()) {
-		mMapTiles.push_back({ x, y, TILE_WIDTH, TILE_HEIGHT });
+		const auto& pos = tileDescription->getTileClipPosition(tile);
+		mMapTiles.push_back({ pos[0], pos[1], TILE_WIDTH, TILE_HEIGHT, screenPosX, screenPosY });
 
-		//Move to next tile spot
-		x += TILE_WIDTH;
-
-		//If we've gone too far
-		if (x >= MAP_WIDTH)
-		{
-			//Move back
-			x = 0;
-
-			//Move to the next row
-			y += TILE_HEIGHT;
+		screenPosX += TILE_WIDTH;
+		if (widthCounter == MAP_WIDTH) {
+			screenPosX = 0;
+			widthCounter = 1;
+			screenPosY += TILE_HEIGHT;
+			continue;
 		}
+		widthCounter++;
+	}
+}
+
+void Map::AnimateTiles() {
+	mAnimateTimer -= 0.001f;
+	if (mAnimateTimer <= 0.0f) {
+		mAnimateTimer = ANIMATE_TIMER;
+		for (auto& tile : mMapTiles) {
+			if (mAnimateUp) {
+				tile.updateScreenPosX(20);
+			}
+			else {
+				tile.updateScreenPosX(-20);
+			}
+		}
+
+		mAnimateUp = !mAnimateUp;
 	}
 }
 
 void Map::Render()
 {
 	for (auto& tile : mMapTiles) {
-		mMapTexture->Render(tile.getBox().x, tile.getBox().y, &tile.getBox());
+		//mMapTexture->Render(tile.getScreenPosX(), tile.getScreenPosY(), &tile.getBox());
 	}
 }
