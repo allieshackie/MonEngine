@@ -1,27 +1,37 @@
 #pragma once
 
 #include <SDL.h>
-#include <SDL_image.h>
 #include <iostream>
+
 
 class Texture {
 public:
-	Texture(SDL_Renderer& ref, const std::string& path);
+	Texture(SDL_Window& ref, void* pixels, int width, int height, int stride);
+	Texture(SDL_Window& ref, const std::string& path);
 	~Texture();
-
-	bool LoadFromFile(const std::string& path);
 
 	void Free();
 
-	void Render(int x, int y, SDL_Rect* clip = NULL);
+	void Render(int x, int y) const;
 
 	int GetWidth() const;
 
 	int GetHeight() const;
 
 private:
-	SDL_Renderer& mRenderer;
-	SDL_Texture* mTexture = nullptr;
+	bool LoadFromFile(const std::string& path);
+	bool LoadFromPixels(void* pixels, int width, int height, int stride);
+
+	
+	SDL_Window& mWindow;
+	SDL_Surface* mTexture = nullptr;
+
+	unsigned int mTextureID = 0;
+	unsigned int texture1 = 0;
+	unsigned int texture2 = 0;
+	unsigned int VAO = 0;
+	unsigned int VBO = 0;
+	unsigned int EBO = 0;
 
 	int mWidth = 0;
 	int mHeight = 0;

@@ -1,10 +1,15 @@
-#include "pch.h"
+#include <glad/glad.h>
 
 #include "Texture.h"
 
 static std::string TEXTURE_PATH = "C:/dev/MonDev/Data/Textures/";
 
-Texture::Texture(SDL_Renderer& ref, const std::string& path) : mRenderer(ref) {
+Texture::Texture(SDL_Window& ref, void* pixels, int width, int height, int stride) : mWindow(ref)
+{
+	LoadFromPixels(pixels, width, height, stride);
+}
+
+Texture::Texture(SDL_Window& ref, const std::string& path) : mWindow(ref) {
 	LoadFromFile(path);
 }
 
@@ -13,23 +18,36 @@ Texture::~Texture() {
 }
 
 bool Texture::LoadFromFile(const std::string& path) {
-	// get rid of pre-existing texture?
-	//Free();
+	std::string fullPath = TEXTURE_PATH;
+	fullPath.append(path);
 
-	const std::string fullPath = TEXTURE_PATH.append(path);
+	mTexture = SDL_LoadBMP(fullPath.c_str());
 
-	SDL_Texture* newTexture = NULL;
+	//glEnable(GL_TEXTURE_2D);
+	GLuint texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, mTexture->format->BytesPerPixel, mTexture->w, mTexture->h, 0, GL_RGB, GL_UNSIGNED_BYTE, mTexture->pixels);
 
-	// load image at specified path
-	SDL_Surface* loadedSurface = IMG_Load(fullPath.c_str());
-	if (loadedSurface == NULL) {
-		printf("Unable to load image %s! SDL_image Error: %s\n", fullPath.c_str(), IMG_GetError());
+	return true;
+
+}
+
+bool Texture::LoadFromPixels(void* pixels, int width, int height, int stride)
+{
+	/*
+	 * 
+	SDL_Surface* loadedSurface = SDL_CreateRGBSurfaceWithFormatFrom(pixels, width, height, 24, stride, SDL_PIXELFORMAT_BGRA8888);
+	if (loadedSurface == nullptr) {
+		printf("Surface could not be created! SDL Error: %s\n", SDL_GetError());
 		return false;
 	}
 
 	SDL_SetColorKey(loadedSurface, SDL_TRUE, SDL_MapRGB(loadedSurface->format, 0, 0xFF, 0xFF));
-	newTexture = SDL_CreateTextureFromSurface(&mRenderer, loadedSurface);
-	if (newTexture == NULL) {
+	SDL_Texture* newTexture = SDL_CreateTextureFromSurface(&mRenderer, loadedSurface);
+	if (newTexture == nullptr) {
 		return false;
 	}
 
@@ -40,32 +58,37 @@ bool Texture::LoadFromFile(const std::string& path) {
 	SDL_FreeSurface(loadedSurface);
 
 	mTexture = newTexture;
+	 */
 	return true;
-
 }
 
 void Texture::Free() {
-	if (mTexture != NULL) {
-		SDL_DestroyTexture(mTexture);
-		mTexture = NULL;
+	if (mTexture != nullptr) {
+		mTexture = nullptr;
 		mWidth = 0;
 		mHeight = 0;
+
+		glDeleteVertexArrays(1, &VAO);
+		glDeleteBuffers(1, &VBO);
+		glDeleteBuffers(1, &EBO);
 	}
 }
 
-void Texture::Render(int x, int y, SDL_Rect* clip) {
-	//Set rendering space and render to screen
-	SDL_Rect renderQuad = { x, y, mWidth, mHeight };
+void Texture::Render(int x, int y) const {
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
 
-	//Set clip rendering dimensions
-	if (clip != NULL)
-	{
-		renderQuad.w = clip->w;
-		renderQuad.h = clip->h;
-	}
+	// TODO: Must activate and bind textures
+    // bind textures on corresponding texture units
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture1);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, texture2);
 
-	//Render to screen
-	SDL_RenderCopy(&mRenderer, mTexture, clip, &renderQuad);
+    // render container
+    //mShader->use();
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
 int Texture::GetWidth() const {
