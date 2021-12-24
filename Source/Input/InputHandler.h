@@ -1,8 +1,6 @@
 #pragma once
 
 #include <SDL.h>
-#include <unordered_map>
-#include <functional>
 
 class InputHandler {
 public:
