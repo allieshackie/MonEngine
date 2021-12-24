@@ -1,29 +1,38 @@
 #pragma once
 
 #include <SDL.h>
-#include <SDL_image.h>
-#include <iostream>
-#include "Renderer.h"
 
-static constexpr int SCREEN_WIDTH = 640;
-static constexpr int SCREEN_HEIGHT = 480;
+static constexpr int SCREEN_WIDTH = 800;
+static constexpr int SCREEN_HEIGHT = 600;
+
+struct Vertex
+{
+    float position[2];
+    uint8_t color[4]; // rgba
+};
+
+// Vertex data (3 vertices for example triangle)
+const float s = 0.5f;
 
 class Window {
 public:
     Window();
     ~Window();
 
-    SDL_Renderer& getRenderer();
-
-private:
-    bool InitSDL();
+    SDL_Window& getSDLWindow();
+    SDL_GLContext& getSDLContext();
+	
+    void LLGLExample();
     
-    void CloseSDL();
+private:
+    bool initSDL();
+
+    void closeSDL();
 
 private:
     //The window we'll be rendering to
     SDL_Window* mSDLWindow = nullptr;
+    SDL_GLContext mContext = nullptr;
 
-    //The window renderer
-    SDL_Renderer* mSDLRenderer = nullptr;
+    
 };
