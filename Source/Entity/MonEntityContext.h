@@ -1,9 +1,13 @@
 #pragma once
+#include <entt/entt.hpp>
 
-class EntityContext {
+using EntityId = uint32_t;
+using EnTTRegistry = entt::basic_registry<EntityId>;
+
+class MonEntityContext {
 public:
-	EntityContext(EnTTRegistry& registry, EntityId id);
-	~EntityContext();
+	MonEntityContext(EnTTRegistry& registry, EntityId id);
+	~MonEntityContext();
 
 	template<typename T>
 	T& GetComponent() {
@@ -35,7 +39,7 @@ public:
 		return mRegistry.all_of<T>(mId);
 	}
 
-	EntityId getId();
+	EntityId getId() const;
 
 private:
 	friend class EntityRegistry;

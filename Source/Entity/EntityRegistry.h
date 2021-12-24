@@ -1,7 +1,7 @@
 #pragma once
 #include <entt/entt.hpp>
 
-class EntityContext;
+class MonEntityContext;
 
 using EntityId = uint32_t;
 using EnTTRegistry = entt::basic_registry<EntityId>;
@@ -12,7 +12,7 @@ public:
 
 	void operator=(const MonEntityRegistry&) = delete;
 
-	EntityContext CreateEntity();
+	MonEntityContext CreateEntity();
 
 	void RemoveEntity(EntityId id);
 

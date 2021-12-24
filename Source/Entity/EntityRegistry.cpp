@@ -1,5 +1,7 @@
+#include "MonEntityContext.h"
+
 #include "EntityRegistry.h"
-#include "EntityContext.h"
+
 
 MonEntityRegistry::MonEntityRegistry() {
 
@@ -9,8 +11,8 @@ MonEntityRegistry::~MonEntityRegistry() {
 
 }
 
-EntityContext MonEntityRegistry::CreateEntity() {
-	EntityContext entity = { mRegistry, mRegistry.create() };
+MonEntityContext MonEntityRegistry::CreateEntity() {
+	MonEntityContext entity = { mRegistry, mRegistry.create() };
 	return entity;
 }
 
