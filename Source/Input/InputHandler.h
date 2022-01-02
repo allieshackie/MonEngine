@@ -1,24 +1,18 @@
 #pragma once
 
-#include <SDL.h>
+#include <LLGL/LLGL.h>
 
 class InputHandler {
 public:
-	InputHandler();
+	InputHandler(LLGL::RenderContext& context);
 
-	void tick();
+	void pollInputEvents();
 
-	void registerEventHandler(SDL_EventType eventType, std::function<void()> callback);
-
-	void registerButtonDownHandler(SDL_Keycode keyCode, std::function<void()> callback);
-
+	void registerButtonDownHandler(LLGL::Key keyCode, const std::function<void()>& callback);
 private:
-	void _handleButtonDownEvent(SDL_Keycode keyCode);
+	void _handleButtonDownEvent(LLGL::Key keyCode);
 
-	void _handleEvent(SDL_EventType eventType);
-
-private:
-	std::unordered_map<SDL_EventType, std::function<void()>> mEventHandlers;
-	std::unordered_map<SDL_Keycode, std::function<void()>> mButtonDownHandlers;
-	SDL_Event mProcessedEvent;
+	std::unordered_map<LLGL::Key, std::function<void()>> mButtonDownHandlers;
+	std::shared_ptr<LLGL::Input> mInput; // User input event listener
+	LLGL::RenderContext& mContext;
 };

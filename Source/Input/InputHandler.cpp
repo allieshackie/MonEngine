@@ -1,40 +1,30 @@
 #include "InputHandler.h"
 
-InputHandler::InputHandler() {
-	mProcessedEvent = {};
+InputHandler::InputHandler(LLGL::RenderContext& context) : mContext(context) {
+	mInput = std::make_shared<LLGL::Input>();
+	auto& window = LLGL::CastTo<LLGL::Window>(context.GetSurface());
+	window.AddEventListener(mInput);
 }
 
-void InputHandler::tick() {
-	//Handle events on queue
-	while (SDL_PollEvent(&mProcessedEvent) != 0)
+void InputHandler::pollInputEvents() {
+	for (const auto& keyPair : mButtonDownHandlers)
 	{
-		if (mProcessedEvent.type == SDL_KEYDOWN) {
-			_handleButtonDownEvent(mProcessedEvent.key.keysym.sym);
-		}
-		else {
-			_handleEvent((SDL_EventType)mProcessedEvent.type);
+		if (mInput->KeyDown(keyPair.first))
+		{
+			keyPair.second();
 		}
 	}
 }
 
-void InputHandler::registerEventHandler(SDL_EventType eventType, std::function<void()> callback) {
-	mEventHandlers.insert({ eventType, callback });
-}
-
-void InputHandler::registerButtonDownHandler(SDL_Keycode keyCode, std::function<void()> callback) {
+void InputHandler::registerButtonDownHandler(LLGL::Key keyCode, const std::function<void()>& callback)
+{
 	mButtonDownHandlers.insert({ keyCode, callback });
 }
 
-void InputHandler::_handleButtonDownEvent(SDL_Keycode keyCode) {
+void InputHandler::_handleButtonDownEvent(LLGL::Key keyCode)
+{
 	const auto& handler = mButtonDownHandlers.find(keyCode);
 	if (handler != mButtonDownHandlers.end()) {
-		handler->second();
-	}
-}
-
-void InputHandler::_handleEvent(SDL_EventType eventType) {
-	const auto& handler = mEventHandlers.find(eventType);
-	if (handler != mEventHandlers.end()) {
 		handler->second();
 	}
 }
