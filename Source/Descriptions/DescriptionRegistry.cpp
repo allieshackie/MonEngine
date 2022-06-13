@@ -2,7 +2,9 @@
 #include "TileSetDescription.h"
 #include "MapDescription.h"
 
-DescriptionRegistry::DescriptionRegistry()
+std::unordered_map<std::string, DescriptionBase*> DescriptionRegistry::mRegisteredDescriptions;
+
+void DescriptionRegistry::registerAllDescriptions()
 {
 	registerDescription<TileSetDescription>(TileSetDescription::JsonName);
 	registerDescription<MapDescription>(MapDescription::JsonName);

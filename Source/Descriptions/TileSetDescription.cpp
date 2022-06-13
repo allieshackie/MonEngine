@@ -24,7 +24,7 @@ int TileSetDescription::getTileHeight() const
 	return mTileHeight;
 }
 
-const std::vector<int> TileSetDescription::getTileClipPosition(const std::string& tileId)
+std::vector<int> TileSetDescription::getTileClipPosition(const std::string& tileId)
 {
     for (const auto& tile : mTilesData) {
         if (tile.mId == tileId) {

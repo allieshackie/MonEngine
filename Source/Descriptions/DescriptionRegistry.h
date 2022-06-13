@@ -4,19 +4,16 @@
 
 class DescriptionRegistry {
 public:
-	DescriptionRegistry();
-	DescriptionRegistry(const DescriptionRegistry& other) = delete;
-	DescriptionRegistry(DescriptionRegistry&& other) = default;
-	virtual ~DescriptionRegistry() = default;
+	template<class TDescription>
+	static void registerDescription(const std::string& descriptionName);
 
 	template<class TDescription>
-	void registerDescription(const std::string& descriptionName);
+	static TDescription* getDescription(const std::string& descriptionName);
 
-	template<class TDescription>
-	TDescription* getDescription(const std::string& descriptionName);
+	static void registerAllDescriptions();
 
 private:
-	std::unordered_map<std::string, DescriptionBase*> mRegisteredDescriptions;
+	static std::unordered_map<std::string, DescriptionBase*> mRegisteredDescriptions;
 };
 
 template<class TDescription>

@@ -26,14 +26,13 @@ struct TileData {
 struct TileSetDescription : DescriptionBase {
 public:
 	TileSetDescription();
-	~TileSetDescription() {}
 
 	virtual void applyToEntity(EntityContext& entity) override {}
 
 	const std::string& getTexturePath() const;
 	int getTileWidth() const;
 	int getTileHeight() const;
-	const std::vector<int> getTileClipPosition(const std::string& tileId);
+	std::vector<int> getTileClipPosition(const std::string& tileId);
 
 private:
 	virtual void parseJSON() override;
