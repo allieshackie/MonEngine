@@ -1,6 +1,6 @@
 #pragma once
+#include <glm/glm.hpp>
 
 struct PositionComponent {
-	int mPositionX;
-	int mPositionY;
+	glm::vec2 mPosition;
 };

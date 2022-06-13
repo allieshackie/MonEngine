@@ -1,5 +1,6 @@
 #pragma once
+#include <string>
 
-struct TextureParamsComponent {
+struct SpriteComponent {
 	std::string mResourcePath;
 };

@@ -18,5 +18,5 @@ MonEntityContext MonEntityRegistry::CreateEntity() {
 
 void MonEntityRegistry::RemoveEntity(EntityId id)
 {
-	mRegistry.destroy(id);
+	//mRegistry.destroy(id);
 }

@@ -16,9 +16,8 @@ public:
 
 	template<typename T, typename... Args>
 	T& AddComponent(Args&&... args) {
-		if (HasComponent<T>()) {
-			assert("Entity already has this component");
-		}
+		assert(HasComponent<T>());
+		
 		return mRegistry.emplace<T>(mId, std::forward<Args>(args)...);
 	}
 
