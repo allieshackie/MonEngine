@@ -1,30 +1,60 @@
+#include "Core/RendererInstance.h"
+
 #include "InputHandler.h"
 
-InputHandler::InputHandler(LLGL::RenderContext& context) : mContext(context) {
-	mInput = std::make_shared<LLGL::Input>();
+InputHandler::InputHandler() {
+	const auto& context = RendererInstance::GetInstance()->GetContext();
+	mInput = std::make_shared<InputQueue>();
 	auto& window = LLGL::CastTo<LLGL::Window>(context.GetSurface());
 	window.AddEventListener(mInput);
 }
 
 void InputHandler::pollInputEvents() {
-	for (const auto& keyPair : mButtonDownHandlers)
+	while(mInput->HasEventsQueued())
 	{
-		if (mInput->KeyDown(keyPair.first))
+		switch (const auto event = mInput->ProcessNextEvent(); event.mKeyState)
 		{
-			keyPair.second();
+		case KeyStates::Key_Up:
+			_handleButtonUpEvent(event.mKeyCode);
+			break;
+
+		default:
+			break;
 		}
+
+		mInput->PopEvent();
 	}
 }
 
-void InputHandler::registerButtonDownHandler(LLGL::Key keyCode, const std::function<void()>& callback)
+void InputHandler::pollGUIInputEvents(const std::function<void(const InputEvent& event)>& callback) const
 {
-	mButtonDownHandlers.insert({ keyCode, callback });
+	if (mInput->GetWheelMotion())
+	{
+		const auto scroll = mInput->GetWheelMotion();
+		InputEvent event;
+		event.mKeyCode = LLGL::Key::Zoom;
+		if (scroll > 0) event.mKeyState = KeyStates::Key_Up;
+		else event.mKeyState = KeyStates::Key_Down;
+		
+		callback(event);
+	}
+	while (mInput->HasEventsQueued())
+	{
+		const auto event = mInput->ProcessNextEvent();
+		callback(event);
+		mInput->PopEvent();
+	}
 }
 
-void InputHandler::_handleButtonDownEvent(LLGL::Key keyCode)
+void InputHandler::registerButtonUpHandler(LLGL::Key keyCode, const std::function<void()>& callback)
 {
-	const auto& handler = mButtonDownHandlers.find(keyCode);
-	if (handler != mButtonDownHandlers.end()) {
+	mButtonUpHandlers.insert({ keyCode, callback });
+}
+
+void InputHandler::_handleButtonUpEvent(LLGL::Key keyCode)
+{
+	const auto& handler = mButtonUpHandlers.find(keyCode);
+	if (handler != mButtonUpHandlers.end()) {
 		handler->second();
 	}
 }
