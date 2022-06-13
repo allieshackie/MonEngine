@@ -1,8 +1,14 @@
 #pragma once
 
 #include <SDL.h>
-#include <SDL_image.h>
-#include "../Graphics/Texture.h"
+
+// SDL_RenderCopy(ren, sheet, &src, &dest);
+
+/*
+    cur_gid is a check if tile is empty?
+    texCoordX = (cur_gid % (ts_width / tile_width)) * tile_width;
+    texCoordY = (cur_gid / (ts_width / tile_width)) * tile_height;
+*/
 
 class Tile {
 public:
@@ -10,21 +16,21 @@ public:
     Tile(int clipPosX, int clipPosY, int width, int height, int screenPosX, int screenPosY);
 
     //Get the collision box
-    SDL_Rect getBox();
+    SDL_Rect getBox() const;
 
-    int getScreenPosX() { return mScreenPosX; }
-    int getScreenPosY() { return mScreenPosY; }
+    int getScreenPosX() const { return mScreenPosX; }
+    int getScreenPosY() const { return mScreenPosY; }
 
-    void updateScreenPosX(int x) {
+    void updateScreenPosX(const int x) {
         mScreenPosX += x;
     }
 
-    void updateScreenPosY(int y) {
+    void updateScreenPosY(const int y) {
         mScreenPosY += y;
     }
 
 private:
-    SDL_Rect mBox;
+    SDL_Rect mBox = {0, 0, 0 ,0};
 
     int mScreenPosX = 0;
     int mScreenPosY = 0;

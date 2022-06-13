@@ -11,7 +11,7 @@ Tile::Tile(int clipPosX, int clipPosY, int width, int height, int screenPosX, in
     mBox.h = height;
 }
 
-SDL_Rect Tile::getBox()
+SDL_Rect Tile::getBox() const
 {
 	return mBox;
 }

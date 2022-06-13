@@ -1,42 +1,31 @@
 #include "DescriptionRegistry.h"
 #include "MapDescription.h"
-#include "Texture.h"
 #include "TileSetDescription.h"
-#include "Tile.h"
 
 #include "Map.h"
 
-const float ANIMATE_TIMER = 0.5f;
-
-Map::Map(DescriptionRegistry& registry, SDL_Renderer& renderer) : 
-	mDescriptionRegistry(registry),
-	mRenderer(renderer)
+Map::Map()
 {
 	LoadTiles();
 }
 
-Map::~Map()
-{
-}
-
 void Map::LoadTiles()
 {
-	auto tileDescription = mDescriptionRegistry.getDescription<TileSetDescription>(TileSetDescription::JsonName);
-	auto mapDescription = mDescriptionRegistry.getDescription<MapDescription>(MapDescription::JsonName);
-
-	//mMapTexture = new Texture(mRenderer, tileDescription->getTexturePath());
+	auto tileDescription = DescriptionRegistry::getDescription<TileSetDescription>(TileSetDescription::JsonName);
+	auto mapDescription = DescriptionRegistry::getDescription<MapDescription>(MapDescription::JsonName);
 
 	const int TILE_WIDTH = tileDescription->getTileWidth();
 	const int TILE_HEIGHT = tileDescription->getTileHeight();
 
 	const int MAP_WIDTH = mapDescription->getMapWidth();
+	mMapTexture = tileDescription->getTexturePath();
 	
 	int screenPosX = 0, screenPosY = 0;
 	int widthCounter = 1;
 
 	for (const auto& tile : mapDescription->getTiles()) {
 		const auto& pos = tileDescription->getTileClipPosition(tile);
-		mMapTiles.push_back({ pos[0], pos[1], TILE_WIDTH, TILE_HEIGHT, screenPosX, screenPosY });
+		mMapTiles.emplace_back(pos[0], pos[1], TILE_WIDTH, TILE_HEIGHT, screenPosX, screenPosY);
 
 		screenPosX += TILE_WIDTH;
 		if (widthCounter == MAP_WIDTH) {
@@ -49,26 +38,12 @@ void Map::LoadTiles()
 	}
 }
 
-void Map::AnimateTiles() {
-	mAnimateTimer -= 0.001f;
-	if (mAnimateTimer <= 0.0f) {
-		mAnimateTimer = ANIMATE_TIMER;
-		for (auto& tile : mMapTiles) {
-			if (mAnimateUp) {
-				tile.updateScreenPosX(20);
-			}
-			else {
-				tile.updateScreenPosX(-20);
-			}
-		}
-
-		mAnimateUp = !mAnimateUp;
-	}
+const std::vector<Tile>& Map::GetMapTiles() const
+{
+	return mMapTiles;
 }
 
-void Map::Render()
+const std::string& Map::GetMapTexture() const
 {
-	for (auto& tile : mMapTiles) {
-		//mMapTexture->Render(tile.getScreenPosX(), tile.getScreenPosY(), &tile.getBox());
-	}
+	return mMapTexture;
 }
