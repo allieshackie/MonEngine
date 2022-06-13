@@ -1,12 +1,13 @@
-#include <SDL.h>
-#include <SDL_video.h>
-#include <glad/glad.h>  // Initialize with gladLoadGL()
-#include "imgui_impl_sdl.h"
-#include "backends/imgui_impl_opengl3.h"
+#include <glad/glad.h>
+#include "imgui_impl_opengl3.h"
+#include "imgui_impl_win32.h"
+
+#include "Core/RendererInstance.h"
+#include "InputHandler.h"
 
 #include "GUISystem.h"
 
-GUISystem::GUISystem(SDL_Window& windowRef, SDL_GLContext contextRef) : mWindow(windowRef), mContext(contextRef)
+GUISystem::GUISystem()
 {
     initGUI();
 }
@@ -16,84 +17,164 @@ GUISystem::~GUISystem()
     closeGUI();
 }
 
-void GUISystem::initGUI() const
+void GUISystem::initGUI()
 {
+    //Initialize Glad
+    if (gladLoadGL() == 0)
+    {
+        std::cout << "Failed to initialize GLAD" << std::endl;
+    }
+	
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    ImGuiIO& io = ImGui::GetIO();
+    io.DisplaySize = { 800,600 };
+
+    io.KeyMap[ImGuiKey_Tab] = static_cast<int>(LLGL::Key::Tab);
+    io.KeyMap[ImGuiKey_LeftArrow] = static_cast<int>(LLGL::Key::Left);
+    io.KeyMap[ImGuiKey_RightArrow] = static_cast<int>(LLGL::Key::Right);
+    io.KeyMap[ImGuiKey_UpArrow] = static_cast<int>(LLGL::Key::Up);
+    io.KeyMap[ImGuiKey_DownArrow] = static_cast<int>(LLGL::Key::Down);
+    io.KeyMap[ImGuiKey_PageUp] = static_cast<int>(LLGL::Key::PageUp);
+    io.KeyMap[ImGuiKey_PageDown] = static_cast<int>(LLGL::Key::PageDown);
+    io.KeyMap[ImGuiKey_Home] = static_cast<int>(LLGL::Key::Home);
+    io.KeyMap[ImGuiKey_End] = static_cast<int>(LLGL::Key::End);
+    io.KeyMap[ImGuiKey_Insert] = static_cast<int>(LLGL::Key::Insert);
+    io.KeyMap[ImGuiKey_Delete] = static_cast<int>(LLGL::Key::Delete);
+    io.KeyMap[ImGuiKey_Backspace] = static_cast<int>(LLGL::Key::Back);
+    io.KeyMap[ImGuiKey_Space] = static_cast<int>(LLGL::Key::Space);
+    io.KeyMap[ImGuiKey_Enter] = static_cast<int>(LLGL::Key::Return);
+    io.KeyMap[ImGuiKey_Escape] = static_cast<int>(LLGL::Key::Escape);
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
-    //ImGui::StyleColorsClassic();
 
-    // Setup Platform/Renderer backends
-    ImGui_ImplSDL2_InitForOpenGL(&mWindow, mContext);
+	// Setup Renderer backend
+    LLGL::NativeHandle mainWindowHandle;
+    RendererInstance::GetInstance()->GetContext().GetSurface().GetNativeHandle(&mainWindowHandle, sizeof(mainWindowHandle));
+    mNativeWindow = mainWindowHandle.window;
+
+    ImGui_ImplWin32_Init(mainWindowHandle.window);
     ImGui_ImplOpenGL3_Init(GLSL_VERSION);
-}
-
-void GUISystem::renderGUI()
-{
-    // Start the Dear ImGui frame
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplSDL2_NewFrame();
-    ImGui::NewFrame();
-
-    // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-    if (show_demo_window)
-        ImGui::ShowDemoWindow(&show_demo_window);
-
-    // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
-    {
-        static float f = 0.0f;
-        static int counter = 0;
-
-        ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-
-        ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-        ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-        ImGui::Checkbox("Another Window", &show_another_window);
-
-        ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-        ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-        if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-            counter++;
-        ImGui::SameLine();
-        ImGui::Text("counter = %d", counter);
-
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-        ImGui::End();
-    }
-
-    // 3. Show another simple window.
-    if (show_another_window)
-    {
-        ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-        ImGui::Text("Hello from another window!");
-        if (ImGui::Button("Close Me"))
-            show_another_window = false;
-        ImGui::End();
-    }
-
-    // Rendering
-    ImGui::Render();
-    glViewport(0, 0, static_cast<int>(ImGui::GetIO().DisplaySize.x), static_cast<int>(ImGui::GetIO().DisplaySize.y));
-    glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
-    glClear(GL_COLOR_BUFFER_BIT);
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-    SDL_GL_SwapWindow(&mWindow);
 }
 
 void GUISystem::closeGUI() const
 {
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplSDL2_Shutdown();
+    ImGui_ImplWin32_Shutdown();
+	    
     ImGui::DestroyContext();
+}
 
-    SDL_GL_DeleteContext(mContext);
-    SDL_DestroyWindow(&mWindow);
-    SDL_Quit();
+void GUISystem::handleGUIInput(const InputEvent& inputEvent)
+{
+    switch (inputEvent.mKeyState)
+    {
+	    case KeyStates::Key_Up:
+	        _handleButtonUp(inputEvent.mKeyCode);
+	        break;
+
+	    case KeyStates::Key_Down:
+	        _handleButtonDown(inputEvent.mKeyCode);
+	        break;
+        case KeyStates::Char:
+	    {
+            ImGuiIO& io = ImGui::GetIO();
+            io.AddInputCharacterUTF16(inputEvent.mChar);
+            break;
+	    }
+	    default:
+	        break;
+    }
+}
+
+bool GUISystem::isGUIContext()
+{
+    ImGuiIO& io = ImGui::GetIO();
+    return io.WantCaptureKeyboard || io.WantCaptureMouse;
+}
+
+void GUISystem::RenderGuiElements()
+{
+    ImGui::ShowDemoWindow(&show_demo_window);
+}
+
+void GUISystem::_handleButtonDown(const LLGL::Key keycode) const
+{
+    ImGuiIO& io = ImGui::GetIO();
+    switch(keycode)
+    {
+	    // Mouse buttons: 0=left, 1=right, 2=middle
+	    case LLGL::Key::LButton:
+	    {
+	        io.MouseDown[0] = true;
+	        break;
+	    }
+        // Mouse buttons: 0=left, 1=right, 2=middle
+        case LLGL::Key::RButton:
+        {
+            io.MouseDown[1] = true;
+            break;
+        }
+        case LLGL::Key::Zoom:
+        {
+            io.MouseWheel += -1;
+            break;
+        }
+        default:
+		{
+            if (static_cast<int>(keycode) < 256) { 
+                io.KeysDown[static_cast<int>(keycode)] = true;
+            }
+            break;
+		}
+    }
+}
+
+void GUISystem::_handleButtonUp(const LLGL::Key keycode) const
+{
+    ImGuiIO& io = ImGui::GetIO();
+    switch (keycode)
+    {
+        // Mouse buttons: 0=left, 1=right, 2=middle
+	    case LLGL::Key::LButton:
+	    {
+	        io.MouseDown[0] = false;
+	        break;
+	    }
+	    // Mouse buttons: 0=left, 1=right, 2=middle
+	    case LLGL::Key::RButton:
+	    {
+	        io.MouseDown[1] = false;
+	        break;
+	    }
+        case LLGL::Key::Zoom:
+	    {
+            io.MouseWheel += 1;
+            break;
+		}
+        default:
+        {
+            if (static_cast<int>(keycode) < 256) {
+                io.KeysDown[static_cast<int>(keycode)] = false;
+            }
+            break;
+        }
+    }
+}
+
+void GUISystem::GUIStartFrame()
+{
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplWin32_NewFrame();
+    ImGui::NewFrame();
+}
+
+void GUISystem::GUIEndFrame()
+{
+    // Rendering
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }

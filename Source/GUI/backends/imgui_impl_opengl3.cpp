@@ -203,7 +203,7 @@ bool    ImGui_ImplOpenGL3_Init(const char* glsl_version)
     IM_ASSERT(io.BackendRendererUserData == NULL && "Already initialized a renderer backend!");
 
     // Setup backend capabilities flags
-    ImGui_ImplOpenGL3_Data* bd = IM_NEW(ImGui_ImplOpenGL3_Data)();;
+    ImGui_ImplOpenGL3_Data* bd = IM_NEW(ImGui_ImplOpenGL3_Data)();
     io.BackendRendererUserData = (void*)bd;
     io.BackendRendererName = "imgui_impl_opengl3";
 
@@ -211,8 +211,8 @@ bool    ImGui_ImplOpenGL3_Init(const char* glsl_version)
 #if !defined(IMGUI_IMPL_OPENGL_ES2)
     GLint major = 0;
     GLint minor = 0;
-    glGetIntegerv(GL_MAJOR_VERSION, &major);
-    glGetIntegerv(GL_MINOR_VERSION, &minor);
+	glGetIntegerv(GL_MAJOR_VERSION, &major);
+	glGetIntegerv(GL_MINOR_VERSION, &minor);
     if (major == 0 && minor == 0)
     {
         // Query GL_VERSION in desktop GL 2.x, the string will start with "<major>.<minor>"
