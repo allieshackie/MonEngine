@@ -2,6 +2,7 @@
 #include "imgui.h"
 #include "Core/ResourceManager.h"
 #include "Core/RendererInstance.h"
+#include "Tile.h"
 
 #include "TileSetEditor.h"
 
@@ -41,9 +42,14 @@ void TileSetEditor::RenderGUI()
     }
 }
 
+void TileSetEditor::RenderTest()
+{
+    static bool demo = true;
+    ImGui::ShowDemoWindow(&demo);
+}
+
 void TileSetEditor::_NewTileSet(bool* p_open)
 {
-    ImGui::SetNextWindowSize(ImVec2(500, 440), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("New Tile Set", p_open, ImGuiWindowFlags_MenuBar))
     {
         static char buf1[64] = "";
@@ -99,20 +105,101 @@ void TileSetEditor::_LoadTextureMenu(bool* p_open)
 
 void TileSetEditor::_CurrentSpriteMenu(bool* p_open)
 {
-    auto& currentSprite = ResourceManager::GetLatestSprite();
-    ImGui::SetNextWindowSize(ImVec2(500, 440), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("Sprite Data", p_open, ImGuiWindowFlags_MenuBar))
-    {
-       
-    }
-    ImGui::End();
+	if (mCurrentSprite != nullptr)
+	{
+        ImGui::SetNextWindowSize(ImVec2(500, 550), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowPos(ImVec2(0, 20));
+	    if (ImGui::Begin("Tile Data", p_open, ImGuiWindowFlags_MenuBar))
+	    {
+            ImGui::Text("Transform");
+	    	// POSITION
+            static float posX = mCurrentSprite->GetPosition().x;
+            ImGui::SliderFloat("Pos X", &posX, 1, 1000);
+
+	    	if (posX != mCurrentSprite->GetPosition().x && !ImGui::IsItemActive())
+	    	{
+                mCurrentSprite->UpdatePositionX(posX);
+	    	}
+
+            static float posY = mCurrentSprite->GetPosition().y;
+            ImGui::SliderFloat("Pos Y", &posY, 1, 1000);
+
+            if (posY != mCurrentSprite->GetPosition().y && !ImGui::IsItemActive())
+            {
+                mCurrentSprite->UpdatePositionY(posY);
+            }
+
+	    	// SIZE
+            static float sizeX = mCurrentSprite->GetSize().x;
+            ImGui::SliderFloat("Size X", &sizeX, 1, 1000);
+
+            if (sizeX != mCurrentSprite->GetSize().x && !ImGui::IsItemActive())
+            {
+                mCurrentSprite->UpdateSizeX(sizeX);
+            }
+
+            static float sizeY = mCurrentSprite->GetSize().y;
+            ImGui::SliderFloat("Size Y", &sizeY, 1, 1000);
+
+            if (sizeY != mCurrentSprite->GetSize().y && !ImGui::IsItemActive())
+            {
+                mCurrentSprite->UpdateSizeY(sizeY);
+            }
+
+	    	// ROTATION
+            static float rot = mCurrentSprite->GetRotation();
+            ImGui::SliderFloat("Rotation", &rot, 0, 360);
+
+            if (rot != mCurrentSprite->GetRotation() && !ImGui::IsItemActive())
+            {
+                mCurrentSprite->UpdateRotation(rot);
+            }
+
+
+	    	// TEXTURE COORDS
+            ImGui::Separator();
+            ImGui::Text("Texture Coords");
+
+            static float clipX = mCurrentSprite->GetClip().x;
+            ImGui::SliderFloat("Clip X", &clipX, -2, 2);
+
+            if (clipX != mCurrentSprite->GetClip().x && !ImGui::IsItemActive())
+            {
+                mCurrentSprite->UpdateClipX(clipX);
+            }
+
+            static float clipY = mCurrentSprite->GetClip().y;
+            ImGui::SliderFloat("Clip Y", &clipY, -2, 2);
+
+            if (clipY != mCurrentSprite->GetClip().y && !ImGui::IsItemActive())
+            {
+                mCurrentSprite->UpdateClipY(clipY);
+            }
+
+            static float scaleX = mCurrentSprite->GetScale().x;
+            ImGui::SliderFloat("Scale X", &scaleX, 0, 1);
+
+            if (scaleX != mCurrentSprite->GetScale().x && !ImGui::IsItemActive())
+            {
+                mCurrentSprite->UpdateScaleX(scaleX);
+            }
+
+            static float scaleY = mCurrentSprite->GetScale().y;
+            ImGui::SliderFloat("Scale Y", &scaleY, 0, 1);
+
+            if (scaleY != mCurrentSprite->GetScale().y && !ImGui::IsItemActive())
+            {
+                mCurrentSprite->UpdateScaleY(scaleY);
+            }
+	    }
+	    ImGui::End();
+	}
 }
 
 void TileSetEditor::_LoadTileSetTexture(const char* textureName)
 {
-	//glm::vec2 clip[4] = { {0, 0}, { 0,  .1 }, { .1, 0 }, { .1,  .1 } };
-    const auto sprite = new Sprite({ -1, 1 }, { 200, 250 }, textureName);
-    ResourceManager::RegisterSprite(sprite);
+    ResourceManager::CreateTile(textureName, { 200.0f, 200.0f }, { 100.0f, 100.0f });
+    mCurrentSprite = ResourceManager::GetLatestTile();
 }
 
 void TileSetEditor::_GetTextureFileNames(std::array<char*, 6>& items)

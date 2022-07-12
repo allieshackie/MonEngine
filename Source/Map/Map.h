@@ -13,5 +13,5 @@ public:
 
 private:
 	std::vector<Tile> mMapTiles;
-	std::string mMapTexture;
+	int mMapTextureId;
 };

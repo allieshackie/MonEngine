@@ -2,7 +2,7 @@
 #include <LLGL/LLGL.h>
 #include <unordered_map>
 #include <glm/vec2.hpp>
-#include "Sprite.h"
+#include "Tile.h"
 
 class Texture;
 class Shader;
@@ -20,7 +20,7 @@ public:
 	static int GetTextureId(const std::string& filePath);
 	static glm::vec2 GetTextureSize(int textureId);
 
-	static void CreateResourceHeap(LLGL::PipelineLayout& pipelineLayout);
+	static void CreateResourceHeap(LLGL::PipelineLayout& pipelineLayout, LLGL::Buffer& constantBuffer);
 
 	static void BindTexture(LLGL::CommandBuffer& commands);
 	static void SetCurrentTexture(int textureId);
@@ -29,9 +29,13 @@ public:
 	static void LoadShaderProgram(const char* vertexFilePath, const char* fragmentFilePath);
 	static LLGL::ShaderProgram& GetShaderProgram();
 
-	static void RegisterSprite(Sprite* sprite);
-	static const std::vector<std::unique_ptr<Sprite>>& GetSpriteList();
-	static Sprite& GetLatestSprite();
+	// Helper used for editor
+	static void CreateSprite(const std::string& textureName, glm::vec2 pos, glm::vec2 size);
+	static const std::vector<std::pair<int, Tile*>>& GetSpritesList();
+	static Sprite* GetLatestSprite();
+
+	static void CreateTile(const std::string& textureName, glm::vec2 pos, glm::vec2 size);
+	static Tile* GetLatestTile();
 
 	static float Normalize(float size);
 	
@@ -42,7 +46,7 @@ private:
 	static LLGL::VertexFormat mVertexFormat;
 
 	static LLGL::ResourceHeap* mResourceHeap;
-	static uint32_t mResourceIndex;
+	static int mResourceIndex;
 
-	static std::vector<std::unique_ptr<Sprite>> mSpriteList;
+	static std::vector<std::pair<int, Tile*>> mSpritesList;
 };

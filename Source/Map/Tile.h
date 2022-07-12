@@ -1,37 +1,24 @@
 #pragma once
+#include "Sprite.h"
+#include <glm/vec2.hpp>
 
-#include <SDL.h>
 
-// SDL_RenderCopy(ren, sheet, &src, &dest);
-
-/*
-    cur_gid is a check if tile is empty?
-    texCoordX = (cur_gid % (ts_width / tile_width)) * tile_width;
-    texCoordY = (cur_gid / (ts_width / tile_width)) * tile_height;
-*/
-
-class Tile {
+class Tile: public Sprite {
 public:
-    //Initializes the variables
-    Tile(int clipPosX, int clipPosY, int width, int height, int screenPosX, int screenPosY);
+    Tile(glm::vec2 pos, glm::vec2 size, int index);
 
-    //Get the collision box
-    SDL_Rect getBox() const;
+	glm::vec2 GetClip() const;
+	glm::vec2 GetScale() const;
+	
+	void UpdateTextureClip();
 
-    int getScreenPosX() const { return mScreenPosX; }
-    int getScreenPosY() const { return mScreenPosY; }
+	void UpdateClipX(float x);
+	void UpdateClipY(float y);
 
-    void updateScreenPosX(const int x) {
-        mScreenPosX += x;
-    }
-
-    void updateScreenPosY(const int y) {
-        mScreenPosY += y;
-    }
+	void UpdateScaleX(float x);
+	void UpdateScaleY(float y);
 
 private:
-    SDL_Rect mBox = {0, 0, 0 ,0};
-
-    int mScreenPosX = 0;
-    int mScreenPosY = 0;
+	glm::vec2 mClip = { 0.0f, 0.0f };
+	glm::vec2 mScale = { 1.0f, 1.0f };
 };

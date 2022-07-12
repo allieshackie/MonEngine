@@ -18,14 +18,14 @@ void Map::LoadTiles()
 	const int TILE_HEIGHT = tileDescription->getTileHeight();
 
 	const int MAP_WIDTH = mapDescription->getMapWidth();
-	mMapTexture = tileDescription->getTexturePath();
+	//mMapTexture = tileDescription->getTexturePath();
 	
 	int screenPosX = 0, screenPosY = 0;
 	int widthCounter = 1;
 
 	for (const auto& tile : mapDescription->getTiles()) {
 		const auto& pos = tileDescription->getTileClipPosition(tile);
-		mMapTiles.emplace_back(pos[0], pos[1], TILE_WIDTH, TILE_HEIGHT, screenPosX, screenPosY);
+		//mMapTiles.emplace_back(pos[0], pos[1], TILE_WIDTH, TILE_HEIGHT, screenPosX, screenPosY);
 
 		screenPosX += TILE_WIDTH;
 		if (widthCounter == MAP_WIDTH) {
@@ -41,9 +41,4 @@ void Map::LoadTiles()
 const std::vector<Tile>& Map::GetMapTiles() const
 {
 	return mMapTiles;
-}
-
-const std::string& Map::GetMapTexture() const
-{
-	return mMapTexture;
 }

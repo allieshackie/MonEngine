@@ -10,10 +10,15 @@ public:
 
     void init();
 
+    LLGL::Window& GetWindow();
+
     bool isLoadingDone() const
     {
         return mIsLoadingDone;
     }
+
+    void ShowCursor(bool show);
+    bool IsCursorShowing();
 
 private:
     bool mIsLoadingDone = false;
@@ -37,7 +42,10 @@ public:
 
             // Re-draw frame
             if (mWindow.isLoadingDone())
+            {
+                mRenderer.UpdateProjection();
                 mRenderer.OnDrawFrame([]() {});
+            }
         }
     }
 	

@@ -1,25 +1,16 @@
-#include "LLGL/Utility.h"
-#include "Core/ResourceManager.h"
-#include "Core/RendererInstance.h"
+#include <glm/vec3.hpp>
+#include <glm/gtc/matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
 
 #include "Sprite.h"
 
-
-Sprite::Sprite(glm::vec2 pos, glm::vec2 size, const std::string& texturePath, glm::vec2 clip[4])
+Sprite::Sprite(glm::vec2 pos, glm::vec2 size) : mSize(size)
 {
-    mTextureId = ResourceManager::GetTextureId(texturePath);
-    CreateVertexBuffer(pos, size, clip);
-}
-
-void Sprite::Draw(LLGL::CommandBuffer& commands) const
-{
-    ResourceManager::SetTexture(commands, mTextureId);
-    commands.SetVertexBuffer(*mVertexBuffer);
-    commands.Draw(mNumVertices, 0);
+    mPosition = glm::vec2(pos.x + size.x / 2, pos.y + size.y / 2);
+    UpdateDrawData();
 }
 
 /*
- * 
+ *
 // EXAMPLE DATA: BASE VALUES
 mVertices = {
     { { -1,  1 }, { 0, 0 } }, // top left
@@ -28,26 +19,65 @@ mVertices = {
     { {  1, -1 }, {  1,  1 } }, // bottom right
 };
  */
-
-void Sprite::CreateVertexBuffer(glm::vec2 pos, glm::vec2 size, glm::vec2 clip[4])
+void Sprite::UpdateDrawData()
 {
-    const auto& renderSystem = RendererInstance::GetInstance()->GetRendererSystem();
+    mModel = glm::mat4(1.0f);
+    mModel = glm::translate(mModel, glm::vec3(mPosition, 0.0f));
 
-    const float normalizeWidth = ResourceManager::Normalize(size.x);
-    const float normalizeHeight = ResourceManager::Normalize(size.y);
+	// Sprite origin is center, no need to translate
+    //mModel = glm::translate(mModel, glm::vec3(0.5f * mSize.x, 0.5f * mSize.y, 0.0f));
+    mModel = glm::rotate(mModel, glm::radians(mRotation), glm::vec3(0.0f, 0.0f, 1.0f));
+    //mModel = glm::translate(mModel, glm::vec3(-0.5f * mSize.x, -0.5f * mSize.y, 0.0f));
 
-	// NOTE: Texture coords are mapped like DirectX not OpenGL
-    mVertices = {
-		{ { pos.x, pos.y }, { clip[0].x, clip[0].y } }, // top left
-        { { pos.x, pos.y - normalizeHeight }, { clip[1].x, clip[1].y } }, // bottom left
-        { { pos.x + normalizeWidth, pos.y }, { clip[2].x, clip[2].y } }, // top right
-        { { pos.x + normalizeWidth, pos.y - normalizeHeight }, { clip[3].x, clip[3].y } }, // bottom right
-    };
+    mModel = glm::scale(mModel, glm::vec3(mSize, 1.0f));
+}
 
-    mNumVertices = static_cast<std::uint32_t>(mVertices.size());
+const glm::mat4& Sprite::GetSpriteModelData() const
+{
+    return mModel;
+}
 
-    mVertexBuffer = renderSystem->CreateBuffer(
-        LLGL::VertexBufferDesc(static_cast<std::uint32_t>(mVertices.size() * sizeof(Vertex)), ResourceManager::GetVertexFormat()),
-        mVertices.data()
-    );
+glm::mat4 Sprite::GetTextureClip() const
+{
+    return mTextureClip;
+}
+
+glm::vec2 Sprite::GetSize() const
+{
+    return mSize;
+}
+
+glm::vec2 Sprite::GetPosition() const
+{
+    return mPosition;
+}
+
+float Sprite::GetRotation() const
+{
+    return mRotation;
+}
+
+void Sprite::UpdatePositionX(float x)
+{
+    mPosition.x = x;
+}
+
+void Sprite::UpdatePositionY(float y)
+{
+    mPosition.y = y;
+}
+
+void Sprite::UpdateSizeX(float x)
+{
+    mSize.x = x;
+}
+
+void Sprite::UpdateSizeY(float y)
+{
+    mSize.y = y;
+}
+
+void Sprite::UpdateRotation(float rot)
+{
+    mRotation = rot;
 }

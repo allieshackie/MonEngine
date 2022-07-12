@@ -23,7 +23,19 @@ void Shader::LoadShaderProgram(const LLGL::VertexFormat& vertexFormat, const cha
     vertShaderDesc.vertex.inputAttribs = vertexFormat.attributes;
 
     LLGL::Shader* vertShader = renderer->GetRendererSystem()->CreateShader(vertShaderDesc);
+    // Print info log (warnings and errors)
+    std::string vertLog = vertShader->GetReport();
+    if (!vertLog.empty())
+    {   
+        std::cerr << vertLog << std::endl;
+    }
     LLGL::Shader* fragShader = renderer->GetRendererSystem()->CreateShader(fragShaderDesc);
+    // Print info log (warnings and errors)
+    std::string fragLog = fragShader->GetReport();
+    if (!fragLog.empty())
+    {
+        std::cerr << fragLog << std::endl;
+    }
 
     LLGL::ShaderProgramDescriptor shaderProgramDesc;
     {
@@ -31,4 +43,9 @@ void Shader::LoadShaderProgram(const LLGL::VertexFormat& vertexFormat, const cha
         shaderProgramDesc.fragmentShader = fragShader;
     }
     mShaderProgram = renderer->GetRendererSystem()->CreateShaderProgram(shaderProgramDesc);
+    // Link shader program and check for errors
+    if (mShaderProgram->HasErrors())
+    {   
+        throw std::runtime_error(mShaderProgram->GetReport());
+    }
 }

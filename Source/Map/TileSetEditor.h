@@ -1,5 +1,8 @@
 #pragma once
 
+class Sprite;
+class Tile;
+
 static const char* TEXTURE_FOLDER_GUI = "C:/dev/MonDev/Data/Textures";
 static const char* TILESET_FOLDER = "C:/dev/MonDev/Data/Tileset";
 
@@ -9,6 +12,8 @@ public:
 	~TileSetEditor() = default;
 
 	void RenderGUI();
+
+	void RenderTest();
 private:
 	void _NewTileSet(bool* p_open);
 	void _LoadTextureMenu(bool* p_open);
@@ -22,4 +27,5 @@ private:
 
 
 	std::array<char*, 6> mTextureFileNames;
+	Tile* mCurrentSprite = nullptr;
 };

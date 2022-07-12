@@ -3,13 +3,15 @@
 #include <LLGL/LLGL.h>
 #include <queue>
 
+class Window;
+
 enum class KeyStates
 {
 	Key_Neutral = 0,
 	Key_Down,
 	Key_Up,
 	Key_Hold,
-	Char,
+	Char
 };
 
 struct InputEvent
@@ -57,22 +59,29 @@ protected:
 		mEventQueue.push({ chr });
 	}
 
-
 private:
 	std::queue<InputEvent> mEventQueue;
 };
 
 class InputHandler {
 public:
-	InputHandler();
+	InputHandler(Window& window);
 
 	void pollInputEvents();
 	void pollGUIInputEvents(const std::function<void(const InputEvent & event)>& keyboardCallback) const;
 
 	void registerButtonUpHandler(LLGL::Key keyCode, const std::function<void()>& callback);
+	void registerButtonDownHandler(LLGL::Key keyCode, const std::function<void()>& callback);
+
+	void registerMouseMoveHandler(const std::function<void(LLGL::Offset2D)>& callback);
 private:
 	void _handleButtonUpEvent(LLGL::Key keyCode);
+	void _handleButtonDownEvent(LLGL::Key keyCode);
 
 	std::unordered_map<LLGL::Key, std::function<void()>> mButtonUpHandlers;
+	std::unordered_map<LLGL::Key, std::function<void()>> mButtonDownHandlers;
+	std::function<void(LLGL::Offset2D)> mMouseMoveCallback;
 	std::shared_ptr<InputQueue> mInput; // User input event listener
+
+	Window& mWindow;
 };

@@ -36,6 +36,29 @@ void Window::init()
     mIsLoadingDone = true;
 }
 
+LLGL::Window& Window::GetWindow()
+{
+    const auto renderer = RendererInstance::GetInstance();
+    // get window from context surface
+    return LLGL::CastTo<LLGL::Window>(renderer->GetContext().GetSurface());
+}
+
+void Window::ShowCursor(bool show)
+{
+    const auto renderer = RendererInstance::GetInstance();
+    // get window from context surface
+    auto display = renderer->GetContext().GetSurface().FindResidentDisplay();
+    display->ShowCursor(show);
+}
+
+bool Window::IsCursorShowing()
+{
+    const auto renderer = RendererInstance::GetInstance();
+    // get window from context surface
+    auto display = renderer->GetContext().GetSurface().FindResidentDisplay();
+    return display->IsCursorShown();
+}
+
 
 
 

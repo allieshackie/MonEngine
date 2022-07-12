@@ -1,12 +1,12 @@
 #include "Core/RendererInstance.h"
+#include "Graphics/Core/Window.h"
 
 #include "InputHandler.h"
 
-InputHandler::InputHandler() {
-	const auto& context = RendererInstance::GetInstance()->GetContext();
+InputHandler::InputHandler(Window& window) : mWindow(window) {
 	mInput = std::make_shared<InputQueue>();
-	auto& window = LLGL::CastTo<LLGL::Window>(context.GetSurface());
-	window.AddEventListener(mInput);
+	auto& llglWindow = window.GetWindow();
+	llglWindow.AddEventListener(mInput);
 }
 
 void InputHandler::pollInputEvents() {
@@ -18,12 +18,27 @@ void InputHandler::pollInputEvents() {
 			_handleButtonUpEvent(event.mKeyCode);
 			break;
 
+		case KeyStates::Key_Down:
+			_handleButtonDownEvent(event.mKeyCode);
+			break;
+
 		default:
 			break;
 		}
 
 		mInput->PopEvent();
 	}
+
+	/*
+	 * Added to support camera rotation, but doesn't make sense for 2D
+	if (!mWindow.IsCursorShowing())
+	{
+		if (mMouseMoveCallback != nullptr)
+		{
+			mMouseMoveCallback(mInput->GetMousePosition());
+		} 
+	}
+	 */
 }
 
 void InputHandler::pollGUIInputEvents(const std::function<void(const InputEvent& event)>& callback) const
@@ -51,10 +66,28 @@ void InputHandler::registerButtonUpHandler(LLGL::Key keyCode, const std::functio
 	mButtonUpHandlers.insert({ keyCode, callback });
 }
 
+void InputHandler::registerButtonDownHandler(LLGL::Key keyCode, const std::function<void()>& callback)
+{
+	mButtonDownHandlers.insert({ keyCode, callback });
+}
+
+void InputHandler::registerMouseMoveHandler(const std::function<void(LLGL::Offset2D)>& callback)
+{
+	mMouseMoveCallback = callback;
+}
+
 void InputHandler::_handleButtonUpEvent(LLGL::Key keyCode)
 {
 	const auto& handler = mButtonUpHandlers.find(keyCode);
 	if (handler != mButtonUpHandlers.end()) {
+		handler->second();
+	}
+}
+
+void InputHandler::_handleButtonDownEvent(LLGL::Key keyCode)
+{
+	const auto& handler = mButtonDownHandlers.find(keyCode);
+	if (handler != mButtonDownHandlers.end()) {
 		handler->second();
 	}
 }

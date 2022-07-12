@@ -12,8 +12,8 @@ std::unordered_map<std::string, int> ResourceManager::mTextureIds;
 Shader* ResourceManager::mShader = nullptr;
 LLGL::ResourceHeap* ResourceManager::mResourceHeap = nullptr;
 LLGL::VertexFormat ResourceManager::mVertexFormat;
-uint32_t ResourceManager::mResourceIndex = 0;
-std::vector<std::unique_ptr<Sprite>> ResourceManager::mSpriteList;
+int ResourceManager::mResourceIndex = -1;
+std::vector<std::pair<int, Tile*>> ResourceManager::mSpritesList;
 
 void ResourceManager::LoadAllTexturesFromFolder()
 {
@@ -36,15 +36,17 @@ void ResourceManager::LoadTexture(const std::string& filePath, const std::string
 }
 
 void ResourceManager::SetTexture(LLGL::CommandBuffer& commands, int textureId)
-{	
-    SetCurrentTexture(textureId);
-    BindTexture(commands);
+{
+	if (textureId != mResourceIndex)
+	{
+	    SetCurrentTexture(textureId);
+	    BindTexture(commands);
+	}
 }
 
 int ResourceManager::GetTextureId(const std::string& filePath)
 {
-    const auto& it = mTextureIds.find(filePath);
-	if (it != mTextureIds.end())
+	if (const auto& it = mTextureIds.find(filePath); it != mTextureIds.end())
 	{
         return it->second;
 	}
@@ -54,8 +56,7 @@ int ResourceManager::GetTextureId(const std::string& filePath)
 
 glm::vec2 ResourceManager::GetTextureSize(int textureId)
 {
-    const auto textureIt = mTextures.find(textureId);
-	if (textureIt != mTextures.end())
+	if (const auto textureIt = mTextures.find(textureId); textureIt != mTextures.end())
 	{
         return textureIt->second->GetTextureSize();
 	}
@@ -100,19 +101,39 @@ LLGL::ShaderProgram& ResourceManager::GetShaderProgram()
     return mShader->GetShaderProgram();
 }
 
-void ResourceManager::RegisterSprite(Sprite* sprite)
+void ResourceManager::CreateSprite(const std::string& textureName, glm::vec2 pos, glm::vec2 size)
 {
-    mSpriteList.emplace_back(sprite);
+    const auto textureId = mTextureIds.find(textureName);
+	if (textureId != mTextureIds.end())
+	{
+	    //const auto sprite = new Sprite(pos, size);
+        //mSpritesList.emplace_back(std::make_pair(textureId->second, sprite));
+	}
 }
 
-const std::vector<std::unique_ptr<Sprite>>& ResourceManager::GetSpriteList()
+const std::vector<std::pair<int, Tile*>>& ResourceManager::GetSpritesList()
 {
-    return mSpriteList;
+    return mSpritesList;
 }
 
-Sprite& ResourceManager::GetLatestSprite()
+Sprite* ResourceManager::GetLatestSprite()
 {
-    return *mSpriteList.front();
+    return mSpritesList.back().second;
+}
+
+void ResourceManager::CreateTile(const std::string& textureName, glm::vec2 pos, glm::vec2 size)
+{
+    const auto textureId = mTextureIds.find(textureName);
+    if (textureId != mTextureIds.end())
+    {
+        const auto sprite = new Tile(pos, size, 0);
+        mSpritesList.emplace_back(std::make_pair(textureId->second, sprite));
+    }
+}
+
+Tile* ResourceManager::GetLatestTile()
+{
+    return mSpritesList.front().second;
 }
 
 float ResourceManager::Normalize(float size)
@@ -120,18 +141,19 @@ float ResourceManager::Normalize(float size)
     return (size - 1) / 99;
 }
 
-void ResourceManager::CreateResourceHeap(LLGL::PipelineLayout& pipelineLayout)
+void ResourceManager::CreateResourceHeap(LLGL::PipelineLayout& pipelineLayout, LLGL::Buffer& constantBuffer)
 {
     const auto& renderSystem = RendererInstance::GetInstance()->GetRendererSystem();
     LLGL::ResourceHeapDescriptor resourceHeapDesc;
     {
         resourceHeapDesc.pipelineLayout = &pipelineLayout;
-        resourceHeapDesc.resourceViews.reserve(mTextures.size() * 2);
+        resourceHeapDesc.resourceViews.reserve(mTextures.size() * 3);
+    	
     	for (const auto& texture : mTextures)
     	{
-            resourceHeapDesc.resourceViews.emplace_back(&texture.second->GetSamplerData());
+            resourceHeapDesc.resourceViews.emplace_back(&constantBuffer);
             resourceHeapDesc.resourceViews.emplace_back(&texture.second->GetTextureData());
-    		
+            resourceHeapDesc.resourceViews.emplace_back(&texture.second->GetSamplerData());
     	}
   
     }

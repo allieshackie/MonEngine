@@ -1,32 +1,33 @@
 #pragma once
-#include <glm/vec2.hpp>
-
-struct Vertex
-{
-	glm::vec2 position;
-	glm::vec2 texCoord;
-};
-
-// TODO: Clip info will likely be supplied by Tileset, we can specify rows/columns
-
-static glm::vec2 nullClip[4] = { {0, 0}, { 0,  1 }, { 1, 0 }, { 1,  1 } };
+#include <glm/mat4x4.hpp>
 
 class Sprite
 {
 public:
 	Sprite() = default;
 	// position: top left corner of sprite, size: width, height
-	Sprite(glm::vec2 pos, glm::vec2 size, const std::string& texturePath, glm::vec2 clip[4] = nullClip);
+	Sprite(glm::vec2 pos, glm::vec2 size);
+	
+	const glm::mat4& GetSpriteModelData() const;
+	glm::mat4 GetTextureClip() const;
+	glm::vec2 GetSize() const;
+	glm::vec2 GetPosition() const;
+	float GetRotation() const;
 
-	void Draw(LLGL::CommandBuffer& commands) const;
+	void UpdateDrawData();
+	void UpdatePositionX(float x);
+	void UpdatePositionY(float y);
+	void UpdateSizeX(float x);
+	void UpdateSizeY(float y);
+	void UpdateRotation(float rot);
 
+protected:
+	glm::mat4 mTextureClip = glm::mat4(1.0f);
+	
 private:
-	
-	void CreateVertexBuffer(glm::vec2 pos, glm::vec2 size, glm::vec2 clip[4] = nullClip);
-	
-	int mTextureId = 0;
-	LLGL::Buffer* mVertexBuffer = nullptr;
+	glm::vec2 mPosition = { 0, 0 };
+	glm::vec2 mSize = { 1,1 };
+	float mRotation = 180.0f;
 
-	std::vector<Vertex> mVertices;
-	uint32_t mNumVertices = 0;
+	glm::mat4 mModel = glm::mat4(1.0);
 };

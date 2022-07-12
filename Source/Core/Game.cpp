@@ -1,12 +1,10 @@
-#include <SDL.h>
-#include <glad/glad.h>
 #include "DescriptionRegistry.h"
-#include "EntityRegistry.h"
-#include "InputHandler.h"
 #include "GUISystem.h"
-#include "Map.h"
-#include "Renderer.h"
-#include "Window.h"
+#include "InputHandler.h"
+#include "TileSetEditor.h"
+#include "Core/RendererInstance.h"
+#include "Core/Window.h"
+#include "Camera.h"
 
 #include "Game.h"
 
@@ -19,24 +17,6 @@ int main(int argc, char** argv)
 	return 0;
 }
 
-Game::Game()
-{
-    mWindow = std::make_unique<Window>();
-    mRenderer = std::make_unique<Renderer>(*mWindow);
-
-	//mRenderer->initExample();
-	
-    mInputHandler = std::make_unique<InputHandler>();
-    mInputHandler->registerEventHandler(SDL_QUIT, [=]() { mRunning = false; });
-
-
-	mWindow->LLGLExample();
-
-	//texture = new Texture(mWindow->getSDLWindow(), "ground_tileset_01.png");
-
-	//mGUISystem = std::make_unique<GUISystem>(mWindow->getSDLWindow(), mWindow->getSDLContext());
-}
-
 Window& Game::getWindow() const
 {
     return *mWindow;
@@ -44,8 +24,27 @@ Window& Game::getWindow() const
 
 void Game::configureLevel()
 {
-	mDescriptionRegistry = std::make_unique<DescriptionRegistry>();
-	//mMap = std::make_unique<Map>(*mDescriptionRegistry, mRenderer->getRenderer());
+	//mDescriptionRegistry = std::make_unique<DescriptionRegistry>();
+	//mDescriptionRegistry->registerAllDescriptions();
+	mRenderer = RendererInstance::GetInstance();
+	mWindow = std::make_unique<Window>();
+
+	mRenderer->OnDrawInit();
+	
+	mCamera = std::make_unique<Camera>();
+	mCamera->UpdateView();
+
+	mInputHandler = std::make_unique<InputHandler>(*mWindow);
+	mInputHandler->registerButtonUpHandler(LLGL::Key::Escape, [=]() { mRunning = false; });
+
+	// Register camera handlers
+	mInputHandler->registerButtonUpHandler(LLGL::Key::W, [=]() { mCamera->MoveUp(); });
+	mInputHandler->registerButtonUpHandler(LLGL::Key::S, [=]() { mCamera->MoveDown(); });
+	mInputHandler->registerButtonUpHandler(LLGL::Key::A, [=]() { mCamera->MoveLeft(); });
+	mInputHandler->registerButtonUpHandler(LLGL::Key::D, [=]() { mCamera->MoveRight(); });
+	
+	mGUISystem = std::make_unique<GUISystem>();
+	mTileSetEditor = std::make_unique<TileSetEditor>();
 }
 
 void Game::closeGame()
@@ -55,22 +54,28 @@ void Game::closeGame()
 
 void Game::runGame() const
 {
-	while (mRunning) {
-        
-		mInputHandler->tick();
+	while (mRenderer->GetContext().GetSurface().ProcessEvents() && mRunning)
+	{
+		// Process Input
+		if (mGUISystem->isGUIContext())
+		{
+			mInputHandler->pollGUIInputEvents([=](const InputEvent& event)
+			{
+				mGUISystem->handleGUIInput(event);
+			});
 
-		//mGUISystem->renderGUI();
-
-		//mRenderer->renderExample();
-
-		//texture->Render(0, 0);
-
-		//SDL_GL_SwapWindow(&mWindow->getSDLWindow());
-		/*
-		 * 
-        mRenderer->render([=]() {
-            //mMap->Render();
-        });
-		 */
+		}
+		else
+		{
+			mInputHandler->pollInputEvents();	
+		}
+		mRenderer->OnDrawFrame([=]()
+		{
+			// Render GUI
+			mGUISystem->GUIStartFrame();
+			mTileSetEditor->RenderGUI();
+			mGUISystem->GUIEndFrame();
+		});
+		
 	}
 }
