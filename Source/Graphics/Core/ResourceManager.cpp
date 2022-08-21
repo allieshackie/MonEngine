@@ -121,12 +121,12 @@ Sprite* ResourceManager::GetLatestSprite()
     return mSpritesList.back().second;
 }
 
-void ResourceManager::CreateTile(const std::string& textureName, glm::vec2 pos, glm::vec2 size)
+void ResourceManager::CreateTile(const std::string& textureName, glm::vec2 pos, glm::vec2 size, glm::vec2 clip, glm::vec2 scale)
 {
     const auto textureId = mTextureIds.find(textureName);
     if (textureId != mTextureIds.end())
     {
-        const auto sprite = new Tile(pos, size, 0);
+        const auto sprite = new Tile(pos, size, clip, scale);
         mSpritesList.emplace_back(std::make_pair(textureId->second, sprite));
     }
 }

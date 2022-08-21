@@ -33,8 +33,9 @@ public:
 
     void SetTexture(int textureId) const;
 
-    void UpdateSettings(glm::mat4 view, glm::mat4 textureClip);
+    void UpdateModelSettings(glm::mat4 model, glm::mat4 textureClip);
     void UpdateProjection();
+    void UpdateView(glm::mat4 view);
 
 private:
     void _InitLLGL();
@@ -58,16 +59,17 @@ private:
     struct Settings
     {
         glm::mat4 projection;
+        glm::mat4 view;
         glm::mat4 model;
         glm::mat4 textureClip;
     }
     settings = {};
 
     const std::vector<Vertex> mSpriteVertices = {
-    { { -1,  1 }, { 0, 0 } }, // top left
-    { { -1, -1 }, { 0,  1 } }, // bottom left
-    { {  1,  1 }, {  1, 0 } }, // top right
-    { {  1, -1 }, {  1,  1 } }, // bottom right
+    { { -1,  1 }, { 1, 0 } }, // top left
+    { { -1, -1 }, { 1,  1 } }, // bottom left
+    { {  1,  1 }, {  0, 0 } }, // top right
+    { {  1, -1 }, {  0,  1 } }, // bottom right
     };
 
     uint32_t mNumVertices = 0;

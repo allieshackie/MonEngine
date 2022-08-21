@@ -7,7 +7,7 @@
 class Texture;
 class Shader;
 
-static const char* TEXTURE_FOLDER = "C:/dev/MonDev/Data/Textures";
+static const char* TEXTURE_FOLDER = "D:/dev/MonDev/Data/Textures";
 
 const int PRIME_CONST = 31;
 
@@ -34,7 +34,7 @@ public:
 	static const std::vector<std::pair<int, Tile*>>& GetSpritesList();
 	static Sprite* GetLatestSprite();
 
-	static void CreateTile(const std::string& textureName, glm::vec2 pos, glm::vec2 size);
+	static void CreateTile(const std::string& textureName, glm::vec2 pos, glm::vec2 size, glm::vec2 clip = { 0.0f, 0.0f }, glm::vec2 scale = { 1.0f, 1.0f });
 	static Tile* GetLatestTile();
 
 	static float Normalize(float size);

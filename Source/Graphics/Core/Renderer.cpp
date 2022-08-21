@@ -5,7 +5,6 @@
 
 #include "Renderer.h"
 
-
 static constexpr int SCREEN_WIDTH = 800;
 static constexpr int SCREEN_HEIGHT = 600;
 
@@ -60,6 +59,8 @@ void Renderer::OnDrawInit()
 	ResourceManager::CreateResourceHeap(*mPipelineLayout, *mConstantBuffer);
 
     CreateSpriteVertexBuffer();
+
+    //ResourceManager::CreateSprite("awesomeface.png", { 100,100 }, { 200, 200 });
 }
 
 void Renderer::OnDrawAll()
@@ -70,7 +71,7 @@ void Renderer::OnDrawAll()
         SetTexture(pair.first);
         pair.second->UpdateDrawData();
         pair.second->UpdateTextureClip();
-        UpdateSettings(pair.second->GetSpriteModelData(), pair.second->GetTextureClip());
+        UpdateModelSettings(pair.second->GetSpriteModelData(), pair.second->GetTextureClip());
 
         mCommands->Draw(mNumVertices, 0);
 	}
@@ -149,10 +150,10 @@ void Renderer::SetTexture(int textureId) const
     ResourceManager::SetTexture(*mCommands, textureId);
 }
 
-void Renderer::UpdateSettings(glm::mat4 view, glm::mat4 textureClip)
+void Renderer::UpdateModelSettings(glm::mat4 model, glm::mat4 textureClip)
 {
     // Update constant buffer (shader uniforms) with new "model view" value
-    settings.model = view;
+    settings.model = model;
     settings.textureClip = textureClip;
     mCommands->UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
 }
@@ -162,5 +163,11 @@ void Renderer::UpdateProjection()
 {
     const auto res = mContext->GetVideoMode().resolution;
     settings.projection = glm::ortho(0.0f, static_cast<float>(res.width), static_cast<float>(res.height), 0.0f, -1.0f, 1.0f);
+    mCommands->UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
+}
+
+void Renderer::UpdateView(glm::mat4 view)
+{
+    settings.view = view;
     mCommands->UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
 }
