@@ -15,10 +15,8 @@ public:
 	float GetRotation() const;
 
 	void UpdateDrawData();
-	void UpdatePositionX(float x);
-	void UpdatePositionY(float y);
-	void UpdateSizeX(float x);
-	void UpdateSizeY(float y);
+	void UpdatePosition(glm::vec2 pos);
+	void UpdateSize(glm::vec2 size);
 	void UpdateRotation(float rot);
 
 protected:

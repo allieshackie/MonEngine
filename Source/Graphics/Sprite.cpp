@@ -9,27 +9,27 @@ Sprite::Sprite(glm::vec2 pos, glm::vec2 size) : mSize(size)
     UpdateDrawData();
 }
 
-/*
- *
-// EXAMPLE DATA: BASE VALUES
-mVertices = {
-    { { -1,  1 }, { 0, 0 } }, // top left
-    { { -1, -1 }, { 0,  1 } }, // bottom left
-    { {  1,  1 }, {  1, 0 } }, // top right
-    { {  1, -1 }, {  1,  1 } }, // bottom right
-};
- */
 void Sprite::UpdateDrawData()
 {
     mModel = glm::mat4(1.0f);
     mModel = glm::translate(mModel, glm::vec3(mPosition, 0.0f));
 
-	// Sprite origin is center, no need to translate
+	// TODO: Sprite origin is center, no need to translate
     //mModel = glm::translate(mModel, glm::vec3(0.5f * mSize.x, 0.5f * mSize.y, 0.0f));
     mModel = glm::rotate(mModel, glm::radians(mRotation), glm::vec3(0.0f, 0.0f, 1.0f));
     //mModel = glm::translate(mModel, glm::vec3(-0.5f * mSize.x, -0.5f * mSize.y, 0.0f));
 
     mModel = glm::scale(mModel, glm::vec3(mSize, 1.0f));
+}
+
+void Sprite::UpdatePosition(glm::vec2 pos)
+{
+    mPosition = pos;
+}
+
+void Sprite::UpdateSize(glm::vec2 size)
+{
+    mSize = size;
 }
 
 const glm::mat4& Sprite::GetSpriteModelData() const
@@ -57,25 +57,6 @@ float Sprite::GetRotation() const
     return mRotation;
 }
 
-void Sprite::UpdatePositionX(float x)
-{
-    mPosition.x = x;
-}
-
-void Sprite::UpdatePositionY(float y)
-{
-    mPosition.y = y;
-}
-
-void Sprite::UpdateSizeX(float x)
-{
-    mSize.x = x;
-}
-
-void Sprite::UpdateSizeY(float y)
-{
-    mSize.y = y;
-}
 
 void Sprite::UpdateRotation(float rot)
 {
