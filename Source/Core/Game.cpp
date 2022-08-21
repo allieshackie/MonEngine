@@ -5,8 +5,12 @@
 #include "Core/RendererInstance.h"
 #include "Core/Window.h"
 #include "Camera.h"
+#include "Core/ResourceManager.h"
 
 #include "Game.h"
+
+#include "Map.h"
+
 
 int main(int argc, char** argv)
 {
@@ -24,8 +28,6 @@ Window& Game::getWindow() const
 
 void Game::configureLevel()
 {
-	//mDescriptionRegistry = std::make_unique<DescriptionRegistry>();
-	//mDescriptionRegistry->registerAllDescriptions();
 	mRenderer = RendererInstance::GetInstance();
 	mWindow = std::make_unique<Window>();
 
@@ -42,9 +44,12 @@ void Game::configureLevel()
 	mInputHandler->registerButtonUpHandler(LLGL::Key::S, [=]() { mCamera->MoveDown(); });
 	mInputHandler->registerButtonUpHandler(LLGL::Key::A, [=]() { mCamera->MoveLeft(); });
 	mInputHandler->registerButtonUpHandler(LLGL::Key::D, [=]() { mCamera->MoveRight(); });
-	
+
+	mInputHandler->registerZoomInHandler([=]() { mCamera->ZoomIn(); });
+	mInputHandler->registerZoomOutHandler([=]() { mCamera->ZoomOut(); });
+
 	mGUISystem = std::make_unique<GUISystem>();
-	mTileSetEditor = std::make_unique<TileSetEditor>();
+	mTileSetEditor = std::make_unique<TileSetEditor>(*mCamera);
 }
 
 void Game::closeGame()
@@ -54,6 +59,8 @@ void Game::closeGame()
 
 void Game::runGame() const
 {
+	Map* map = new Map();
+	map->LoadMap("map0");
 	while (mRenderer->GetContext().GetSurface().ProcessEvents() && mRunning)
 	{
 		// Process Input

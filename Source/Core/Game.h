@@ -31,7 +31,7 @@ private:
 	std::unique_ptr<DescriptionRegistry> mDescriptionRegistry;
 	std::unique_ptr<GUISystem> mGUISystem;
 	std::unique_ptr<InputHandler> mInputHandler;
-	Renderer* mRenderer;
+	Renderer* mRenderer = nullptr;
 	std::unique_ptr<TileSetEditor> mTileSetEditor;
 	std::unique_ptr<Window> mWindow;
 	std::unique_ptr<Camera> mCamera;
