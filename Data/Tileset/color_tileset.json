@@ -1,23 +1,10 @@
 {
     "tileset": {
         "id": "colors",
-        "width": 320,
-        "height": 240
-    },
-    "tile_data": {
-        "texture_path": "ground_tileset.jpg",
-        "width": 16,
-        "height": 15
-    },
-    "tiles": { 
-        "dirt_top_left": 0,
-        "dirt_top": 1,
-        "dirt_top_right": 2,
-        "dirt_mid_left": 21,
-        "dirt_mid": 22,
-        "dirt_mid_right": 23,
-        "dirt_lower_left": 41,
-        "dirt_lower": 42,
-        "dirt_lower_right": 43
+        "texture_path": "tiles.jpg",
+        "size": [
+            3, // rows
+            4 // columns
+        ]
     }
 }
