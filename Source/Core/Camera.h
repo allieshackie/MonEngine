@@ -18,12 +18,33 @@ public:
 	void MoveUp();
 	void MoveDown();
 
+	void ZoomIn();
+	void ZoomOut();
+
+	void DebugUpdatePosition(glm::vec3 position)
+	{
+		mCameraPos = position;
+		UpdateView();
+	}
+
+	glm::vec3 GetPosition() const { return mCameraPos; }
+	glm::vec3 GetFront() const { return mCameraFront; }
+
+	void SetPosition(glm::vec3 pos) {
+		mCameraPos = pos;
+		UpdateView();
+	}
+	void SetFront(glm::vec3 front) {
+		mCameraFront = front;
+		UpdateView();
+	}
+
 	void UpdateView();
 	void UpdateCameraSpeed();
 		
 private:
-	glm::vec3 mCameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-	glm::vec3 mCameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+	glm::vec3 mCameraPos = glm::vec3(0.0f, 0.0f, 1.0f);
+	glm::vec3 mCameraFront = glm::vec3(0.0f, 0.0f, 0.0f);
 	glm::vec3 mCameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
 	glm::mat4 mView = glm::lookAt(mCameraPos, mCameraPos + mCameraFront, mCameraUp);

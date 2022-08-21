@@ -2,8 +2,6 @@
 
 #include "Camera.h"
 
-// TODO: Use Camera in Renderer
-
 glm::mat4 Camera::GetView() const
 {
 	return mView;
@@ -37,10 +35,20 @@ void Camera::MoveDown()
 	UpdateView();
 }
 
+void Camera::ZoomIn()
+{
+	mCameraPos.z -= 0.1f;
+}
+
+void Camera::ZoomOut()
+{
+	mCameraPos.z += 0.1f;
+}
+
 void Camera::UpdateView()
 {
-	mView = glm::lookAt(mCameraPos, mCameraPos + mCameraFront, mCameraUp);
-	//RendererInstance::GetInstance()->UpdateView(mView);
+	mView = glm::lookAt(mCameraPos, {0,0,0}, mCameraUp);
+	RendererInstance::GetInstance()->UpdateView(mView);
 }
 
 void Camera::UpdateCameraSpeed()
