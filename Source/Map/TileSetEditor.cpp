@@ -2,6 +2,7 @@
 #include "imgui.h"
 #include "Core/ResourceManager.h"
 #include "Core/RendererInstance.h"
+#include "Camera.h"
 #include "Tile.h"
 
 #include "TileSetEditor.h"
@@ -11,7 +12,12 @@ namespace fs = std::filesystem;
 static bool show_new_tileset_menu = false;
 static bool show_load_texture_menu = false;
 static bool show_current_sprite_data = false;
+static bool show_camera_info = false;
 static int current_texture_selected = 0;
+
+TileSetEditor::TileSetEditor(Camera& camera): mCamera(camera)
+{
+}
 
 void TileSetEditor::RenderGUI()
 {
@@ -28,6 +34,7 @@ void TileSetEditor::RenderGUI()
     if (show_new_tileset_menu) _NewTileSet(&show_new_tileset_menu);
     if (show_load_texture_menu) _LoadTextureMenu(&show_load_texture_menu);
     if (show_current_sprite_data) _CurrentSpriteMenu(&show_current_sprite_data);
+    if (show_camera_info) _CameraInfo(&show_camera_info);
 
     if (ImGui::BeginMainMenuBar())
     {
@@ -37,6 +44,10 @@ void TileSetEditor::RenderGUI()
             if (ImGui::MenuItem("TileSet")) { std::cout << "load tile set" << std::endl; }
             ImGui::MenuItem("Texture", nullptr, &show_load_texture_menu);
             ImGui::EndMenu();
+        }
+        if (ImGui::MenuItem("Toggle Camera Info"))
+        {
+            show_camera_info = !show_camera_info;
         }
         ImGui::EndMainMenuBar();
     }
@@ -113,37 +124,23 @@ void TileSetEditor::_CurrentSpriteMenu(bool* p_open)
 	    {
             ImGui::Text("Transform");
 	    	// POSITION
-            static float posX = mCurrentSprite->GetPosition().x;
-            ImGui::SliderFloat("Pos X", &posX, 1, 1000);
+            static glm::vec2 pos = mCurrentSprite->GetPosition();
+            ImGui::SliderFloat("Pos X", &pos.x, 1, 1000);
+            ImGui::SliderFloat("Pos Y", &pos.y, 1, 1000);
 
-	    	if (posX != mCurrentSprite->GetPosition().x && !ImGui::IsItemActive())
-	    	{
-                mCurrentSprite->UpdatePositionX(posX);
-	    	}
-
-            static float posY = mCurrentSprite->GetPosition().y;
-            ImGui::SliderFloat("Pos Y", &posY, 1, 1000);
-
-            if (posY != mCurrentSprite->GetPosition().y && !ImGui::IsItemActive())
+            if (pos != mCurrentSprite->GetPosition() && !ImGui::IsItemActive())
             {
-                mCurrentSprite->UpdatePositionY(posY);
+                mCurrentSprite->UpdatePosition(pos);
             }
 
 	    	// SIZE
-            static float sizeX = mCurrentSprite->GetSize().x;
-            ImGui::SliderFloat("Size X", &sizeX, 1, 1000);
+            static glm::vec2 size = mCurrentSprite->GetSize();
+            ImGui::SliderFloat("Size X", &size.x, 1, 1000);
+            ImGui::SliderFloat("Size Y", &size.y, 1, 1000);
 
-            if (sizeX != mCurrentSprite->GetSize().x && !ImGui::IsItemActive())
+            if (size != mCurrentSprite->GetSize() && !ImGui::IsItemActive())
             {
-                mCurrentSprite->UpdateSizeX(sizeX);
-            }
-
-            static float sizeY = mCurrentSprite->GetSize().y;
-            ImGui::SliderFloat("Size Y", &sizeY, 1, 1000);
-
-            if (sizeY != mCurrentSprite->GetSize().y && !ImGui::IsItemActive())
-            {
-                mCurrentSprite->UpdateSizeY(sizeY);
+                mCurrentSprite->UpdateSize(size);
             }
 
 	    	// ROTATION
@@ -160,36 +157,22 @@ void TileSetEditor::_CurrentSpriteMenu(bool* p_open)
             ImGui::Separator();
             ImGui::Text("Texture Coords");
 
-            static float clipX = mCurrentSprite->GetClip().x;
-            ImGui::SliderFloat("Clip X", &clipX, -2, 2);
+            static glm::vec2 clip = mCurrentSprite->GetClip();
+            ImGui::SliderFloat("Clip X", &clip.x, -2, 2);
+            ImGui::SliderFloat("Clip Y", &clip.y, -2, 2);
 
-            if (clipX != mCurrentSprite->GetClip().x && !ImGui::IsItemActive())
+            if (clip != mCurrentSprite->GetClip() && !ImGui::IsItemActive())
             {
-                mCurrentSprite->UpdateClipX(clipX);
+                mCurrentSprite->UpdateClip(clip);
             }
 
-            static float clipY = mCurrentSprite->GetClip().y;
-            ImGui::SliderFloat("Clip Y", &clipY, -2, 2);
+            static glm::vec2 scale = mCurrentSprite->GetScale();
+            ImGui::SliderFloat("Scale X", &scale.x, 0, 1);
+            ImGui::SliderFloat("Scale Y", &scale.y, 0, 1);
 
-            if (clipY != mCurrentSprite->GetClip().y && !ImGui::IsItemActive())
+            if (scale != mCurrentSprite->GetScale() && !ImGui::IsItemActive())
             {
-                mCurrentSprite->UpdateClipY(clipY);
-            }
-
-            static float scaleX = mCurrentSprite->GetScale().x;
-            ImGui::SliderFloat("Scale X", &scaleX, 0, 1);
-
-            if (scaleX != mCurrentSprite->GetScale().x && !ImGui::IsItemActive())
-            {
-                mCurrentSprite->UpdateScaleX(scaleX);
-            }
-
-            static float scaleY = mCurrentSprite->GetScale().y;
-            ImGui::SliderFloat("Scale Y", &scaleY, 0, 1);
-
-            if (scaleY != mCurrentSprite->GetScale().y && !ImGui::IsItemActive())
-            {
-                mCurrentSprite->UpdateScaleY(scaleY);
+                mCurrentSprite->UpdateScale(scale);
             }
 	    }
 	    ImGui::End();
@@ -210,4 +193,31 @@ void TileSetEditor::_GetTextureFileNames(std::array<char*, 6>& items)
         items[i] = _strdup(entry.path().filename().string().c_str());
         i++;
 	}
+}
+
+void TileSetEditor::_CameraInfo(bool* p_open)
+{
+    if (ImGui::Begin("Camera Info", p_open, ImGuiWindowFlags_MenuBar))
+    {
+        static glm::vec3 cameraFront = mCamera.GetFront();
+        ImGui::SliderFloat("Front X", &cameraFront.x, -2, 2);
+        ImGui::SliderFloat("Front Y", &cameraFront.y, -2, 2);
+        ImGui::SliderFloat("Front Z", &cameraFront.z, -2, 2);
+
+        if (cameraFront != mCamera.GetFront() && !ImGui::IsItemActive())
+        {
+            mCamera.SetFront(cameraFront);
+        }
+
+        static glm::vec3 cameraPos = mCamera.GetPosition();
+        ImGui::SliderFloat("Pos X", &cameraPos.x, -2, 2);
+        ImGui::SliderFloat("Pos Y", &cameraPos.y, -2, 2);
+        ImGui::SliderFloat("Pos Z", &cameraPos.z, -2, 2);
+
+        if (cameraPos != mCamera.GetPosition() && !ImGui::IsItemActive())
+        {
+            mCamera.SetPosition(cameraPos);
+        }
+    }
+    ImGui::End();
 }

@@ -1,14 +1,15 @@
 #pragma once
 
+class Camera;
 class Sprite;
 class Tile;
 
-static const char* TEXTURE_FOLDER_GUI = "C:/dev/MonDev/Data/Textures";
-static const char* TILESET_FOLDER = "C:/dev/MonDev/Data/Tileset";
+static const char* TEXTURE_FOLDER_GUI = "D:/dev/MonDev/Data/Textures";
+static const char* TILESET_FOLDER = "D:/dev/MonDev/Data/Tileset";
 
 class TileSetEditor {
 public:
-	TileSetEditor() = default;
+	TileSetEditor(Camera& camera);
 	~TileSetEditor() = default;
 
 	void RenderGUI();
@@ -25,7 +26,10 @@ private:
 	
 	void _GetTextureFileNames(std::array<char*, 6>& items);
 
+	void _CameraInfo(bool* p_open);
+
 
 	std::array<char*, 6> mTextureFileNames;
 	Tile* mCurrentSprite = nullptr;
+	Camera& mCamera;
 };
