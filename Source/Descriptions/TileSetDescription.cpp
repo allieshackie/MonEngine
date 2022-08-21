@@ -4,9 +4,14 @@
 
 using json = nlohmann::json;
 
-TileSetDescription::TileSetDescription()
+TileSetDescription::TileSetDescription(const char* fileName)
 {
-    parseJSON();
+    Load(fileName);
+}
+
+void TileSetDescription::Load(const char* fileName)
+{
+    parseJSON(fileName);
 }
 
 const std::string& TileSetDescription::getTexturePath() const
@@ -24,21 +29,12 @@ int TileSetDescription::getTileHeight() const
 	return mTileHeight;
 }
 
-std::vector<int> TileSetDescription::getTileClipPosition(const std::string& tileId)
-{
-    for (const auto& tile : mTilesData) {
-        if (tile.mId == tileId) {
-            return { tile.mClipPosX, tile.mClipPosY };
-        }
-    }
-
-    return { 0, 0 };
-}
-
-void TileSetDescription::parseJSON()
+void TileSetDescription::parseJSON(const char* fileName)
 {
     // parse and serialize JSON
-    std::ifstream ifs(JSON_PATH);
+    std::string path = JSON_PATH;
+    path.append(fileName).append(".json");
+    std::ifstream ifs(path.c_str());
 
     // json parser can't handle comments
     json tileSetJSON = json::parse(ifs);
@@ -48,31 +44,11 @@ void TileSetDescription::parseJSON()
         return;
     }
 
-    if (!tileSetJSON.contains(TILE_DATA_STRING)) {
-        std::cout << "ERROR: TileSet json needs to contain tiledata";
-        return;
-    }
+    auto size = tileSetJSON[TILESET_STRING][SIZE_STRING];
+    mTileWidth = size[0];
+    mTileHeight = size[1];
 
-    mTileWidth = tileSetJSON[TILE_DATA_STRING][WIDTH_STRING];
-    mTileHeight = tileSetJSON[TILE_DATA_STRING][HEIGHT_STRING];
-
-    if (!tileSetJSON.contains(TILES_STRING)) {
-        std::cout << "ERROR: TileSet json needs to contain tiledata";
-        return;
-    }
-    
-    for (json::iterator it = tileSetJSON[TILES_STRING].begin(); it != tileSetJSON[TILES_STRING].end(); ++it) {
-        const std::vector<int> tileClipPos = it.value();
-        mTilesData.push_back({ it.key(), tileClipPos[0], tileClipPos[1] });
-    }
-
-
-    if (!tileSetJSON[TILE_DATA_STRING].contains(TEXTURE_STRING)) {
-        std::cout << "ERROR: Map json needs to contain texture";
-        return;
-    }
-
-    mTexturePath = tileSetJSON[TILE_DATA_STRING][TEXTURE_STRING];
+    mTexturePath = tileSetJSON[TILESET_STRING][TEXTURE_STRING];
    
     ifs.close();
 }

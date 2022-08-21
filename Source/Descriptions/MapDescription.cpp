@@ -3,25 +3,42 @@
 #include "MapDescription.h"
 using json = nlohmann::json;
 
-MapDescription::MapDescription()
+MapDescription::MapDescription(const char* fileName)
 {
-    parseJSON();
+    Load(fileName);
 }
 
-const std::vector<std::string>& MapDescription::getTiles()
+void MapDescription::Load(const char* fileName)
+{
+    parseJSON(fileName);
+}
+
+int MapDescription::GetMapWidth() const
+{
+    return mWidth;
+}
+
+int MapDescription::GetMapHeight() const
+{
+    return mHeight;
+}
+
+const std::string& MapDescription::GetRawTiles()
 {
     return mTiles;
 }
 
-int MapDescription::getMapWidth()
+const std::string& MapDescription::GetTilesetTexture()
 {
-	return mWidth;
+    return mTilesetDescription->getTexturePath();
 }
 
-void MapDescription::parseJSON()
+void MapDescription::parseJSON(const char* fileName)
 {
     // parse and serialize JSON
-    std::ifstream ifs(JSON_PATH);
+	std::string path = JSON_PATH;
+    path.append(fileName).append(".json");
+    std::ifstream ifs(path.c_str());
 
     // json parser can't handle comments
     json mapJSON = json::parse(ifs);
@@ -31,28 +48,45 @@ void MapDescription::parseJSON()
         return;
     }
 
-    if (!mapJSON[MAP_STRING].contains(WIDTH_STRING)) {
-        std::cout << "ERROR: Map json needs to contain width";
+
+    if (!mapJSON[MAP_STRING].contains(TILESET_STRING)) {
+        std::cout << "ERROR: Map json needs to contain tileset";
         return;
     }
 
-    mWidth = mapJSON[MAP_STRING][WIDTH_STRING];
+    const std::string tilesetFile = mapJSON[MAP_STRING][TILESET_STRING];
+    mTilesetDescription = new TileSetDescription(tilesetFile.c_str());
 
-    if (!mapJSON[MAP_STRING].contains(HEIGHT_STRING)) {
-        std::cout << "ERROR: Map json needs to contain height";
+    if (!mapJSON[MAP_STRING].contains(FILE_STRING)) {
+        std::cout << "ERROR: Map json needs to contain text file";
         return;
     }
 
-    mHeight = mapJSON[MAP_STRING][HEIGHT_STRING];
+    mMapTextFile = mapJSON[MAP_STRING][FILE_STRING];
 
-    if (!mapJSON[MAP_STRING].contains(TILES_STRING)) {
-        std::cout << "ERROR: Map json needs to contain tiles";
+    if (!mapJSON[MAP_STRING].contains(SIZE_STRING)) {
+        std::cout << "ERROR: Map json needs to contain size";
         return;
     }
 
-    for (json::iterator it = mapJSON[MAP_STRING][TILES_STRING].begin(); it != mapJSON[MAP_STRING][TILES_STRING].end(); ++it) {
-        mTiles.push_back(it.value());
-    }
+    auto size = mapJSON[MAP_STRING][SIZE_STRING];
+
+    mWidth = size[0];
+    mHeight = size[1];
 
     ifs.close();
+
+
+    // parse and serialize JSON
+    std::string mapTextPath = JSON_PATH;
+    mapTextPath.append(mMapTextFile).append(".txt");
+    std::ifstream textfs(mapTextPath.c_str());
+
+    if (textfs.is_open())
+    {
+        std::string content((std::istreambuf_iterator<char>(textfs)), std::istreambuf_iterator<char>());
+        mTiles = content;
+      
+    	textfs.close();
+    }
 }

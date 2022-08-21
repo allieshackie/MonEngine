@@ -6,7 +6,7 @@ class EntityContext;
 struct ComponentDescriptionBase
 {
 public:
-	virtual ~ComponentDescriptionBase() {}
+	virtual ~ComponentDescriptionBase() = default;
 
 	virtual void applyToEntity(EntityContext& entity) = 0;
 	virtual void parseJSON(const nlohmann::json& jsonFrag) = 0;
@@ -14,10 +14,10 @@ public:
 
 struct DescriptionBase {
 public:
-	virtual ~DescriptionBase() {}
+	virtual ~DescriptionBase() = default;
 
 	virtual void applyToEntity(EntityContext& entity) = 0;
 
 private:
-	virtual void parseJSON() = 0;
+	virtual void parseJSON(const char* fileName) = 0;
 }; 

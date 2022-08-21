@@ -19,7 +19,7 @@ private:
 template<class TDescription>
 void DescriptionRegistry::registerDescription(const std::string& descriptionName)
 {
-	TDescription* factory = new TDescription();
+	TDescription* factory = new TDescription("");
 	mRegisteredDescriptions.insert(std::pair(descriptionName, factory));
 }
 
