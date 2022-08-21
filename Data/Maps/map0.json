@@ -1,0 +1,7 @@
+{
+    "map": {
+        "tileset": "color_tileset",
+        "file": "map0",
+        "size": [4, 10]
+    }
+}
