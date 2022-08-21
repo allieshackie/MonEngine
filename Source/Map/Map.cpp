@@ -4,41 +4,50 @@
 
 #include "Map.h"
 
+#include "Core/ResourceManager.h"
+
 Map::Map()
 {
 	LoadTiles();
 }
 
+void Map::LoadMap(const char* fileName)
+{
+	mMapDescription = new MapDescription(fileName);
+}
+
 void Map::LoadTiles()
 {
-	auto tileDescription = DescriptionRegistry::getDescription<TileSetDescription>(TileSetDescription::JsonName);
-	auto mapDescription = DescriptionRegistry::getDescription<MapDescription>(MapDescription::JsonName);
+	const int MAP_WIDTH = mMapDescription->GetMapWidth();
+	const int MAP_HEIGHT = mMapDescription->GetMapHeight();
 
-	const int TILE_WIDTH = tileDescription->getTileWidth();
-	const int TILE_HEIGHT = tileDescription->getTileHeight();
-
-	const int MAP_WIDTH = mapDescription->getMapWidth();
-	//mMapTexture = tileDescription->getTexturePath();
+	const auto rawTiles = mMapDescription->GetRawTiles();
+	const auto texture = mMapDescription->GetTilesetTexture();
+	std::vector<int> splitTiles;
+	const std::string del = " ";
+	int start = 0;
+	int end = rawTiles.find(del);
+	while (end != -1) {
+		splitTiles.push_back(std::stoi(rawTiles.substr(start, end - start)));
+		start = end + del.size();
+		end = rawTiles.find(del, start);
+	}
 	
 	int screenPosX = 0, screenPosY = 0;
 	int widthCounter = 1;
 
-	for (const auto& tile : mapDescription->getTiles()) {
-		const auto& pos = tileDescription->getTileClipPosition(tile);
-		//mMapTiles.emplace_back(pos[0], pos[1], TILE_WIDTH, TILE_HEIGHT, screenPosX, screenPosY);
+	for (const auto& tile : splitTiles) {
+		// TODO: Get texture clip and size 
+		ResourceManager::CreateTile(texture, {screenPosX, screenPosY}, {10,10});
 
-		screenPosX += TILE_WIDTH;
+		screenPosX += 10;
 		if (widthCounter == MAP_WIDTH) {
 			screenPosX = 0;
 			widthCounter = 1;
-			screenPosY += TILE_HEIGHT;
+			screenPosY += 10;
 			continue;
 		}
 		widthCounter++;
 	}
-}
-
-const std::vector<Tile>& Map::GetMapTiles() const
-{
-	return mMapTiles;
+	 
 }

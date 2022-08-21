@@ -2,8 +2,9 @@
 
 #include "Tile.h"
 
-Tile::Tile(glm::vec2 pos, glm::vec2 size, int index) : Sprite(pos, size)
+Tile::Tile(glm::vec2 pos, glm::vec2 size, glm::vec2 clip, glm::vec2 scale) : Sprite(pos, size), mClip(clip), mScale(scale)
 {
+	UpdateTextureClip();
 }
 
 glm::vec2 Tile::GetClip() const 
@@ -24,22 +25,13 @@ void Tile::UpdateTextureClip()
 	mTextureClip = glm::scale(mTextureClip, glm::vec3(mScale, 1.0f));
 }
 
-void Tile::UpdateClipX(float x)
+void Tile::UpdateClip(glm::vec2 clip)
 {
-	mClip.x = x;
+	mClip = clip;
 }
 
-void Tile::UpdateClipY(float y)
+void Tile::UpdateScale(glm::vec2 scale)
 {
-	mClip.y = y;
+	mScale = scale;
 }
 
-void Tile::UpdateScaleX(float x)
-{
-	mScale.x = x;
-}
-
-void Tile::UpdateScaleY(float y)
-{
-	mScale.y = y;
-}
