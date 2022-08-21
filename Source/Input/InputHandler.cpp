@@ -29,16 +29,24 @@ void InputHandler::pollInputEvents() {
 		mInput->PopEvent();
 	}
 
-	/*
-	 * Added to support camera rotation, but doesn't make sense for 2D
-	if (!mWindow.IsCursorShowing())
+	if (mInput->GetWheelMotion())
 	{
-		if (mMouseMoveCallback != nullptr)
+		const auto scroll = mInput->GetWheelMotion();
+		if (scroll > 0) // scroll up
 		{
-			mMouseMoveCallback(mInput->GetMousePosition());
-		} 
+			if (mZoomInCallback)
+			{
+				mZoomInCallback();
+			}
+		}
+		else
+		{
+			if (mZoomOutCallback)
+			{
+				mZoomOutCallback();
+			}
+		}
 	}
-	 */
 }
 
 void InputHandler::pollGUIInputEvents(const std::function<void(const InputEvent& event)>& callback) const
@@ -74,6 +82,16 @@ void InputHandler::registerButtonDownHandler(LLGL::Key keyCode, const std::funct
 void InputHandler::registerMouseMoveHandler(const std::function<void(LLGL::Offset2D)>& callback)
 {
 	mMouseMoveCallback = callback;
+}
+
+void InputHandler::registerZoomInHandler(const std::function<void()>& callback)
+{
+	mZoomInCallback = callback;
+}
+
+void InputHandler::registerZoomOutHandler(const std::function<void()>& callback)
+{
+	mZoomOutCallback = callback;
 }
 
 void InputHandler::_handleButtonUpEvent(LLGL::Key keyCode)

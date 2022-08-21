@@ -74,6 +74,8 @@ public:
 	void registerButtonDownHandler(LLGL::Key keyCode, const std::function<void()>& callback);
 
 	void registerMouseMoveHandler(const std::function<void(LLGL::Offset2D)>& callback);
+	void registerZoomInHandler(const std::function<void()>& callback);
+	void registerZoomOutHandler(const std::function<void()>& callback);
 private:
 	void _handleButtonUpEvent(LLGL::Key keyCode);
 	void _handleButtonDownEvent(LLGL::Key keyCode);
@@ -81,6 +83,8 @@ private:
 	std::unordered_map<LLGL::Key, std::function<void()>> mButtonUpHandlers;
 	std::unordered_map<LLGL::Key, std::function<void()>> mButtonDownHandlers;
 	std::function<void(LLGL::Offset2D)> mMouseMoveCallback;
+	std::function<void()> mZoomInCallback;
+	std::function<void()> mZoomOutCallback;
 	std::shared_ptr<InputQueue> mInput; // User input event listener
 
 	Window& mWindow;
