@@ -23,7 +23,7 @@ set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CmakeGenerated")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
 
-set(GLAD_DIR "C:/dev/glad")
+set(GLAD_DIR "D:/dev/glad")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
@@ -122,6 +122,11 @@ target_include_directories(
     ${SDL2_IMAGE_INCLUDE_DIRS}
     ${GLAD_DIR}/include
 )
+
+add_custom_command(TARGET MonDev POST_BUILD  
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different 
+        "${THIRD_PARTY_DIR}/SDL2-2.0.14/lib/x64/SDL2.dll"    
+        $<TARGET_FILE_DIR:MonDev>)    
 
 # target_include_directories = Include Directories
 # target_link_libraries = Additional Dependencies (lib)
