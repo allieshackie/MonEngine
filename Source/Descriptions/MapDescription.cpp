@@ -23,7 +23,7 @@ int MapDescription::GetMapHeight() const
     return mHeight;
 }
 
-const std::string& MapDescription::GetRawTiles()
+const std::vector<int>& MapDescription::GetTiles()
 {
     return mTiles;
 }
@@ -31,6 +31,11 @@ const std::string& MapDescription::GetRawTiles()
 const std::string& MapDescription::GetTilesetTexture()
 {
     return mTilesetDescription->getTexturePath();
+}
+
+glm::vec4 MapDescription::GetClipForTile(int index) const
+{
+    return mTilesetDescription->GetClipForTile(index);
 }
 
 void MapDescription::parseJSON(const char* fileName)
@@ -81,12 +86,24 @@ void MapDescription::parseJSON(const char* fileName)
     std::string mapTextPath = JSON_PATH;
     mapTextPath.append(mMapTextFile).append(".txt");
     std::ifstream textfs(mapTextPath.c_str());
+    std::string line;
 
-    if (textfs.is_open())
+    while (std::getline(textfs, line))
     {
-        std::string content((std::istreambuf_iterator<char>(textfs)), std::istreambuf_iterator<char>());
-        mTiles = content;
-      
-    	textfs.close();
+        std::size_t prev = 0, pos;
+        while ((pos = line.find_first_of(" ", prev)) != std::string::npos)
+        {
+            if (pos > prev)
+            {
+                mTiles.push_back(std::stoi(line.substr(prev, pos - prev)));
+            }
+            prev = pos + 1;
+        }
+        if (prev < line.length())
+        {
+            mTiles.push_back(std::stoi(line.substr(prev, std::string::npos)));
+        }
     }
+
+	textfs.close();
 }

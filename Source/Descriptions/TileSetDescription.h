@@ -1,5 +1,8 @@
 #pragma once
 
+#include <glm/vec2.hpp>
+#include <glm/vec4.hpp>
+
 #include "DescriptionBase.h"
 
 /*
@@ -20,8 +23,8 @@ public:
 	virtual void applyToEntity(EntityContext& entity) override {}
 
 	const std::string& getTexturePath() const;
-	int getTileWidth() const;
-	int getTileHeight() const;
+
+	glm::vec4 GetClipForTile(int index) const;
 
 private:
 	virtual void parseJSON(const char* fileName) override;
@@ -34,8 +37,11 @@ private:
 	static constexpr char ID_STRING[] = "id";
 	static constexpr char TEXTURE_STRING[] = "texture_path";
 	static constexpr char SIZE_STRING[] = "size";
+	static constexpr char TEXTURE_SIZE_STRING[] = "texture_size";
 
 	std::string mTexturePath;
-	int mTileWidth = 0;
-	int mTileHeight = 0;
+	int mTilesetRows = 0;
+	int mTilesetColumns = 0;
+
+	glm::vec2 mTextureSize = {1.0f, 1.0f};
 };

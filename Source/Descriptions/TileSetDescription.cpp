@@ -19,14 +19,13 @@ const std::string& TileSetDescription::getTexturePath() const
     return mTexturePath;
 }
 
-int TileSetDescription::getTileWidth() const
+glm::vec4 TileSetDescription::GetClipForTile(int index) const
 {
-	return mTileWidth;
-}
-
-int TileSetDescription::getTileHeight() const
-{
-	return mTileHeight;
+    const float clipAcross = mTextureSize.x / mTilesetColumns;
+    const float clipDown = mTextureSize.y / mTilesetRows;
+    const int calculateDown = std::floor(index / mTilesetColumns);
+    const int calculateAcross = index % mTilesetColumns;
+    return glm::vec4(clipAcross * calculateAcross, clipDown * calculateDown, clipAcross, clipDown);
 }
 
 void TileSetDescription::parseJSON(const char* fileName)
@@ -44,11 +43,18 @@ void TileSetDescription::parseJSON(const char* fileName)
         return;
     }
 
-    auto size = tileSetJSON[TILESET_STRING][SIZE_STRING];
-    mTileWidth = size[0];
-    mTileHeight = size[1];
+    auto& size = tileSetJSON[TILESET_STRING][SIZE_STRING];
+    mTilesetRows = size[0];
+    mTilesetColumns = size[1];
 
     mTexturePath = tileSetJSON[TILESET_STRING][TEXTURE_STRING];
+
+    const auto& texSize = tileSetJSON[TILESET_STRING][TEXTURE_SIZE_STRING];
+
+    if (!texSize.is_null())
+    {
+       mTextureSize = { texSize[0], texSize[1] };
+    }
    
     ifs.close();
 }

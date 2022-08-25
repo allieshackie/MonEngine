@@ -15,9 +15,12 @@ public:
 	int GetMapWidth() const;
 	int GetMapHeight() const;
 
-	const std::string& GetRawTiles();
+	const std::vector<int>& GetTiles();
 
 	const std::string& GetTilesetTexture();
+
+	// x,y clip    z,w size
+	glm::vec4 GetClipForTile(int index) const;
 
 	virtual void applyToEntity(EntityContext& entity) override {}
 
@@ -36,7 +39,7 @@ private:
 	int mWidth = 0;
 	int mHeight = 0;
 	std::string mMapTextFile;
-	std::string mTiles;
+	std::vector<int> mTiles;
 
 	TileSetDescription* mTilesetDescription = nullptr;
 };
