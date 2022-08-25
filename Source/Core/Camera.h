@@ -40,7 +40,6 @@ public:
 	}
 
 	void UpdateView();
-	void UpdateCameraSpeed();
 		
 private:
 	glm::vec3 mCameraPos = glm::vec3(0.0f, 0.0f, 1.0f);
@@ -49,7 +48,5 @@ private:
 
 	glm::mat4 mView = glm::lookAt(mCameraPos, mCameraPos + mCameraFront, mCameraUp);
 
-	float mCameraSpeed = 0.05f; // adjust accordingly
-	float mDeltaTime = 0.0f;	// Time between current frame and last frame
-	float mLastFrame = 0.0f;    // Time of last frame
+	float mCameraSpeed = 0.01f; // adjust accordingly
 };
