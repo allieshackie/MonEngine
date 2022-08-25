@@ -14,7 +14,7 @@
 
 int main(int argc, char** argv)
 {
-	auto app = std::make_unique<Game>();
+	const auto app = std::make_unique<Game>();
 	app->configureLevel();
 	app->runGame();
 	
@@ -31,8 +31,6 @@ void Game::configureLevel()
 	mRenderer = RendererInstance::GetInstance();
 	mWindow = std::make_unique<Window>();
 
-	mRenderer->OnDrawInit();
-	
 	mCamera = std::make_unique<Camera>();
 	mCamera->UpdateView();
 
@@ -40,10 +38,10 @@ void Game::configureLevel()
 	mInputHandler->registerButtonUpHandler(LLGL::Key::Escape, [=]() { mRunning = false; });
 
 	// Register camera handlers
-	mInputHandler->registerButtonUpHandler(LLGL::Key::W, [=]() { mCamera->MoveUp(); });
-	mInputHandler->registerButtonUpHandler(LLGL::Key::S, [=]() { mCamera->MoveDown(); });
-	mInputHandler->registerButtonUpHandler(LLGL::Key::A, [=]() { mCamera->MoveLeft(); });
-	mInputHandler->registerButtonUpHandler(LLGL::Key::D, [=]() { mCamera->MoveRight(); });
+	mInputHandler->registerButtonUpHandler(LLGL::Key::Up, [=]() { mCamera->MoveUp(); });
+	mInputHandler->registerButtonUpHandler(LLGL::Key::Down, [=]() { mCamera->MoveDown(); });
+	mInputHandler->registerButtonUpHandler(LLGL::Key::Left, [=]() { mCamera->MoveLeft(); });
+	mInputHandler->registerButtonUpHandler(LLGL::Key::Right, [=]() { mCamera->MoveRight(); });
 
 	mInputHandler->registerZoomInHandler([=]() { mCamera->ZoomIn(); });
 	mInputHandler->registerZoomOutHandler([=]() { mCamera->ZoomOut(); });
@@ -60,7 +58,7 @@ void Game::closeGame()
 void Game::runGame() const
 {
 	Map* map = new Map();
-	map->LoadMap("map0");
+	map->LoadMap("map1");
 	while (mRenderer->GetContext().GetSurface().ProcessEvents() && mRunning)
 	{
 		// Process Input
@@ -70,7 +68,6 @@ void Game::runGame() const
 			{
 				mGUISystem->handleGUIInput(event);
 			});
-
 		}
 		else
 		{
