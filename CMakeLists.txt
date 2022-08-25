@@ -1,4 +1,4 @@
-# Generate Solution -> 'cmake -B ./Solution -A Win32'
+# Generate Solution -> cmake -B ./Solution
 
 # set cmake version
 cmake_minimum_required(VERSION 3.18.2)
