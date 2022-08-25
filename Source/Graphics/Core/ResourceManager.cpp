@@ -9,27 +9,26 @@ namespace fs = std::filesystem;
 
 std::unordered_map<int, Texture*> ResourceManager::mTextures;
 std::unordered_map<std::string, int> ResourceManager::mTextureIds;
-Shader* ResourceManager::mShader = nullptr;
 LLGL::ResourceHeap* ResourceManager::mResourceHeap = nullptr;
-LLGL::VertexFormat ResourceManager::mVertexFormat;
 int ResourceManager::mResourceIndex = -1;
 std::vector<std::pair<int, Tile*>> ResourceManager::mSpritesList;
+std::vector<DebugDrawable> ResourceManager::mDebugDrawables;
 
-void ResourceManager::LoadAllTexturesFromFolder()
+void ResourceManager::LoadAllTexturesFromFolder(LLGL::RenderSystem& renderer)
 {
     int textureId = 0;
     for (const auto& entry : fs::directory_iterator(TEXTURE_FOLDER))
     {
-        LoadTexture(entry.path().string(), entry.path().filename().string(), textureId);
+        LoadTexture(renderer, entry.path().string(), entry.path().filename().string(), textureId);
         textureId++;
     }
 }
 
-void ResourceManager::LoadTexture(const std::string& filePath, const std::string& textureName, int textureId)
+void ResourceManager::LoadTexture(LLGL::RenderSystem& renderer, const std::string& filePath, const std::string& textureName, int textureId)
 {
     if (mTextures.find(textureId) == mTextures.end())
     {
-		const auto texture = new Texture(filePath);
+		const auto texture = new Texture(renderer, filePath);
         mTextures[textureId] = texture;
         mTextureIds[textureName] = textureId;
     }
@@ -74,33 +73,6 @@ void ResourceManager::SetCurrentTexture(int textureId)
     mResourceIndex = textureId;
 }
 
-const LLGL::VertexFormat& ResourceManager::GetVertexFormat()
-{
-
-    assert(!mVertexFormat.attributes.empty());
-	
-    return mVertexFormat;
-}
-
-void ResourceManager::LoadShaderProgram(const char* vertexFilePath, const char* fragmentFilePath)
-{
-    if (mShader == nullptr)
-    {
-        mVertexFormat.AppendAttribute({ "position", LLGL::Format::RG32Float });
-        mVertexFormat.AppendAttribute({ "texCoord", LLGL::Format::RG32Float });
-
-        mShader = new Shader(mVertexFormat, vertexFilePath, fragmentFilePath);
-    }
-}
-
-LLGL::ShaderProgram& ResourceManager::GetShaderProgram()
-{
-
-    assert(mShader != nullptr);
-    
-    return mShader->GetShaderProgram();
-}
-
 void ResourceManager::CreateSprite(const std::string& textureName, glm::vec2 pos, glm::vec2 size)
 {
     const auto textureId = mTextureIds.find(textureName);
@@ -136,14 +108,33 @@ Tile* ResourceManager::GetLatestTile()
     return mSpritesList.front().second;
 }
 
+void ResourceManager::CreateLine(glm::vec4 line, glm::vec2 color)
+{
+    Line debugLine;
+    debugLine.x = { line.x, line.y };
+    debugLine.y = { line.z, line.w };
+    debugLine.color = color;
+
+    mDebugDrawables.push_back(debugLine);
+}
+
+void ResourceManager::CreateBox(glm::vec4 sideA, glm::vec4 sideB, glm::vec2 color)
+{
+    Box debugBox;
+    debugBox.xy = sideA;
+    debugBox.zw = sideB;
+    debugBox.color = color;
+
+    mDebugDrawables.push_back(debugBox);
+}
+
 float ResourceManager::Normalize(float size)
 {
     return (size - 1) / 99;
 }
 
-void ResourceManager::CreateResourceHeap(LLGL::PipelineLayout& pipelineLayout, LLGL::Buffer& constantBuffer)
+void ResourceManager::CreateResourceHeap(LLGL::RenderSystem& renderer, LLGL::PipelineLayout& pipelineLayout, LLGL::Buffer& constantBuffer)
 {
-    const auto& renderSystem = RendererInstance::GetInstance()->GetRendererSystem();
     LLGL::ResourceHeapDescriptor resourceHeapDesc;
     {
         resourceHeapDesc.pipelineLayout = &pipelineLayout;
@@ -157,5 +148,5 @@ void ResourceManager::CreateResourceHeap(LLGL::PipelineLayout& pipelineLayout, L
     	}
   
     }
-    mResourceHeap = renderSystem->CreateResourceHeap(resourceHeapDesc);
+    mResourceHeap = renderer.CreateResourceHeap(resourceHeapDesc);
 }

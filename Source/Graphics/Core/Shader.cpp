@@ -2,9 +2,9 @@
 
 #include "Shader.h"
 
-Shader::Shader(const LLGL::VertexFormat& vertexFormat, const char* vertexFilePath, const char* fragmentFilePath)
+Shader::Shader(LLGL::RenderSystem& renderer, const LLGL::VertexFormat& vertexFormat, const char* vertexFilePath, const char* fragmentFilePath)
 {
-    LoadShaderProgram(vertexFormat, vertexFilePath, fragmentFilePath);
+    LoadShaderProgram(renderer, vertexFormat, vertexFilePath, fragmentFilePath);
 }
 
 LLGL::ShaderProgram& Shader::GetShaderProgram() const
@@ -12,9 +12,8 @@ LLGL::ShaderProgram& Shader::GetShaderProgram() const
     return *mShaderProgram;
 }
 
-void Shader::LoadShaderProgram(const LLGL::VertexFormat& vertexFormat, const char* vertexFilePath, const char* fragmentFilePath)
+void Shader::LoadShaderProgram(LLGL::RenderSystem& renderer, const LLGL::VertexFormat& vertexFormat, const char* vertexFilePath, const char* fragmentFilePath)
 {
-    const auto renderer = RendererInstance::GetInstance();
     std::string fullVertPath = SHADER_PATH + vertexFilePath;
     std::string fullFragPath = SHADER_PATH + fragmentFilePath;
     LLGL::ShaderDescriptor vertShaderDesc = { LLGL::ShaderType::Vertex, fullVertPath.c_str() };
@@ -22,14 +21,14 @@ void Shader::LoadShaderProgram(const LLGL::VertexFormat& vertexFormat, const cha
 
     vertShaderDesc.vertex.inputAttribs = vertexFormat.attributes;
 
-    LLGL::Shader* vertShader = renderer->GetRendererSystem()->CreateShader(vertShaderDesc);
+    LLGL::Shader* vertShader = renderer.CreateShader(vertShaderDesc);
     // Print info log (warnings and errors)
     std::string vertLog = vertShader->GetReport();
     if (!vertLog.empty())
     {   
         std::cerr << vertLog << std::endl;
     }
-    LLGL::Shader* fragShader = renderer->GetRendererSystem()->CreateShader(fragShaderDesc);
+    LLGL::Shader* fragShader = renderer.CreateShader(fragShaderDesc);
     // Print info log (warnings and errors)
     std::string fragLog = fragShader->GetReport();
     if (!fragLog.empty())
@@ -42,7 +41,7 @@ void Shader::LoadShaderProgram(const LLGL::VertexFormat& vertexFormat, const cha
         shaderProgramDesc.vertexShader = vertShader;
         shaderProgramDesc.fragmentShader = fragShader;
     }
-    mShaderProgram = renderer->GetRendererSystem()->CreateShaderProgram(shaderProgramDesc);
+    mShaderProgram = renderer.CreateShaderProgram(shaderProgramDesc);
     // Link shader program and check for errors
     if (mShaderProgram->HasErrors())
     {   

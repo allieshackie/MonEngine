@@ -4,9 +4,6 @@
 #include "Camera.h"
 #include "Vertex.h"
 
-class CustomSurface;
-class Sprite;
-
 class Renderer {
 public:
 	Renderer();
@@ -23,13 +20,6 @@ public:
     {
         return mRenderer;
     }
-	
-    void OnDrawInit();
-
-    void OnDrawAll();
-	
-    void CreatePipelines();
-    void CreateSpriteVertexBuffer();
 
     void SetTexture(int textureId) const;
 
@@ -38,23 +28,26 @@ public:
     void UpdateView(glm::mat4 view);
 
 private:
-    void _InitLLGL();
+    void _Init();
+    void _InitSpritePipeline();
+    void _InitDebugDrawPipeline();
+
+    void _DrawSprites();
+    void _DrawDebug();
 
     std::unique_ptr<LLGL::RenderSystem> mRenderer; // Render system
-
     LLGL::RenderContext* mContext = nullptr; // Main render context
-
     LLGL::CommandBuffer* mCommands = nullptr; // Main command buffer
-
     LLGL::CommandQueue* mCommandQueue = nullptr;  // Command queue
 
-    LLGL::PipelineLayout* mPipelineLayout = nullptr;
-
-    LLGL::PipelineState* mPipeline = nullptr;
+    // Pipelines
+    LLGL::PipelineState* mSpritePipeline = nullptr;
+    LLGL::PipelineState* mDebugDrawPipeline = nullptr;
 
 	// Vertex Data
     LLGL::Buffer* mConstantBuffer = nullptr;
-	LLGL::Buffer* mVertexBuffer = nullptr;
+	LLGL::Buffer* mSpriteVertexBuffer = nullptr;
+	LLGL::Buffer* mDebugVertexBuffer = nullptr;
 
     struct Settings
     {

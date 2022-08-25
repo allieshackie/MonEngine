@@ -7,12 +7,12 @@ static std::string SHADER_PATH = "D:/dev/MonDev/Data/Shaders/";
 class Shader
 {
 public:
-	Shader(const LLGL::VertexFormat& vertexFormat, const char* vertexFilePath, const char* fragmentFilePath);
+	Shader(LLGL::RenderSystem& renderer, const LLGL::VertexFormat& vertexFormat, const char* vertexFilePath, const char* fragmentFilePath);
 
 	LLGL::ShaderProgram& GetShaderProgram() const;
 	
 private:
-    void LoadShaderProgram(const LLGL::VertexFormat& vertexFormat, const char* vertexFilePath, const char* fragmentFilePath);
+    void LoadShaderProgram(LLGL::RenderSystem& renderer, const LLGL::VertexFormat& vertexFormat, const char* vertexFilePath, const char* fragmentFilePath);
 
     LLGL::ShaderProgram* mShaderProgram = nullptr;
 };

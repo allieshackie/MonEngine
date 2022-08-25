@@ -4,7 +4,7 @@
 
 class Texture {
 public:
-	Texture(const std::string& path);
+	Texture(LLGL::RenderSystem& renderer, const std::string& path);
 	~Texture() = default;
 
 	LLGL::Texture& GetTextureData() const;
@@ -13,8 +13,8 @@ public:
 	glm::vec2 GetTextureSize() const;
 
 private:
-	bool LoadFromFile(const std::string& path);
-	void CreateSampler();
+	bool LoadFromFile(LLGL::RenderSystem& renderer, const std::string& path);
+	void CreateSampler(LLGL::RenderSystem& renderer);
 
 	LLGL::Texture* mTexture = nullptr;
 	LLGL::Sampler* mSampler = nullptr;

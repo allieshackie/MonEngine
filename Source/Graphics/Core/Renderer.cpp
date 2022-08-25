@@ -1,7 +1,9 @@
+#include <glm/ext/matrix_clip_space.hpp>
+#include "LLGL/Utility.h"
+
 #include "ResourceManager.h"
 #include "Sprite.h"
-#include "LLGL/Utility.h"
-#include <glm/ext/matrix_clip_space.hpp>
+#include "Shader.h"
 
 #include "Renderer.h"
 
@@ -11,10 +13,10 @@ static constexpr int SCREEN_HEIGHT = 600;
 Renderer::Renderer()
 {
     // Initialize default projection matrix
-    _InitLLGL();
+    _Init();
 }
 
-void Renderer::_InitLLGL()
+void Renderer::_Init()
 {
     try
     {
@@ -41,40 +43,82 @@ void Renderer::_InitLLGL()
     catch (const std::exception & e) {
         std::cerr << e.what() << std::endl;
     }
+
+    _InitSpritePipeline();
+    _InitDebugDrawPipeline();
+    UpdateProjection();
 }
 
-/*
- * Must be called after Renderer constructor finishes so that Singleton instance
- * can be used to create/load the shader program
- */
-void Renderer::OnDrawInit()
+void Renderer::_InitSpritePipeline()
 {
     mConstantBuffer = mRenderer->CreateBuffer(LLGL::ConstantBufferDesc(sizeof(Settings)), &settings);
-    UpdateProjection();
 
-	// this step creates shader program
-	ResourceManager::LoadShaderProgram("sprite.vert", "sprite.frag");
-	CreatePipelines();
-	ResourceManager::LoadAllTexturesFromFolder();
-	ResourceManager::CreateResourceHeap(*mPipelineLayout, *mConstantBuffer);
+    LLGL::VertexFormat vertexFormat;
+    vertexFormat.AppendAttribute({ "position", LLGL::Format::RG32Float });
+    vertexFormat.AppendAttribute({ "texCoord", LLGL::Format::RG32Float });
 
-    CreateSpriteVertexBuffer();
+    const auto shader = new Shader(*mRenderer, vertexFormat, "sprite.vert", "sprite.frag");
 
-    //ResourceManager::CreateSprite("awesomeface.png", { 100,100 }, { 200, 200 });
+    // All layout bindings that will be used by graphics and compute pipelines
+    LLGL::PipelineLayoutDescriptor layoutDesc;
+    {
+        layoutDesc.bindings =
+        {
+            LLGL::BindingDescriptor{ LLGL::ResourceType::Buffer, LLGL::BindFlags::ConstantBuffer, LLGL::StageFlags::AllStages, 0 },
+            LLGL::BindingDescriptor{ LLGL::ResourceType::Texture, LLGL::BindFlags::Sampled, LLGL::StageFlags::FragmentStage, 0u },
+            LLGL::BindingDescriptor{ LLGL::ResourceType::Sampler, 0, LLGL::StageFlags::FragmentStage, 0 },
+        };
+    }
+    // Create pipeline layout
+    const auto pipelineLayout = mRenderer->CreatePipelineLayout(layoutDesc);
+
+    // Create graphics pipeline
+    LLGL::GraphicsPipelineDescriptor pipelineDesc;
+    {
+        pipelineDesc.shaderProgram = &shader->GetShaderProgram();
+        pipelineDesc.pipelineLayout = pipelineLayout;
+        pipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::TriangleStrip;
+    }
+    mSpritePipeline = mRenderer->CreatePipelineState(pipelineDesc);
+
+    ResourceManager::LoadAllTexturesFromFolder(*mRenderer);
+	ResourceManager::CreateResourceHeap(*mRenderer, *pipelineLayout, *mConstantBuffer);
+
+    mNumVertices = static_cast<uint32_t>(mSpriteVertices.size());
+
+    mSpriteVertexBuffer = mRenderer->CreateBuffer(
+        LLGL::VertexBufferDesc(static_cast<std::uint32_t>(mSpriteVertices.size() * sizeof(Vertex)), vertexFormat),
+        mSpriteVertices.data()
+    );
 }
 
-void Renderer::OnDrawAll()
+void Renderer::_InitDebugDrawPipeline()
 {
+}
+
+void Renderer::_DrawSprites()
+{
+    // clear color buffer
+    mCommands->Clear(LLGL::ClearFlags::Color);
+    // set graphics pipeline
+    mCommands->SetPipelineState(*mSpritePipeline);
+
+    mCommands->SetVertexBuffer(*mSpriteVertexBuffer);
+
     const auto spritesList = ResourceManager::GetSpritesList();
-	for (const auto& pair : spritesList)
-	{
+    for (const auto& pair : spritesList)
+    {
         SetTexture(pair.first);
         pair.second->UpdateDrawData();
         pair.second->UpdateTextureClip();
         UpdateModelSettings(pair.second->GetSpriteModelData(), pair.second->GetTextureClip());
 
         mCommands->Draw(mNumVertices, 0);
-	}
+    }
+}
+
+void Renderer::_DrawDebug()
+{
 }
 
 void Renderer::OnDrawFrame(const std::function<void()>& drawCallback)
@@ -85,16 +129,10 @@ void Renderer::OnDrawFrame(const std::function<void()>& drawCallback)
         // set viewport and scissor rectangle
         mCommands->SetViewport(mContext->GetResolution());
 
-        // set graphics pipeline
-        mCommands->SetPipelineState(*mPipeline);
-    
         // set the render context as the initial render target
         mCommands->BeginRenderPass(*mContext);
         {
-            // clear color buffer
-            mCommands->Clear(LLGL::ClearFlags::Color);
-
-            OnDrawAll();
+            _DrawSprites();
         	
             drawCallback();
             
@@ -108,42 +146,6 @@ void Renderer::OnDrawFrame(const std::function<void()>& drawCallback)
     mContext->Present();
 }
 
-void Renderer::CreatePipelines()
-{
-	// All layout bindings that will be used by graphics and compute pipelines
-    LLGL::PipelineLayoutDescriptor layoutDesc;
-    {
-        layoutDesc.bindings =
-        {
-            LLGL::BindingDescriptor{ LLGL::ResourceType::Buffer, LLGL::BindFlags::ConstantBuffer, LLGL::StageFlags::AllStages, 0 },
-            LLGL::BindingDescriptor{ LLGL::ResourceType::Texture, LLGL::BindFlags::Sampled, LLGL::StageFlags::FragmentStage, 0u },
-            LLGL::BindingDescriptor{ LLGL::ResourceType::Sampler, 0, LLGL::StageFlags::FragmentStage, 0 },
-        };
-    }
-	// Create pipeline layout
-    mPipelineLayout = mRenderer->CreatePipelineLayout(layoutDesc);
-
-	// Create graphics pipeline
-    LLGL::GraphicsPipelineDescriptor pipelineDesc;
-    {
-        pipelineDesc.shaderProgram = &ResourceManager::GetShaderProgram();
-        pipelineDesc.pipelineLayout = mPipelineLayout;
-        pipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::TriangleStrip;
-    }
-    mPipeline = mRenderer->CreatePipelineState(pipelineDesc);
-}
-
-void Renderer::CreateSpriteVertexBuffer()
-{
-    mNumVertices = static_cast<uint32_t>(mSpriteVertices.size());
-
-    mVertexBuffer = mRenderer->CreateBuffer(
-        LLGL::VertexBufferDesc(static_cast<std::uint32_t>(mSpriteVertices.size() * sizeof(Vertex)), ResourceManager::GetVertexFormat()),
-        mSpriteVertices.data()
-    );
-
-    mCommands->SetVertexBuffer(*mVertexBuffer);
-}
 
 void Renderer::SetTexture(int textureId) const
 {

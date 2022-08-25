@@ -4,9 +4,9 @@
 
 #include "Texture.h"
 
-Texture::Texture(const std::string& path) {
-	LoadFromFile(path);
-    CreateSampler();
+Texture::Texture(LLGL::RenderSystem& renderer, const std::string& path) {
+	LoadFromFile(renderer, path);
+    CreateSampler(renderer);
 }
 
 LLGL::Texture& Texture::GetTextureData() const
@@ -24,10 +24,9 @@ glm::vec2 Texture::GetTextureSize() const
     return glm::vec2(mTextureWidth, mTextureHeight);
 }
 
-bool Texture::LoadFromFile(const std::string& path) {
+bool Texture::LoadFromFile(LLGL::RenderSystem& renderer, const std::string& path) {
     // uncompressed texture
     int texComponents = 0;
-    const auto& renderer = RendererInstance::GetInstance()->GetRendererSystem();
 
     unsigned char* imageBuffer = stbi_load((path).c_str(), &mTextureWidth, &mTextureHeight, &texComponents, 0);
     if (!imageBuffer)
@@ -64,7 +63,7 @@ bool Texture::LoadFromFile(const std::string& path) {
             texDesc.miscFlags = LLGL::MiscFlags::GenerateMips;
         }
 
-        mTexture = renderer->CreateTexture(texDesc, &imageDesc);
+        mTexture = renderer.CreateTexture(texDesc, &imageDesc);
     }
 
     stbi_image_free(imageBuffer);
@@ -73,9 +72,8 @@ bool Texture::LoadFromFile(const std::string& path) {
 
 }
 
-void Texture::CreateSampler()
+void Texture::CreateSampler(LLGL::RenderSystem& renderer)
 {
-    const auto& renderer = RendererInstance::GetInstance()->GetRendererSystem();
     // 1st sampler state with default settings
     // Create nearest sampler
     LLGL::SamplerDescriptor samplerDesc;
@@ -84,5 +82,5 @@ void Texture::CreateSampler()
         samplerDesc.magFilter = LLGL::SamplerFilter::Nearest;
         samplerDesc.mipMapFilter = LLGL::SamplerFilter::Nearest;
     }
-    mSampler = renderer->CreateSampler(samplerDesc);
+    mSampler = renderer.CreateSampler(samplerDesc);
 }

@@ -2,6 +2,8 @@
 #include <LLGL/LLGL.h>
 #include <unordered_map>
 #include <glm/vec2.hpp>
+
+#include "DebugDraw.h"
 #include "Tile.h"
 
 class Texture;
@@ -9,25 +11,19 @@ class Shader;
 
 static const char* TEXTURE_FOLDER = "D:/dev/MonDev/Data/Textures";
 
-const int PRIME_CONST = 31;
-
 class ResourceManager
 {
 public:
-	static void LoadAllTexturesFromFolder();
-	static void LoadTexture(const std::string& filePath, const std::string& textureName, int textureId);
+	static void LoadAllTexturesFromFolder(LLGL::RenderSystem& renderer);
+	static void LoadTexture(LLGL::RenderSystem& renderer, const std::string& filePath, const std::string& textureName, int textureId);
 	static void SetTexture(LLGL::CommandBuffer& commands, int textureId);
 	static int GetTextureId(const std::string& filePath);
 	static glm::vec2 GetTextureSize(int textureId);
 
-	static void CreateResourceHeap(LLGL::PipelineLayout& pipelineLayout, LLGL::Buffer& constantBuffer);
+	static void CreateResourceHeap(LLGL::RenderSystem& renderer, LLGL::PipelineLayout& pipelineLayout, LLGL::Buffer& constantBuffer);
 
 	static void BindTexture(LLGL::CommandBuffer& commands);
 	static void SetCurrentTexture(int textureId);
-	static const LLGL::VertexFormat& GetVertexFormat();
-
-	static void LoadShaderProgram(const char* vertexFilePath, const char* fragmentFilePath);
-	static LLGL::ShaderProgram& GetShaderProgram();
 
 	// Helper used for editor
 	static void CreateSprite(const std::string& textureName, glm::vec2 pos, glm::vec2 size);
@@ -37,16 +33,18 @@ public:
 	static void CreateTile(const std::string& textureName, glm::vec2 pos, glm::vec2 size, glm::vec2 clip = { 0.0f, 0.0f }, glm::vec2 scale = { 1.0f, 1.0f });
 	static Tile* GetLatestTile();
 
+	static void CreateLine(glm::vec4 line, glm::vec2 color);
+	static void CreateBox(glm::vec4 sideA, glm::vec4 sideB, glm::vec2 color);
+
 	static float Normalize(float size);
 	
 private:
 	static std::unordered_map<int, Texture*> mTextures;
 	static std::unordered_map<std::string, int> mTextureIds;
-	static Shader* mShader;
-	static LLGL::VertexFormat mVertexFormat;
 
 	static LLGL::ResourceHeap* mResourceHeap;
 	static int mResourceIndex;
 
 	static std::vector<std::pair<int, Tile*>> mSpritesList;
+	static std::vector<DebugDrawable> mDebugDrawables;
 };
