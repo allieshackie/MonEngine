@@ -212,7 +212,7 @@ void TileSetEditor::_CameraInfo(bool* p_open)
         static glm::vec3 cameraPos = mCamera.GetPosition();
         ImGui::SliderFloat("Pos X", &cameraPos.x, -2, 2);
         ImGui::SliderFloat("Pos Y", &cameraPos.y, -2, 2);
-        ImGui::SliderFloat("Pos Z", &cameraPos.z, -2, 2);
+        ImGui::SliderFloat("Pos Z", &cameraPos.z, -2, 10);
 
         if (cameraPos != mCamera.GetPosition() && !ImGui::IsItemActive())
         {

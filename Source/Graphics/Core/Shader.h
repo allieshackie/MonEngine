@@ -2,7 +2,7 @@
 #include <LLGL/LLGL.h>
 
 typedef unsigned int GLuint;
-static std::string SHADER_PATH = "D:/dev/MonDev/Data/Shaders/";
+static std::string SHADER_PATH = "../Data/Shaders/";
 
 class Shader
 {

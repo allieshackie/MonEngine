@@ -4,8 +4,8 @@ class Camera;
 class Sprite;
 class Tile;
 
-static const char* TEXTURE_FOLDER_GUI = "D:/dev/MonDev/Data/Textures";
-static const char* TILESET_FOLDER = "D:/dev/MonDev/Data/Tileset";
+static const char* TEXTURE_FOLDER_GUI = "../Data/Textures";
+static const char* TILESET_FOLDER = "../Data/Tileset";
 
 class TileSetEditor {
 public:
