@@ -9,7 +9,7 @@
 class Texture;
 class Shader;
 
-static const char* TEXTURE_FOLDER = "D:/dev/MonDev/Data/Textures";
+static const char* TEXTURE_FOLDER = "../Data/Textures";
 
 class ResourceManager
 {
@@ -33,8 +33,9 @@ public:
 	static void CreateTile(const std::string& textureName, glm::vec2 pos, glm::vec2 size, glm::vec2 clip = { 0.0f, 0.0f }, glm::vec2 scale = { 1.0f, 1.0f });
 	static Tile* GetLatestTile();
 
-	static void CreateLine(glm::vec4 line, glm::vec2 color);
-	static void CreateBox(glm::vec4 sideA, glm::vec4 sideB, glm::vec2 color);
+	static void CreateLine(glm::vec4 line, glm::vec3 color);
+	static void CreateBox(glm::vec4 sideA, glm::vec4 sideB, glm::vec3 color);
+	static std::vector<DebugDrawable*>& GetDebugDrawables();
 
 	static float Normalize(float size);
 	
@@ -46,5 +47,5 @@ private:
 	static int mResourceIndex;
 
 	static std::vector<std::pair<int, Tile*>> mSpritesList;
-	static std::vector<DebugDrawable> mDebugDrawables;
+	static std::vector<DebugDrawable*> mDebugDrawables;
 };

@@ -4,6 +4,7 @@
 #include "ResourceManager.h"
 #include "Sprite.h"
 #include "Shader.h"
+#include "DebugDraw.h"
 
 #include "Renderer.h"
 
@@ -45,8 +46,8 @@ void Renderer::_Init()
     }
 
     _InitSpritePipeline();
-    _InitDebugDrawPipeline();
     UpdateProjection();
+    _InitDebugDrawPipeline();
 }
 
 void Renderer::_InitSpritePipeline()
@@ -94,6 +95,26 @@ void Renderer::_InitSpritePipeline()
 
 void Renderer::_InitDebugDrawPipeline()
 {
+    LLGL::VertexFormat vertexFormat;
+    vertexFormat.AppendAttribute({ "position", LLGL::Format::RG32Float });
+    vertexFormat.AppendAttribute({ "color", LLGL::Format::RGB32Float });
+
+    const auto shader = new Shader(*mRenderer, vertexFormat, "debug.vert", "debug.frag");
+
+    // Create graphics pipeline
+    LLGL::GraphicsPipelineDescriptor pipelineDesc;
+    {
+        pipelineDesc.shaderProgram = &shader->GetShaderProgram();
+        pipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::LineStrip;
+    }
+    mDebugDrawPipeline = mRenderer->CreatePipelineState(pipelineDesc);
+
+    mCommands->SetPipelineState(*mDebugDrawPipeline);
+    // TODO: Set uniforms for both pipelines so its not unique
+    const auto res = mContext->GetVideoMode().resolution;
+    const auto projection = glm::ortho(0.0f, static_cast<float>(res.width), static_cast<float>(res.height), 0.0f, -1.0f, 1.0f);
+    const LLGL::UniformLocation projectionUniform = shader->GetShaderProgram().FindUniformLocation("projection");
+    mCommands->SetUniform(projectionUniform, &projection, sizeof(projection));
 }
 
 void Renderer::_DrawSprites()
@@ -113,12 +134,60 @@ void Renderer::_DrawSprites()
         pair.second->UpdateTextureClip();
         UpdateModelSettings(pair.second->GetSpriteModelData(), pair.second->GetTextureClip());
 
-        mCommands->Draw(mNumVertices, 0);
     }
+	mCommands->Draw(mNumVertices, 0);
 }
 
 void Renderer::_DrawDebug()
 {
+    if (mIsDebugDirty)
+    {
+        mDebugVertices.clear();
+    	const auto& debugList = ResourceManager::GetDebugDrawables();
+        for (const auto debug: debugList)
+        {
+            // Line case
+            if (const auto line = dynamic_cast<Line*>(debug))
+            {
+                mDebugVertices.push_back({ {line->pointA}, {line->color} });
+                mDebugVertices.push_back({ {line->pointB}, {line->color} });
+                //mDebugVertices.push_back({ {0.5,0.5}, {255, 255, 255} });
+            }
+
+            // Box case
+            if (const auto box = dynamic_cast<Box*>(debug))
+            {
+                // connect sideA (xy, zw) 
+                //mDebugVertices.push_back({ {box->sideA.x, box->sideA.y}, {box->color} });
+            }
+
+            // Grid case
+            if (const auto grid = dynamic_cast<Grid*>(debug))
+            {
+                //mDebugVertices.push_back({ {line->x,line->y}, {line->color} });
+            }
+
+            LLGL::VertexFormat vertexFormat;
+            vertexFormat.AppendAttribute({ "position", LLGL::Format::RG32Float });
+            vertexFormat.AppendAttribute({ "color", LLGL::Format::RGB32Float });
+            LLGL::BufferDescriptor vertexBufferDesc;
+            {
+                vertexBufferDesc.size = sizeof(mDebugVertices);                // Size (in bytes) of the vertex buffer
+                vertexBufferDesc.bindFlags = LLGL::BindFlags::VertexBuffer;    // Enables the buffer to be bound to a vertex buffer slot
+                vertexBufferDesc.vertexAttribs = vertexFormat.attributes;      // Vertex format layout
+            }
+            mDebugVertexBuffer = mRenderer->CreateBuffer(
+                vertexBufferDesc, mDebugVertices.data());
+        }
+        SetDebugDirty(false);
+    }
+    if (mDebugVertexBuffer == nullptr) return;
+    // clear color buffer
+    mCommands->Clear(LLGL::ClearFlags::Color);
+    // set graphics pipeline
+    mCommands->SetPipelineState(*mDebugDrawPipeline);
+    mCommands->SetVertexBuffer(*mDebugVertexBuffer);
+    mCommands->Draw(mDebugVertices.size(), 0);
 }
 
 void Renderer::OnDrawFrame(const std::function<void()>& drawCallback)
@@ -132,7 +201,8 @@ void Renderer::OnDrawFrame(const std::function<void()>& drawCallback)
         // set the render context as the initial render target
         mCommands->BeginRenderPass(*mContext);
         {
-            _DrawSprites();
+            //_DrawSprites();
+            _DrawDebug();
         	
             drawCallback();
             
@@ -172,4 +242,9 @@ void Renderer::UpdateView(glm::mat4 view)
 {
     settings.view = view;
     mCommands->UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
+}
+
+void Renderer::SetDebugDirty(bool isDirty)
+{
+    mIsDebugDirty = isDirty;
 }

@@ -12,7 +12,7 @@ std::unordered_map<std::string, int> ResourceManager::mTextureIds;
 LLGL::ResourceHeap* ResourceManager::mResourceHeap = nullptr;
 int ResourceManager::mResourceIndex = -1;
 std::vector<std::pair<int, Tile*>> ResourceManager::mSpritesList;
-std::vector<DebugDrawable> ResourceManager::mDebugDrawables;
+std::vector<DebugDrawable*> ResourceManager::mDebugDrawables;
 
 void ResourceManager::LoadAllTexturesFromFolder(LLGL::RenderSystem& renderer)
 {
@@ -108,24 +108,35 @@ Tile* ResourceManager::GetLatestTile()
     return mSpritesList.front().second;
 }
 
-void ResourceManager::CreateLine(glm::vec4 line, glm::vec2 color)
+void ResourceManager::CreateLine(glm::vec4 line, glm::vec3 color)
 {
-    Line debugLine;
-    debugLine.x = { line.x, line.y };
-    debugLine.y = { line.z, line.w };
-    debugLine.color = color;
+    Line* debugLine = new Line();
+    debugLine->pointA = { line.x, line.y };
+    debugLine->pointB = { line.z, line.w };
+    debugLine->color = color;
 
     mDebugDrawables.push_back(debugLine);
+
+    RendererInstance::GetInstance()->SetDebugDirty(true);
 }
 
-void ResourceManager::CreateBox(glm::vec4 sideA, glm::vec4 sideB, glm::vec2 color)
+void ResourceManager::CreateBox(glm::vec4 sideA, glm::vec4 sideB, glm::vec3 color)
 {
-    Box debugBox;
-    debugBox.xy = sideA;
-    debugBox.zw = sideB;
-    debugBox.color = color;
+    Box* debugBox = new Box();
+    debugBox->pointA = { sideA.x, sideA.y };
+    debugBox->pointB = { sideA.z, sideA.w };
+    debugBox->pointC = { sideB.x, sideB.y };
+    debugBox->pointD = { sideB.z, sideB.w };
+    debugBox->color = color;
 
     mDebugDrawables.push_back(debugBox);
+
+    RendererInstance::GetInstance()->SetDebugDirty(true);
+}
+
+std::vector<DebugDrawable*>& ResourceManager::GetDebugDrawables()
+{
+    return mDebugDrawables;
 }
 
 float ResourceManager::Normalize(float size)

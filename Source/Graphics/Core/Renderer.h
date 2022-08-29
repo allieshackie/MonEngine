@@ -27,6 +27,8 @@ public:
     void UpdateProjection();
     void UpdateView(glm::mat4 view);
 
+    void SetDebugDirty(bool isDirty);
+
 private:
     void _Init();
     void _InitSpritePipeline();
@@ -64,6 +66,9 @@ private:
     { {  1,  1 }, {  0, 0 } }, // top right
     { {  1, -1 }, {  0,  1 } }, // bottom right
     };
+
+    std::vector<DebugVertex> mDebugVertices;
+    bool mIsDebugDirty = false;
 
     uint32_t mNumVertices = 0;
     glm::mat4 mProjection = glm::mat4(1.0f);
