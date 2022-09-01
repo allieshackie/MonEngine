@@ -3,11 +3,12 @@
 
 layout(std140) uniform Settings
 {
-    mat4 projection;
-    mat4 view;
     mat4 model;
     mat4 textureClip;
 };
+
+uniform mat4 projection;
+uniform mat4 view;
 
 in vec2 position;
 in vec2 texCoord;

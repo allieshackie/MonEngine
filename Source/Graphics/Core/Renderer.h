@@ -1,7 +1,9 @@
 #pragma once
 #include <LLGL/LLGL.h>
 #include <glm/mat4x4.hpp>
+
 #include "Camera.h"
+#include "Shader.h"
 #include "Vertex.h"
 
 class Renderer {
@@ -46,6 +48,10 @@ private:
     LLGL::PipelineState* mSpritePipeline = nullptr;
     LLGL::PipelineState* mDebugDrawPipeline = nullptr;
 
+    // Shaders
+    Shader* mSpriteShader = nullptr;
+    Shader* mDebugShader = nullptr;
+
 	// Vertex Data
     LLGL::Buffer* mConstantBuffer = nullptr;
 	LLGL::Buffer* mSpriteVertexBuffer = nullptr;
@@ -53,8 +59,6 @@ private:
 
     struct Settings
     {
-        glm::mat4 projection;
-        glm::mat4 view;
         glm::mat4 model;
         glm::mat4 textureClip;
     }
