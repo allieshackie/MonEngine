@@ -20,14 +20,20 @@ public:
 
 	void Load(const char* fileName);
 
-	virtual void applyToEntity(EntityContext& entity) override {}
+	virtual void ApplyToEntity(EntityContext& entity) override {}
 
 	const std::string& getTexturePath() const;
+	int GetRows() const;
+	int GetColumns() const;
 
 	glm::vec4 GetClipForTile(int index) const;
 
+	void SetRows(int rows);
+	void setColumns(int columns);
+	void UpdateSize(int rows, int columns);
+
 private:
-	virtual void parseJSON(const char* fileName) override;
+	virtual void ParseJSON(const char* fileName) override;
 
 public:
 	static constexpr char JsonName[] = "mondev:tileset";
@@ -39,6 +45,8 @@ private:
 	static constexpr char SIZE_STRING[] = "size";
 	static constexpr char TEXTURE_SIZE_STRING[] = "texture_size";
 
+	nlohmann::json mJson;
+	std::string mTileSetFilePath = JSON_PATH;
 	std::string mTexturePath;
 	int mTilesetRows = 0;
 	int mTilesetColumns = 0;

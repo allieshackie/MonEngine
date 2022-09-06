@@ -11,12 +11,22 @@ TileSetDescription::TileSetDescription(const char* fileName)
 
 void TileSetDescription::Load(const char* fileName)
 {
-    parseJSON(fileName);
+    ParseJSON(fileName);
 }
 
 const std::string& TileSetDescription::getTexturePath() const
 {
     return mTexturePath;
+}
+
+int TileSetDescription::GetRows() const
+{
+    return mTilesetRows;
+}
+
+int TileSetDescription::GetColumns() const
+{
+    return mTilesetColumns;
 }
 
 glm::vec4 TileSetDescription::GetClipForTile(int index) const
@@ -28,28 +38,55 @@ glm::vec4 TileSetDescription::GetClipForTile(int index) const
     return glm::vec4(clipAcross * calculateAcross, clipDown * calculateDown, clipAcross, clipDown);
 }
 
-void TileSetDescription::parseJSON(const char* fileName)
+void TileSetDescription::SetRows(int rows)
+{
+    mTilesetRows = rows;
+}
+
+void TileSetDescription::setColumns(int columns)
+{
+    mTilesetColumns = columns;
+}
+
+void TileSetDescription::UpdateSize(int rows, int columns)
+{
+    if (mTileSetFilePath != JSON_PATH)
+    {
+        mTilesetRows = rows;
+        mTilesetColumns = columns;
+
+        mJson[TILESET_STRING][SIZE_STRING][0] = rows;
+        mJson[TILESET_STRING][SIZE_STRING][1] = columns;
+
+        std::ofstream ofs(mTileSetFilePath.c_str(), std::ios::out | std::ios::trunc);
+        ofs << std::setw(4) << mJson << std::endl;
+    }
+}
+
+void TileSetDescription::ParseJSON(const char* fileName)
 {
     // parse and serialize JSON
-    std::string path = JSON_PATH;
-    path.append(fileName).append(".json");
-    std::ifstream ifs(path.c_str());
+    mTileSetFilePath.append(fileName);
+    if (mTileSetFilePath.find(".json") == std::string::npos)
+    {
+        mTileSetFilePath.append(".json");
+    }
+    std::ifstream ifs(mTileSetFilePath.c_str());
 
-    // json parser can't handle comments
-    json tileSetJSON = json::parse(ifs);
+    mJson = json::parse(ifs, nullptr, false, true);
 
-    if (!tileSetJSON.contains(TILESET_STRING)) {
+    if (!mJson.contains(TILESET_STRING)) {
         std::cout << "ERROR: TileSet json needs to contain tileset";
         return;
     }
 
-    auto& size = tileSetJSON[TILESET_STRING][SIZE_STRING];
+    auto& size = mJson[TILESET_STRING][SIZE_STRING];
     mTilesetRows = size[0];
     mTilesetColumns = size[1];
 
-    mTexturePath = tileSetJSON[TILESET_STRING][TEXTURE_STRING];
+    mTexturePath = mJson[TILESET_STRING][TEXTURE_STRING];
 
-    const auto& texSize = tileSetJSON[TILESET_STRING][TEXTURE_SIZE_STRING];
+    const auto& texSize = mJson[TILESET_STRING][TEXTURE_SIZE_STRING];
 
     if (!texSize.is_null())
     {
