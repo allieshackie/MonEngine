@@ -5,7 +5,7 @@
 
 class Map {
 public:
-	Map();
+	Map() = default;
 	~Map() = default;
 
 	void LoadMap(const char* fileName);
