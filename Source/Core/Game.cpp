@@ -57,11 +57,6 @@ void Game::closeGame()
 
 void Game::runGame() const
 {
-	//Map* map = new Map();
-	//map->LoadMap("map1");
-
-	ResourceManager::CreateLine( { 0,0, 1, 1}, { 255, 255, 255 });
-	
 	while (mRenderer->GetContext().GetSurface().ProcessEvents() && mRunning)
 	{
 		// Process Input
@@ -81,6 +76,7 @@ void Game::runGame() const
 			// Render GUI
 			mGUISystem->GUIStartFrame();
 			mTileSetEditor->RenderGUI();
+			//mTileSetEditor->RenderTest();
 			mGUISystem->GUIEndFrame();
 		});
 		
