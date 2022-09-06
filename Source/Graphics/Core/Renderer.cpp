@@ -3,7 +3,6 @@
 
 #include "ResourceManager.h"
 #include "Sprite.h"
-#include "DebugDraw.h"
 
 #include "Renderer.h"
 
@@ -109,7 +108,6 @@ void Renderer::_InitDebugDrawPipeline()
     mDebugDrawPipeline = mRenderer->CreatePipelineState(pipelineDesc);
 
     mCommands->SetPipelineState(*mDebugDrawPipeline);
- 
 }
 
 void Renderer::_DrawSprites()
@@ -133,53 +131,17 @@ void Renderer::_DrawSprites()
 
 void Renderer::_DrawDebug()
 {
-    if (mIsDebugDirty)
+    if (!mDebugVertexBuffers.empty())
     {
-        mDebugVertices.clear();
-    	const auto& debugList = ResourceManager::GetDebugDrawables();
-        for (const auto debug: debugList)
-        {
-            // Line case
-            if (const auto line = dynamic_cast<Line*>(debug))
-            {
-                mDebugVertices.push_back({ {line->pointA}, {line->color} });
-            	mDebugVertices.push_back({ {line->pointB}, {line->color} });
-                mDebugVertices.push_back({ {250,250}, {255, 0, 0} });
-                mDebugVertices.push_back({ {200,200}, {255, 0, 0} });
-            }
-
-            // Box case
-            if (const auto box = dynamic_cast<Box*>(debug))
-            {
-                // connect sideA (xy, zw) 
-                //mDebugVertices.push_back({ {box->sideA.x, box->sideA.y}, {box->color} });
-            }
-
-            // Grid case
-            if (const auto grid = dynamic_cast<Grid*>(debug))
-            {
-                //mDebugVertices.push_back({ {line->x,line->y}, {line->color} });
-            }
-
-            LLGL::VertexFormat vertexFormat;
-            vertexFormat.AppendAttribute({ "position", LLGL::Format::RG32Float });
-            vertexFormat.AppendAttribute({ "color", LLGL::Format::RGB32Float });
-            LLGL::BufferDescriptor vertexBufferDesc;
-            {
-                vertexBufferDesc.size = sizeof(DebugVertex) * mDebugVertices.size();  // Size (in bytes) of the vertex buffer
-                vertexBufferDesc.bindFlags = LLGL::BindFlags::VertexBuffer;    // Enables the buffer to be bound to a vertex buffer slot
-                vertexBufferDesc.vertexAttribs = vertexFormat.attributes;      // Vertex format layout
-            }
-            mDebugVertexBuffer = mRenderer->CreateBuffer(
-                vertexBufferDesc, mDebugVertices.data());
-        }
-        SetDebugDirty(false);
+    	mCommands->SetPipelineState(*mDebugDrawPipeline);
+	    
+	    for (const auto& vb: mDebugVertexBuffers)
+	    {
+		    // set graphics pipeline
+		    mCommands->SetVertexBuffer(*vb.mVertexBuffer);
+			mCommands->Draw(vb.mVertices.size(), 0);
+	    }
     }
-    if (mDebugVertexBuffer == nullptr) return;
-    // set graphics pipeline
-    mCommands->SetPipelineState(*mDebugDrawPipeline);
-    mCommands->SetVertexBuffer(*mDebugVertexBuffer);
-	mCommands->Draw(mDebugVertices.size(), 0);
 }
 
 void Renderer::OnDrawFrame(const std::function<void()>& drawCallback)
@@ -250,7 +212,73 @@ void Renderer::UpdateView(glm::mat4 view)
     mCommands->SetUniform(viewUniform, &view, sizeof(view));
 }
 
-void Renderer::SetDebugDirty(bool isDirty)
+void Renderer::AddDebugDrawToVB(DebugDrawable* debug)
 {
-    mIsDebugDirty = isDirty;
+    std::vector<DebugVertex> vertices;
+	// Line case
+    if (const auto line = dynamic_cast<Line*>(debug))
+    {
+        _AddDebugLineToVB(line, vertices);
+    }
+
+    // Box case
+    if (const auto box = dynamic_cast<Box*>(debug))
+    {
+        _AddDebugBoxToVB(box, vertices);
+    }
+
+    // Grid case
+    if (const auto grid = dynamic_cast<Grid*>(debug))
+    {
+        _AddDebugBoxToVB(&grid->mOutline, vertices);
+        for (const auto line : grid->mLines)
+        {
+            _AddDebugLineToVB(&line, vertices);
+        }
+    }
+
+    if (!vertices.empty())
+    {
+	    LLGL::VertexFormat vertexFormat;
+	    vertexFormat.AppendAttribute({ "position", LLGL::Format::RG32Float });
+	    vertexFormat.AppendAttribute({ "color", LLGL::Format::RGB32Float });
+	    LLGL::BufferDescriptor vertexBufferDesc;
+	    {
+	        // NOTE: Even though this VB isn't initialized with starting data, we need to
+	        // specify a larger size for when we update the buffer with data
+	        vertexBufferDesc.size = sizeof(DebugVertex) * vertices.size();  // Size (in bytes) of the vertex buffer
+	        vertexBufferDesc.bindFlags = LLGL::BindFlags::VertexBuffer;    // Enables the buffer to be bound to a vertex buffer slot
+	        vertexBufferDesc.vertexAttribs = vertexFormat.attributes;      // Vertex format layout
+	    }
+	    const auto vertexBuffer = mRenderer->CreateBuffer(vertexBufferDesc, vertices.data());
+
+        mDebugVertexBuffers.push_back({ vertexBuffer, vertices });
+    }
 }
+
+void Renderer::ClearDebugDraw()
+{
+    mDebugVertexBuffers.clear();
+}
+
+void Renderer::_AddDebugLineToVB(const Line* debug, std::vector<DebugVertex>& vertices)
+{
+    vertices.push_back({ {debug->pointA}, {debug->color} });
+    vertices.push_back({ {debug->pointB}, {debug->color} });
+}
+
+void Renderer::_AddDebugBoxToVB(const Box* debug, std::vector<DebugVertex>& vertices)
+{
+    vertices.push_back({ {debug->pointA}, {debug->color} });
+    vertices.push_back({ {debug->pointB}, {debug->color} });
+
+    vertices.push_back({ {debug->pointB}, {debug->color} });
+    vertices.push_back({ {debug->pointD}, {debug->color} });
+
+    vertices.push_back({ {debug->pointD}, {debug->color} });
+    vertices.push_back({ {debug->pointC}, {debug->color} });
+
+    vertices.push_back({ {debug->pointC}, {debug->color} });
+    vertices.push_back({ {debug->pointA}, {debug->color} });
+}
+

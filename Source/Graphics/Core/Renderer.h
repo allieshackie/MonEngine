@@ -3,6 +3,7 @@
 #include <glm/mat4x4.hpp>
 
 #include "Camera.h"
+#include "DebugDraw.h"
 #include "Shader.h"
 #include "Vertex.h"
 
@@ -29,7 +30,8 @@ public:
     void UpdateProjection();
     void UpdateView(glm::mat4 view);
 
-    void SetDebugDirty(bool isDirty);
+    void AddDebugDrawToVB(DebugDrawable* debug);
+    void ClearDebugDraw();
 
 private:
     void _Init();
@@ -38,6 +40,9 @@ private:
 
     void _DrawSprites();
     void _DrawDebug();
+
+    void _AddDebugLineToVB(const Line* debug, std::vector<DebugVertex>& vertices);
+    void _AddDebugBoxToVB(const Box* debug, std::vector<DebugVertex>& vertices);
 
     std::unique_ptr<LLGL::RenderSystem> mRenderer; // Render system
     LLGL::RenderContext* mContext = nullptr; // Main render context
@@ -52,10 +57,17 @@ private:
     Shader* mSpriteShader = nullptr;
     Shader* mDebugShader = nullptr;
 
+
 	// Vertex Data
     LLGL::Buffer* mConstantBuffer = nullptr;
 	LLGL::Buffer* mSpriteVertexBuffer = nullptr;
-	LLGL::Buffer* mDebugVertexBuffer = nullptr;
+    template <typename T>
+    struct VBData
+    {
+        LLGL::Buffer* mVertexBuffer;
+        std::vector<T> mVertices;
+    };
+	std::vector<VBData<DebugVertex>> mDebugVertexBuffers;
 
     struct Settings
     {
@@ -70,9 +82,6 @@ private:
     { {  1,  1 }, {  0, 0 } }, // top right
     { {  1, -1 }, {  0,  1 } }, // bottom right
     };
-
-    std::vector<DebugVertex> mDebugVertices;
-    bool mIsDebugDirty = false;
 
     uint32_t mNumVertices = 0;
     glm::mat4 mProjection = glm::mat4(1.0f);
