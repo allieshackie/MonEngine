@@ -5,24 +5,25 @@
 #include <glm/vec4.hpp>
 #include <vector>
 
+// Example: Debug color is 0-255 range
 struct DebugDrawable
 {
 	virtual ~DebugDrawable() = default;
-	glm::vec3 color;
+	glm::vec3 color = {1,1,1};
 };
 
 struct Line : virtual DebugDrawable
 {
-	glm::vec2 pointA;
-	glm::vec2 pointB;
+	glm::vec2 pointA = {0,0};
+	glm::vec2 pointB = {0,0};
 };
 
 struct Box : virtual DebugDrawable
 {
-	glm::vec2 pointA;
-	glm::vec2 pointB;
-	glm::vec2 pointC;
-	glm::vec2 pointD;
+	glm::vec2 pointA = { 0,0 };
+	glm::vec2 pointB = { 0,0 };
+	glm::vec2 pointC = { 0,0 };
+	glm::vec2 pointD = { 0,0 };
 };
 
 struct Grid : virtual DebugDrawable
