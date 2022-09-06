@@ -22,10 +22,10 @@ public:
 	// x,y clip    z,w size
 	glm::vec4 GetClipForTile(int index) const;
 
-	virtual void applyToEntity(EntityContext& entity) override {}
+	virtual void ApplyToEntity(EntityContext& entity) override {}
 
 private:
-	virtual void parseJSON(const char* fileName) override;
+	virtual void ParseJSON(const char* fileName) override;
 
 public:
 	static constexpr char JsonName[] = "mondev:map";

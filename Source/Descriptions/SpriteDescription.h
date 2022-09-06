@@ -6,8 +6,8 @@ struct SpriteDescription : ComponentDescriptionBase {
 public:
 	SpriteDescription();
 
-	void applyToEntity(EntityContext& entity) override {}
-    void parseJSON(const nlohmann::json& jsonFrag) override;
+	void ApplyToEntity(EntityContext& entity) override {}
+    void ParseJSON(const nlohmann::json& jsonFrag) override;
 
 public:
 	static constexpr char JsonName[] = "mondev:sprite";
