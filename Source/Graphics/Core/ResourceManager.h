@@ -35,7 +35,7 @@ public:
 
 	static void CreateLine(glm::vec4 line, glm::vec3 color);
 	static void CreateBox(glm::vec4 sideA, glm::vec4 sideB, glm::vec3 color);
-	static std::vector<DebugDrawable*>& GetDebugDrawables();
+	static void CreateGrid(glm::vec4 sideA, glm::vec4 sideB, int rows, int columns, glm::vec3 color);
 
 	static float Normalize(float size);
 	
@@ -47,5 +47,4 @@ private:
 	static int mResourceIndex;
 
 	static std::vector<std::pair<int, Tile*>> mSpritesList;
-	static std::vector<DebugDrawable*> mDebugDrawables;
 };

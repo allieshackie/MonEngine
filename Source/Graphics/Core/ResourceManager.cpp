@@ -12,7 +12,6 @@ std::unordered_map<std::string, int> ResourceManager::mTextureIds;
 LLGL::ResourceHeap* ResourceManager::mResourceHeap = nullptr;
 int ResourceManager::mResourceIndex = -1;
 std::vector<std::pair<int, Tile*>> ResourceManager::mSpritesList;
-std::vector<DebugDrawable*> ResourceManager::mDebugDrawables;
 
 void ResourceManager::LoadAllTexturesFromFolder(LLGL::RenderSystem& renderer)
 {
@@ -115,9 +114,7 @@ void ResourceManager::CreateLine(glm::vec4 line, glm::vec3 color)
     debugLine->pointB = { line.z, line.w };
     debugLine->color = color;
 
-    mDebugDrawables.push_back(debugLine);
-
-    RendererInstance::GetInstance()->SetDebugDirty(true);
+    RendererInstance::GetInstance()->AddDebugDrawToVB(debugLine);
 }
 
 void ResourceManager::CreateBox(glm::vec4 sideA, glm::vec4 sideB, glm::vec3 color)
@@ -129,14 +126,41 @@ void ResourceManager::CreateBox(glm::vec4 sideA, glm::vec4 sideB, glm::vec3 colo
     debugBox->pointD = { sideB.z, sideB.w };
     debugBox->color = color;
 
-    mDebugDrawables.push_back(debugBox);
-
-    RendererInstance::GetInstance()->SetDebugDirty(true);
+    RendererInstance::GetInstance()->AddDebugDrawToVB(debugBox);
 }
 
-std::vector<DebugDrawable*>& ResourceManager::GetDebugDrawables()
+void ResourceManager::CreateGrid(glm::vec4 sideA, glm::vec4 sideB, int rows, int columns, glm::vec3 color)
 {
-    return mDebugDrawables;
+    Grid* debugGrid = new Grid();
+    Box debugBox;
+    debugBox.pointA = { sideA.x, sideA.y };
+    debugBox.pointB = { sideA.z, sideA.w };
+    debugBox.pointC = { sideB.x, sideB.y };
+    debugBox.pointD = { sideB.z, sideB.w };
+    debugGrid->mOutline = debugBox;
+    debugGrid->color = color;
+
+    float totalYDist = debugBox.pointB.y - debugBox.pointA.y;
+    float yAmountToJump = totalYDist / rows;
+    for (int i = 1; i < rows; i++)
+    {
+        Line line;
+        line.pointA = { debugBox.pointA.x, debugBox.pointA.y + (i * yAmountToJump) };
+        line.pointB = { debugBox.pointC.x, debugBox.pointC.y + (i * yAmountToJump) };
+        debugGrid->mLines.push_back(line);
+    }
+
+    float totalXDist = debugBox.pointC.x - debugBox.pointA.x;
+    float xAmountToJump = totalXDist / columns;
+    for (int i = 1; i < columns; i++)
+    {
+        Line line;
+        line.pointA = { debugBox.pointA.x + (i * xAmountToJump), debugBox.pointA.y };
+        line.pointB = { debugBox.pointB.x + (i * xAmountToJump), debugBox.pointB.y };
+        debugGrid->mLines.push_back(line);
+    }
+
+    RendererInstance::GetInstance()->AddDebugDrawToVB(debugGrid);
 }
 
 float ResourceManager::Normalize(float size)
