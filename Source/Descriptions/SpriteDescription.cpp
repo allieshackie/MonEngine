@@ -4,6 +4,6 @@ SpriteDescription::SpriteDescription()
 {
 }
 
-void SpriteDescription::parseJSON(const nlohmann::json& jsonFrag)
+void SpriteDescription::ParseJSON(const nlohmann::json& jsonFrag)
 {
 }

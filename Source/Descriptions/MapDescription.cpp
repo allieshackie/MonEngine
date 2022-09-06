@@ -10,7 +10,7 @@ MapDescription::MapDescription(const char* fileName)
 
 void MapDescription::Load(const char* fileName)
 {
-    parseJSON(fileName);
+    ParseJSON(fileName);
 }
 
 int MapDescription::GetMapWidth() const
@@ -38,7 +38,7 @@ glm::vec4 MapDescription::GetClipForTile(int index) const
     return mTilesetDescription->GetClipForTile(index);
 }
 
-void MapDescription::parseJSON(const char* fileName)
+void MapDescription::ParseJSON(const char* fileName)
 {
     // parse and serialize JSON
 	std::string path = JSON_PATH;
