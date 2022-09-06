@@ -4,19 +4,17 @@
 #include "Core/RendererInstance.h"
 #include "Camera.h"
 #include "Tile.h"
+#include "TileSetDescription.h"
 
 #include "TileSetEditor.h"
 
-namespace fs = std::filesystem;
 
-static bool show_new_tileset_menu = false;
-static bool show_load_texture_menu = false;
-static bool show_current_sprite_data = false;
-static bool show_camera_info = false;
-static int current_texture_selected = 0;
+namespace fs = std::filesystem;
 
 TileSetEditor::TileSetEditor(Camera& camera): mCamera(camera)
 {
+    _GetTextureFileNames();
+    _GetTilesetFileNames();
 }
 
 void TileSetEditor::RenderGUI()
@@ -32,8 +30,12 @@ void TileSetEditor::RenderGUI()
     ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiCond_FirstUseEver);
 
     if (show_new_tileset_menu) _NewTileSet(&show_new_tileset_menu);
+
+    if (show_load_tileset_menu) _LoadTileSetMenu(&show_load_tileset_menu);
     if (show_load_texture_menu) _LoadTextureMenu(&show_load_texture_menu);
-    if (show_current_sprite_data) _CurrentSpriteMenu(&show_current_sprite_data);
+
+    if (show_tileset_info_menu) _TileSetInfoMenu(&show_tileset_info_menu);
+    if (show_texture_display_data) _TextureDisplayMenu(&show_texture_display_data);
     if (show_camera_info) _CameraInfo(&show_camera_info);
 
     if (ImGui::BeginMainMenuBar())
@@ -41,7 +43,7 @@ void TileSetEditor::RenderGUI()
         ImGui::MenuItem("New", nullptr, &show_new_tileset_menu);
         if (ImGui::BeginMenu("Load"))
         {
-            if (ImGui::MenuItem("TileSet")) { std::cout << "load tile set" << std::endl; }
+            ImGui::MenuItem("TileSet", nullptr, &show_load_tileset_menu);
             ImGui::MenuItem("Texture", nullptr, &show_load_texture_menu);
             ImGui::EndMenu();
         }
@@ -59,16 +61,34 @@ void TileSetEditor::RenderTest()
     ImGui::ShowDemoWindow(&demo);
 }
 
+// ===== FILE DISPLAY HELPERS =====
+void TileSetEditor::_GetTilesetFileNames()
+{
+    tilesetFileNames.clear();
+    for (const auto& entry : fs::directory_iterator(TILESET_FOLDER))
+    {
+        tilesetFileNames.push_back(_strdup(entry.path().filename().string().c_str()));
+    }
+}
+
+void TileSetEditor::_GetTextureFileNames()
+{
+    textureFileNames.clear();
+    for (const auto& entry : fs::directory_iterator(TEXTURE_FOLDER_GUI))
+    {
+        textureFileNames.push_back(_strdup(entry.path().filename().string().c_str()));
+    }
+}
+
+// ===== NEW TILESET =====
 void TileSetEditor::_NewTileSet(bool* p_open)
 {
     if (ImGui::Begin("New Tile Set", p_open, ImGuiWindowFlags_MenuBar))
     {
         static char buf1[64] = "";
     	ImGui::InputText("File Name", buf1, IM_ARRAYSIZE(buf1));
-
-    	_GetTextureFileNames(mTextureFileNames);
         
-        ImGui::Combo("Textures", &current_texture_selected, mTextureFileNames.data(), mTextureFileNames.size());
+        ImGui::Combo("Textures", &current_texture_selected, textureFileNames.data(), textureFileNames.size());
 
         static bool clicked = false;
         if (ImGui::Button("Create"))
@@ -78,7 +98,7 @@ void TileSetEditor::_NewTileSet(bool* p_open)
             show_new_tileset_menu = false;
             current_texture_selected = 0;
             clicked = false;
-            _CreateNewTileSetFile(buf1, mTextureFileNames[current_texture_selected]);
+            _CreateNewTileSetFile(buf1, textureFileNames[current_texture_selected]);
         }
     }
     ImGui::End();
@@ -91,36 +111,106 @@ void TileSetEditor::_CreateNewTileSetFile(char* fileNameBuf, char* textureFileNa
 	
 }
 
-void TileSetEditor::_LoadTextureMenu(bool* p_open)
+// ===== LOAD TILESET =====
+void TileSetEditor::_LoadTileSetMenu(bool* p_open)
 {
     ImGui::SetNextWindowSize(ImVec2(500, 440), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("Choose Texture", p_open, ImGuiWindowFlags_MenuBar))
+    if (ImGui::Begin("Choose Tileset File", p_open, ImGuiWindowFlags_MenuBar))
     {
-        _GetTextureFileNames(mTextureFileNames);
-        ImGui::Combo("Textures", &current_texture_selected, mTextureFileNames.data(), mTextureFileNames.size());
+        ImGui::Combo("Tilesets", &current_tileset_selected, tilesetFileNames.data(), tilesetFileNames.size());
 
         static bool clicked = false;
         if (ImGui::Button("Open"))
             clicked = true;
         if (clicked)
         {
-            _LoadTileSetTexture(mTextureFileNames[current_texture_selected]);
-            show_load_texture_menu = false;
-            current_texture_selected = 0;
-            show_current_sprite_data = true;
+            mCurrentTileset = new TileSetDescription(tilesetFileNames[current_tileset_selected]);
+            if (mCurrentTileset == nullptr) return;
+            _LoadTileSetTexture(mCurrentTileset->getTexturePath().c_str(), true);
+            show_texture_display_data = true;
+            show_tileset_info_menu = true;
+            show_load_tileset_menu = false;
+            current_tileset_selected = 0;
             clicked = false;
         }
     }
     ImGui::End();
 }
 
-void TileSetEditor::_CurrentSpriteMenu(bool* p_open)
+void TileSetEditor::_TileSetInfoMenu(bool* p_open)
+{
+    if (mCurrentTileset == nullptr) return;
+    ImGui::SetNextWindowSize(ImVec2(200, 150));
+    ImGui::SetNextWindowPos(ImVec2(0, 20));
+    if (ImGui::Begin("Tileset Info", p_open, mWindowFlags))
+    {
+        ImGui::Text("Texture Name: ");
+        ImGui::SameLine();
+        ImGui::Text(mCurrentTileset->getTexturePath().c_str());
+
+        static int rows = mCurrentTileset->GetRows();
+        ImGui::InputInt("Rows", &rows);
+
+        static int columns = mCurrentTileset->GetColumns();
+        ImGui::InputInt("Columns", &columns);
+
+        if (rows != mCurrentTileset->GetRows() || columns != mCurrentTileset->GetColumns())
+        {
+            static bool saveButtonClicked = false;
+            if (ImGui::Button("Save"))
+                saveButtonClicked = true;
+            if (saveButtonClicked)
+            {
+                mCurrentTileset->UpdateSize(rows, columns);
+                _CreateDebugGrid(rows, columns);
+                saveButtonClicked = false;
+            }
+        }
+    }
+    ImGui::End();
+}
+
+// ===== TEXTURE DISPLAY =====
+void TileSetEditor::_LoadTextureMenu(bool* p_open)
+{
+    ImGui::SetNextWindowSize(ImVec2(500, 440));
+    if (ImGui::Begin("Choose Texture", p_open, ImGuiWindowFlags_MenuBar))
+    {
+        ImGui::Combo("Textures", &current_texture_selected, textureFileNames.data(), textureFileNames.size());
+
+        static bool clicked = false;
+        if (ImGui::Button("Open"))
+            clicked = true;
+        if (clicked)
+        {
+            _LoadTileSetTexture(textureFileNames[current_texture_selected], false);
+            show_load_texture_menu = false;
+            current_texture_selected = 0;
+            show_texture_display_data = true;
+            clicked = false;
+        }
+    }
+    ImGui::End();
+}
+
+void TileSetEditor::_LoadTileSetTexture(const char* textureName, bool debugGrid)  
+{
+    ResourceManager::CreateTile(textureName, { 400.0f, 160.0f }, { 100.0f, 100.0f });
+    mCurrentSprite = ResourceManager::GetLatestTile();
+
+    if (debugGrid)
+    {
+        _CreateDebugGrid();
+    }
+}
+
+void TileSetEditor::_TextureDisplayMenu(bool* p_open)
 {
 	if (mCurrentSprite != nullptr)
 	{
-        ImGui::SetNextWindowSize(ImVec2(500, 550), ImGuiCond_FirstUseEver);
-        ImGui::SetNextWindowPos(ImVec2(0, 20));
-	    if (ImGui::Begin("Tile Data", p_open, ImGuiWindowFlags_MenuBar))
+        ImGui::SetNextWindowSize(ImVec2(200, 350));
+        ImGui::SetNextWindowPos(ImVec2(0, 170));
+	    if (ImGui::Begin("Tile Data", p_open, mWindowFlags))
 	    {
             ImGui::Text("Transform");
 	    	// POSITION
@@ -131,6 +221,7 @@ void TileSetEditor::_CurrentSpriteMenu(bool* p_open)
             if (pos != mCurrentSprite->GetPosition() && !ImGui::IsItemActive())
             {
                 mCurrentSprite->UpdatePosition(pos);
+                _CreateDebugGrid();
             }
 
 	    	// SIZE
@@ -141,6 +232,7 @@ void TileSetEditor::_CurrentSpriteMenu(bool* p_open)
             if (size != mCurrentSprite->GetSize() && !ImGui::IsItemActive())
             {
                 mCurrentSprite->UpdateSize(size);
+                _CreateDebugGrid();
             }
 
 	    	// ROTATION
@@ -179,20 +271,20 @@ void TileSetEditor::_CurrentSpriteMenu(bool* p_open)
 	}
 }
 
-void TileSetEditor::_LoadTileSetTexture(const char* textureName)
+void TileSetEditor::_CreateDebugGrid(int rows, int columns)
 {
-    ResourceManager::CreateTile(textureName, { 200.0f, 200.0f }, { 100.0f, 100.0f });
-    mCurrentSprite = ResourceManager::GetLatestTile();
-}
+    if (mCurrentTileset == nullptr || mCurrentSprite == nullptr) return;
+    RendererInstance::GetInstance()->ClearDebugDraw();
 
-void TileSetEditor::_GetTextureFileNames(std::array<char*, 6>& items)
-{
-    int i = 0;
-	for (const auto& entry : fs::directory_iterator(TEXTURE_FOLDER_GUI))
-	{
-        items[i] = _strdup(entry.path().filename().string().c_str());
-        i++;
-	}
+	const auto pos = mCurrentSprite->GetPosition();
+    const auto size = mCurrentSprite->GetSize();
+
+    const glm::vec4 sideA = {pos.x, pos.y, pos.x, pos.y + (size.y * 2) };
+    const glm::vec4 sideB = { pos.x + (size.x * 2), pos.y,pos.x + (size.x * 2), pos.y + (size.y * 2) };
+    const int useRows = rows != -1 ? rows : mCurrentTileset->GetRows();
+    const int useColumns = columns != -1 ? columns : mCurrentTileset->GetColumns();
+
+    ResourceManager::CreateGrid(sideA, sideB, useRows, useColumns, {255,0,0});
 }
 
 void TileSetEditor::_CameraInfo(bool* p_open)
