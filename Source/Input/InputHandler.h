@@ -29,7 +29,7 @@ class InputQueue : public LLGL::Input
 public:
 	InputQueue() = default;
 
-	const InputEvent& ProcessNextEvent()
+	const InputEvent& ProcessNextEvent() const
 	{
 		return mEventQueue.front();
 	}
@@ -70,22 +70,23 @@ public:
 	void pollInputEvents();
 	void pollGUIInputEvents(const std::function<void(const InputEvent & event)>& keyboardCallback) const;
 
-	void registerButtonUpHandler(LLGL::Key keyCode, const std::function<void()>& callback);
-	void registerButtonDownHandler(LLGL::Key keyCode, const std::function<void()>& callback);
+	static void registerButtonUpHandler(LLGL::Key keyCode, const std::function<void()>& callback);
+	static void registerButtonDownHandler(LLGL::Key keyCode, const std::function<void()>& callback);
 
-	void registerMouseMoveHandler(const std::function<void(LLGL::Offset2D)>& callback);
-	void registerZoomInHandler(const std::function<void()>& callback);
-	void registerZoomOutHandler(const std::function<void()>& callback);
+	static void registerMouseMoveHandler(const std::function<void(LLGL::Offset2D)>& callback);
+	static void registerZoomInHandler(const std::function<void()>& callback);
+	static void registerZoomOutHandler(const std::function<void()>& callback);
 private:
 	void _handleButtonUpEvent(LLGL::Key keyCode);
 	void _handleButtonDownEvent(LLGL::Key keyCode);
+	void _handleMouseMoveEvent();
 
-	std::unordered_map<LLGL::Key, std::function<void()>> mButtonUpHandlers;
-	std::unordered_map<LLGL::Key, std::function<void()>> mButtonDownHandlers;
-	std::function<void(LLGL::Offset2D)> mMouseMoveCallback;
-	std::function<void()> mZoomInCallback;
-	std::function<void()> mZoomOutCallback;
+	static std::unordered_map<LLGL::Key, std::vector<std::function<void()>>> mButtonUpHandlers;
+	static std::unordered_map<LLGL::Key, std::vector<std::function<void()>>> mButtonDownHandlers;
+	static std::vector<std::function<void(LLGL::Offset2D)>> mMouseMoveCallbacks;
+	static std::function<void()> mZoomInCallback;
+	static std::function<void()> mZoomOutCallback;
 	std::shared_ptr<InputQueue> mInput; // User input event listener
 
-	Window& mWindow;
+	LLGL::Offset2D mCurrentMousePos = {0,0};  
 };
