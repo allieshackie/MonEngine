@@ -1,10 +1,12 @@
+#include "Core/ResourceManager.h"
 #include "DescriptionRegistry.h"
 #include "MapDescription.h"
-#include "TileSetDescription.h"
 
 #include "Map.h"
 
-#include "Core/ResourceManager.h"
+Map::Map(glm::vec2 position, bool isInteractable) : mMapPosition(position), mIsInteractable(isInteractable)
+{
+}
 
 void Map::LoadMap(const char* fileName)
 {
@@ -12,30 +14,56 @@ void Map::LoadMap(const char* fileName)
 	LoadTiles();
 }
 
+glm::vec2 Map::GetMapPosition() const
+{
+	return mMapPosition;
+}
+
+int Map::GetMapWidth() const
+{
+	return mMapWidth;
+}
+
+int Map::GetMapHeight() const
+{
+	return mMapHeight;
+}
+
+int Map::GetMapRows() const
+{
+	return mMapDescription->GetMapRows();
+}
+
+int Map::GetMapColumns() const
+{
+	return mMapDescription->GetMapColumns();
+}
+
+const std::string& Map::GetMapTextureName() const
+{
+	return mMapDescription->GetTilesetTexture();
+}
+
 void Map::LoadTiles()
 {
-	const int MAP_WIDTH = mMapDescription->GetMapWidth();
-	const int MAP_HEIGHT = mMapDescription->GetMapHeight();
+	const int ROWS = mMapDescription->GetMapRows();
+	const int COLUMNS = mMapDescription->GetMapColumns();
+	const int TILE_SIZE = mMapDescription->GetTileSize();
+
+	mMapWidth = COLUMNS * TILE_SIZE;
+	mMapHeight = ROWS * TILE_SIZE;
 
 	const auto tiles = mMapDescription->GetTiles();
-	const auto texture = mMapDescription->GetTilesetTexture();
-	
-	int screenPosX = 20, screenPosY = 100;
-	int widthCounter = 1;
+	const auto textureName = mMapDescription->GetTilesetTexture();
 
-	// TODO: Using hardcoded size for tiles, try data driving or making dynamic
-	for (const auto& tile : tiles) {
+	for (int i = 0; i < tiles.size(); i++)
+	{
+		const auto tile = tiles[i];
+		const float posX = i % COLUMNS;
+		const float currentRow = ceil(i / COLUMNS);
 		const auto clip = mMapDescription->GetClipForTile(tile);
-		ResourceManager::CreateTile(texture, {screenPosX, screenPosY}, {100,30}, glm::vec2(clip.x, clip.y), glm::vec2(clip.z, clip.w));
-
-		screenPosX += 50;
-		if (widthCounter == MAP_WIDTH) {
-			screenPosX = 20;
-			widthCounter = 1;
-			screenPosY += 50;
-			continue;
-		}
-		widthCounter++;
+		// NOTE: Tile size seems to actually be half of the tile size
+		// So we need to step by tilesize * 2 to accurately align
+		ResourceManager::CreateTile(textureName, { mMapPosition.x + (posX * (TILE_SIZE * 2)), mMapPosition.y + (currentRow * (TILE_SIZE * 2)) }, { TILE_SIZE,TILE_SIZE }, glm::vec2(clip.x, clip.y), glm::vec2(clip.z, clip.w), mIsInteractable);
 	}
-	 
 }

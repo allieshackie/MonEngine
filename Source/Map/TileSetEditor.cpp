@@ -3,11 +3,12 @@
 #include "Core/ResourceManager.h"
 #include "Core/RendererInstance.h"
 #include "Camera.h"
+#include "Map.h"
+#include "Texture.h"
 #include "Tile.h"
 #include "TileSetDescription.h"
 
 #include "TileSetEditor.h"
-
 
 namespace fs = std::filesystem;
 
@@ -15,36 +16,45 @@ TileSetEditor::TileSetEditor(Camera& camera): mCamera(camera)
 {
     _GetTextureFileNames();
     _GetTilesetFileNames();
+    _GetAllMapFileNames();
 }
 
 void TileSetEditor::RenderGUI()
 {
     // Exceptionally add an extra assert here for people confused about initial Dear ImGui setup
-   // Most ImGui functions would normally just crash if the context is missing.
+    // Most ImGui functions would normally just crash if the context is missing.
     IM_ASSERT(ImGui::GetCurrentContext() != NULL && "Missing dear imgui context. Refer to examples app!");
 
-    // We specify a default position/size in case there's no data in the .ini file.
-    // We only do it to make the demo applications a little more welcoming, but typically this isn't required.
-    const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
-    ImGui::SetNextWindowPos(ImVec2(main_viewport->WorkPos.x + 650, main_viewport->WorkPos.y + 20), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiCond_FirstUseEver);
-
     if (show_new_tileset_menu) _NewTileSet(&show_new_tileset_menu);
-
-    if (show_load_tileset_menu) _LoadTileSetMenu(&show_load_tileset_menu);
+    if (show_load_tileset_menu) _LoadTileSetMenu(&show_load_tileset_menu);       
     if (show_load_texture_menu) _LoadTextureMenu(&show_load_texture_menu);
+
+    if (show_new_map_menu) _NewMapMenu(&show_new_map_menu);
+    if (show_load_map_menu) _LoadMapMenu(&show_load_map_menu);
+
+    if (show_pallette_menu) _PalletteMenu(&show_pallette_menu);
 
     if (show_tileset_info_menu) _TileSetInfoMenu(&show_tileset_info_menu);
     if (show_texture_display_data) _TextureDisplayMenu(&show_texture_display_data);
+
     if (show_camera_info) _CameraInfo(&show_camera_info);
+
+    // TODO: Uncomment to show imgui metrics
+    //static bool show_app_metrics = true;
+    //ImGui::ShowMetricsWindow(&show_app_metrics);
 
     if (ImGui::BeginMainMenuBar())
     {
-        ImGui::MenuItem("New", nullptr, &show_new_tileset_menu);
+        if (ImGui::BeginMenu("New"))
+        {
+            ImGui::MenuItem("TileSet", nullptr, &show_new_tileset_menu);
+            ImGui::MenuItem("Map", nullptr, &show_new_map_menu);
+            ImGui::EndMenu();
+        }
         if (ImGui::BeginMenu("Load"))
         {
             ImGui::MenuItem("TileSet", nullptr, &show_load_tileset_menu);
-            ImGui::MenuItem("Texture", nullptr, &show_load_texture_menu);
+            ImGui::MenuItem("Map", nullptr, &show_load_map_menu);
             ImGui::EndMenu();
         }
         if (ImGui::MenuItem("Toggle Camera Info"))
@@ -77,6 +87,26 @@ void TileSetEditor::_GetTextureFileNames()
     for (const auto& entry : fs::directory_iterator(TEXTURE_FOLDER_GUI))
     {
         textureFileNames.push_back(_strdup(entry.path().filename().string().c_str()));
+    }
+}
+
+void TileSetEditor::_GetAllMapFileNames()
+{
+    mapConfigFileNames.clear();
+    mapFileNames.clear();
+    for (const auto& entry : fs::directory_iterator(MAP_FOLDER))
+    {
+        auto fileName = entry.path().filename().string();
+        const size_t pos = fileName.find(TEXT_FILE);
+        if (pos == std::string::npos)
+        {
+			mapConfigFileNames.push_back(_strdup(fileName.c_str()));
+        }
+        else
+        {
+            fileName.erase(pos);
+            mapFileNames.push_back(_strdup(fileName.c_str()));  
+        }
     }
 }
 
@@ -162,7 +192,7 @@ void TileSetEditor::_TileSetInfoMenu(bool* p_open)
             if (saveButtonClicked)
             {
                 mCurrentTileset->UpdateSize(rows, columns);
-                _CreateDebugGrid(rows, columns);
+                _CreateTextureDebugGrid();
                 saveButtonClicked = false;
             }
         }
@@ -200,7 +230,7 @@ void TileSetEditor::_LoadTileSetTexture(const char* textureName, bool debugGrid)
 
     if (debugGrid)
     {
-        _CreateDebugGrid();
+        _CreateTextureDebugGrid();
     }
 }
 
@@ -221,7 +251,7 @@ void TileSetEditor::_TextureDisplayMenu(bool* p_open)
             if (pos != mCurrentSprite->GetPosition() && !ImGui::IsItemActive())
             {
                 mCurrentSprite->UpdatePosition(pos);
-                _CreateDebugGrid();
+                _CreateTextureDebugGrid();
             }
 
 	    	// SIZE
@@ -232,7 +262,7 @@ void TileSetEditor::_TextureDisplayMenu(bool* p_open)
             if (size != mCurrentSprite->GetSize() && !ImGui::IsItemActive())
             {
                 mCurrentSprite->UpdateSize(size);
-                _CreateDebugGrid();
+                _CreateTextureDebugGrid();
             }
 
 	    	// ROTATION
@@ -271,7 +301,79 @@ void TileSetEditor::_TextureDisplayMenu(bool* p_open)
 	}
 }
 
-void TileSetEditor::_CreateDebugGrid(int rows, int columns)
+// ====  MAP ====
+void TileSetEditor::_NewMapMenu(bool* p_open)
+{
+    _CenterWindow(300, 300);
+    if (ImGui::Begin("New Map", p_open, ImGuiWindowFlags_MenuBar))
+    {
+        static char buf1[64] = "";
+        ImGui::InputText("File Name", buf1, IM_ARRAYSIZE(buf1));
+
+        static bool check = false;
+        ImGui::Checkbox("Use existing config?", &check);
+
+        if (check)
+        {
+			ImGui::Combo("Configs", &current_map_config_selected, mapConfigFileNames.data(), mapConfigFileNames.size());
+        }
+    }
+    ImGui::End();
+}
+
+void TileSetEditor::_LoadMapMenu(bool* p_open)
+{
+    _CenterWindow(300, 300);
+    if (ImGui::Begin("Load Map", p_open, ImGuiWindowFlags_MenuBar))
+    {
+        ImGui::Combo("Maps", &current_map_selected, mapFileNames.data(), mapFileNames.size());
+        static bool openMap = false;
+        if (ImGui::Button("Open"))
+            openMap = true;
+        if (openMap)
+        {
+            Map* map = new Map({ 200, 200 }, true);
+            map->LoadMap(mapFileNames[current_map_selected]);
+            _CreateMapDebugGrid(*map);
+            openMap = false;
+            show_load_map_menu = false;
+            auto mapName = map->GetMapTextureName();
+            if (ResourceManager::CreateSimpleOpenGLTexture(mapName, &mPalletteTextureId, &mPalletteTextureWidth, &mPalletteTextureHeight))
+            {
+				show_pallette_menu = true;
+            }
+        }
+    }
+    ImGui::End();
+}
+
+// ==== PALLETTE ====
+void TileSetEditor::_PalletteMenu(bool* p_open)
+{
+    if (ImGui::Begin("OpenGL Texture Test", p_open, ImGuiWindowFlags_MenuBar))
+    {
+			ImGui::Image((void*)(intptr_t)mPalletteTextureId, ImVec2(mPalletteTextureWidth, mPalletteTextureHeight));
+    }
+    ImGui::End();
+}
+
+void TileSetEditor::_CreateMapDebugGrid(const Map& map)
+{
+    RendererInstance::GetInstance()->ClearDebugDraw();
+
+    const auto pos = map.GetMapPosition();
+    const glm::vec2 size = { map.GetMapWidth(), map.GetMapHeight() };
+
+    const glm::vec4 sideA = { pos.x, pos.y, pos.x, pos.y + (size.y * 2) };
+    const glm::vec4 sideB = { pos.x + (size.x * 2), pos.y,pos.x + (size.x * 2), pos.y + (size.y * 2) };
+    const int rows = map.GetMapRows();
+    const int columns = map.GetMapColumns();
+
+    ResourceManager::CreateGrid(sideA, sideB, rows, columns, { 255,255, 255 });
+}
+
+// ==== DEBUG ====
+void TileSetEditor::_CreateTextureDebugGrid() const
 {
     if (mCurrentTileset == nullptr || mCurrentSprite == nullptr) return;
     RendererInstance::GetInstance()->ClearDebugDraw();
@@ -281,10 +383,10 @@ void TileSetEditor::_CreateDebugGrid(int rows, int columns)
 
     const glm::vec4 sideA = {pos.x, pos.y, pos.x, pos.y + (size.y * 2) };
     const glm::vec4 sideB = { pos.x + (size.x * 2), pos.y,pos.x + (size.x * 2), pos.y + (size.y * 2) };
-    const int useRows = rows != -1 ? rows : mCurrentTileset->GetRows();
-    const int useColumns = columns != -1 ? columns : mCurrentTileset->GetColumns();
+    const int rows = mCurrentTileset->GetRows();
+    const int columns = mCurrentTileset->GetColumns();
 
-    ResourceManager::CreateGrid(sideA, sideB, useRows, useColumns, {255,0,0});
+    ResourceManager::CreateGrid(sideA, sideB, rows, columns, {255,255, 255});
 }
 
 void TileSetEditor::_CameraInfo(bool* p_open)
@@ -312,4 +414,13 @@ void TileSetEditor::_CameraInfo(bool* p_open)
         }
     }
     ImGui::End();
+}
+
+void TileSetEditor::_CenterWindow(float width, float height)
+{
+    // We specify a default position/size in case there's no data in the .ini file.
+    // We only do it to make the demo applications a little more welcoming, but typically this isn't required.
+    const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(ImVec2(main_viewport->Size.x / 2 - (width / 2), main_viewport->Size.y / 2 - (height / 2)));
+    ImGui::SetNextWindowSize(ImVec2(width, height));
 }

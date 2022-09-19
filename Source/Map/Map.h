@@ -5,16 +5,29 @@
 
 class Map {
 public:
-	Map() = default;
+	Map(glm::vec2 position, bool isInteractable = false);
 	~Map() = default;
 
 	void LoadMap(const char* fileName);
+
+	glm::vec2 GetMapPosition() const;
+	int GetMapWidth() const;
+	int GetMapHeight() const;
+
+	int GetMapRows() const;
+	int GetMapColumns() const;
+
+	const std::string& GetMapTextureName() const;
 
 	void LoadTiles();
 
 private:
 	std::vector<Tile> mMapTiles;
-	int mMapTextureId = 0;
+
+	glm::vec2 mMapPosition;
+	int mMapWidth = 0;
+	int mMapHeight = 0;
+	bool mIsInteractable = false;
 
 	MapDescription* mMapDescription = nullptr;
 };
