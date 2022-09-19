@@ -2,7 +2,7 @@
 #include "LLGL/Utility.h"
 
 #include "ResourceManager.h"
-#include "Sprite.h"
+#include "Tile.h"
 
 #include "Renderer.h"
 
