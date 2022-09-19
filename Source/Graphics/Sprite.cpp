@@ -3,9 +3,12 @@
 
 #include "Sprite.h"
 
-Sprite::Sprite(glm::vec2 pos, glm::vec2 size) : mSize(size)
+Sprite::Sprite(glm::vec2 pos, glm::vec2 size) : mPosition(pos), mSize(size)
 {
-    mPosition = glm::vec2(pos.x + size.x / 2, pos.y + size.y / 2);
+    // NOTE: Previously set the position to be the center of the sprite
+    // So that rotation was applied to the center, but this was causing
+    // issues with map/grid alignment
+    //mPosition = glm::vec2(pos.x + size.x / 2, pos.y + size.y / 2);
     UpdateDrawData();
 }
 
