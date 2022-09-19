@@ -12,8 +12,13 @@ public:
 
 	void Load(const char* fileName);
 
+	int GetMapRows() const;
+	int GetMapColumns() const;
+
 	int GetMapWidth() const;
 	int GetMapHeight() const;
+
+	int GetTileSize() const;
 
 	const std::vector<int>& GetTiles();
 
@@ -35,9 +40,16 @@ private:
 	static constexpr char TILESET_STRING[] = "tileset";
 	static constexpr char FILE_STRING[] = "file";
 	static constexpr char SIZE_STRING[] = "size";
+	static constexpr char TILE_SIZE_STRING[] = "tile_size";
 
-	int mWidth = 0;
-	int mHeight = 0;
+	int mRows = 0;
+	int mColumns = 0;
+
+	int mTileSize = 0;
+
+	int mMapWidth = 0;
+	int mMapHeight = 0;
+
 	std::string mMapTextFile;
 	std::vector<int> mTiles;
 

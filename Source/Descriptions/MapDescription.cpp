@@ -13,14 +13,29 @@ void MapDescription::Load(const char* fileName)
     ParseJSON(fileName);
 }
 
+int MapDescription::GetMapRows() const
+{
+    return mRows;
+}
+
+int MapDescription::GetMapColumns() const
+{
+    return mColumns;
+}
+
 int MapDescription::GetMapWidth() const
 {
-    return mWidth;
+    return mMapWidth;
 }
 
 int MapDescription::GetMapHeight() const
 {
-    return mHeight;
+    return mMapHeight;
+}
+
+int MapDescription::GetTileSize() const
+{
+    return mTileSize;
 }
 
 const std::vector<int>& MapDescription::GetTiles()
@@ -40,9 +55,14 @@ glm::vec4 MapDescription::GetClipForTile(int index) const
 
 void MapDescription::ParseJSON(const char* fileName)
 {
+   
     // parse and serialize JSON
 	std::string path = JSON_PATH;
-    path.append(fileName).append(".json");
+    path.append(fileName);
+    if (path.find(".json") == std::string::npos)
+    {
+        path.append(".json");
+    }
     std::ifstream ifs(path.c_str());
 
     // json parser can't handle comments
@@ -76,8 +96,13 @@ void MapDescription::ParseJSON(const char* fileName)
 
     auto size = mapJSON[MAP_STRING][SIZE_STRING];
 
-    mWidth = size[0];
-    mHeight = size[1];
+    mRows = size[0];
+    mColumns = size[1];
+
+    mTileSize = mapJSON[MAP_STRING][TILE_SIZE_STRING];
+
+    mMapWidth = mColumns * mTileSize;
+    mMapHeight = mRows * mTileSize;
 
     ifs.close();
 
