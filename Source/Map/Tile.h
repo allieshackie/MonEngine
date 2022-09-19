@@ -1,7 +1,7 @@
 #pragma once
-#include "Sprite.h"
 #include <glm/vec2.hpp>
-
+#include "Interactable.h"
+#include "Sprite.h"
 
 class Tile: public Sprite {
 public:
@@ -18,4 +18,30 @@ public:
 private:
 	glm::vec2 mClip = { 0.0f, 0.0f };
 	glm::vec2 mScale = { 1.0f, 1.0f };
+};
+
+class InteractiveTile: public Tile, public Interactable
+{
+public:
+	InteractiveTile(glm::vec2 pos, glm::vec2 size, glm::vec2 clip = { 0.0f, 0.0f }, glm::vec2 scale = { 1.0f, 1.0f })
+	: Tile(pos, size, clip, scale), Interactable(pos, size)
+	{
+		
+	}
+
+	void OnClick() override
+	{
+		if (mOnClickCallback)
+		{
+			mOnClickCallback();
+		}
+	}
+
+	void SetOnClickCallback(const std::function<void()>& cb)
+	{
+		mOnClickCallback = cb;
+	}
+
+private:
+	std::function<void()> mOnClickCallback;
 };
