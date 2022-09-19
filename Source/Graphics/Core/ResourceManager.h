@@ -2,14 +2,17 @@
 #include <LLGL/LLGL.h>
 #include <unordered_map>
 #include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 
-#include "DebugDraw.h"
-#include "Tile.h"
-
-class Texture;
 class Shader;
+class Sprite;
+class Texture;
+class Tile;
 
 static const char* TEXTURE_FOLDER = "../Data/Textures";
+
+typedef unsigned int GLuint;
 
 class ResourceManager
 {
@@ -19,6 +22,8 @@ public:
 	static void SetTexture(LLGL::CommandBuffer& commands, int textureId);
 	static int GetTextureId(const std::string& filePath);
 	static glm::vec2 GetTextureSize(int textureId);
+
+	static Texture* GetTextureFromName(const std::string& filePath);
 
 	static void CreateResourceHeap(LLGL::RenderSystem& renderer, LLGL::PipelineLayout& pipelineLayout, LLGL::Buffer& constantBuffer);
 
@@ -30,12 +35,14 @@ public:
 	static const std::vector<std::pair<int, Tile*>>& GetSpritesList();
 	static Sprite* GetLatestSprite();
 
-	static void CreateTile(const std::string& textureName, glm::vec2 pos, glm::vec2 size, glm::vec2 clip = { 0.0f, 0.0f }, glm::vec2 scale = { 1.0f, 1.0f });
+	static void CreateTile(const std::string& textureName, glm::vec2 pos, glm::vec2 size, glm::vec2 clip = { 0.0f, 0.0f }, glm::vec2 scale = { 1.0f, 1.0f }, bool isInteractable = false);
 	static Tile* GetLatestTile();
 
 	static void CreateLine(glm::vec4 line, glm::vec3 color);
 	static void CreateBox(glm::vec4 sideA, glm::vec4 sideB, glm::vec3 color);
 	static void CreateGrid(glm::vec4 sideA, glm::vec4 sideB, int rows, int columns, glm::vec3 color);
+
+	static bool CreateSimpleOpenGLTexture(std::string& filename, GLuint* out_texture, int* out_width, int* out_height);
 
 	static float Normalize(float size);
 	
