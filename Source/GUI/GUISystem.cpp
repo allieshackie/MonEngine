@@ -2,10 +2,11 @@
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_win32.h"
 
-#include "Core/RendererInstance.h"
+#include "Core/Renderer.h"
 #include "InputHandler.h"
 
 #include "GUISystem.h"
+
 
 GUISystem::GUISystem()
 {
@@ -52,7 +53,7 @@ void GUISystem::initGUI()
 
 	// Setup Renderer backend
     LLGL::NativeHandle mainWindowHandle;
-    RendererInstance::GetInstance()->GetContext().GetSurface().GetNativeHandle(&mainWindowHandle, sizeof(mainWindowHandle));
+    Renderer::GetInstance()->GetContext().GetSurface().GetNativeHandle(&mainWindowHandle, sizeof(mainWindowHandle));
     mNativeWindow = mainWindowHandle.window;
 
     ImGui_ImplWin32_Init(mainWindowHandle.window);

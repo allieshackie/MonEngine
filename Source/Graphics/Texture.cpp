@@ -1,5 +1,3 @@
-#include "Core/RendererInstance.h"
-#include "LLGL/Utility.h"
 #include "Util/stb_image.h"
 
 #include "Texture.h"

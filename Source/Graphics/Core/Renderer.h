@@ -12,6 +12,8 @@ public:
 	Renderer();
 	~Renderer() = default;
 
+    static Renderer* GetInstance();
+
     void OnDrawFrame(const std::function<void()>& drawCallback);
 
     LLGL::RenderContext& GetContext() const
@@ -57,7 +59,6 @@ private:
     Shader* mSpriteShader = nullptr;
     Shader* mDebugShader = nullptr;
 
-
 	// Vertex Data
     LLGL::Buffer* mConstantBuffer = nullptr;
 	LLGL::Buffer* mSpriteVertexBuffer = nullptr;
@@ -85,4 +86,6 @@ private:
 
     uint32_t mNumVertices = 0;
     glm::mat4 mProjection = glm::mat4(1.0f);
+
+    static Renderer* mInstance;
 };

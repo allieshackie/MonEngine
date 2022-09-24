@@ -1,5 +1,3 @@
-#include "RendererInstance.h"
-
 #include "Window.h"
 
 Window::Window() {
@@ -8,7 +6,7 @@ Window::Window() {
 
 void Window::init()
 {
-    const auto renderer = RendererInstance::GetInstance();
+    const auto renderer = Renderer::GetInstance();
     // get window from context surface
     auto& window = LLGL::CastTo<LLGL::Window>(renderer->GetContext().GetSurface());
 
@@ -38,24 +36,21 @@ void Window::init()
 
 LLGL::Window& Window::GetWindow()
 {
-    const auto renderer = RendererInstance::GetInstance();
     // get window from context surface
-    return LLGL::CastTo<LLGL::Window>(renderer->GetContext().GetSurface());
+    return LLGL::CastTo<LLGL::Window>(Renderer::GetInstance()->GetContext().GetSurface());
 }
 
 void Window::ShowCursor(bool show)
 {
-    const auto renderer = RendererInstance::GetInstance();
     // get window from context surface
-    auto display = renderer->GetContext().GetSurface().FindResidentDisplay();
+    const auto display = Renderer::GetInstance()->GetContext().GetSurface().FindResidentDisplay();
     display->ShowCursor(show);
 }
 
 bool Window::IsCursorShowing()
 {
-    const auto renderer = RendererInstance::GetInstance();
     // get window from context surface
-    auto display = renderer->GetContext().GetSurface().FindResidentDisplay();
+    const auto display = Renderer::GetInstance()->GetContext().GetSurface().FindResidentDisplay();
     return display->IsCursorShown();
 }
 

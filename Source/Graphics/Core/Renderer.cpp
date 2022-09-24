@@ -1,6 +1,5 @@
 #include <glm/ext/matrix_clip_space.hpp>
 #include "LLGL/Utility.h"
-
 #include "ResourceManager.h"
 #include "Tile.h"
 
@@ -9,10 +8,21 @@
 static constexpr int SCREEN_WIDTH = 800;
 static constexpr int SCREEN_HEIGHT = 600;
 
+Renderer* Renderer::mInstance{ nullptr };
+
 Renderer::Renderer()
 {
     // Initialize default projection matrix
     _Init();
+}
+
+Renderer* Renderer::GetInstance()
+{
+    if (mInstance == nullptr)
+    {
+        mInstance = new Renderer();
+    }
+    return mInstance;
 }
 
 void Renderer::_Init()
@@ -80,8 +90,8 @@ void Renderer::_InitSpritePipeline()
     }
     mSpritePipeline = mRenderer->CreatePipelineState(pipelineDesc);
 
-    ResourceManager::LoadAllTexturesFromFolder(*mRenderer);
-	ResourceManager::CreateResourceHeap(*mRenderer, *pipelineLayout, *mConstantBuffer);
+    ResourceManager::GetInstance()->LoadAllTexturesFromFolder(*mRenderer);
+	ResourceManager::GetInstance()->CreateResourceHeap(*mRenderer, *pipelineLayout, *mConstantBuffer);
 
     mNumVertices = static_cast<uint32_t>(mSpriteVertices.size());
 
@@ -117,7 +127,7 @@ void Renderer::_DrawSprites()
 
     mCommands->SetVertexBuffer(*mSpriteVertexBuffer);
 
-    const auto spritesList = ResourceManager::GetSpritesList();
+    const auto spritesList = ResourceManager::GetInstance()->GetSpritesList();
     for (const auto& pair : spritesList)
     {
         SetTexture(pair.first);
@@ -175,7 +185,7 @@ void Renderer::OnDrawFrame(const std::function<void()>& drawCallback)
 
 void Renderer::SetTexture(int textureId) const
 {
-    ResourceManager::SetTexture(*mCommands, textureId);
+    ResourceManager::GetInstance()->SetTexture(*mCommands, textureId);
 }
 
 void Renderer::UpdateModelSettings(glm::mat4 model, glm::mat4 textureClip)

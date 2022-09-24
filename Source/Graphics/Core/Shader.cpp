@@ -1,5 +1,3 @@
-#include "RendererInstance.h"
-
 #include "Shader.h"
 
 Shader::Shader(LLGL::RenderSystem& renderer, const LLGL::VertexFormat& vertexFormat, const char* vertexFilePath, const char* fragmentFilePath)
