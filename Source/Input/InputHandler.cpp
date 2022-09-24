@@ -1,13 +1,6 @@
-#include "Core/RendererInstance.h"
 #include "Graphics/Core/Window.h"
 
 #include "InputHandler.h"
-
-std::unordered_map<LLGL::Key, std::vector<std::function<void()>>> InputHandler::mButtonUpHandlers;
-std::unordered_map<LLGL::Key, std::vector<std::function<void()>>> InputHandler::mButtonDownHandlers;
-std::vector<std::function<void(LLGL::Offset2D)>> InputHandler::mMouseMoveCallbacks;
-std::function<void()> InputHandler::mZoomInCallback;
-std::function<void()> InputHandler::mZoomOutCallback;
 
 InputHandler::InputHandler(Window& window) {
 	mInput = std::make_shared<InputQueue>();
@@ -74,45 +67,6 @@ void InputHandler::pollGUIInputEvents(const std::function<void(const InputEvent&
 		callback(event);
 		mInput->PopEvent();
 	}
-}
-
-void InputHandler::registerButtonUpHandler(LLGL::Key keyCode, const std::function<void()>& callback)
-{
-	const auto& handler = mButtonUpHandlers.find(keyCode);
-	if (handler != mButtonUpHandlers.end()) {
-		handler->second.push_back({ callback }); 
-	}
-	else
-	{
-		mButtonUpHandlers.insert({ keyCode, { callback } });
-	}
-}
-
-void InputHandler::registerButtonDownHandler(LLGL::Key keyCode, const std::function<void()>& callback)
-{
-	const auto& handler = mButtonDownHandlers.find(keyCode);
-	if (handler != mButtonDownHandlers.end()) {
-		handler->second.push_back({ callback });
-	}
-	else
-	{
-		mButtonDownHandlers.insert({ keyCode, { callback } });
-	}
-}
-
-void InputHandler::registerMouseMoveHandler(const std::function<void(LLGL::Offset2D)>& callback)
-{
-	mMouseMoveCallbacks.push_back(callback);
-}
-
-void InputHandler::registerZoomInHandler(const std::function<void()>& callback)
-{
-	mZoomInCallback = callback;
-}
-
-void InputHandler::registerZoomOutHandler(const std::function<void()>& callback)
-{
-	mZoomOutCallback = callback;
 }
 
 void InputHandler::_handleButtonUpEvent(LLGL::Key keyCode)

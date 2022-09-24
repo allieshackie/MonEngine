@@ -70,23 +70,19 @@ public:
 	void pollInputEvents();
 	void pollGUIInputEvents(const std::function<void(const InputEvent & event)>& keyboardCallback) const;
 
-	static void registerButtonUpHandler(LLGL::Key keyCode, const std::function<void()>& callback);
-	static void registerButtonDownHandler(LLGL::Key keyCode, const std::function<void()>& callback);
+	friend class InputManager;
 
-	static void registerMouseMoveHandler(const std::function<void(LLGL::Offset2D)>& callback);
-	static void registerZoomInHandler(const std::function<void()>& callback);
-	static void registerZoomOutHandler(const std::function<void()>& callback);
 private:
 	void _handleButtonUpEvent(LLGL::Key keyCode);
 	void _handleButtonDownEvent(LLGL::Key keyCode);
 	void _handleMouseMoveEvent();
 
-	static std::unordered_map<LLGL::Key, std::vector<std::function<void()>>> mButtonUpHandlers;
-	static std::unordered_map<LLGL::Key, std::vector<std::function<void()>>> mButtonDownHandlers;
-	static std::vector<std::function<void(LLGL::Offset2D)>> mMouseMoveCallbacks;
-	static std::function<void()> mZoomInCallback;
-	static std::function<void()> mZoomOutCallback;
+	std::unordered_map<LLGL::Key, std::vector<std::function<void()>>> mButtonUpHandlers;
+	std::unordered_map<LLGL::Key, std::vector<std::function<void()>>> mButtonDownHandlers;
+	std::vector<std::function<void(LLGL::Offset2D)>> mMouseMoveCallbacks;
+	std::function<void()> mZoomInCallback;
+	std::function<void()> mZoomOutCallback;
 	std::shared_ptr<InputQueue> mInput; // User input event listener
 
-	LLGL::Offset2D mCurrentMousePos = {0,0};  
+	LLGL::Offset2D mCurrentMousePos = {0,0};
 };
