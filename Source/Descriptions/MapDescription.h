@@ -22,10 +22,7 @@ public:
 
 	const std::vector<int>& GetTiles();
 
-	const std::string& GetTilesetTexture();
-
-	// x,y clip    z,w size
-	glm::vec4 GetClipForTile(int index) const;
+	const TileSetDescription& GetTileSetDescription() const;
 
 	virtual void ApplyToEntity(EntityContext& entity) override {}
 

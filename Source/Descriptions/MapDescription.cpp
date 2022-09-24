@@ -43,14 +43,9 @@ const std::vector<int>& MapDescription::GetTiles()
     return mTiles;
 }
 
-const std::string& MapDescription::GetTilesetTexture()
+const TileSetDescription& MapDescription::GetTileSetDescription() const
 {
-    return mTilesetDescription->getTexturePath();
-}
-
-glm::vec4 MapDescription::GetClipForTile(int index) const
-{
-    return mTilesetDescription->GetClipForTile(index);
+    return *mTilesetDescription;
 }
 
 void MapDescription::ParseJSON(const char* fileName)

@@ -1,4 +1,4 @@
-#include "Core/RendererInstance.h"
+#include "Core/Renderer.h"
 
 #include "Camera.h"
 
@@ -44,5 +44,5 @@ void Camera::ZoomOut()
 void Camera::UpdateView()
 {
 	mView = glm::lookAt(mCameraPos, {0,0,0}, mCameraUp);
-	RendererInstance::GetInstance()->UpdateView(mView);
+	Renderer::GetInstance()->UpdateView(mView);
 }

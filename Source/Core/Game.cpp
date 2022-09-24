@@ -1,16 +1,13 @@
-#include "DescriptionRegistry.h"
-#include "GUISystem.h"
-#include "InputHandler.h"
-#include "TileSetEditor.h"
-#include "Core/RendererInstance.h"
 #include "Core/Window.h"
 #include "Camera.h"
-#include "Core/ResourceManager.h"
+#include "GUISystem.h"
+#include "InputHandler.h"
+#include "InputManager.h"
+#include "Map.h"
+#include "TileSetEditor.h"
+#include "UIInputManager.h"
 
 #include "Game.h"
-
-#include "Map.h"
-
 
 int main(int argc, char** argv)
 {
@@ -28,23 +25,25 @@ Window& Game::getWindow() const
 
 void Game::configureLevel()
 {
-	mRenderer = RendererInstance::GetInstance();
+	mRenderer = Renderer::GetInstance();
 	mWindow = std::make_unique<Window>();
 
 	mCamera = std::make_unique<Camera>();
 	mCamera->UpdateView();
 
 	mInputHandler = std::make_unique<InputHandler>(*mWindow);
-	mInputHandler->registerButtonUpHandler(LLGL::Key::Escape, [=]() { mRunning = false; });
+	mInputManager = std::make_unique<InputManager>(*mInputHandler);
+	mUIInputManager = std::make_unique<UIInputManager>(*mInputManager);
+	mInputManager->registerButtonUpHandler(LLGL::Key::Escape, [=]() { mRunning = false; });
 
 	// Register camera handlers
-	mInputHandler->registerButtonUpHandler(LLGL::Key::Up, [=]() { mCamera->MoveUp(); });
-	mInputHandler->registerButtonUpHandler(LLGL::Key::Down, [=]() { mCamera->MoveDown(); });
-	mInputHandler->registerButtonUpHandler(LLGL::Key::Left, [=]() { mCamera->MoveLeft(); });
-	mInputHandler->registerButtonUpHandler(LLGL::Key::Right, [=]() { mCamera->MoveRight(); });
+	mInputManager->registerButtonUpHandler(LLGL::Key::Up, [=]() { mCamera->MoveUp(); });
+	mInputManager->registerButtonUpHandler(LLGL::Key::Down, [=]() { mCamera->MoveDown(); });
+	mInputManager->registerButtonUpHandler(LLGL::Key::Left, [=]() { mCamera->MoveLeft(); });
+	mInputManager->registerButtonUpHandler(LLGL::Key::Right, [=]() { mCamera->MoveRight(); });
 
-	mInputHandler->registerZoomInHandler([=]() { mCamera->ZoomIn(); });
-	mInputHandler->registerZoomOutHandler([=]() { mCamera->ZoomOut(); });
+	mInputManager->registerZoomInHandler([=]() { mCamera->ZoomIn(); });
+	mInputManager->registerZoomOutHandler([=]() { mCamera->ZoomOut(); });
 
 	mGUISystem = std::make_unique<GUISystem>();
 	mTileSetEditor = std::make_unique<TileSetEditor>(*mCamera);
