@@ -1,22 +1,15 @@
+#include <glad/glad.h>
 #include <filesystem>
+#include "Util/stb_image.h"
+#include "Renderer.h"
 #include "Texture.h"
-#include "Shader.h"
-#include "RendererInstance.h"
 #include "Tile.h"
 
 #include "ResourceManager.h"
 
-#include <glad/glad.h>
-
-#include "Util/stb_image.h"
-
 namespace fs = std::filesystem;
 
-std::unordered_map<int, Texture*> ResourceManager::mTextures;
-std::unordered_map<std::string, int> ResourceManager::mTextureIds;
-LLGL::ResourceHeap* ResourceManager::mResourceHeap = nullptr;
-int ResourceManager::mResourceIndex = -1;
-std::vector<std::pair<int, Tile*>> ResourceManager::mSpritesList;
+ResourceManager* ResourceManager::mInstance{ nullptr };
 
 void ResourceManager::LoadAllTexturesFromFolder(LLGL::RenderSystem& renderer)
 {
@@ -137,7 +130,7 @@ void ResourceManager::CreateLine(glm::vec4 line, glm::vec3 color)
     debugLine->pointB = { line.z, line.w };
     debugLine->color = color;
 
-    RendererInstance::GetInstance()->AddDebugDrawToVB(debugLine);
+    Renderer::GetInstance()->AddDebugDrawToVB(debugLine);
 }
 
 void ResourceManager::CreateBox(glm::vec4 sideA, glm::vec4 sideB, glm::vec3 color)
@@ -149,7 +142,7 @@ void ResourceManager::CreateBox(glm::vec4 sideA, glm::vec4 sideB, glm::vec3 colo
     debugBox->pointD = { sideB.z, sideB.w };
     debugBox->color = color;
 
-    RendererInstance::GetInstance()->AddDebugDrawToVB(debugBox);
+    Renderer::GetInstance()->AddDebugDrawToVB(debugBox);
 }
 
 void ResourceManager::CreateGrid(glm::vec4 sideA, glm::vec4 sideB, int rows, int columns, glm::vec3 color)
@@ -183,12 +176,21 @@ void ResourceManager::CreateGrid(glm::vec4 sideA, glm::vec4 sideB, int rows, int
         debugGrid->mLines.push_back(line);
     }
 
-    RendererInstance::GetInstance()->AddDebugDrawToVB(debugGrid);
+    Renderer::GetInstance()->AddDebugDrawToVB(debugGrid);
 }
 
 float ResourceManager::Normalize(float size)
 {
     return (size - 1) / 99;
+}
+
+ResourceManager* ResourceManager::GetInstance()
+{
+    if (mInstance == nullptr)
+    {
+        mInstance = new ResourceManager();
+    }
+    return mInstance;
 }
 
 void ResourceManager::CreateResourceHeap(LLGL::RenderSystem& renderer, LLGL::PipelineLayout& pipelineLayout, LLGL::Buffer& constantBuffer)

@@ -17,41 +17,47 @@ typedef unsigned int GLuint;
 class ResourceManager
 {
 public:
-	static void LoadAllTexturesFromFolder(LLGL::RenderSystem& renderer);
-	static void LoadTexture(LLGL::RenderSystem& renderer, const std::string& filePath, const std::string& textureName, int textureId);
-	static void SetTexture(LLGL::CommandBuffer& commands, int textureId);
-	static int GetTextureId(const std::string& filePath);
-	static glm::vec2 GetTextureSize(int textureId);
+	ResourceManager() = default;
+	~ResourceManager() = default;
 
-	static Texture* GetTextureFromName(const std::string& filePath);
+	void LoadAllTexturesFromFolder(LLGL::RenderSystem& renderer);
+	void LoadTexture(LLGL::RenderSystem& renderer, const std::string& filePath, const std::string& textureName, int textureId);
+	void SetTexture(LLGL::CommandBuffer& commands, int textureId);
+	int GetTextureId(const std::string& filePath);
+	glm::vec2 GetTextureSize(int textureId);
 
-	static void CreateResourceHeap(LLGL::RenderSystem& renderer, LLGL::PipelineLayout& pipelineLayout, LLGL::Buffer& constantBuffer);
+	Texture* GetTextureFromName(const std::string& filePath);
 
-	static void BindTexture(LLGL::CommandBuffer& commands);
-	static void SetCurrentTexture(int textureId);
+	void CreateResourceHeap(LLGL::RenderSystem& renderer, LLGL::PipelineLayout& pipelineLayout, LLGL::Buffer& constantBuffer);
+
+	void BindTexture(LLGL::CommandBuffer& commands);
+	void SetCurrentTexture(int textureId);
 
 	// Helper used for editor
-	static void CreateSprite(const std::string& textureName, glm::vec2 pos, glm::vec2 size);
-	static const std::vector<std::pair<int, Tile*>>& GetSpritesList();
-	static Sprite* GetLatestSprite();
+	void CreateSprite(const std::string& textureName, glm::vec2 pos, glm::vec2 size);
+	const std::vector<std::pair<int, Tile*>>& GetSpritesList();
+	Sprite* GetLatestSprite();
 
-	static void CreateTile(const std::string& textureName, glm::vec2 pos, glm::vec2 size, glm::vec2 clip = { 0.0f, 0.0f }, glm::vec2 scale = { 1.0f, 1.0f }, bool isInteractable = false);
-	static Tile* GetLatestTile();
+	void CreateTile(const std::string& textureName, glm::vec2 pos, glm::vec2 size, glm::vec2 clip = { 0.0f, 0.0f }, glm::vec2 scale = { 1.0f, 1.0f }, bool isInteractable = false);
+	Tile* GetLatestTile();
 
-	static void CreateLine(glm::vec4 line, glm::vec3 color);
-	static void CreateBox(glm::vec4 sideA, glm::vec4 sideB, glm::vec3 color);
-	static void CreateGrid(glm::vec4 sideA, glm::vec4 sideB, int rows, int columns, glm::vec3 color);
+	void CreateLine(glm::vec4 line, glm::vec3 color);
+	void CreateBox(glm::vec4 sideA, glm::vec4 sideB, glm::vec3 color);
+	void CreateGrid(glm::vec4 sideA, glm::vec4 sideB, int rows, int columns, glm::vec3 color);
 
-	static bool CreateSimpleOpenGLTexture(std::string& filename, GLuint* out_texture, int* out_width, int* out_height);
+	bool CreateSimpleOpenGLTexture(std::string& filename, GLuint* out_texture, int* out_width, int* out_height);
 
-	static float Normalize(float size);
+	float Normalize(float size);
+
+	static ResourceManager* GetInstance();
 	
 private:
-	static std::unordered_map<int, Texture*> mTextures;
-	static std::unordered_map<std::string, int> mTextureIds;
+	std::unordered_map<int, Texture*> mTextures;
+	std::unordered_map<std::string, int> mTextureIds;
+	std::vector<std::pair<int, Tile*>> mSpritesList;
 
-	static LLGL::ResourceHeap* mResourceHeap;
-	static int mResourceIndex;
+	LLGL::ResourceHeap* mResourceHeap = nullptr;
+	int mResourceIndex = 0;
 
-	static std::vector<std::pair<int, Tile*>> mSpritesList;
+	static ResourceManager* mInstance;
 };
