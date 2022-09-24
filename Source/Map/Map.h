@@ -17,7 +17,8 @@ public:
 	int GetMapRows() const;
 	int GetMapColumns() const;
 
-	const std::string& GetMapTextureName() const;
+	const MapDescription& GetMapDescription() const;
+	const TileSetDescription& GetTileSetDescription() const;
 
 	void LoadTiles();
 
