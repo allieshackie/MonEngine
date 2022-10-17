@@ -3,7 +3,7 @@
 #include "GUISystem.h"
 #include "InputHandler.h"
 #include "InputManager.h"
-#include "Map.h"
+#include "MapEditor.h"
 #include "TileSetEditor.h"
 #include "UIInputManager.h"
 
@@ -14,13 +14,13 @@ int main(int argc, char** argv)
 	const auto app = std::make_unique<Game>();
 	app->configureLevel();
 	app->runGame();
-	
+
 	return 0;
 }
 
 Window& Game::getWindow() const
 {
-    return *mWindow;
+	return *mWindow;
 }
 
 void Game::configureLevel()
@@ -34,6 +34,7 @@ void Game::configureLevel()
 	mInputHandler = std::make_unique<InputHandler>(*mWindow);
 	mInputManager = std::make_unique<InputManager>(*mInputHandler);
 	mUIInputManager = std::make_unique<UIInputManager>(*mInputManager);
+
 	mInputManager->registerButtonUpHandler(LLGL::Key::Escape, [=]() { mRunning = false; });
 
 	// Register camera handlers
@@ -47,6 +48,7 @@ void Game::configureLevel()
 
 	mGUISystem = std::make_unique<GUISystem>();
 	mTileSetEditor = std::make_unique<TileSetEditor>(*mCamera);
+	mMapEditor = std::make_unique<MapEditor>(*mInputManager);
 }
 
 void Game::closeGame()
@@ -68,16 +70,16 @@ void Game::runGame() const
 		}
 		else
 		{
-			mInputHandler->pollInputEvents();	
+			mInputHandler->pollInputEvents();
 		}
 		mRenderer->OnDrawFrame([=]()
 		{
 			// Render GUI
 			mGUISystem->GUIStartFrame();
 			mTileSetEditor->RenderGUI();
+			mMapEditor->RenderGUI();
 			//mTileSetEditor->RenderTest();
 			mGUISystem->GUIEndFrame();
 		});
-		
 	}
 }
