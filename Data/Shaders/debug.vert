@@ -14,6 +14,6 @@ out vec3 vertexColor;
 // Vertex shader main function
 void main()
 {
-	gl_Position = projection * view * vec4(position, 0.0, 1.0);
+	gl_Position = projection * view * vec4(position, 1.0, 1.0);
 	vertexColor = color;
 }
