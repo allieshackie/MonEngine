@@ -21,28 +21,30 @@ void Camera::MoveRight()
 
 void Camera::MoveUp()
 {
-	mCameraPos.y += mCameraSpeed;
+	mCameraPos.y -= mCameraSpeed;
 	UpdateView();
 }
 
 void Camera::MoveDown()
 {
-	mCameraPos.y -= mCameraSpeed;
+	mCameraPos.y += mCameraSpeed;
 	UpdateView();
 }
 
 void Camera::ZoomIn()
 {
 	mCameraPos.z -= 0.1f;
+	UpdateView();
 }
 
 void Camera::ZoomOut()
 {
 	mCameraPos.z += 0.1f;
+	UpdateView();
 }
 
 void Camera::UpdateView()
 {
-	mView = glm::lookAt(mCameraPos, {0,0,0}, mCameraUp);
+	mView = lookAt(mCameraPos, mCameraPos + mCameraFront, mCameraUp);
 	Renderer::GetInstance()->UpdateView(mView);
 }

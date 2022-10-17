@@ -4,8 +4,6 @@
 #include <glm/vec3.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
-static bool mFirstTimeMouse = true;
-
 class Camera
 {
 public:
@@ -30,23 +28,26 @@ public:
 	glm::vec3 GetPosition() const { return mCameraPos; }
 	glm::vec3 GetFront() const { return mCameraFront; }
 
-	void SetPosition(glm::vec3 pos) {
+	void SetPosition(glm::vec3 pos)
+	{
 		mCameraPos = pos;
 		UpdateView();
 	}
-	void SetFront(glm::vec3 front) {
+
+	void SetFront(glm::vec3 front)
+	{
 		mCameraFront = front;
 		UpdateView();
 	}
 
 	void UpdateView();
-		
+
 private:
-	glm::vec3 mCameraPos = glm::vec3(0.0f, 0.0f, 1.0f);
-	glm::vec3 mCameraFront = glm::vec3(0.0f, 0.0f, 0.0f);
+	glm::vec3 mCameraPos = glm::vec3(0.0f, 0.0f, -2.0f);
+	glm::vec3 mCameraFront = glm::vec3(0.0f, 0.0f, 1.0f);
 	glm::vec3 mCameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
-	glm::mat4 mView = glm::lookAt(mCameraPos, mCameraPos + mCameraFront, mCameraUp);
+	glm::mat4 mView = lookAt(mCameraPos, mCameraPos + mCameraFront, mCameraUp);
 
-	float mCameraSpeed = 0.01f; // adjust accordingly
+	float mCameraSpeed = 0.1f; // adjust accordingly
 };
