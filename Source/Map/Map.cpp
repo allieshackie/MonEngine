@@ -1,16 +1,91 @@
 #include "Core/ResourceManager.h"
-#include "MapDescription.h"
+#include "TileSetDescription.h"
+#include "Tile.h"
 
 #include "Map.h"
 
-Map::Map(glm::vec2 position, bool isInteractable) : mMapPosition(position), mIsInteractable(isInteractable)
+Map::Map(glm::vec2 position) : mMapPosition(position)
 {
 }
 
-void Map::LoadMap(const char* fileName)
+void Map::Draw()
 {
-	mMapDescription = new MapDescription(fileName);
-	LoadTiles();
+	for (const auto tile : mMapTiles)
+	{
+		tile->Draw();
+	}
+}
+
+
+void Map::Load(const char* fileName)
+{
+	_ReadFile(fileName);
+	_CreateTiles();
+}
+
+void Map::_ReadFile(const char* fileName)
+{
+	mMapPath = MAP_PATH;
+	mMapPath.append(fileName);
+	if (mMapPath.find(".txt") == std::string::npos)
+	{
+		mMapPath.append(".txt");
+	}
+	std::ifstream file(mMapPath);
+
+	std::string str;
+	int lineIndex = 0;
+
+	while (std::getline(file, str, ','))
+	{
+		switch (lineIndex)
+		{
+		case 0:
+			mTileSetDescription = std::make_unique<TileSetDescription>(str.c_str());
+			break;
+
+		case 1:
+			mMapRowsColumns.x = std::stof(str);
+			break;
+		case 2:
+			mMapRowsColumns.y = std::stof(str);
+			break;
+		case 3:
+			mMapTileSize = std::stoi(str);
+			mMapSize = {mMapRowsColumns.y * mMapTileSize, mMapRowsColumns.x * mMapTileSize};
+			break;
+		default:
+			mRawTiles.push_back(std::stoi(str));
+		}
+
+		lineIndex++;
+	}
+}
+
+void Map::_CreateTiles()
+{
+	const auto textureName = mTileSetDescription->getTexturePath();
+
+	for (int i = 0; i < mRawTiles.size(); i++)
+	{
+		const float posX = i % static_cast<int>(mMapRowsColumns.y);
+		const float currentRow = floor(i / mMapRowsColumns.y);
+		const auto clip = mTileSetDescription->GetClipForTile(mRawTiles[i]);
+		// NOTE: Tile size seems to actually be half of the tile size
+		// So we need to step by tilesize * 2 to accurately align
+		const auto tile = ResourceManager::GetInstance()->CreateTile(
+			textureName,
+			{mMapPosition.x + (posX * (mMapTileSize * 2)), mMapPosition.y + (currentRow * (mMapTileSize * 2))},
+			{mMapTileSize, mMapTileSize}, glm::vec2(clip.x, clip.y), glm::vec2(clip.z, clip.w));
+
+		// -1 is an empty tile
+		if (mRawTiles[i] == -1)
+		{
+			tile->SetEmpty(true);
+		}
+
+		mMapTiles.push_back(tile);
+	}
 }
 
 glm::vec2 Map::GetMapPosition() const
@@ -18,56 +93,81 @@ glm::vec2 Map::GetMapPosition() const
 	return mMapPosition;
 }
 
-int Map::GetMapWidth() const
+glm::vec2 Map::GetMapRowsColumns() const
 {
-	return mMapWidth;
+	return mMapRowsColumns;
 }
 
-int Map::GetMapHeight() const
+glm::vec2 Map::GetMapSize() const
 {
-	return mMapHeight;
+	return mMapSize;
 }
 
-int Map::GetMapRows() const
+int Map::GetTotalTileSetTiles() const
 {
-	return mMapDescription->GetMapRows();
+	return mTileSetDescription->GetTotalTiles();
 }
 
-int Map::GetMapColumns() const
+const std::string& Map::getTexturePath() const
 {
-	return mMapDescription->GetMapColumns();
+	return mTileSetDescription->getTexturePath();
 }
 
-const MapDescription& Map::GetMapDescription() const
+glm::vec4 Map::GetClipForTile(int index) const
 {
-	return *mMapDescription;
+	return mTileSetDescription->GetClipForTile(index);
 }
 
-const TileSetDescription& Map::GetTileSetDescription() const
+const std::vector<Tile*>& Map::GetTiles() const
 {
-	return mMapDescription->GetTileSetDescription();
+	return mMapTiles;
 }
 
-void Map::LoadTiles()
+void Map::UpdateTile(int tileIndex, int brushIndex)
 {
-	const int ROWS = mMapDescription->GetMapRows();
-	const int COLUMNS = mMapDescription->GetMapColumns();
-	const int TILE_SIZE = mMapDescription->GetTileSize();
+	const float posX = tileIndex % static_cast<int>(mMapRowsColumns.y);
+	const float currentRow = floor(tileIndex / mMapRowsColumns.y);
+	const auto clip = mTileSetDescription->GetClipForTile(brushIndex);
 
-	mMapWidth = COLUMNS * TILE_SIZE;
-	mMapHeight = ROWS * TILE_SIZE;
+	mMapTiles[tileIndex] = ResourceManager::GetInstance()->CreateTile(
+		mTileSetDescription->getTexturePath(),
+		{mMapPosition.x + (posX * (mMapTileSize * 2)), mMapPosition.y + (currentRow * (mMapTileSize * 2))},
+		{mMapTileSize, mMapTileSize}, glm::vec2(clip.x, clip.y), glm::vec2(clip.z, clip.w));
 
-	const auto tiles = mMapDescription->GetTiles();
-	const auto textureName = GetTileSetDescription().getTexturePath();
+	mRawTiles[tileIndex] = brushIndex;
+}
 
-	for (int i = 0; i < tiles.size(); i++)
+void Map::SaveTilesToFile() const
+{
+	std::ifstream file(mMapPath);
+
+	std::string strTemp;
+	std::getline(file, strTemp);
+	file.close();
+
+	std::ofstream fileOut(mMapPath, std::ios::trunc);
+	// write first line directly to outfile (tileset name, rows, columns, tilesize)
+	fileOut << strTemp << "\n";
+
+	strTemp.clear();
+	int columnIndex = 0;
+	for (int i = 0; i < mRawTiles.size(); i++)
 	{
-		const auto tile = tiles[i];
-		const float posX = i % COLUMNS;
-		const float currentRow = ceil(i / COLUMNS);
-		const auto clip = GetTileSetDescription().GetClipForTile(tile);
-		// NOTE: Tile size seems to actually be half of the tile size
-		// So we need to step by tilesize * 2 to accurately align
-		ResourceManager::GetInstance()->CreateTile(textureName, { mMapPosition.x + (posX * (TILE_SIZE * 2)), mMapPosition.y + (currentRow * (TILE_SIZE * 2)) }, { TILE_SIZE,TILE_SIZE }, glm::vec2(clip.x, clip.y), glm::vec2(clip.z, clip.w), mIsInteractable);
+		strTemp += std::to_string(mRawTiles[i]);
+		strTemp += ',';
+		columnIndex++;
+
+		if (columnIndex != 0 && (static_cast<int>(mMapRowsColumns.y) / (columnIndex + 1)) == 0)
+		{
+			if (i != mRawTiles.size() - 1)
+			{
+				strTemp += "\n";
+			}
+			columnIndex = 0;
+			fileOut << strTemp;
+			strTemp.clear();
+		}
 	}
+
+	fileOut.close();
 }

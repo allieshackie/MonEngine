@@ -1,34 +1,46 @@
 #pragma once
-#include "MapDescription.h"
-#include "Tile.h"
+#include "RenderObject.h"
 
+struct TileSetDescription;
+class Tile;
 
-class Map {
+static constexpr char MAP_PATH[] = "../Data/Maps/";
+
+class Map : public RenderObject
+{
 public:
-	Map(glm::vec2 position, bool isInteractable = false);
-	~Map() = default;
+	Map(glm::vec2 position);
+	~Map() override = default;
 
-	void LoadMap(const char* fileName);
+	void Draw() override;
+
+	void Load(const char* fileName);
 
 	glm::vec2 GetMapPosition() const;
-	int GetMapWidth() const;
-	int GetMapHeight() const;
+	glm::vec2 GetMapRowsColumns() const;
+	glm::vec2 GetMapSize() const;
+	int GetTotalTileSetTiles() const;
 
-	int GetMapRows() const;
-	int GetMapColumns() const;
+	const std::string& getTexturePath() const;
+	glm::vec4 GetClipForTile(int index) const;
 
-	const MapDescription& GetMapDescription() const;
-	const TileSetDescription& GetTileSetDescription() const;
+	const std::vector<Tile*>& GetTiles() const;
 
-	void LoadTiles();
+	void UpdateTile(int tileIndex, int brushIndex);
 
+	void SaveTilesToFile() const;
 private:
-	std::vector<Tile> mMapTiles;
+	void _ReadFile(const char* fileName);
+	void _CreateTiles();
 
-	glm::vec2 mMapPosition;
-	int mMapWidth = 0;
-	int mMapHeight = 0;
-	bool mIsInteractable = false;
+	std::vector<int> mRawTiles;
+	std::vector<Tile*> mMapTiles;
 
-	MapDescription* mMapDescription = nullptr;
+	std::string mMapPath;
+	glm::vec2 mMapPosition = {0, 0};
+	glm::vec2 mMapRowsColumns = {0, 0};
+	glm::vec2 mMapSize = {0, 0};
+	int mMapTileSize = 0;
+
+	std::unique_ptr<TileSetDescription> mTileSetDescription;
 };
