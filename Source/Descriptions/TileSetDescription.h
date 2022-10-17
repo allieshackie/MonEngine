@@ -14,17 +14,22 @@
 	tiles: 16 x 15px
 */
 
-struct TileSetDescription : DescriptionBase {
+struct TileSetDescription : DescriptionBase
+{
 public:
 	TileSetDescription(const char* fileName);
 
 	void Load(const char* fileName);
 
-	virtual void ApplyToEntity(EntityContext& entity) override {}
+	void ApplyToEntity(EntityContext& entity) override
+	{
+	}
 
 	const std::string& getTexturePath() const;
 	int GetRows() const;
 	int GetColumns() const;
+
+	int GetTotalTiles() const;
 
 	glm::vec4 GetClipForTile(int index) const;
 
@@ -33,23 +38,22 @@ public:
 	void UpdateSize(int rows, int columns);
 
 private:
-	virtual void ParseJSON(const char* fileName) override;
+	void ParseJSON(const char* fileName) override;
 
 public:
 	static constexpr char JsonName[] = "mondev:tileset";
 private:
 	static constexpr char JSON_PATH[] = "../Data/Tileset/";
-	static constexpr char TILESET_STRING[] = "tileset";
 	static constexpr char ID_STRING[] = "id";
 	static constexpr char TEXTURE_STRING[] = "texture_path";
-	static constexpr char SIZE_STRING[] = "size";
-	static constexpr char TEXTURE_SIZE_STRING[] = "texture_size";
+	static constexpr char SIZE_STRING[] = "rows_columns";
 
 	nlohmann::json mJson;
 	std::string mTileSetFilePath = JSON_PATH;
+
 	std::string mTexturePath;
+
 	int mTilesetRows = 0;
 	int mTilesetColumns = 0;
-
 	glm::vec2 mTextureSize = {1.0f, 1.0f};
 };
