@@ -7,85 +7,110 @@
 #include "Shader.h"
 #include "Vertex.h"
 
-class Renderer {
+class Renderer
+{
 public:
 	Renderer();
-	~Renderer() = default;
+	~Renderer();
 
-    static Renderer* GetInstance();
+	static Renderer* GetInstance();
 
-    void OnDrawFrame(const std::function<void()>& drawCallback);
+	void OnDrawFrame(const std::function<void()>& drawCallback);
 
-    LLGL::RenderContext& GetContext() const
-    {
-        return *mContext;
-    }
+	LLGL::RenderContext& GetContext() const
+	{
+		return *mContext;
+	}
 
-    const std::unique_ptr<LLGL::RenderSystem>& GetRendererSystem() const
-    {
-        return mRenderer;
-    }
+	const std::unique_ptr<LLGL::RenderSystem>& GetRendererSystem() const
+	{
+		return mRenderer;
+	}
 
-    void SetTexture(int textureId) const;
+	void SetTexture(int textureId) const;
 
-    void UpdateModelSettings(glm::mat4 model, glm::mat4 textureClip);
-    void UpdateProjection();
-    void UpdateView(glm::mat4 view);
+	void UpdateModelUniform(glm::mat4 model);
+	void UpdateTextureClipUniform(glm::mat4 textureClip);
+	void UpdateProjection() const;
+	void UpdateView(glm::mat4 view) const;
 
-    void AddDebugDrawToVB(DebugDrawable* debug);
-    void ClearDebugDraw();
+	void AddDebugDrawToVB(DebugDrawable* debug);
+	void ClearDebugDraw();
+
+	void DrawSprite();
+
+	glm::vec2 MapToScreenCoordinates(glm::vec2 value) const;
 
 private:
-    void _Init();
-    void _InitSpritePipeline();
-    void _InitDebugDrawPipeline();
+	void _Init();
+	void _InitSpritePipeline();
+	void _InitVolumePipeline();
+	void _InitDebugDrawPipeline();
 
-    void _DrawSprites();
-    void _DrawDebug();
+	void _DrawSprites() const;
+	void _DrawVolumes();
+	void _DrawDebug() const;
 
-    void _AddDebugLineToVB(const Line* debug, std::vector<DebugVertex>& vertices);
-    void _AddDebugBoxToVB(const Box* debug, std::vector<DebugVertex>& vertices);
+	void _AddDebugLineToVB(const Line* debug, std::vector<DebugVertex>& vertices);
+	void _AddDebugBoxToVB(const Box* debug, std::vector<DebugVertex>& vertices);
 
-    std::unique_ptr<LLGL::RenderSystem> mRenderer; // Render system
-    LLGL::RenderContext* mContext = nullptr; // Main render context
-    LLGL::CommandBuffer* mCommands = nullptr; // Main command buffer
-    LLGL::CommandQueue* mCommandQueue = nullptr;  // Command queue
+	std::unique_ptr<LLGL::RenderSystem> mRenderer; // Render system
+	LLGL::RenderContext* mContext = nullptr; // Main render context
+	LLGL::CommandBuffer* mCommands = nullptr; // Main command buffer
+	LLGL::CommandQueue* mCommandQueue = nullptr; // Command queue
 
-    // Pipelines
-    LLGL::PipelineState* mSpritePipeline = nullptr;
-    LLGL::PipelineState* mDebugDrawPipeline = nullptr;
+	// Pipelines
+	LLGL::PipelineState* mSpritePipeline = nullptr;
+	LLGL::PipelineState* mVolumePipeline = nullptr;
 
-    // Shaders
-    Shader* mSpriteShader = nullptr;
-    Shader* mDebugShader = nullptr;
+	LLGL::PipelineState* mDebugDrawPipeline = nullptr;
+
+	// Shaders
+	Shader* mSpriteShader = nullptr;
+	Shader* mVolumeShader = nullptr;
+	Shader* mDebugShader = nullptr;
 
 	// Vertex Data
-    LLGL::Buffer* mConstantBuffer = nullptr;
+	LLGL::Buffer* mSpriteConstantBuffer = nullptr;
+	LLGL::Buffer* mVolumeConstantBuffer = nullptr;
+
 	LLGL::Buffer* mSpriteVertexBuffer = nullptr;
-    template <typename T>
-    struct VBData
-    {
-        LLGL::Buffer* mVertexBuffer;
-        std::vector<T> mVertices;
-    };
+	LLGL::Buffer* mVolumeVertexBuffer = nullptr;
+	LLGL::ResourceHeap* testVolumeResourceHeap = nullptr;
+
+	template <typename T>
+	struct VBData
+	{
+		LLGL::Buffer* mVertexBuffer;
+		std::vector<T> mVertices;
+	};
+
 	std::vector<VBData<DebugVertex>> mDebugVertexBuffers;
 
-    struct Settings
-    {
-        glm::mat4 model;
-        glm::mat4 textureClip;
-    }
-    settings = {};
+	struct SpriteSettings
+	{
+		glm::mat4 model;
+		glm::mat4 textureClip;
+	}
+	spriteSettings = {};
 
-    const std::vector<Vertex> mSpriteVertices = {
-    { { -1,  1 }, { 1, 0 } }, // top left
-    { { -1, -1 }, { 1,  1 } }, // bottom left
-    { {  1,  1 }, {  0, 0 } }, // top right
-    { {  1, -1 }, {  0,  1 } }, // bottom right
-    };
+	struct VolumeSettings
+	{
+		glm::mat4 model;
+		LLGL::ColorRGBAf color;
+	}
+	volumeSettings = {};
 
-    uint32_t mNumVertices = 0;
-    glm::mat4 mProjection = glm::mat4(1.0f);
+	const std::vector<Vertex> mSpriteVertices = {
+		{{-1, 1}, {1, 0}}, // top left
+		{{-1, -1}, {1, 1}}, // bottom left
+		{{1, 1}, {0, 0}}, // top right
+		{{1, -1}, {0, 1}}, // bottom right
+	};
 
-    static Renderer* mInstance;
+	uint32_t mNumVertices = 0;
+
+	Model model0;
+
+	static Renderer* mInstance;
 };

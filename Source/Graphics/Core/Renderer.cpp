@@ -1,4 +1,5 @@
 #include <glm/ext/matrix_clip_space.hpp>
+#include <glm/gtc/matrix_transform.hpp> //translate, rotate, scale, perspective 
 #include "LLGL/Utility.h"
 #include "ResourceManager.h"
 #include "Tile.h"
@@ -8,287 +9,407 @@
 static constexpr int SCREEN_WIDTH = 800;
 static constexpr int SCREEN_HEIGHT = 600;
 
-Renderer* Renderer::mInstance{ nullptr };
+Renderer* Renderer::mInstance{nullptr};
 
 Renderer::Renderer()
 {
-    // Initialize default projection matrix
-    _Init();
+	// Initialize default projection matrix
+	_Init();
+}
+
+Renderer::~Renderer()
+{
+	delete(mSpriteShader);
+	delete(mVolumeShader);
+	delete(mDebugShader);
+
+	delete(mInstance);
 }
 
 Renderer* Renderer::GetInstance()
 {
-    if (mInstance == nullptr)
-    {
-        mInstance = new Renderer();
-    }
-    return mInstance;
+	if (mInstance == nullptr)
+	{
+		mInstance = new Renderer();
+	}
+	return mInstance;
 }
 
 void Renderer::_Init()
 {
-    try
-    {
-        // Load render system module (hard code to OpenGL for now)
-        mRenderer = LLGL::RenderSystem::Load("OpenGL");
-    	
-        // Render context (window attributes)
-        LLGL::RenderContextDescriptor contextDesc;
-        {
-            contextDesc.videoMode.resolution = { SCREEN_WIDTH, SCREEN_HEIGHT };
-            contextDesc.vsync.enabled = true;
+	try
+	{
+		// Load render system module (hard code to OpenGL for now)
+		mRenderer = LLGL::RenderSystem::Load("OpenGL");
+
+		// Render context (window attributes)
+		LLGL::RenderContextDescriptor contextDesc;
+		{
+			contextDesc.videoMode.resolution = {SCREEN_WIDTH, SCREEN_HEIGHT};
+			contextDesc.vsync.enabled = true;
 #ifdef ENABLE_MULTISAMPLING
             contextDesc.samples = 8;
 #endif
-        }
-        mContext = mRenderer->CreateRenderContext(contextDesc);
-    
-        // Get command queue to record and submit command buffers
-        mCommandQueue = mRenderer->GetCommandQueue();
+		}
+		mContext = mRenderer->CreateRenderContext(contextDesc);
 
-        // Create command buffer to submit graphics commands
-        mCommands = mRenderer->CreateCommandBuffer();
-    }
-    catch (const std::exception & e) {
-        std::cerr << e.what() << std::endl;
-    }
+		// Get command queue to record and submit command buffers
+		mCommandQueue = mRenderer->GetCommandQueue();
 
-    _InitSpritePipeline();
-    _InitDebugDrawPipeline();
-    UpdateProjection();
+		// Create command buffer to submit graphics commands
+		mCommands = mRenderer->CreateCommandBuffer();
+	}
+	catch (const std::exception& e)
+	{
+		std::cerr << e.what() << std::endl;
+	}
+
+	ResourceManager::GetInstance()->LoadAllTexturesFromFolder(*mRenderer);
+	_InitSpritePipeline();
+	//_InitVolumePipeline();
+	_InitDebugDrawPipeline();
+	UpdateProjection();
 }
 
 void Renderer::_InitSpritePipeline()
 {
-    mConstantBuffer = mRenderer->CreateBuffer(LLGL::ConstantBufferDesc(sizeof(Settings)), &settings);
+	mSpriteConstantBuffer = mRenderer->CreateBuffer(LLGL::ConstantBufferDesc(sizeof(SpriteSettings)),
+	                                                &spriteSettings);
 
-    LLGL::VertexFormat vertexFormat;
-    vertexFormat.AppendAttribute({ "position", LLGL::Format::RG32Float });
-    vertexFormat.AppendAttribute({ "texCoord", LLGL::Format::RG32Float });
+	LLGL::VertexFormat vertexFormat;
+	vertexFormat.AppendAttribute({"position", LLGL::Format::RG32Float});
+	vertexFormat.AppendAttribute({"texCoord", LLGL::Format::RG32Float});
 
-    mSpriteShader = new Shader(*mRenderer, vertexFormat, "sprite.vert", "sprite.frag");
+	mSpriteShader = new Shader(*mRenderer, vertexFormat, "sprite.vert", "sprite.frag");
 
-    // All layout bindings that will be used by graphics and compute pipelines
-    LLGL::PipelineLayoutDescriptor layoutDesc;
-    {
-        layoutDesc.bindings =
-        {
-            LLGL::BindingDescriptor{ LLGL::ResourceType::Buffer, LLGL::BindFlags::ConstantBuffer, LLGL::StageFlags::AllStages, 0 },
-            LLGL::BindingDescriptor{ LLGL::ResourceType::Texture, LLGL::BindFlags::Sampled, LLGL::StageFlags::FragmentStage, 0u },
-            LLGL::BindingDescriptor{ LLGL::ResourceType::Sampler, 0, LLGL::StageFlags::FragmentStage, 0 },
-        };
-    }
-    // Create pipeline layout
-    const auto pipelineLayout = mRenderer->CreatePipelineLayout(layoutDesc);
+	// All layout bindings that will be used by graphics and compute pipelines
+	LLGL::PipelineLayoutDescriptor layoutDesc;
+	{
+		layoutDesc.bindings =
+		{
+			LLGL::BindingDescriptor{
+				LLGL::ResourceType::Buffer, LLGL::BindFlags::ConstantBuffer, LLGL::StageFlags::AllStages, 0
+			},
+			LLGL::BindingDescriptor{
+				LLGL::ResourceType::Texture, LLGL::BindFlags::Sampled, LLGL::StageFlags::FragmentStage, 0u
+			},
+			LLGL::BindingDescriptor{LLGL::ResourceType::Sampler, 0, LLGL::StageFlags::FragmentStage, 0},
+		};
+	}
+	// Create pipeline layout
+	const auto pipelineLayout = mRenderer->CreatePipelineLayout(layoutDesc);
 
-    // Create graphics pipeline
-    LLGL::GraphicsPipelineDescriptor pipelineDesc;
-    {
-        pipelineDesc.shaderProgram = &mSpriteShader->GetShaderProgram();
-        pipelineDesc.pipelineLayout = pipelineLayout;
-        pipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::TriangleStrip;
-    }
-    mSpritePipeline = mRenderer->CreatePipelineState(pipelineDesc);
+	// Create graphics pipeline
+	LLGL::GraphicsPipelineDescriptor pipelineDesc;
+	{
+		pipelineDesc.shaderProgram = &mSpriteShader->GetShaderProgram();
+		pipelineDesc.pipelineLayout = pipelineLayout;
+		pipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::TriangleStrip;
+		pipelineDesc.rasterizer.cullMode = LLGL::CullMode::Disabled;
+	}
+	mSpritePipeline = mRenderer->CreatePipelineState(pipelineDesc);
 
-    ResourceManager::GetInstance()->LoadAllTexturesFromFolder(*mRenderer);
-	ResourceManager::GetInstance()->CreateResourceHeap(*mRenderer, *pipelineLayout, *mConstantBuffer);
+	ResourceManager::GetInstance()->CreateResourceHeap(*mRenderer, *pipelineLayout, *mSpriteConstantBuffer);
 
-    mNumVertices = static_cast<uint32_t>(mSpriteVertices.size());
+	mNumVertices = static_cast<uint32_t>(mSpriteVertices.size());
 
-    mSpriteVertexBuffer = mRenderer->CreateBuffer(
-        LLGL::VertexBufferDesc(static_cast<std::uint32_t>(mSpriteVertices.size() * sizeof(Vertex)), vertexFormat),
-        mSpriteVertices.data()
-    );
+	mSpriteVertexBuffer = mRenderer->CreateBuffer(
+		VertexBufferDesc(static_cast<std::uint32_t>(mSpriteVertices.size() * sizeof(Vertex)), vertexFormat),
+		mSpriteVertices.data()
+	);
+}
+
+void Renderer::_InitVolumePipeline()
+{
+	mVolumeConstantBuffer = mRenderer->CreateBuffer(LLGL::ConstantBufferDesc(sizeof(VolumeSettings)),
+	                                                &volumeSettings);
+
+	LLGL::VertexFormat vertexFormat;
+	vertexFormat.AppendAttribute({"position", LLGL::Format::RGB32Float});
+	vertexFormat.AppendAttribute({"normal", LLGL::Format::RGB32Float});
+	vertexFormat.SetStride(sizeof(TexturedVertex));
+
+	mVolumeShader = new Shader(*mRenderer, vertexFormat, "volume.vert", "volume.frag");
+
+	// TODO: Hardcoded volume test
+	std::vector<TexturedVertex> vertices;
+	ResourceManager::GetInstance()->LoadObjModel(vertices, "../Data/Models/Pyramid.obj");
+	model0.numVertices = static_cast<std::uint32_t>(vertices.size());
+
+	mVolumeVertexBuffer = mRenderer->CreateBuffer(
+		VertexBufferDesc(static_cast<std::uint32_t>(vertices.size() * sizeof(Vertex)), vertexFormat),
+		vertices.data()
+	);
+
+	// All layout bindings that will be used by graphics and compute pipelines
+	LLGL::PipelineLayoutDescriptor layoutDesc;
+	{
+		layoutDesc.bindings =
+		{
+			LLGL::BindingDescriptor{
+				LLGL::ResourceType::Buffer, LLGL::BindFlags::ConstantBuffer, LLGL::StageFlags::AllStages, 0
+			}
+		};
+	}
+	// Create pipeline layout
+	const auto pipelineLayout = mRenderer->CreatePipelineLayout(layoutDesc);
+
+	// Create graphics pipeline
+	LLGL::GraphicsPipelineDescriptor pipelineDesc;
+	{
+		pipelineDesc.shaderProgram = &mVolumeShader->GetShaderProgram();
+		pipelineDesc.pipelineLayout = pipelineLayout;
+		pipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::TriangleStrip;
+	}
+	mVolumePipeline = mRenderer->CreatePipelineState(pipelineDesc);
+
+	// Create resource heap for constant buffer
+	LLGL::ResourceHeapDescriptor heapDesc;
+	{
+		heapDesc.pipelineLayout = pipelineLayout;
+		heapDesc.resourceViews = {mVolumeConstantBuffer};
+	}
+	testVolumeResourceHeap = mRenderer->CreateResourceHeap(heapDesc);
 }
 
 void Renderer::_InitDebugDrawPipeline()
 {
-    LLGL::VertexFormat vertexFormat;
-    vertexFormat.AppendAttribute({ "position", LLGL::Format::RG32Float });
-    vertexFormat.AppendAttribute({ "color", LLGL::Format::RGB32Float });
+	LLGL::VertexFormat vertexFormat;
+	vertexFormat.AppendAttribute({"position", LLGL::Format::RG32Float});
+	vertexFormat.AppendAttribute({"color", LLGL::Format::RGB32Float});
 
-    mDebugShader = new Shader(*mRenderer, vertexFormat, "debug.vert", "debug.frag");
+	mDebugShader = new Shader(*mRenderer, vertexFormat, "debug.vert", "debug.frag");
 
-    // Create graphics pipeline
-    LLGL::GraphicsPipelineDescriptor pipelineDesc;
-    {
-        pipelineDesc.shaderProgram = &mDebugShader->GetShaderProgram();
-        pipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::LineList;
-    }
-    mDebugDrawPipeline = mRenderer->CreatePipelineState(pipelineDesc);
+	// Create graphics pipeline
+	LLGL::GraphicsPipelineDescriptor pipelineDesc;
+	{
+		pipelineDesc.shaderProgram = &mDebugShader->GetShaderProgram();
+		pipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::LineList;
+	}
+	mDebugDrawPipeline = mRenderer->CreatePipelineState(pipelineDesc);
 
-    mCommands->SetPipelineState(*mDebugDrawPipeline);
+	mCommands->SetPipelineState(*mDebugDrawPipeline);
 }
 
-void Renderer::_DrawSprites()
+void Renderer::_DrawSprites() const
 {
-    // set graphics pipeline
-    mCommands->SetPipelineState(*mSpritePipeline);
+	// set graphics pipeline
+	mCommands->SetPipelineState(*mSpritePipeline);
+	mCommands->SetVertexBuffer(*mSpriteVertexBuffer);
 
-    mCommands->SetVertexBuffer(*mSpriteVertexBuffer);
-
-    const auto spritesList = ResourceManager::GetInstance()->GetSpritesList();
-    for (const auto& pair : spritesList)
-    {
-        SetTexture(pair.first);
-        pair.second->UpdateDrawData();
-        pair.second->UpdateTextureClip();
-        UpdateModelSettings(pair.second->GetSpriteModelData(), pair.second->GetTextureClip());
-
-		mCommands->Draw(mNumVertices, 0);
-    }
+	// TODO: Should there be separate pipelines for future object types?
+	// Should Debug draw be a render object and we can handle switching pipelines?
+	const auto renderObjects = ResourceManager::GetInstance()->GetDrawList();
+	for (const auto obj : renderObjects)
+	{
+		obj->Draw();
+	}
 }
 
-void Renderer::_DrawDebug()
+void Renderer::_DrawVolumes()
 {
-    if (!mDebugVertexBuffers.empty())
-    {
-    	mCommands->SetPipelineState(*mDebugDrawPipeline);
-	    
-	    for (const auto& vb: mDebugVertexBuffers)
-	    {
-		    // set graphics pipeline
-		    mCommands->SetVertexBuffer(*vb.mVertexBuffer);
+	// Set resources
+	mCommands->SetPipelineState(*mVolumePipeline);
+	mCommands->SetVertexBuffer(*mVolumeVertexBuffer);
+	mCommands->SetResourceHeap(*testVolumeResourceHeap);
+
+	static bool doOnce = true;
+	if (doOnce)
+	{
+		volumeSettings.model = glm::identity<glm::mat4>();
+		volumeSettings.color = {1, 1, 1, 1};
+		mCommands->UpdateBuffer(*mVolumeConstantBuffer, 0, &volumeSettings, sizeof(VolumeSettings));
+
+		doOnce = false;
+	}
+
+	mCommands->Draw(model0.numVertices, model0.firstVertex);
+}
+
+void Renderer::_DrawDebug() const
+{
+	if (!mDebugVertexBuffers.empty())
+	{
+		mCommands->SetPipelineState(*mDebugDrawPipeline);
+
+		for (const auto& vb : mDebugVertexBuffers)
+		{
+			// set graphics pipeline
+			mCommands->SetVertexBuffer(*vb.mVertexBuffer);
 			mCommands->Draw(vb.mVertices.size(), 0);
-	    }
-    }
+		}
+	}
 }
 
 void Renderer::OnDrawFrame(const std::function<void()>& drawCallback)
-{ 
-     // Render Commands to Queue
-    mCommands->Begin();
-    {
-        // set viewport and scissor rectangle
-        mCommands->SetViewport(mContext->GetResolution());
+{
+	// Render Commands to Queue
+	mCommands->Begin();
+	{
+		// set viewport and scissor rectangle
+		mCommands->SetViewport(mContext->GetResolution());
 
-        // set the render context as the initial render target
-        mCommands->BeginRenderPass(*mContext);
-        {
-		    // clear color buffer
-		    mCommands->Clear(LLGL::ClearFlags::Color);
-            _DrawSprites();
-            _DrawDebug();
-        	
-            drawCallback();
-            
-        }
-        mCommands->EndRenderPass();
-    }
-    mCommands->End();
-    mCommandQueue->Submit(*mCommands);
+		// set the render context as the initial render target
+		mCommands->BeginRenderPass(*mContext);
+		{
+			// clear color buffer
+			mCommands->Clear(LLGL::ClearFlags::Color);
+			_DrawSprites();
+			//_DrawVolumes();
+			// gui draw calls, this can include images so we want it to
+			// piggyback off the pipeline change in the sprite draw call
+			drawCallback();
 
-    // Present results on screen
-    mContext->Present();
+			_DrawDebug();
+		}
+		mCommands->EndRenderPass();
+	}
+	mCommands->End();
+	mCommandQueue->Submit(*mCommands);
+
+	// Present results on screen
+	mContext->Present();
 }
-
 
 void Renderer::SetTexture(int textureId) const
 {
-    ResourceManager::GetInstance()->SetTexture(*mCommands, textureId);
+	ResourceManager::GetInstance()->SetTexture(*mCommands, textureId);
 }
 
-void Renderer::UpdateModelSettings(glm::mat4 model, glm::mat4 textureClip)
+void Renderer::UpdateModelUniform(glm::mat4 model)
 {
-    // Update constant buffer (shader uniforms) with new "model view" value
-    settings.model = model;
-    settings.textureClip = textureClip;
-    mCommands->UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
+	spriteSettings.model = model;
+	mCommands->UpdateBuffer(*mSpriteConstantBuffer, 0, &spriteSettings, sizeof(SpriteSettings));
+}
+
+void Renderer::UpdateTextureClipUniform(glm::mat4 textureClip)
+{
+	spriteSettings.textureClip = textureClip;
+	mCommands->UpdateBuffer(*mSpriteConstantBuffer, 0, &spriteSettings, sizeof(SpriteSettings));
 }
 
 // Called on window resize
-void Renderer::UpdateProjection()
+void Renderer::UpdateProjection() const
 {
-    const auto res = mContext->GetVideoMode().resolution;
-    const auto projection = glm::ortho(0.0f, static_cast<float>(res.width), static_cast<float>(res.height), 0.0f, -1.0f, 1.0f);
+	const auto res = mContext->GetVideoMode().resolution;
+	const auto projection = glm::perspective(glm::radians(45.0f),
+	                                         static_cast<float>(res.width) / static_cast<float>(res.height),
+	                                         0.1f, 100.0f);
+	//const auto test = glm::ortho(0.0f, static_cast<float>(res.width), static_cast<float>(res.height), 0.0f, -1.0f,
+	// 1.0f);
 
-    mCommands->SetPipelineState(*mSpritePipeline);
+	mCommands->SetPipelineState(*mSpritePipeline);
 	LLGL::UniformLocation projectionUniform = mSpriteShader->GetShaderProgram().FindUniformLocation("projection");
-    mCommands->SetUniform(projectionUniform, &projection, sizeof(projection));
+	mCommands->SetUniform(projectionUniform, &projection, sizeof(projection));
 
-    mCommands->SetPipelineState(*mDebugDrawPipeline);
-    projectionUniform = mDebugShader->GetShaderProgram().FindUniformLocation("projection");
-    mCommands->SetUniform(projectionUniform, &projection, sizeof(projection));
+	mCommands->SetPipelineState(*mDebugDrawPipeline);
+	projectionUniform = mDebugShader->GetShaderProgram().FindUniformLocation("projection");
+	mCommands->SetUniform(projectionUniform, &projection, sizeof(projection));
+
+	/*
+	 *
+	mCommands->SetPipelineState(*mVolumePipeline);
+	projectionUniform = mVolumeShader->GetShaderProgram().FindUniformLocation("projection");
+	mCommands->SetUniform(projectionUniform, &projection, sizeof(projection));
+	 */
 }
 
-void Renderer::UpdateView(glm::mat4 view)
+void Renderer::UpdateView(glm::mat4 view) const
 {
-    mCommands->SetPipelineState(*mSpritePipeline);
-    LLGL::UniformLocation viewUniform = mSpriteShader->GetShaderProgram().FindUniformLocation("view");
-    mCommands->SetUniform(viewUniform, &view, sizeof(view));
+	mCommands->SetPipelineState(*mSpritePipeline);
+	LLGL::UniformLocation viewUniform = mSpriteShader->GetShaderProgram().FindUniformLocation("view");
+	mCommands->SetUniform(viewUniform, &view, sizeof(view));
 
-    mCommands->SetPipelineState(*mDebugDrawPipeline);
-    viewUniform = mDebugShader->GetShaderProgram().FindUniformLocation("view");
-    mCommands->SetUniform(viewUniform, &view, sizeof(view));
+	mCommands->SetPipelineState(*mDebugDrawPipeline);
+	viewUniform = mDebugShader->GetShaderProgram().FindUniformLocation("view");
+	mCommands->SetUniform(viewUniform, &view, sizeof(view));
+
+	/*
+	 *
+	mCommands->SetPipelineState(*mVolumePipeline);
+	viewUniform = mVolumeShader->GetShaderProgram().FindUniformLocation("view");
+	mCommands->SetUniform(viewUniform, &view, sizeof(view));
+	 */
 }
 
 void Renderer::AddDebugDrawToVB(DebugDrawable* debug)
 {
-    std::vector<DebugVertex> vertices;
+	std::vector<DebugVertex> vertices;
 	// Line case
-    if (const auto line = dynamic_cast<Line*>(debug))
-    {
-        _AddDebugLineToVB(line, vertices);
-    }
+	if (const auto line = dynamic_cast<Line*>(debug))
+	{
+		_AddDebugLineToVB(line, vertices);
+	}
 
-    // Box case
-    if (const auto box = dynamic_cast<Box*>(debug))
-    {
-        _AddDebugBoxToVB(box, vertices);
-    }
+	// Box case
+	if (const auto box = dynamic_cast<Box*>(debug))
+	{
+		_AddDebugBoxToVB(box, vertices);
+	}
 
-    // Grid case
-    if (const auto grid = dynamic_cast<Grid*>(debug))
-    {
-        _AddDebugBoxToVB(&grid->mOutline, vertices);
-        for (const auto line : grid->mLines)
-        {
-            _AddDebugLineToVB(&line, vertices);
-        }
-    }
+	// Grid case
+	if (const auto grid = dynamic_cast<Grid*>(debug))
+	{
+		_AddDebugBoxToVB(&grid->mOutline, vertices);
+		for (const auto line : grid->mLines)
+		{
+			_AddDebugLineToVB(&line, vertices);
+		}
+	}
 
-    if (!vertices.empty())
-    {
-	    LLGL::VertexFormat vertexFormat;
-	    vertexFormat.AppendAttribute({ "position", LLGL::Format::RG32Float });
-	    vertexFormat.AppendAttribute({ "color", LLGL::Format::RGB32Float });
-	    LLGL::BufferDescriptor vertexBufferDesc;
-	    {
-	        // NOTE: Even though this VB isn't initialized with starting data, we need to
-	        // specify a larger size for when we update the buffer with data
-	        vertexBufferDesc.size = sizeof(DebugVertex) * vertices.size();  // Size (in bytes) of the vertex buffer
-	        vertexBufferDesc.bindFlags = LLGL::BindFlags::VertexBuffer;    // Enables the buffer to be bound to a vertex buffer slot
-	        vertexBufferDesc.vertexAttribs = vertexFormat.attributes;      // Vertex format layout
-	    }
-	    const auto vertexBuffer = mRenderer->CreateBuffer(vertexBufferDesc, vertices.data());
+	if (!vertices.empty())
+	{
+		LLGL::VertexFormat vertexFormat;
+		vertexFormat.AppendAttribute({"position", LLGL::Format::RG32Float});
+		vertexFormat.AppendAttribute({"color", LLGL::Format::RGB32Float});
+		LLGL::BufferDescriptor vertexBufferDesc;
+		{
+			// NOTE: Even though this VB isn't initialized with starting data, we need to
+			// specify a larger size for when we update the buffer with data
+			vertexBufferDesc.size = sizeof(DebugVertex) * vertices.size(); // Size (in bytes) of the vertex buffer
+			vertexBufferDesc.bindFlags = LLGL::BindFlags::VertexBuffer;
+			// Enables the buffer to be bound to a vertex buffer slot
+			vertexBufferDesc.vertexAttribs = vertexFormat.attributes; // Vertex format layout
+		}
+		const auto vertexBuffer = mRenderer->CreateBuffer(vertexBufferDesc, vertices.data());
 
-        mDebugVertexBuffers.push_back({ vertexBuffer, vertices });
-    }
+		mDebugVertexBuffers.push_back({vertexBuffer, vertices});
+	}
 }
 
 void Renderer::ClearDebugDraw()
 {
-    mDebugVertexBuffers.clear();
+	mDebugVertexBuffers.clear();
+}
+
+void Renderer::DrawSprite()
+{
+	mCommands->Draw(mNumVertices, 0);
+}
+
+glm::vec2 Renderer::MapToScreenCoordinates(glm::vec2 value) const
+{
+	const auto res = mContext->GetVideoMode().resolution;
+	return {value.x / (res.width / 2), value.y / (res.height / 2)};
 }
 
 void Renderer::_AddDebugLineToVB(const Line* debug, std::vector<DebugVertex>& vertices)
 {
-    vertices.push_back({ {debug->pointA}, {debug->color} });
-    vertices.push_back({ {debug->pointB}, {debug->color} });
+	vertices.push_back({{debug->pointA}, {debug->color}});
+	vertices.push_back({{debug->pointB}, {debug->color}});
 }
 
 void Renderer::_AddDebugBoxToVB(const Box* debug, std::vector<DebugVertex>& vertices)
 {
-    vertices.push_back({ {debug->pointA}, {debug->color} });
-    vertices.push_back({ {debug->pointB}, {debug->color} });
+	vertices.push_back({{debug->pointA}, {debug->color}});
+	vertices.push_back({{debug->pointB}, {debug->color}});
 
-    vertices.push_back({ {debug->pointB}, {debug->color} });
-    vertices.push_back({ {debug->pointD}, {debug->color} });
+	vertices.push_back({{debug->pointB}, {debug->color}});
+	vertices.push_back({{debug->pointD}, {debug->color}});
 
-    vertices.push_back({ {debug->pointD}, {debug->color} });
-    vertices.push_back({ {debug->pointC}, {debug->color} });
+	vertices.push_back({{debug->pointD}, {debug->color}});
+	vertices.push_back({{debug->pointC}, {debug->color}});
 
-    vertices.push_back({ {debug->pointC}, {debug->color} });
-    vertices.push_back({ {debug->pointA}, {debug->color} });
+	vertices.push_back({{debug->pointC}, {debug->color}});
+	vertices.push_back({{debug->pointA}, {debug->color}});
 }
-
