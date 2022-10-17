@@ -41,7 +41,8 @@ set(FOLDERS
     Source/Map/Components
     Source/UI
     Source/GUI
-    Source/GUI/backends
+    Source/GUI/imgui
+    Source/GUI/imgui/backends
 )
 
 foreach(ITEM ${FOLDERS})
