@@ -2,14 +2,16 @@
 
 #include "InputHandler.h"
 
-InputHandler::InputHandler(Window& window) {
+InputHandler::InputHandler(Window& window)
+{
 	mInput = std::make_shared<InputQueue>();
 	auto& llglWindow = window.GetWindow();
 	llglWindow.AddEventListener(mInput);
 }
 
-void InputHandler::pollInputEvents() {
-	while(mInput->HasEventsQueued())
+void InputHandler::pollInputEvents()
+{
+	while (mInput->HasEventsQueued())
 	{
 		switch (const auto event = mInput->ProcessNextEvent(); event.mKeyState)
 		{
@@ -26,6 +28,14 @@ void InputHandler::pollInputEvents() {
 		}
 
 		mInput->PopEvent();
+	}
+
+	if (!mInput->GetKeyDownArray().empty())
+	{
+		for (const auto key : mInput->GetKeyDownArray())
+		{
+			mInput->PushEvent(key, KeyStates::Key_Down);
+		}
 	}
 
 	if (mInput->GetWheelMotion())
@@ -58,7 +68,7 @@ void InputHandler::pollGUIInputEvents(const std::function<void(const InputEvent&
 		event.mKeyCode = LLGL::Key::Zoom;
 		if (scroll > 0) event.mKeyState = KeyStates::Key_Up;
 		else event.mKeyState = KeyStates::Key_Down;
-		
+
 		callback(event);
 	}
 	while (mInput->HasEventsQueued())
@@ -67,13 +77,22 @@ void InputHandler::pollGUIInputEvents(const std::function<void(const InputEvent&
 		callback(event);
 		mInput->PopEvent();
 	}
+
+	if (!mInput->GetKeyDownArray().empty())
+	{
+		for (const auto key : mInput->GetKeyDownArray())
+		{
+			mInput->PushEvent(key, KeyStates::Key_Down);
+		}
+	}
 }
 
 void InputHandler::_handleButtonUpEvent(LLGL::Key keyCode)
 {
 	const auto& handler = mButtonUpHandlers.find(keyCode);
-	if (handler != mButtonUpHandlers.end()) {
-		for (auto cb : handler->second)
+	if (handler != mButtonUpHandlers.end())
+	{
+		for (const auto& cb : handler->second)
 		{
 			cb();
 		}
@@ -83,8 +102,9 @@ void InputHandler::_handleButtonUpEvent(LLGL::Key keyCode)
 void InputHandler::_handleButtonDownEvent(LLGL::Key keyCode)
 {
 	const auto& handler = mButtonDownHandlers.find(keyCode);
-	if (handler != mButtonDownHandlers.end()) {
-		for (auto cb : handler->second)
+	if (handler != mButtonDownHandlers.end())
+	{
+		for (const auto& cb : handler->second)
 		{
 			cb();
 		}
@@ -93,7 +113,7 @@ void InputHandler::_handleButtonDownEvent(LLGL::Key keyCode)
 
 void InputHandler::_handleMouseMoveEvent()
 {
-	const auto mousePos = mInput->GetMousePosition();
+	const auto& mousePos = mInput->GetMousePosition();
 	if (mousePos != mCurrentMousePos)
 	{
 		mCurrentMousePos = mousePos;

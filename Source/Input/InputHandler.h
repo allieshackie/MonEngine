@@ -2,6 +2,7 @@
 
 #include <LLGL/LLGL.h>
 #include <queue>
+#include <set>
 
 class Window;
 
@@ -17,8 +18,15 @@ enum class KeyStates
 struct InputEvent
 {
 	InputEvent() = default;
-	InputEvent(LLGL::Key keyCode, KeyStates keyState): mKeyCode(keyCode), mKeyState(keyState) {}
-	InputEvent(wchar_t newChar): mKeyState(KeyStates::Char), mChar(newChar) {}
+
+	InputEvent(LLGL::Key keyCode, KeyStates keyState): mKeyCode(keyCode), mKeyState(keyState)
+	{
+	}
+
+	InputEvent(wchar_t newChar): mKeyState(KeyStates::Char), mChar(newChar)
+	{
+	}
+
 	LLGL::Key mKeyCode = LLGL::Key::Any;
 	KeyStates mKeyState = KeyStates::Key_Neutral;
 	wchar_t mChar = '_';
@@ -28,6 +36,8 @@ class InputQueue : public LLGL::Input
 {
 public:
 	InputQueue() = default;
+
+	~InputQueue() override = default;
 
 	const InputEvent& ProcessNextEvent() const
 	{
@@ -44,31 +54,52 @@ public:
 		return !mEventQueue.empty();
 	}
 
+	const std::set<LLGL::Key>& GetKeyDownArray() const
+	{
+		return mKeyDown;
+	}
+
+	void PushEvent(LLGL::Key keyCode, KeyStates state)
+	{
+		mEventQueue.push({keyCode, state});
+	}
+
 protected:
 	void OnKeyUp(LLGL::Window& sender, LLGL::Key keyCode) override
 	{
-		mEventQueue.push({ keyCode, KeyStates::Key_Up });
+		if (const auto it = mKeyDown.find(keyCode); it != mKeyDown.end())
+		{
+			mKeyDown.erase(it);
+		}
+
+		mEventQueue.push({keyCode, KeyStates::Key_Up});
 	}
+
 	void OnKeyDown(LLGL::Window& sender, LLGL::Key keyCode) override
 	{
-		mEventQueue.push({ keyCode, KeyStates::Key_Down });
+		if (const auto it = mKeyDown.find(keyCode); it == mKeyDown.end())
+		{
+			mKeyDown.insert(keyCode);
+		}
 	}
 
 	void OnChar(LLGL::Window& sender, wchar_t chr) override
 	{
-		mEventQueue.push({ chr });
+		mEventQueue.push({chr});
 	}
 
 private:
 	std::queue<InputEvent> mEventQueue;
+	std::set<LLGL::Key> mKeyDown;
 };
 
-class InputHandler {
+class InputHandler
+{
 public:
 	InputHandler(Window& window);
 
 	void pollInputEvents();
-	void pollGUIInputEvents(const std::function<void(const InputEvent & event)>& keyboardCallback) const;
+	void pollGUIInputEvents(const std::function<void(const InputEvent& event)>& keyboardCallback) const;
 
 	friend class InputManager;
 
@@ -84,5 +115,5 @@ private:
 	std::function<void()> mZoomOutCallback;
 	std::shared_ptr<InputQueue> mInput; // User input event listener
 
-	LLGL::Offset2D mCurrentMousePos = {0,0};
+	LLGL::Offset2D mCurrentMousePos = {0, 0};
 };
