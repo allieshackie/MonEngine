@@ -1,4 +1,4 @@
-#version 140
+#version 460
 
 uniform sampler2D colorMap;
 
