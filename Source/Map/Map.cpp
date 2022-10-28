@@ -4,7 +4,7 @@
 
 #include "Map.h"
 
-Map::Map(glm::vec2 position) : mMapPosition(position)
+Map::Map(glm::vec3 position) : RenderObject(position, {1, 1, 1}), mMapPosition(position)
 {
 }
 
@@ -52,7 +52,7 @@ void Map::_ReadFile(const char* fileName)
 			break;
 		case 3:
 			mMapTileSize = std::stoi(str);
-			mMapSize = {mMapRowsColumns.y * mMapTileSize, mMapRowsColumns.x * mMapTileSize};
+			mMapSize = {mMapRowsColumns.y * mMapTileSize, mMapRowsColumns.x * mMapTileSize, 0};
 			break;
 		default:
 			mRawTiles.push_back(std::stoi(str));
@@ -75,8 +75,8 @@ void Map::_CreateTiles()
 		// So we need to step by tilesize * 2 to accurately align
 		const auto tile = ResourceManager::GetInstance()->CreateTile(
 			textureName,
-			{mMapPosition.x + (posX * (mMapTileSize * 2)), mMapPosition.y + (currentRow * (mMapTileSize * 2))},
-			{mMapTileSize, mMapTileSize}, glm::vec2(clip.x, clip.y), glm::vec2(clip.z, clip.w));
+			{mMapPosition.x + (posX * (mMapTileSize * 2)), mMapPosition.y + (currentRow * (mMapTileSize * 2)), 0},
+			{mMapTileSize, mMapTileSize, 0}, glm::vec2(clip.x, clip.y), glm::vec2(clip.z, clip.w));
 
 		// -1 is an empty tile
 		if (mRawTiles[i] == -1)
@@ -88,7 +88,7 @@ void Map::_CreateTiles()
 	}
 }
 
-glm::vec2 Map::GetMapPosition() const
+glm::vec3 Map::GetMapPosition() const
 {
 	return mMapPosition;
 }
@@ -98,7 +98,7 @@ glm::vec2 Map::GetMapRowsColumns() const
 	return mMapRowsColumns;
 }
 
-glm::vec2 Map::GetMapSize() const
+glm::vec3 Map::GetMapSize() const
 {
 	return mMapSize;
 }
@@ -131,8 +131,8 @@ void Map::UpdateTile(int tileIndex, int brushIndex)
 
 	mMapTiles[tileIndex] = ResourceManager::GetInstance()->CreateTile(
 		mTileSetDescription->getTexturePath(),
-		{mMapPosition.x + (posX * (mMapTileSize * 2)), mMapPosition.y + (currentRow * (mMapTileSize * 2))},
-		{mMapTileSize, mMapTileSize}, glm::vec2(clip.x, clip.y), glm::vec2(clip.z, clip.w));
+		{mMapPosition.x + (posX * (mMapTileSize * 2)), mMapPosition.y + (currentRow * (mMapTileSize * 2)), 0},
+		{mMapTileSize, mMapTileSize, 0}, glm::vec2(clip.x, clip.y), glm::vec2(clip.z, clip.w));
 
 	mRawTiles[tileIndex] = brushIndex;
 }

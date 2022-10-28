@@ -38,13 +38,13 @@ public:
 	void SetCurrentTexture(int textureId);
 
 	// Helper used for editor
-	void AddSprite(const std::string& textureName, glm::vec2 pos, glm::vec2 size);
-	void AddTile(const std::string& textureName, glm::vec2 pos, glm::vec2 size,
+	void AddSprite(const std::string& textureName, glm::vec3 pos, glm::vec3 size);
+	void AddTile(const std::string& textureName, glm::vec3 pos, glm::vec3 size,
 	             glm::vec2 clip = {0.0f, 0.0f},
 	             glm::vec2 scale = {1.0f, 1.0f});
 
-	Sprite* CreateSprite(const std::string& textureName, glm::vec2 pos, glm::vec2 size);
-	Tile* CreateTile(const std::string& textureName, glm::vec2 pos, glm::vec2 size,
+	Sprite* CreateSprite(const std::string& textureName, glm::vec3 pos, glm::vec3 size);
+	Tile* CreateTile(const std::string& textureName, glm::vec3 pos, glm::vec3 size,
 	                 glm::vec2 clip = {0.0f, 0.0f},
 	                 glm::vec2 scale = {1.0f, 1.0f});
 
@@ -54,9 +54,10 @@ public:
 
 	const std::vector<RenderObject*>& GetDrawList();
 
-	void CreateLine(glm::vec4 line, glm::vec3 color);
-	void CreateBox(glm::vec4 sideA, glm::vec4 sideB, glm::vec3 color);
-	void CreateGrid(glm::vec4 sideA, glm::vec4 sideB, int rows, int columns, glm::vec3 color);
+	void CreateLine(glm::vec3 pointA, glm::vec3 pointB, glm::vec3 color);
+	void CreateBox(glm::vec3 pointA, glm::vec3 pointB, glm::vec3 pointC, glm::vec3 pointD, glm::vec3 color);
+	void CreateGrid(glm::vec3 pointA, glm::vec3 pointB, glm::vec3 pointC, glm::vec3 pointD, int rows, int columns,
+	                glm::vec3 color);
 
 	bool CreateSimpleOpenGLTexture(std::string& filename, GLuint* out_texture, int* out_width, int* out_height);
 

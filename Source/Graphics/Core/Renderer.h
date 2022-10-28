@@ -15,7 +15,7 @@ public:
 
 	static Renderer* GetInstance();
 
-	void OnDrawFrame(const std::function<void()>& drawCallback);
+	void OnDrawFrame(const std::function<void()>& drawCallback) const;
 
 	LLGL::RenderContext& GetContext() const
 	{
@@ -29,17 +29,15 @@ public:
 
 	void SetTexture(int textureId) const;
 
-	void UpdateModelUniform(glm::mat4 model);
+	void UpdateProjectionViewModelUniform(glm::mat4 model);
 	void UpdateTextureClipUniform(glm::mat4 textureClip);
-	void UpdateProjection() const;
-	void UpdateView(glm::mat4 view) const;
+	void UpdateProjection();
+	void UpdateView(glm::mat4 view);
 
 	void AddDebugDrawToVB(DebugDrawable* debug);
 	void ClearDebugDraw();
 
-	void DrawSprite();
-
-	glm::vec2 MapToScreenCoordinates(glm::vec2 value) const;
+	void DrawSprite() const;
 
 private:
 	void _Init();
@@ -89,26 +87,29 @@ private:
 
 	struct SpriteSettings
 	{
-		glm::mat4 model;
+		glm::mat4 pvmMat;
 		glm::mat4 textureClip;
 	}
 	spriteSettings = {};
 
 	struct VolumeSettings
 	{
-		glm::mat4 model;
+		glm::mat4 pvmMat;
 		LLGL::ColorRGBAf color;
 	}
 	volumeSettings = {};
 
 	const std::vector<Vertex> mSpriteVertices = {
-		{{-1, 1}, {1, 0}}, // top left
-		{{-1, -1}, {1, 1}}, // bottom left
-		{{1, 1}, {0, 0}}, // top right
-		{{1, -1}, {0, 1}}, // bottom right
+		{{-1, 1, 1}, {1, 0}}, // top left
+		{{-1, -1, 1}, {1, 1}}, // bottom left
+		{{1, 1, 1}, {0, 0}}, // top right
+		{{1, -1, 1}, {0, 1}}, // bottom right
 	};
 
 	uint32_t mNumVertices = 0;
+
+	glm::mat4 mProjection = glm::identity<glm::mat4>();
+	glm::mat4 mView = glm::identity<glm::mat4>();
 
 	Model model0;
 

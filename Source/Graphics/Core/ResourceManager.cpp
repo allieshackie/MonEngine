@@ -104,7 +104,7 @@ const std::vector<RenderObject*>& ResourceManager::GetDrawList()
 	return mDrawList;
 }
 
-void ResourceManager::AddSprite(const std::string& textureName, glm::vec2 pos, glm::vec2 size)
+void ResourceManager::AddSprite(const std::string& textureName, glm::vec3 pos, glm::vec3 size)
 {
 	const auto textureId = mTextureIds.find(textureName);
 	if (textureId != mTextureIds.end())
@@ -114,7 +114,7 @@ void ResourceManager::AddSprite(const std::string& textureName, glm::vec2 pos, g
 	}
 }
 
-void ResourceManager::AddTile(const std::string& textureName, glm::vec2 pos, glm::vec2 size,
+void ResourceManager::AddTile(const std::string& textureName, glm::vec3 pos, glm::vec3 size,
                               glm::vec2 clip,
                               glm::vec2 scale)
 {
@@ -126,7 +126,7 @@ void ResourceManager::AddTile(const std::string& textureName, glm::vec2 pos, glm
 	}
 }
 
-Sprite* ResourceManager::CreateSprite(const std::string& textureName, glm::vec2 pos, glm::vec2 size)
+Sprite* ResourceManager::CreateSprite(const std::string& textureName, glm::vec3 pos, glm::vec3 size)
 {
 	const auto textureId = mTextureIds.find(textureName);
 	if (textureId != mTextureIds.end())
@@ -138,7 +138,7 @@ Sprite* ResourceManager::CreateSprite(const std::string& textureName, glm::vec2 
 	return nullptr;
 }
 
-Tile* ResourceManager::CreateTile(const std::string& textureName, glm::vec2 pos, glm::vec2 size,
+Tile* ResourceManager::CreateTile(const std::string& textureName, glm::vec3 pos, glm::vec3 size,
                                   glm::vec2 clip,
                                   glm::vec2 scale)
 {
@@ -242,56 +242,57 @@ TriangleMesh ResourceManager::LoadObjModel(std::vector<TexturedVertex>& vertices
 	return mesh;
 }
 
-void ResourceManager::CreateLine(glm::vec4 line, glm::vec3 color)
+void ResourceManager::CreateLine(glm::vec3 pointA, glm::vec3 pointB, glm::vec3 color)
 {
 	auto debugLine = new Line();
-	debugLine->pointA = {line.x, line.y};
-	debugLine->pointB = {line.z, line.w};
+	debugLine->pointA = pointA;
+	debugLine->pointB = pointB;
 	debugLine->color = color;
 
 	Renderer::GetInstance()->AddDebugDrawToVB(debugLine);
 }
 
-void ResourceManager::CreateBox(glm::vec4 sideA, glm::vec4 sideB, glm::vec3 color)
+void ResourceManager::CreateBox(glm::vec3 pointA, glm::vec3 pointB, glm::vec3 pointC, glm::vec3 pointD, glm::vec3 color)
 {
 	auto debugBox = new Box();
-	debugBox->pointA = {sideA.x, sideA.y};
-	debugBox->pointB = {sideA.z, sideA.w};
-	debugBox->pointC = {sideB.x, sideB.y};
-	debugBox->pointD = {sideB.z, sideB.w};
+	debugBox->pointA = pointA;
+	debugBox->pointB = pointB;
+	debugBox->pointC = pointC;
+	debugBox->pointD = pointD;
 	debugBox->color = color;
 
 	Renderer::GetInstance()->AddDebugDrawToVB(debugBox);
 }
 
-void ResourceManager::CreateGrid(glm::vec4 sideA, glm::vec4 sideB, int rows, int columns, glm::vec3 color)
+void ResourceManager::CreateGrid(glm::vec3 pointA, glm::vec3 pointB, glm::vec3 pointC, glm::vec3 pointD, int rows,
+                                 int columns, glm::vec3 color)
 {
 	auto debugGrid = new Grid();
 	Box debugBox;
-	debugBox.pointA = {sideA.x, sideA.y};
-	debugBox.pointB = {sideA.z, sideA.w};
-	debugBox.pointC = {sideB.x, sideB.y};
-	debugBox.pointD = {sideB.z, sideB.w};
+	debugBox.pointA = pointA;
+	debugBox.pointB = pointB;
+	debugBox.pointC = pointC;
+	debugBox.pointD = pointD;
 	debugGrid->mOutline = debugBox;
 	debugGrid->color = color;
 
-	float totalYDist = debugBox.pointB.y - debugBox.pointA.y;
+	float totalYDist = pointB.y - pointA.y;
 	float yAmountToJump = totalYDist / rows;
 	for (int i = 1; i < rows; i++)
 	{
 		Line line;
-		line.pointA = {debugBox.pointA.x, debugBox.pointA.y + (i * yAmountToJump)};
-		line.pointB = {debugBox.pointC.x, debugBox.pointC.y + (i * yAmountToJump)};
+		line.pointA = {pointA.x, pointA.y + (i * yAmountToJump), pointA.z};
+		line.pointB = {pointC.x, pointC.y + (i * yAmountToJump), pointC.z};
 		debugGrid->mLines.push_back(line);
 	}
 
-	float totalXDist = debugBox.pointC.x - debugBox.pointA.x;
+	float totalXDist = pointC.x - pointA.x;
 	float xAmountToJump = totalXDist / columns;
 	for (int i = 1; i < columns; i++)
 	{
 		Line line;
-		line.pointA = {debugBox.pointA.x + (i * xAmountToJump), debugBox.pointA.y};
-		line.pointB = {debugBox.pointB.x + (i * xAmountToJump), debugBox.pointB.y};
+		line.pointA = {pointA.x + (i * xAmountToJump), pointA.y, pointA.z};
+		line.pointB = {pointB.x + (i * xAmountToJump), pointB.y, pointB.z};
 		debugGrid->mLines.push_back(line);
 	}
 

@@ -66,8 +66,9 @@ void Renderer::_Init()
 
 	ResourceManager::GetInstance()->LoadAllTexturesFromFolder(*mRenderer);
 	_InitSpritePipeline();
-	//_InitVolumePipeline();
+	//_InitVolumePipeline(); // TODO: Add volume pipeline properly
 	_InitDebugDrawPipeline();
+	// NOTE: Projection update must occur after debug shader is initialized
 	UpdateProjection();
 }
 
@@ -77,7 +78,7 @@ void Renderer::_InitSpritePipeline()
 	                                                &spriteSettings);
 
 	LLGL::VertexFormat vertexFormat;
-	vertexFormat.AppendAttribute({"position", LLGL::Format::RG32Float});
+	vertexFormat.AppendAttribute({"position", LLGL::Format::RGB32Float});
 	vertexFormat.AppendAttribute({"texCoord", LLGL::Format::RG32Float});
 
 	mSpriteShader = new Shader(*mRenderer, vertexFormat, "sprite.vert", "sprite.frag");
@@ -175,7 +176,7 @@ void Renderer::_InitVolumePipeline()
 void Renderer::_InitDebugDrawPipeline()
 {
 	LLGL::VertexFormat vertexFormat;
-	vertexFormat.AppendAttribute({"position", LLGL::Format::RG32Float});
+	vertexFormat.AppendAttribute({"position", LLGL::Format::RGB32Float});
 	vertexFormat.AppendAttribute({"color", LLGL::Format::RGB32Float});
 
 	mDebugShader = new Shader(*mRenderer, vertexFormat, "debug.vert", "debug.frag");
@@ -216,7 +217,7 @@ void Renderer::_DrawVolumes()
 	static bool doOnce = true;
 	if (doOnce)
 	{
-		volumeSettings.model = glm::identity<glm::mat4>();
+		volumeSettings.pvmMat = glm::identity<glm::mat4>();
 		volumeSettings.color = {1, 1, 1, 1};
 		mCommands->UpdateBuffer(*mVolumeConstantBuffer, 0, &volumeSettings, sizeof(VolumeSettings));
 
@@ -241,7 +242,7 @@ void Renderer::_DrawDebug() const
 	}
 }
 
-void Renderer::OnDrawFrame(const std::function<void()>& drawCallback)
+void Renderer::OnDrawFrame(const std::function<void()>& drawCallback) const
 {
 	// Render Commands to Queue
 	mCommands->Begin();
@@ -276,9 +277,9 @@ void Renderer::SetTexture(int textureId) const
 	ResourceManager::GetInstance()->SetTexture(*mCommands, textureId);
 }
 
-void Renderer::UpdateModelUniform(glm::mat4 model)
+void Renderer::UpdateProjectionViewModelUniform(glm::mat4 model)
 {
-	spriteSettings.model = model;
+	spriteSettings.pvmMat = mProjection * mView * model;
 	mCommands->UpdateBuffer(*mSpriteConstantBuffer, 0, &spriteSettings, sizeof(SpriteSettings));
 }
 
@@ -289,47 +290,25 @@ void Renderer::UpdateTextureClipUniform(glm::mat4 textureClip)
 }
 
 // Called on window resize
-void Renderer::UpdateProjection() const
+void Renderer::UpdateProjection()
 {
 	const auto res = mContext->GetVideoMode().resolution;
-	const auto projection = glm::perspective(glm::radians(45.0f),
-	                                         static_cast<float>(res.width) / static_cast<float>(res.height),
-	                                         0.1f, 100.0f);
-	//const auto test = glm::ortho(0.0f, static_cast<float>(res.width), static_cast<float>(res.height), 0.0f, -1.0f,
-	// 1.0f);
+	mProjection = glm::perspective(glm::radians(45.0f),
+	                               static_cast<float>(res.width) / static_cast<float>(res.height),
+	                               0.1f, 1000.0f);
 
-	mCommands->SetPipelineState(*mSpritePipeline);
-	LLGL::UniformLocation projectionUniform = mSpriteShader->GetShaderProgram().FindUniformLocation("projection");
-	mCommands->SetUniform(projectionUniform, &projection, sizeof(projection));
-
-	mCommands->SetPipelineState(*mDebugDrawPipeline);
-	projectionUniform = mDebugShader->GetShaderProgram().FindUniformLocation("projection");
-	mCommands->SetUniform(projectionUniform, &projection, sizeof(projection));
-
-	/*
-	 *
-	mCommands->SetPipelineState(*mVolumePipeline);
-	projectionUniform = mVolumeShader->GetShaderProgram().FindUniformLocation("projection");
-	mCommands->SetUniform(projectionUniform, &projection, sizeof(projection));
-	 */
+	// TODO: special case for debug shader, move MVP calculation out of shader similar to sprite
+	const LLGL::UniformLocation projectionUniform = mDebugShader->GetShaderProgram().FindUniformLocation("projection");
+	mCommands->SetUniform(projectionUniform, &mProjection, sizeof(mProjection));
 }
 
-void Renderer::UpdateView(glm::mat4 view) const
+void Renderer::UpdateView(glm::mat4 view)
 {
-	mCommands->SetPipelineState(*mSpritePipeline);
-	LLGL::UniformLocation viewUniform = mSpriteShader->GetShaderProgram().FindUniformLocation("view");
-	mCommands->SetUniform(viewUniform, &view, sizeof(view));
+	mView = view;
 
-	mCommands->SetPipelineState(*mDebugDrawPipeline);
-	viewUniform = mDebugShader->GetShaderProgram().FindUniformLocation("view");
-	mCommands->SetUniform(viewUniform, &view, sizeof(view));
-
-	/*
-	 *
-	mCommands->SetPipelineState(*mVolumePipeline);
-	viewUniform = mVolumeShader->GetShaderProgram().FindUniformLocation("view");
-	mCommands->SetUniform(viewUniform, &view, sizeof(view));
-	 */
+	// TODO: special case for debug shader, move MVP calculation out of shader similar to sprite
+	const LLGL::UniformLocation viewUniform = mDebugShader->GetShaderProgram().FindUniformLocation("view");
+	mCommands->SetUniform(viewUniform, &mView, sizeof(mView));
 }
 
 void Renderer::AddDebugDrawToVB(DebugDrawable* debug)
@@ -360,7 +339,7 @@ void Renderer::AddDebugDrawToVB(DebugDrawable* debug)
 	if (!vertices.empty())
 	{
 		LLGL::VertexFormat vertexFormat;
-		vertexFormat.AppendAttribute({"position", LLGL::Format::RG32Float});
+		vertexFormat.AppendAttribute({"position", LLGL::Format::RGB32Float});
 		vertexFormat.AppendAttribute({"color", LLGL::Format::RGB32Float});
 		LLGL::BufferDescriptor vertexBufferDesc;
 		{
@@ -382,15 +361,9 @@ void Renderer::ClearDebugDraw()
 	mDebugVertexBuffers.clear();
 }
 
-void Renderer::DrawSprite()
+void Renderer::DrawSprite() const
 {
 	mCommands->Draw(mNumVertices, 0);
-}
-
-glm::vec2 Renderer::MapToScreenCoordinates(glm::vec2 value) const
-{
-	const auto res = mContext->GetVideoMode().resolution;
-	return {value.x / (res.width / 2), value.y / (res.height / 2)};
 }
 
 void Renderer::_AddDebugLineToVB(const Line* debug, std::vector<DebugVertex>& vertices)

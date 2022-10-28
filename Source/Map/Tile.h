@@ -5,7 +5,7 @@
 class Tile : public Sprite
 {
 public:
-	Tile(int textureId, glm::vec2 pos, glm::vec2 size, glm::vec2 clip = {0.0f, 0.0f},
+	Tile(int textureId, glm::vec3 pos, glm::vec3 size, glm::vec2 clip = {0.0f, 0.0f},
 	     glm::vec2 scale = {1.0f, 1.0f});
 
 	void Draw() override;

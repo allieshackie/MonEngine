@@ -4,7 +4,7 @@
 #include "Tile.h"
 
 
-Tile::Tile(int textureId, glm::vec2 pos, glm::vec2 size, glm::vec2 clip,
+Tile::Tile(int textureId, glm::vec3 pos, glm::vec3 size, glm::vec2 clip,
            glm::vec2 scale) : Sprite(textureId, pos, size), mClip(clip), mScale(scale)
 {
 	UpdateTextureClip();
@@ -16,9 +16,9 @@ void Tile::Draw()
 	{
 		const auto renderer = Renderer::GetInstance();
 		renderer->SetTexture(mTextureId);
-		UpdateDrawData();
+		Update();
 		UpdateTextureClip();
-		renderer->UpdateModelUniform(GetSpriteModelData());
+		renderer->UpdateProjectionViewModelUniform(mModel);
 		renderer->UpdateTextureClipUniform(mTextureClip);
 		renderer->DrawSprite();
 	}

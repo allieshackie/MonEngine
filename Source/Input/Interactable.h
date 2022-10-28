@@ -4,7 +4,7 @@
 #include "UIInputManager.h"
 
 class Interactable
-{ 
+{
 public:
 	Interactable(glm::vec2 pos, glm::vec2 size)
 	{
@@ -13,13 +13,14 @@ public:
 		minY = static_cast<int>(pos.y);
 		maxY = static_cast<int>(pos.y + (size.y * 2));
 
-		ResourceManager::GetInstance()->CreateLine({ minX, 0, minX, 400}, {255,0,0});
-		ResourceManager::GetInstance()->CreateLine({ maxX, 0, maxX, 400}, {255,0,0});
-		ResourceManager::GetInstance()->CreateLine({0, minY, 400, minY }, {255,0,0});
-		ResourceManager::GetInstance()->CreateLine({ 0, maxY, 400, maxY }, {255,0,0});
+		ResourceManager::GetInstance()->CreateLine({minX, 0, 1}, {minX, 400, 1}, {255, 0, 0});
+		ResourceManager::GetInstance()->CreateLine({maxX, 0, 1}, {maxX, 400, 1}, {255, 0, 0});
+		ResourceManager::GetInstance()->CreateLine({0, minY, 1}, {400, minY, 1}, {255, 0, 0});
+		ResourceManager::GetInstance()->CreateLine({0, maxY, 1}, {400, maxY, 1}, {255, 0, 0});
 
 		UIInputManager::RegisterInteractable(this);
 	}
+
 	virtual ~Interactable() = default;
 
 	void OnMouseEnter()
