@@ -1,8 +1,8 @@
-#version 430 core
+#version 460
 
 layout(std140) uniform VolumeSettings
 {
-    mat4 model;
+    mat4 pvmMat;
     vec4 color;
 };
 
@@ -16,6 +16,6 @@ out vec3 vNormal;
 
 void main()
 {
-	gl_Position = projection * view * model * vec4(position, 1);
+	gl_Position = pvmMat * vec4(position, 1.0);
     vNormal = (model * vec4(normal, 0)).xyz;
 }

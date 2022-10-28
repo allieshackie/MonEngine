@@ -1,8 +1,8 @@
-#version 430 core
+#version 460
 
 layout(std140) uniform VolumeSettings
 {
-    mat4 model;
+    mat4 pvmMat;
     vec4 color;
 };
 
