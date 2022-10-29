@@ -19,10 +19,10 @@ struct Line : virtual DebugDrawable
 
 struct Box : virtual DebugDrawable
 {
-	glm::vec3 pointA = {0, 0, 0};
-	glm::vec3 pointB = {0, 0, 0};
-	glm::vec3 pointC = {0, 0, 0};
-	glm::vec3 pointD = {0, 0, 0};
+	glm::vec3 pointA = {-1, 1, 1};
+	glm::vec3 pointB = {-1, -1, 1};
+	glm::vec3 pointC = {1, 1, 1};
+	glm::vec3 pointD = {1, -1, 1};
 };
 
 struct Grid : virtual DebugDrawable

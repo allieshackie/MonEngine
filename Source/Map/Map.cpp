@@ -71,11 +71,9 @@ void Map::_CreateTiles()
 		const float posX = i % static_cast<int>(mMapRowsColumns.y);
 		const float currentRow = floor(i / mMapRowsColumns.y);
 		const auto clip = mTileSetDescription->GetClipForTile(mRawTiles[i]);
-		// NOTE: Tile size seems to actually be half of the tile size
-		// So we need to step by tilesize * 2 to accurately align
 		const auto tile = ResourceManager::GetInstance()->CreateTile(
 			textureName,
-			{mMapPosition.x + (posX * (mMapTileSize * 2)), mMapPosition.y + (currentRow * (mMapTileSize * 2)), 0},
+			{mMapPosition.x + (posX * mMapTileSize), mMapPosition.y + (currentRow * mMapTileSize), 0},
 			{mMapTileSize, mMapTileSize, 0}, glm::vec2(clip.x, clip.y), glm::vec2(clip.z, clip.w));
 
 		// -1 is an empty tile
@@ -131,7 +129,7 @@ void Map::UpdateTile(int tileIndex, int brushIndex)
 
 	mMapTiles[tileIndex] = ResourceManager::GetInstance()->CreateTile(
 		mTileSetDescription->getTexturePath(),
-		{mMapPosition.x + (posX * (mMapTileSize * 2)), mMapPosition.y + (currentRow * (mMapTileSize * 2)), 0},
+		{mMapPosition.x + (posX * mMapTileSize), mMapPosition.y + (currentRow * mMapTileSize), 0},
 		{mMapTileSize, mMapTileSize, 0}, glm::vec2(clip.x, clip.y), glm::vec2(clip.z, clip.w));
 
 	mRawTiles[tileIndex] = brushIndex;

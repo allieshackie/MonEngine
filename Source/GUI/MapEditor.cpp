@@ -212,10 +212,7 @@ void MapEditor::_CreateMapDebugGrid(const Map& map)
 
 	const glm::vec2 rowsColumns = map.GetMapRowsColumns();
 
-	ResourceManager::GetInstance()->CreateGrid({pos}, {pos.x, pos.y + size.y * 2, pos.z},
-	                                           {pos.x + size.x * 2, pos.y, pos.z},
-	                                           {pos.x + size.x * 2, pos.y + size.y * 2, pos.z}, rowsColumns.x,
-	                                           rowsColumns.y, {255, 255, 255});
+	ResourceManager::GetInstance()->CreateGrid(pos, size, rowsColumns.x, rowsColumns.y, {255, 255, 255});
 }
 
 void MapEditor::_CenterWindow(float width, float height)

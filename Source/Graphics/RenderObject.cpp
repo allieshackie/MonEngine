@@ -1,3 +1,5 @@
+#include <glm/gtc/matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
+
 #include "RenderObject.h"
 
 RenderObject::RenderObject(glm::vec3 pos, glm::vec3 size) : mPosition(pos), mSize(size)

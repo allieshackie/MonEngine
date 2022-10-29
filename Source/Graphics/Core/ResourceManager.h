@@ -55,9 +55,8 @@ public:
 	const std::vector<RenderObject*>& GetDrawList();
 
 	void CreateLine(glm::vec3 pointA, glm::vec3 pointB, glm::vec3 color);
-	void CreateBox(glm::vec3 pointA, glm::vec3 pointB, glm::vec3 pointC, glm::vec3 pointD, glm::vec3 color);
-	void CreateGrid(glm::vec3 pointA, glm::vec3 pointB, glm::vec3 pointC, glm::vec3 pointD, int rows, int columns,
-	                glm::vec3 color);
+	void CreateBox(glm::vec3 position, glm::vec3 size, glm::vec3 color);
+	void CreateGrid(glm::vec3 position, glm::vec3 size, int rows, int columns, glm::vec3 color);
 
 	bool CreateSimpleOpenGLTexture(std::string& filename, GLuint* out_texture, int* out_width, int* out_height);
 

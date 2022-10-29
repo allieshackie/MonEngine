@@ -199,7 +199,7 @@ void TileSetEditor::_LoadTextureMenu(bool* p_open)
 
 void TileSetEditor::_LoadTileSetTexture(const char* textureName, bool debugGrid)
 {
-	mCurrentSprite = ResourceManager::GetInstance()->CreateTile(textureName, {0, 0, 1}, {10, 10, 1});
+	mCurrentSprite = ResourceManager::GetInstance()->CreateTile(textureName, {0, 0, 1}, {25, 20, 1});
 	ResourceManager::GetInstance()->AddRenderObjectToDrawList(mCurrentSprite);
 
 	if (debugGrid)
@@ -286,10 +286,7 @@ void TileSetEditor::_CreateTextureDebugGrid() const
 	const int rows = mCurrentTileset->GetRows();
 	const int columns = mCurrentTileset->GetColumns();
 
-	ResourceManager::GetInstance()->CreateGrid({pos}, {pos.x, pos.y + size.y * 2, pos.z},
-	                                           {pos.x + size.x * 2, pos.y, pos.z},
-	                                           {pos.x + size.x * 2, pos.y + size.y * 2, pos.z}, rows,
-	                                           columns, {255, 255, 255});
+	ResourceManager::GetInstance()->CreateGrid(pos, size, rows, columns, {255, 255, 255});
 }
 
 void TileSetEditor::_CameraInfo(bool* p_open) const

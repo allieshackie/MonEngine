@@ -1,3 +1,4 @@
+#include <glm/gtc/matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
 #include <glad/glad.h>
 #include <filesystem>
 #include <sstream>
@@ -252,47 +253,66 @@ void ResourceManager::CreateLine(glm::vec3 pointA, glm::vec3 pointB, glm::vec3 c
 	Renderer::GetInstance()->AddDebugDrawToVB(debugLine);
 }
 
-void ResourceManager::CreateBox(glm::vec3 pointA, glm::vec3 pointB, glm::vec3 pointC, glm::vec3 pointD, glm::vec3 color)
+void ResourceManager::CreateBox(glm::vec3 position, glm::vec3 size, glm::vec3 color)
 {
-	auto debugBox = new Box();
-	debugBox->pointA = pointA;
-	debugBox->pointB = pointB;
-	debugBox->pointC = pointC;
-	debugBox->pointD = pointD;
+	auto model = glm::mat4(1.0f);
+	model = translate(model, position);
+
+	// TODO: Pass rotation through
+	model = translate(model, glm::vec3(0.5f * size.x, 0.5f * size.y, 0.0f));
+	model = rotate(model, glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	model = translate(model, glm::vec3(-0.5f * size.x, -0.5f * size.y, 0.0f));
+
+	model = scale(model, size);
+
+	const auto debugBox = new Box();
+	debugBox->pointA = model * glm::vec4(debugBox->pointA, 1.0);
+	debugBox->pointB = model * glm::vec4(debugBox->pointB, 1.0);
+	debugBox->pointC = model * glm::vec4(debugBox->pointC, 1.0);
+	debugBox->pointD = model * glm::vec4(debugBox->pointD, 1.0);
 	debugBox->color = color;
 
 	Renderer::GetInstance()->AddDebugDrawToVB(debugBox);
 }
 
-void ResourceManager::CreateGrid(glm::vec3 pointA, glm::vec3 pointB, glm::vec3 pointC, glm::vec3 pointD, int rows,
-                                 int columns, glm::vec3 color)
+void ResourceManager::CreateGrid(glm::vec3 position, glm::vec3 size, int rows, int columns, glm::vec3 color)
 {
+	auto model = glm::mat4(1.0f);
+	model = translate(model, position);
+
+	// TODO: Pass rotation through
+	model = translate(model, glm::vec3(0.5f * size.x, 0.5f * size.y, 0.0f));
+	model = rotate(model, glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	model = translate(model, glm::vec3(-0.5f * size.x, -0.5f * size.y, 0.0f));
+
+	model = scale(model, size);
+
 	auto debugGrid = new Grid();
 	Box debugBox;
-	debugBox.pointA = pointA;
-	debugBox.pointB = pointB;
-	debugBox.pointC = pointC;
-	debugBox.pointD = pointD;
+	debugBox.pointA = model * glm::vec4(debugBox.pointA, 1.0);
+	debugBox.pointB = model * glm::vec4(debugBox.pointB, 1.0);
+	debugBox.pointC = model * glm::vec4(debugBox.pointC, 1.0);
+	debugBox.pointD = model * glm::vec4(debugBox.pointD, 1.0);
 	debugGrid->mOutline = debugBox;
 	debugGrid->color = color;
 
-	float totalYDist = pointB.y - pointA.y;
+	float totalYDist = debugBox.pointB.y - debugBox.pointA.y;
 	float yAmountToJump = totalYDist / rows;
 	for (int i = 1; i < rows; i++)
 	{
 		Line line;
-		line.pointA = {pointA.x, pointA.y + (i * yAmountToJump), pointA.z};
-		line.pointB = {pointC.x, pointC.y + (i * yAmountToJump), pointC.z};
+		line.pointA = {debugBox.pointA.x, debugBox.pointA.y + (i * yAmountToJump), debugBox.pointA.z};
+		line.pointB = {debugBox.pointC.x, debugBox.pointC.y + (i * yAmountToJump), debugBox.pointC.z};
 		debugGrid->mLines.push_back(line);
 	}
 
-	float totalXDist = pointC.x - pointA.x;
+	float totalXDist = debugBox.pointC.x - debugBox.pointA.x;
 	float xAmountToJump = totalXDist / columns;
 	for (int i = 1; i < columns; i++)
 	{
 		Line line;
-		line.pointA = {pointA.x + (i * xAmountToJump), pointA.y, pointA.z};
-		line.pointB = {pointB.x + (i * xAmountToJump), pointB.y, pointB.z};
+		line.pointA = {debugBox.pointA.x + (i * xAmountToJump), debugBox.pointA.y, debugBox.pointA.z};
+		line.pointB = {debugBox.pointB.x + (i * xAmountToJump), debugBox.pointB.y, debugBox.pointB.z};
 		debugGrid->mLines.push_back(line);
 	}
 
