@@ -1,16 +1,12 @@
 #pragma once
 #include <glm/mat4x4.hpp>
+#include <LLGL/ColorRGBA.h>
 
 struct Vertex
 {
 	glm::vec3 position;
-	glm::vec2 texCoord;
-};
-
-struct DebugVertex
-{
-	glm::vec3 position;
 	glm::vec3 color;
+	glm::vec2 texCoord;
 };
 
 struct TexturedVertex

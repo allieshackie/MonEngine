@@ -1,59 +1,56 @@
 #include "Window.h"
 
-Window::Window() {
-    init();
+Window::Window(Renderer& renderer)
+	: mRenderer(renderer)
+{
+	init();
 }
 
 void Window::init()
 {
-    const auto renderer = Renderer::GetInstance();
-    // get window from context surface
-    auto& window = LLGL::CastTo<LLGL::Window>(renderer->GetContext().GetSurface());
+	// get window from context surface
+	auto& window = LLGL::CastTo<LLGL::Window>(mRenderer.GetContext().GetSurface());
 
-    // Needs L outside of quotes?
-    window.SetTitle(L"Editor");
+	// Needs L outside of quotes?
+	window.SetTitle(L"Editor");
 
-    // Change window descriptor to allow resizing
-    auto wndDesc = window.GetDesc();
-    wndDesc.resizable = true;
-    window.SetDesc(wndDesc);
+	// Change window descriptor to allow resizing
+	auto wndDesc = window.GetDesc();
+	wndDesc.resizable = true;
+	window.SetDesc(wndDesc);
 
-    // Change window behavior
-    auto behavior = window.GetBehavior();
-    {
-        behavior.disableClearOnResize = true;
-        behavior.moveAndResizeTimerID = 1;
-    }
-    window.SetBehavior(behavior);
+	// Change window behavior
+	auto behavior = window.GetBehavior();
+	{
+		behavior.disableClearOnResize = true;
+		behavior.moveAndResizeTimerID = 1;
+	}
+	window.SetBehavior(behavior);
 
-    // Add window resize listener
-    window.AddEventListener(std::make_shared<ResizeEventHandler>(*renderer, *this, &renderer->GetContext()));
+	// Add window resize listener
+	window.AddEventListener(std::make_shared<ResizeEventHandler>(mRenderer, *this, &mRenderer.GetContext()));
 
-    window.Show();
+	window.Show();
 
-    mIsLoadingDone = true;
+	mIsLoadingDone = true;
 }
 
-LLGL::Window& Window::GetWindow()
+LLGL::Window& Window::GetWindow() const
 {
-    // get window from context surface
-    return LLGL::CastTo<LLGL::Window>(Renderer::GetInstance()->GetContext().GetSurface());
+	// get window from context surface
+	return LLGL::CastTo<LLGL::Window>(mRenderer.GetContext().GetSurface());
 }
 
-void Window::ShowCursor(bool show)
+void Window::ShowCursor(bool show) const
 {
-    // get window from context surface
-    const auto display = Renderer::GetInstance()->GetContext().GetSurface().FindResidentDisplay();
-    display->ShowCursor(show);
+	// get window from context surface
+	const auto display = mRenderer.GetContext().GetSurface().FindResidentDisplay();
+	display->ShowCursor(show);
 }
 
-bool Window::IsCursorShowing()
+bool Window::IsCursorShowing() const
 {
-    // get window from context surface
-    const auto display = Renderer::GetInstance()->GetContext().GetSurface().FindResidentDisplay();
-    return display->IsCursorShown();
+	// get window from context surface
+	const auto display = mRenderer.GetContext().GetSurface().FindResidentDisplay();
+	return display->IsCursorShown();
 }
-
-
-
-

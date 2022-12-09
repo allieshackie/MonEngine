@@ -3,10 +3,12 @@
 #include <unordered_map>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
-#include <glm/vec4.hpp>
 #include "Vertex.h"
 
+class DebugDrawable;
+class Map;
 class RenderObject;
+class Renderer;
 class Shader;
 class Sprite;
 class Texture;
@@ -47,28 +49,29 @@ public:
 	Tile* CreateTile(const std::string& textureName, glm::vec3 pos, glm::vec3 size,
 	                 glm::vec2 clip = {0.0f, 0.0f},
 	                 glm::vec2 scale = {1.0f, 1.0f});
+	Map* CreateMap(glm::vec3 pos, const char* fileName);
 
 	void AddRenderObjectToDrawList(RenderObject* obj);
 
 	TriangleMesh LoadObjModel(std::vector<TexturedVertex>& vertices, const std::string& filename) const;
 
 	const std::vector<RenderObject*>& GetDrawList();
+	const std::vector<DebugDrawable*>& GetDebugDrawList();
+	void ClearDebugDrawList();
 
-	void CreateLine(glm::vec3 pointA, glm::vec3 pointB, glm::vec3 color);
-	void CreateBox(glm::vec3 position, glm::vec3 size, glm::vec3 color);
-	void CreateGrid(glm::vec3 position, glm::vec3 size, int rows, int columns, glm::vec3 color);
+	void CreateLine(const Renderer& renderer, glm::vec3 pointA, glm::vec3 pointB, glm::vec3 color);
+	void CreateBox(const Renderer& renderer, glm::vec3 position, glm::vec3 size, glm::vec3 color);
+	void CreateGrid(const Renderer& renderer, glm::vec3 position, glm::vec3 size, int rows, int columns,
+	                glm::vec3 color);
 
 	bool CreateSimpleOpenGLTexture(std::string& filename, GLuint* out_texture, int* out_width, int* out_height);
-
-	static ResourceManager* GetInstance();
 
 private:
 	std::unordered_map<int, Texture*> mTextures;
 	std::unordered_map<std::string, int> mTextureIds;
 	std::vector<RenderObject*> mDrawList;
+	std::vector<DebugDrawable*> mDebugDrawList;
 
 	LLGL::ResourceHeap* mResourceHeap = nullptr;
 	int mResourceIndex = 0;
-
-	static ResourceManager* mInstance;
 };

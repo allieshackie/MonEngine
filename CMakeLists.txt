@@ -4,6 +4,7 @@
 cmake_minimum_required(VERSION 3.18.2)
 
 # set project name
+set( CMAKE_C_COMPILER "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.33.31629/bin/Hostx64/x64/cl.exe" )
 project(MonDev)
 
 set(SOURCE_PROJECT_DIR Source) 
@@ -32,6 +33,8 @@ set(FOLDERS
     Source/Core
     Source/Entity
     Source/Entity/Components
+    Source/Entity/RenderObjects
+    Source/Entity/Interaction
     Source/Graphics
     Source/Graphics/Core
     Source/Graphics/Util
@@ -58,10 +61,7 @@ set(SOURCES ${SOURCES} Source/glad.cpp)
 
 add_executable(MonDev ${SOURCES})
 
-if(LLGL_ENABLE_UTILITY)
-    ADD_DEFINE(LLGL_ENABLE_UTILITY)
-endif()
-
+ADD_DEFINE(LLGL_ENABLE_UTILITY)
 
 target_precompile_headers(MonDev 
     PUBLIC

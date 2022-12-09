@@ -3,15 +3,16 @@
 #include <filesystem>
 #include <sstream>
 #include "Util/stb_image.h"
-#include "Renderer.h"
+
+#include "Map.h"
 #include "Texture.h"
-#include "Tile.h"
+#include "Renderer.h"
+#include "Entity/RenderObjects/DebugDraw.h"
+#include "Entity/RenderObjects/Tile.h"
 
 #include "ResourceManager.h"
 
 namespace fs = std::filesystem;
-
-ResourceManager* ResourceManager::mInstance{nullptr};
 
 ResourceManager::~ResourceManager()
 {
@@ -26,8 +27,6 @@ ResourceManager::~ResourceManager()
 		delete(draw);
 	}
 	mDrawList.clear();
-
-	delete(mInstance);
 }
 
 void ResourceManager::LoadAllTexturesFromFolder(LLGL::RenderSystem& renderer)
@@ -105,12 +104,23 @@ const std::vector<RenderObject*>& ResourceManager::GetDrawList()
 	return mDrawList;
 }
 
+const std::vector<DebugDrawable*>& ResourceManager::GetDebugDrawList()
+{
+	return mDebugDrawList;
+}
+
+void ResourceManager::ClearDebugDrawList()
+{
+	mDebugDrawList.clear();
+}
+
 void ResourceManager::AddSprite(const std::string& textureName, glm::vec3 pos, glm::vec3 size)
 {
 	const auto textureId = mTextureIds.find(textureName);
 	if (textureId != mTextureIds.end())
 	{
 		const auto sprite = new Sprite(textureId->second, pos, size);
+		//Renderer::GetInstance()->Add2DRenderObject(*sprite);
 		mDrawList.emplace_back(sprite);
 	}
 }
@@ -123,6 +133,7 @@ void ResourceManager::AddTile(const std::string& textureName, glm::vec3 pos, glm
 	if (textureId != mTextureIds.end())
 	{
 		const auto sprite = new Tile(textureId->second, pos, size, clip, scale);
+		//Renderer::GetInstance()->Add2DRenderObject(*sprite);
 		mDrawList.emplace_back(sprite);
 	}
 }
@@ -150,6 +161,15 @@ Tile* ResourceManager::CreateTile(const std::string& textureName, glm::vec3 pos,
 		return tile;
 	}
 	return nullptr;
+}
+
+Map* ResourceManager::CreateMap(glm::vec3 pos, const char* fileName)
+{
+	// TODO: Why is this pointer empty? 
+	const auto map = new Map(*this, pos, fileName);
+	//Renderer::GetInstance()->Add2DRenderObject(*map);
+	//mDrawList.emplace_back(map);
+	return map;
 }
 
 void ResourceManager::AddRenderObjectToDrawList(RenderObject* obj)
@@ -243,89 +263,49 @@ TriangleMesh ResourceManager::LoadObjModel(std::vector<TexturedVertex>& vertices
 	return mesh;
 }
 
-void ResourceManager::CreateLine(glm::vec3 pointA, glm::vec3 pointB, glm::vec3 color)
+void ResourceManager::CreateLine(const Renderer& renderer, glm::vec3 pointA, glm::vec3 pointB, glm::vec3 color)
 {
-	auto debugLine = new Line();
-	debugLine->pointA = pointA;
-	debugLine->pointB = pointB;
-	debugLine->color = color;
-
-	Renderer::GetInstance()->AddDebugDrawToVB(debugLine);
+	const auto debugLine = new Line(pointA, pointB, {0, 0, 0}, {1, 1, 1}, color);
+	renderer.AddDebugRenderObject(*debugLine);
+	mDebugDrawList.push_back(debugLine);
 }
 
-void ResourceManager::CreateBox(glm::vec3 position, glm::vec3 size, glm::vec3 color)
+void ResourceManager::CreateBox(const Renderer& renderer, glm::vec3 position, glm::vec3 size, glm::vec3 color)
 {
-	auto model = glm::mat4(1.0f);
-	model = translate(model, position);
-
-	// TODO: Pass rotation through
-	model = translate(model, glm::vec3(0.5f * size.x, 0.5f * size.y, 0.0f));
-	model = rotate(model, glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	model = translate(model, glm::vec3(-0.5f * size.x, -0.5f * size.y, 0.0f));
-
-	model = scale(model, size);
-
-	const auto debugBox = new Box();
-	debugBox->pointA = model * glm::vec4(debugBox->pointA, 1.0);
-	debugBox->pointB = model * glm::vec4(debugBox->pointB, 1.0);
-	debugBox->pointC = model * glm::vec4(debugBox->pointC, 1.0);
-	debugBox->pointD = model * glm::vec4(debugBox->pointD, 1.0);
-	debugBox->color = color;
-
-	Renderer::GetInstance()->AddDebugDrawToVB(debugBox);
+	const auto debugBox = new Box(position, size, color);
+	renderer.AddDebugRenderObject(*debugBox);
+	mDebugDrawList.push_back(debugBox);
 }
 
-void ResourceManager::CreateGrid(glm::vec3 position, glm::vec3 size, int rows, int columns, glm::vec3 color)
+void ResourceManager::CreateGrid(const Renderer& renderer, glm::vec3 position, glm::vec3 size, int rows, int columns,
+                                 glm::vec3 color)
 {
-	auto model = glm::mat4(1.0f);
-	model = translate(model, position);
-
-	// TODO: Pass rotation through
-	model = translate(model, glm::vec3(0.5f * size.x, 0.5f * size.y, 0.0f));
-	model = rotate(model, glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	model = translate(model, glm::vec3(-0.5f * size.x, -0.5f * size.y, 0.0f));
-
-	model = scale(model, size);
-
-	auto debugGrid = new Grid();
-	Box debugBox;
-	debugBox.pointA = model * glm::vec4(debugBox.pointA, 1.0);
-	debugBox.pointB = model * glm::vec4(debugBox.pointB, 1.0);
-	debugBox.pointC = model * glm::vec4(debugBox.pointC, 1.0);
-	debugBox.pointD = model * glm::vec4(debugBox.pointD, 1.0);
-	debugGrid->mOutline = debugBox;
-	debugGrid->color = color;
-
-	float totalYDist = debugBox.pointB.y - debugBox.pointA.y;
+	Box debugBox(position, size, color);
+	std::vector<Line> lines;
+	float totalYDist = abs(debugBox.GetPointB().y - debugBox.GetPointA().y);
 	float yAmountToJump = totalYDist / rows;
 	for (int i = 1; i < rows; i++)
 	{
-		Line line;
-		line.pointA = {debugBox.pointA.x, debugBox.pointA.y + (i * yAmountToJump), debugBox.pointA.z};
-		line.pointB = {debugBox.pointC.x, debugBox.pointC.y + (i * yAmountToJump), debugBox.pointC.z};
-		debugGrid->mLines.push_back(line);
+		Line line({debugBox.GetPointA().x, debugBox.GetPointA().y - (i * yAmountToJump), debugBox.GetPointA().z}, {
+			          debugBox.GetPointC().x, debugBox.GetPointC().y - (i * yAmountToJump), debugBox.GetPointC().z
+		          }, position, size, color);
+		lines.push_back(line);
 	}
 
-	float totalXDist = debugBox.pointC.x - debugBox.pointA.x;
+	float totalXDist = abs(debugBox.GetPointC().x - debugBox.GetPointA().x);
 	float xAmountToJump = totalXDist / columns;
 	for (int i = 1; i < columns; i++)
 	{
-		Line line;
-		line.pointA = {debugBox.pointA.x + (i * xAmountToJump), debugBox.pointA.y, debugBox.pointA.z};
-		line.pointB = {debugBox.pointB.x + (i * xAmountToJump), debugBox.pointB.y, debugBox.pointB.z};
-		debugGrid->mLines.push_back(line);
+		Line line({debugBox.GetPointA().x + (i * xAmountToJump), debugBox.GetPointA().y, debugBox.GetPointA().z}, {
+			          debugBox.GetPointB().x + (i * xAmountToJump), debugBox.GetPointB().y, debugBox.GetPointB().z
+		          }, position, size, color);
+		lines.push_back(line);
 	}
 
-	Renderer::GetInstance()->AddDebugDrawToVB(debugGrid);
-}
+	auto debugGrid = new Grid(debugBox, lines, position, size, color);
 
-ResourceManager* ResourceManager::GetInstance()
-{
-	if (mInstance == nullptr)
-	{
-		mInstance = new ResourceManager();
-	}
-	return mInstance;
+	renderer.AddDebugRenderObject(*debugGrid);
+	mDebugDrawList.push_back(debugGrid);
 }
 
 void ResourceManager::CreateResourceHeap(LLGL::RenderSystem& renderer, LLGL::PipelineLayout& pipelineLayout,

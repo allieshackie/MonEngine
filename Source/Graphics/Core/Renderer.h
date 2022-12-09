@@ -1,19 +1,24 @@
 #pragma once
 #include <LLGL/LLGL.h>
 #include <glm/mat4x4.hpp>
+#include <glm/gtc/matrix_transform.hpp> //translate, rotate, scale, perspective
+#include "2DPipeline.h"
+#include "3DPipeline.h"
+#include "DebugPipeline.h"
 
-#include "Camera.h"
-#include "DebugDraw.h"
-#include "Shader.h"
-#include "Vertex.h"
+class Box;
+class DebugDrawable;
+class Line;
+class ResourceManager;
+class Shader;
+
+class RenderObject;
 
 class Renderer
 {
 public:
-	Renderer();
-	~Renderer();
-
-	static Renderer* GetInstance();
+	Renderer(ResourceManager& resourceManager);
+	~Renderer() = default;
 
 	void OnDrawFrame(const std::function<void()>& drawCallback) const;
 
@@ -29,89 +34,40 @@ public:
 
 	void SetTexture(int textureId) const;
 
-	void UpdateProjectionViewModelUniform(glm::mat4 model);
-	void UpdateTextureClipUniform(glm::mat4 textureClip);
 	void UpdateProjection();
 	void UpdateView(glm::mat4 view);
 
-	void AddDebugDrawToVB(DebugDrawable* debug);
-	void ClearDebugDraw();
+	glm::mat4 GetProjection() const;
+	glm::vec3 NormalizedDeviceCoords(glm::vec3 vec) const;
 
-	void DrawSprite() const;
+	// 2D Pipeline
+	void Update2DProjectionViewModelUniform(glm::mat4 model) const;
+	void Update2DTextureClipUniform(glm::mat4 textureClip) const;
+	void Add2DRenderObject(RenderObject& obj) const;
+
+	// 3D Pipeline
+	void Update3DProjectionViewModelUniform(glm::mat4 model) const;
+	void Add3DRenderObject(RenderObject& obj) const;
+
+	// Debug Pipeline
+	void UpdateDebugProjectionViewModelUniform(glm::mat4 model) const;
+	void ClearDebugDraw() const;
+	void AddDebugRenderObject(RenderObject& obj) const;
 
 private:
 	void _Init();
-	void _InitSpritePipeline();
-	void _InitVolumePipeline();
-	void _InitDebugDrawPipeline();
-
-	void _DrawSprites() const;
-	void _DrawVolumes();
-	void _DrawDebug() const;
-
-	void _AddDebugLineToVB(const Line* debug, std::vector<DebugVertex>& vertices);
-	void _AddDebugBoxToVB(const Box* debug, std::vector<DebugVertex>& vertices);
 
 	std::unique_ptr<LLGL::RenderSystem> mRenderer; // Render system
 	LLGL::RenderContext* mContext = nullptr; // Main render context
 	LLGL::CommandBuffer* mCommands = nullptr; // Main command buffer
 	LLGL::CommandQueue* mCommandQueue = nullptr; // Command queue
 
-	// Pipelines
-	LLGL::PipelineState* mSpritePipeline = nullptr;
-	LLGL::PipelineState* mVolumePipeline = nullptr;
-
-	LLGL::PipelineState* mDebugDrawPipeline = nullptr;
-
-	// Shaders
-	Shader* mSpriteShader = nullptr;
-	Shader* mVolumeShader = nullptr;
-	Shader* mDebugShader = nullptr;
-
-	// Vertex Data
-	LLGL::Buffer* mSpriteConstantBuffer = nullptr;
-	LLGL::Buffer* mVolumeConstantBuffer = nullptr;
-
-	LLGL::Buffer* mSpriteVertexBuffer = nullptr;
-	LLGL::Buffer* mVolumeVertexBuffer = nullptr;
-	LLGL::ResourceHeap* testVolumeResourceHeap = nullptr;
-
-	template <typename T>
-	struct VBData
-	{
-		LLGL::Buffer* mVertexBuffer;
-		std::vector<T> mVertices;
-	};
-
-	std::vector<VBData<DebugVertex>> mDebugVertexBuffers;
-
-	struct SpriteSettings
-	{
-		glm::mat4 pvmMat;
-		glm::mat4 textureClip;
-	}
-	spriteSettings = {};
-
-	struct VolumeSettings
-	{
-		glm::mat4 pvmMat;
-		LLGL::ColorRGBAf color;
-	}
-	volumeSettings = {};
-
-	const std::vector<Vertex> mSpriteVertices = {
-		{{-1, 1, 1}, {1, 0}}, // top left
-		{{-1, -1, 1}, {1, 1}}, // bottom left
-		{{1, 1, 1}, {0, 0}}, // top right
-		{{1, -1, 1}, {0, 1}}, // bottom right
-	};
-
-	uint32_t mNumVertices = 0;
-
 	glm::mat4 mProjection = glm::identity<glm::mat4>();
 	glm::mat4 mView = glm::identity<glm::mat4>();
 
-	Model model0;
+	std::unique_ptr<Pipeline2D> mPipeline2D;
+	std::unique_ptr<Pipeline3D> mPipeline3D;
+	std::unique_ptr<DebugPipeline> mDebugPipeline;
 
-	static Renderer* mInstance;
+	ResourceManager& mResourceManager;
 };

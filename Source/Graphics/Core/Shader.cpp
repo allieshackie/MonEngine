@@ -1,9 +1,9 @@
 #include "Shader.h"
 
-Shader::Shader(LLGL::RenderSystem& renderer, const LLGL::VertexFormat& vertexFormat, const char* vertexFilePath,
-               const char* fragmentFilePath)
+Shader::Shader(LLGL::RenderSystem& renderer, LLGL::VertexFormat vertexFormat, const char* vertexFilePath,
+               const char* fragmentFilePath) : mVertexFormat(std::move(vertexFormat))
 {
-	LoadShaderProgram(renderer, vertexFormat, vertexFilePath, fragmentFilePath);
+	LoadShaderProgram(renderer, vertexFilePath, fragmentFilePath);
 }
 
 LLGL::ShaderProgram& Shader::GetShaderProgram() const
@@ -11,15 +11,19 @@ LLGL::ShaderProgram& Shader::GetShaderProgram() const
 	return *mShaderProgram;
 }
 
-void Shader::LoadShaderProgram(LLGL::RenderSystem& renderer, const LLGL::VertexFormat& vertexFormat,
-                               const char* vertexFilePath, const char* fragmentFilePath)
+const LLGL::VertexFormat& Shader::GetVertexFormat() const
+{
+	return mVertexFormat;
+}
+
+void Shader::LoadShaderProgram(LLGL::RenderSystem& renderer, const char* vertexFilePath, const char* fragmentFilePath)
 {
 	std::string fullVertPath = SHADER_PATH + vertexFilePath;
 	std::string fullFragPath = SHADER_PATH + fragmentFilePath;
 	LLGL::ShaderDescriptor vertShaderDesc = {LLGL::ShaderType::Vertex, fullVertPath.c_str()};
 	LLGL::ShaderDescriptor fragShaderDesc = {LLGL::ShaderType::Fragment, fullFragPath.c_str()};
 
-	vertShaderDesc.vertex.inputAttribs = vertexFormat.attributes;
+	vertShaderDesc.vertex.inputAttribs = mVertexFormat.attributes;
 
 	LLGL::Shader* vertShader = renderer.CreateShader(vertShaderDesc);
 	// Print info log (warnings and errors)
