@@ -3,11 +3,12 @@
 class Camera;
 class InputHandler;
 class InputManager;
+class InteractionManager;
 class GUISystem;
 class MapEditor;
 class Renderer;
+class ResourceManager;
 class TileSetEditor;
-class UIInputManager;
 class Window;
 
 int main(int argc, char** argv);
@@ -30,13 +31,14 @@ protected:
 	void runGame() const;
 
 private:
-	Renderer* mRenderer = nullptr;
+	std::unique_ptr<Renderer> mRenderer;
 	std::unique_ptr<Window> mWindow;
 	std::unique_ptr<Camera> mCamera;
 
 	std::unique_ptr<InputHandler> mInputHandler;
 	std::unique_ptr<InputManager> mInputManager;
-	std::unique_ptr<UIInputManager> mUIInputManager;
+	std::unique_ptr<InteractionManager> mInteractionManager;
+	std::unique_ptr<ResourceManager> mResourceManager;
 
 	std::unique_ptr<GUISystem> mGUISystem;
 	std::unique_ptr<TileSetEditor> mTileSetEditor;

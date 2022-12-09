@@ -2,9 +2,9 @@
 #include "imgui/imgui.h"
 #include "Core/Renderer.h"
 #include "Core/ResourceManager.h"
-#include "InputManager.h"
+#include "Interaction/InteractionManager.h"
 #include "Map.h"
-#include "Tile.h"
+#include "RenderObjects/Tile.h"
 
 #include "MapEditor.h"
 
@@ -14,10 +14,10 @@ bool MapEditor::show_pallette_menu = false;
 bool MapEditor::show_new_map_menu = false;
 bool MapEditor::show_load_map_menu = false;
 
-MapEditor::MapEditor(InputManager& inputManager)
+MapEditor::MapEditor(Renderer& renderer, ResourceManager& resourceManager, InteractionManager& interactionManager)
+	: mRenderer(renderer), mResourceManager(resourceManager), mInteractionManager(interactionManager)
 {
-	inputManager.registerMouseMoveHandler([this](LLGL::Offset2D mousePos) { _HandleMouseMove(mousePos); });
-	inputManager.registerButtonDownHandler(LLGL::Key::LButton, [this]() { _OnClick(); });
+	interactionManager.RegisterAction([=](RenderObject& obj) { PaintTile(obj); });
 	_GetAllMapFileNames();
 }
 
@@ -37,6 +37,11 @@ void MapEditor::ShowNewMapMenu()
 void MapEditor::ShowLoadMapMenu()
 {
 	show_load_map_menu = true;
+}
+
+void MapEditor::PaintTile(RenderObject& tile)
+{
+	std::cout << "Paint Tile" << std::endl;
 }
 
 void MapEditor::_GetAllMapFileNames()
@@ -134,12 +139,15 @@ void MapEditor::_LoadMapMenu(bool* p_open)
 
 void MapEditor::_LoadMap(const char* mapName)
 {
-	mCurrentMap = std::make_shared<Map, glm::vec3>({100, 100, 0});
-	mCurrentMap->Load(mapName);
+	mCurrentMap = mResourceManager.CreateMap({0, 0, 0}, mapName);
+	for (const auto& tile : mCurrentMap->GetTiles())
+	{
+		mInteractionManager.AddInteractableObject(tile);
+	}
 	_CreateMapDebugGrid(*mCurrentMap);
 	auto mapTexture = mCurrentMap->getTexturePath();
-	ResourceManager::GetInstance()->AddRenderObjectToDrawList(mCurrentMap.get());
-	if (ResourceManager::GetInstance()->CreateSimpleOpenGLTexture(
+	mResourceManager.AddRenderObjectToDrawList(mCurrentMap);
+	if (mResourceManager.CreateSimpleOpenGLTexture(
 		mapTexture, &mPalletteTextureId, &mPalletteTextureWidth, &mPalletteTextureHeight))
 	{
 		show_pallette_menu = true;
@@ -205,14 +213,15 @@ void MapEditor::_PalletteMenu(bool* p_open)
 
 void MapEditor::_CreateMapDebugGrid(const Map& map)
 {
-	Renderer::GetInstance()->ClearDebugDraw();
+	mRenderer.ClearDebugDraw();
 
 	const auto pos = map.GetMapPosition();
 	const auto size = map.GetMapSize();
 
 	const glm::vec2 rowsColumns = map.GetMapRowsColumns();
 
-	ResourceManager::GetInstance()->CreateGrid(pos, size, rowsColumns.x, rowsColumns.y, {255, 255, 255});
+	mResourceManager.CreateGrid(mRenderer, pos, size, rowsColumns.x, rowsColumns.y, {255, 255, 255});
+	mResourceManager.CreateBox(mRenderer, {-50, -50, 0}, {1, 1, 1}, {255, 0, 0}); //red
 }
 
 void MapEditor::_CenterWindow(float width, float height)
@@ -222,37 +231,4 @@ void MapEditor::_CenterWindow(float width, float height)
 	const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
 	ImGui::SetNextWindowPos(ImVec2(main_viewport->Size.x / 2 - (width / 2), main_viewport->Size.y / 2 - (height / 2)));
 	ImGui::SetNextWindowSize(ImVec2(width, height));
-}
-
-void MapEditor::_HandleMouseMove(LLGL::Offset2D mousePos)
-{
-	if (mCurrentMap != nullptr)
-	{
-		auto& tiles = mCurrentMap->GetTiles();
-		for (int i = 0; i < tiles.size(); i++)
-		{
-			const auto pos = tiles[i]->GetPosition();
-			const auto size = tiles[i]->GetSize();
-			if (mousePos.x > pos.x &&
-				mousePos.x < (pos.x + size.x * 2) &&
-				mousePos.y > pos.y &&
-				mousePos.y < (pos.y + size.y * 2))
-			{
-				if (current_hovered_tile_index != i)
-				{
-					current_hovered_tile_index = i;
-				}
-				return;
-			}
-		}
-		current_hovered_tile_index = -1;
-	}
-}
-
-void MapEditor::_OnClick() const
-{
-	if (mCurrentMap != nullptr && current_hovered_tile_index != -1)
-	{
-		mCurrentMap->UpdateTile(current_hovered_tile_index, current_brush_index);
-	}
 }

@@ -5,13 +5,15 @@ class Sprite;
 class Texture;
 class Tile;
 class TileSetDescription;
+class Renderer;
+class ResourceManager;
 
 using GLuint = unsigned int;
 
 class TileSetEditor
 {
 public:
-	TileSetEditor(Camera& camera);
+	TileSetEditor(Renderer& renderer, ResourceManager& resourceManager, Camera& camera);
 	~TileSetEditor() = default;
 
 	void RenderGUI();
@@ -60,4 +62,7 @@ private:
 
 	const char* TEXTURE_FOLDER_GUI = "../Data/Textures";
 	const char* TILESET_FOLDER = "../Data/Tileset";
+
+	Renderer& mRenderer;
+	ResourceManager& mResourceManager;
 };

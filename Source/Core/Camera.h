@@ -4,10 +4,13 @@
 #include <glm/vec3.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
+class Renderer;
+
 class Camera
 {
 public:
-	Camera() = default;
+	Camera(Renderer& renderer);
+	~Camera() = default;
 
 	glm::mat4 GetView() const;
 
@@ -43,11 +46,13 @@ public:
 	void UpdateView();
 
 private:
-	glm::vec3 mCameraPos = glm::vec3(0.0f, 0.0f, -100.0f);
+	glm::vec3 mCameraPos = glm::vec3(0.0f, 0.0f, 0.0f);
 	glm::vec3 mCameraFront = glm::vec3(0.0f, 0.0f, 1.0f);
-	glm::vec3 mCameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+	glm::vec3 mCameraUp = glm::vec3(0.0f, -1.0f, 0.0f);
 
 	glm::mat4 mView = lookAt(mCameraPos, mCameraPos + mCameraFront, mCameraUp);
 
 	float mCameraSpeed = 0.1f; // adjust accordingly
+
+	Renderer& mRenderer;
 };

@@ -2,6 +2,11 @@
 
 #include "Camera.h"
 
+Camera::Camera(Renderer& renderer)
+	: mRenderer(renderer)
+{
+}
+
 glm::mat4 Camera::GetView() const
 {
 	return mView;
@@ -46,5 +51,5 @@ void Camera::ZoomOut()
 void Camera::UpdateView()
 {
 	mView = lookAt(mCameraPos, mCameraPos + mCameraFront, mCameraUp);
-	Renderer::GetInstance()->UpdateView(mView);
+	mRenderer.UpdateView(mView);
 }

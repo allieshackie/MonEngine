@@ -1,7 +1,9 @@
 #pragma once
-#include "RenderObject.h"
+#include "RenderObjects/RenderObject.h"
 
 struct TileSetDescription;
+
+class ResourceManager;
 class Tile;
 
 static constexpr char MAP_PATH[] = "../Data/Maps/";
@@ -9,12 +11,11 @@ static constexpr char MAP_PATH[] = "../Data/Maps/";
 class Map : public RenderObject
 {
 public:
-	Map(glm::vec3 position);
+	Map(ResourceManager& resourceManager, glm::vec3 position, const char* fileName);
 	~Map() override = default;
 
-	void Draw() override;
+	void Draw(const Renderer& renderer, LLGL::CommandBuffer& commands) override;
 
-	void Load(const char* fileName);
 
 	glm::vec3 GetMapPosition() const;
 	glm::vec2 GetMapRowsColumns() const;
@@ -30,6 +31,7 @@ public:
 
 	void SaveTilesToFile() const;
 private:
+	void _Load(const char* fileName);
 	void _ReadFile(const char* fileName);
 	void _CreateTiles();
 
@@ -39,8 +41,10 @@ private:
 	std::string mMapPath;
 	glm::vec3 mMapPosition = {0, 0, 0};
 	glm::vec2 mMapRowsColumns = {0, 0};
-	glm::vec3 mMapSize = {0, 0, 0};
+	glm::vec3 mMapSize = {0, 0, 1};
 	int mMapTileSize = 0;
 
 	std::unique_ptr<TileSetDescription> mTileSetDescription;
+
+	ResourceManager& mResourceManager;
 };

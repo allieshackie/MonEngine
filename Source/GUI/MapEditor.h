@@ -1,20 +1,25 @@
 #pragma once
 
 class InputManager;
+class InteractionManager;
 class Map;
+class Renderer;
+class ResourceManager;
 
 using GLuint = unsigned int;
 
 class MapEditor
 {
 public:
-	MapEditor(InputManager& inputManager);
+	MapEditor(Renderer& renderer, ResourceManager& resourceManager, InteractionManager& interactionManager);
 	~MapEditor() = default;
 
 	void RenderGUI();
 
 	static void ShowNewMapMenu();
 	static void ShowLoadMapMenu();
+
+	void PaintTile(RenderObject& tile);
 
 private:
 	// PALLETTE
@@ -28,10 +33,6 @@ private:
 
 	// DEBUG
 	void _CreateMapDebugGrid(const Map& map);
-
-	void _HandleMouseMove(LLGL::Offset2D mousePos);
-
-	void _OnClick() const;
 
 	// File display helpers
 	void _GetAllMapFileNames();
@@ -47,8 +48,7 @@ private:
 	int current_brush_index = 0;
 
 	int current_hovered_tile_index = -1;
-
-	std::shared_ptr<Map> mCurrentMap;
+	Map* mCurrentMap = nullptr;
 
 	GLuint mPalletteTextureId = -1;
 	int mPalletteTextureWidth = 0;
@@ -63,4 +63,8 @@ private:
 	const char* TILESET_FOLDER = "../Data/Tileset";
 
 	const char* TEXT_FILE = ".txt";
+
+	Renderer& mRenderer;
+	ResourceManager& mResourceManager;
+	InteractionManager& mInteractionManager;
 };

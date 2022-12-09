@@ -8,10 +8,10 @@ struct InputEvent;
 class GUISystem
 {
 public:
-	GUISystem();
+	GUISystem(const Renderer& renderer);
 	~GUISystem();
 
-	void initGUI();
+	void initGUI(const Renderer& renderer);
 	void closeGUI() const;
 
 	void handleGUIInput(const InputEvent& inputEvent);

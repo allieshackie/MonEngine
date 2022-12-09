@@ -3,8 +3,7 @@
 #include "Core/Renderer.h"
 #include "Core/ResourceManager.h"
 #include "Camera.h"
-#include "Map.h"
-#include "Tile.h"
+#include "RenderObjects/Tile.h"
 #include "TileSetDescription.h"
 
 #include "TileSetEditor.h"
@@ -13,7 +12,8 @@
 
 namespace fs = std::filesystem;
 
-TileSetEditor::TileSetEditor(Camera& camera): mCamera(camera)
+TileSetEditor::TileSetEditor(Renderer& renderer, ResourceManager& resourceManager, Camera& camera)
+	: mCamera(camera), mRenderer(renderer), mResourceManager(resourceManager)
 {
 	_GetTextureFileNames();
 	_GetTilesetFileNames();
@@ -199,8 +199,8 @@ void TileSetEditor::_LoadTextureMenu(bool* p_open)
 
 void TileSetEditor::_LoadTileSetTexture(const char* textureName, bool debugGrid)
 {
-	mCurrentSprite = ResourceManager::GetInstance()->CreateTile(textureName, {0, 0, 1}, {25, 20, 1});
-	ResourceManager::GetInstance()->AddRenderObjectToDrawList(mCurrentSprite);
+	mCurrentSprite = mResourceManager.CreateTile(textureName, {0, 0, 1}, {25, 20, 1});
+	mResourceManager.AddRenderObjectToDrawList(mCurrentSprite);
 
 	if (debugGrid)
 	{
@@ -278,7 +278,7 @@ void TileSetEditor::_TextureDisplayMenu(bool* p_open)
 void TileSetEditor::_CreateTextureDebugGrid() const
 {
 	if (mCurrentTileset == nullptr || mCurrentSprite == nullptr) return;
-	Renderer::GetInstance()->ClearDebugDraw();
+	mRenderer.ClearDebugDraw();
 
 	const auto pos = mCurrentSprite->GetPosition();
 	const auto size = mCurrentSprite->GetSize();
@@ -286,7 +286,7 @@ void TileSetEditor::_CreateTextureDebugGrid() const
 	const int rows = mCurrentTileset->GetRows();
 	const int columns = mCurrentTileset->GetColumns();
 
-	ResourceManager::GetInstance()->CreateGrid(pos, size, rows, columns, {255, 255, 255});
+	mResourceManager.CreateGrid(mRenderer, pos, size, rows, columns, {255, 255, 255});
 }
 
 void TileSetEditor::_CameraInfo(bool* p_open) const

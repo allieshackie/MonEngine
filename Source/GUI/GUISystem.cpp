@@ -8,9 +8,9 @@
 #include "GUISystem.h"
 
 
-GUISystem::GUISystem()
+GUISystem::GUISystem(const Renderer& renderer)
 {
-	initGUI();
+	initGUI(renderer);
 }
 
 GUISystem::~GUISystem()
@@ -18,7 +18,7 @@ GUISystem::~GUISystem()
 	closeGUI();
 }
 
-void GUISystem::initGUI()
+void GUISystem::initGUI(const Renderer& renderer)
 {
 	//Initialize Glad
 	if (gladLoadGL() == 0)
@@ -53,7 +53,7 @@ void GUISystem::initGUI()
 
 	// Setup Renderer backend
 	LLGL::NativeHandle mainWindowHandle;
-	Renderer::GetInstance()->GetContext().GetSurface().GetNativeHandle(&mainWindowHandle, sizeof(mainWindowHandle));
+	renderer.GetContext().GetSurface().GetNativeHandle(&mainWindowHandle, sizeof(mainWindowHandle));
 	mNativeWindow = mainWindowHandle.window;
 
 	ImGui_ImplWin32_Init(mainWindowHandle.window);
