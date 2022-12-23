@@ -2,8 +2,8 @@
 
 #include <LLGL/LLGL.h>
 #include <queue>
-#include <set>
 
+class GUISystem;
 class Window;
 
 enum class KeyStates
@@ -32,88 +32,37 @@ struct InputEvent
 	wchar_t mChar = '_';
 };
 
-class InputQueue : public LLGL::Input
+class InputHandler : public LLGL::Input
 {
 public:
-	InputQueue() = default;
-
-	~InputQueue() override = default;
-
-	const InputEvent& ProcessNextEvent() const
-	{
-		return mEventQueue.front();
-	}
-
-	void PopEvent()
-	{
-		mEventQueue.pop();
-	}
-
-	bool HasEventsQueued() const
-	{
-		return !mEventQueue.empty();
-	}
-
-	const std::set<LLGL::Key>& GetKeyDownArray() const
-	{
-		return mKeyDown;
-	}
-
-	void PushEvent(LLGL::Key keyCode, KeyStates state)
-	{
-		mEventQueue.push({keyCode, state});
-	}
-
-protected:
-	void OnKeyUp(LLGL::Window& sender, LLGL::Key keyCode) override
-	{
-		if (const auto it = mKeyDown.find(keyCode); it != mKeyDown.end())
-		{
-			mKeyDown.erase(it);
-		}
-
-		mEventQueue.push({keyCode, KeyStates::Key_Up});
-	}
-
-	void OnKeyDown(LLGL::Window& sender, LLGL::Key keyCode) override
-	{
-		if (const auto it = mKeyDown.find(keyCode); it == mKeyDown.end())
-		{
-			mKeyDown.insert(keyCode);
-		}
-	}
-
-	void OnChar(LLGL::Window& sender, wchar_t chr) override
-	{
-		mEventQueue.push({chr});
-	}
-
-private:
-	std::queue<InputEvent> mEventQueue;
-	std::set<LLGL::Key> mKeyDown;
-};
-
-class InputHandler
-{
-public:
-	InputHandler(Window& window);
-
-	void pollInputEvents();
-	void pollGUIInputEvents(const std::function<void(const InputEvent& event)>& keyboardCallback) const;
+	InputHandler(GUISystem& guiSystem);
 
 	friend class InputManager;
 
+protected:
+	void OnKeyDown(LLGL::Window& sender, LLGL::Key keyCode) override;
+	void OnKeyUp(LLGL::Window& sender, LLGL::Key keyCode) override;
+	void OnWheelMotion(LLGL::Window& sender, int motion) override;
+	void OnLocalMotion(LLGL::Window& sender, const LLGL::Offset2D& position) override;
+	// Global motion is mouse direction, not screen position
+	//void OnGlobalMotion(LLGL::Window& sender, const LLGL::Offset2D& position) override;
+	void OnChar(LLGL::Window& sender, wchar_t chr) override;
+
 private:
-	void _handleButtonUpEvent(LLGL::Key keyCode);
-	void _handleButtonDownEvent(LLGL::Key keyCode);
-	void _handleMouseMoveEvent();
+	void _handleKeyDown(LLGL::Key keyCode);
+	void _handleKeyUp(LLGL::Key keyCode);
+
+	void _handleKeyDownGUI(LLGL::Key keyCode);
+	void _handleKeyUpGUI(LLGL::Key keyCode);
 
 	std::unordered_map<LLGL::Key, std::vector<std::function<void()>>> mButtonUpHandlers;
 	std::unordered_map<LLGL::Key, std::vector<std::function<void()>>> mButtonDownHandlers;
 	std::vector<std::function<void(LLGL::Offset2D)>> mMouseMoveCallbacks;
+	std::vector<std::function<void(InputEvent)>> mMouseScrollCallbacks;
 	std::function<void()> mZoomInCallback;
 	std::function<void()> mZoomOutCallback;
-	std::shared_ptr<InputQueue> mInput; // User input event listener
 
 	LLGL::Offset2D mCurrentMousePos = {0, 0};
+
+	GUISystem& mGUISystem;
 };
