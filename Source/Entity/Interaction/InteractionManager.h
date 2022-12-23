@@ -23,8 +23,9 @@ private:
 	void _OnClick() const;
 	bool _Intersects(RenderObject& obj, glm::vec3 mouseRay);
 
-	glm::vec3 _CalculateMouseRay(LLGL::Offset2D mousePos);
+	glm::vec3 _CalculateMouseRay(LLGL::Offset2D mousePos) const;
 	glm::vec3 _GetPlaneNormal(const RenderObject* obj) const;
+	bool _IntersectTest(RenderObject& obj, glm::vec3 mouseRay);
 
 	std::vector<RenderObject*> mInteractableObjects;
 	glm::vec3 mMousePos = {0, 0, 0};
@@ -34,6 +35,4 @@ private:
 	Camera& mCamera;
 	Renderer& mRenderer;
 	ResourceManager& mResourceManager;
-
-	glm::vec3 lastMousePos = {0, 0, 0};
 };

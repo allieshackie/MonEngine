@@ -69,27 +69,6 @@ void GUISystem::closeGUI() const
 	ImGui::DestroyContext();
 }
 
-void GUISystem::handleGUIInput(const InputEvent& inputEvent)
-{
-	switch (inputEvent.mKeyState)
-	{
-	case KeyStates::Key_Up:
-		_handleButtonUp(inputEvent.mKeyCode);
-		break;
-
-	case KeyStates::Key_Down:
-		_handleButtonDown(inputEvent.mKeyCode);
-		break;
-	case KeyStates::Char:
-		{
-			ImGuiIO& io = ImGui::GetIO();
-			io.AddInputCharacterUTF16(inputEvent.mChar);
-			break;
-		}
-	default:
-		break;
-	}
-}
 
 bool GUISystem::isGUIContext()
 {
@@ -100,72 +79,6 @@ bool GUISystem::isGUIContext()
 void GUISystem::RenderGuiElements()
 {
 	ImGui::ShowDemoWindow(&show_demo_window);
-}
-
-void GUISystem::_handleButtonDown(const LLGL::Key keycode) const
-{
-	ImGuiIO& io = ImGui::GetIO();
-	switch (keycode)
-	{
-	// Mouse buttons: 0=left, 1=right, 2=middle
-	case LLGL::Key::LButton:
-		{
-			io.MouseDown[0] = true;
-			break;
-		}
-	// Mouse buttons: 0=left, 1=right, 2=middle
-	case LLGL::Key::RButton:
-		{
-			io.MouseDown[1] = true;
-			break;
-		}
-	case LLGL::Key::Zoom:
-		{
-			io.MouseWheel += -1;
-			break;
-		}
-	default:
-		{
-			if (static_cast<int>(keycode) < 256)
-			{
-				io.KeysDown[static_cast<int>(keycode)] = true;
-			}
-			break;
-		}
-	}
-}
-
-void GUISystem::_handleButtonUp(const LLGL::Key keycode) const
-{
-	ImGuiIO& io = ImGui::GetIO();
-	switch (keycode)
-	{
-	// Mouse buttons: 0=left, 1=right, 2=middle
-	case LLGL::Key::LButton:
-		{
-			io.MouseDown[0] = false;
-			break;
-		}
-	// Mouse buttons: 0=left, 1=right, 2=middle
-	case LLGL::Key::RButton:
-		{
-			io.MouseDown[1] = false;
-			break;
-		}
-	case LLGL::Key::Zoom:
-		{
-			io.MouseWheel += 1;
-			break;
-		}
-	default:
-		{
-			if (static_cast<int>(keycode) < 256)
-			{
-				io.KeysDown[static_cast<int>(keycode)] = false;
-			}
-			break;
-		}
-	}
 }
 
 void GUISystem::GUIStartFrame()

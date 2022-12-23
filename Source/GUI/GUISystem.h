@@ -4,6 +4,7 @@
 #include "LLGL/Platform/Win32/Win32NativeHandle.h"
 
 struct InputEvent;
+class Renderer;
 
 class GUISystem
 {
@@ -14,7 +15,6 @@ public:
 	void initGUI(const Renderer& renderer);
 	void closeGUI() const;
 
-	void handleGUIInput(const InputEvent& inputEvent);
 	bool isGUIContext();
 
 	void RenderGuiElements();
@@ -23,9 +23,6 @@ public:
 	void GUIEndFrame();
 
 private:
-	void _handleButtonDown(LLGL::Key keycode) const;
-	void _handleButtonUp(LLGL::Key keycode) const;
-
 	const char* GLSL_VERSION = "#version 130";
 	HWND mNativeWindow = nullptr;
 

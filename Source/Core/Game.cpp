@@ -7,6 +7,7 @@
 #include "MapEditor.h"
 #include "TileSetEditor.h"
 #include "UIInputManager.h"
+#include "RenderObjects/Tile.h"
 
 #include "Game.h"
 
@@ -31,12 +32,16 @@ void Game::configureLevel()
 	mResourceManager = std::make_unique<ResourceManager>();
 	mRenderer = std::make_unique<Renderer>(*mResourceManager);
 	mWindow = std::make_unique<Window>(*mRenderer);
+	mGUISystem = std::make_unique<GUISystem>(*mRenderer);
 
 	mCamera = std::make_unique<Camera>(*mRenderer);
 	mCamera->UpdateView();
 
-	mInputHandler = std::make_unique<InputHandler>(*mWindow);
+	mInputHandler = std::make_shared<InputHandler>(*mGUISystem);
 	mInputManager = std::make_unique<InputManager>(*mInputHandler);
+
+	auto& llglWindow = mWindow->GetWindow();
+	llglWindow.AddEventListener(mInputHandler);
 
 	mInputManager->registerButtonUpHandler(LLGL::Key::Escape, [=]() { mRunning = false; });
 
@@ -51,7 +56,6 @@ void Game::configureLevel()
 
 	mInteractionManager = std::make_unique<InteractionManager>(*mRenderer, *mCamera, *mInputManager, *mResourceManager);
 
-	mGUISystem = std::make_unique<GUISystem>(*mRenderer);
 	mTileSetEditor = std::make_unique<TileSetEditor>(*mRenderer, *mResourceManager, *mCamera);
 	mMapEditor = std::make_unique<MapEditor>(*mRenderer, *mResourceManager, *mInteractionManager);
 }
@@ -65,18 +69,6 @@ void Game::runGame() const
 {
 	while (mRenderer->GetContext().GetSurface().ProcessEvents() && mRunning)
 	{
-		// Process Input
-		if (mGUISystem->isGUIContext())
-		{
-			mInputHandler->pollGUIInputEvents([=](const InputEvent& event)
-			{
-				mGUISystem->handleGUIInput(event);
-			});
-		}
-		else
-		{
-			mInputHandler->pollInputEvents();
-		}
 		mRenderer->OnDrawFrame([=]()
 		{
 			// Render GUI
