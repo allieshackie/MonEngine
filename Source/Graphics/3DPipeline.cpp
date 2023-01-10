@@ -1,4 +1,4 @@
-#include "LLGL/Utility.h"
+#include "LLGL/Misc/Utility.h"
 
 #include "Core/Renderer.h"
 #include "Core/ResourceManager.h"
@@ -54,7 +54,8 @@ void Pipeline3D::_InitPipeline()
 	// Create graphics pipeline
 	LLGL::GraphicsPipelineDescriptor pipelineDesc;
 	{
-		pipelineDesc.shaderProgram = &mShader->GetShaderProgram();
+		pipelineDesc.vertexShader = &mShader->GetVertexShader();
+		pipelineDesc.fragmentShader = &mShader->GetFragmentShader();
 		pipelineDesc.pipelineLayout = pipelineLayout;
 		pipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::TriangleStrip;
 	}

@@ -16,7 +16,7 @@ public:
 	void Render(LLGL::CommandBuffer& commands) const;
 
 	void UpdateProjectionViewModelUniform(LLGL::CommandBuffer& commands, glm::mat4 model, glm::mat4 projection,
-	                                      glm::mat4 view) const;
+	                                      glm::mat4 view);
 
 	void ClearDebugDraw() const;
 
@@ -25,7 +25,15 @@ public:
 private:
 	void _InitPipeline();
 
+	struct Settings
+	{
+		glm::mat4 pvmMat;
+	}
+	settings = {};
+
 	LLGL::PipelineState* mPipeline = nullptr;
+	LLGL::ResourceHeap* mResourceHeap = nullptr;
+	LLGL::Buffer* mConstantBuffer = nullptr;
 	Shader* mShader = nullptr;
 
 	Renderer& mRenderer;

@@ -67,6 +67,7 @@ void Map::_ReadFile(const char* fileName)
 void Map::_CreateTiles()
 {
 	const auto textureName = mTileSetDescription->getTexturePath();
+	mTextureId = mResourceManager.GetTextureId(textureName);
 	const glm::vec2 mapTopLeft = {
 		mMapPosition.x - (mMapSize.x / 2) + (mMapTileSize / 2), mMapPosition.y - (mMapSize.y / 2) + (mMapTileSize / 2)
 	};
@@ -78,7 +79,7 @@ void Map::_CreateTiles()
 		const auto clip = mTileSetDescription->GetClipForTile(mRawTiles[i]);
 		const auto tile = mResourceManager.CreateTile(
 			textureName,
-			{mapTopLeft.x + (posX * mMapTileSize), mapTopLeft.y + (currentRow * mMapTileSize), 1},
+			{mapTopLeft.x + (posX * mMapTileSize), mapTopLeft.y + (currentRow * mMapTileSize), mMapPosition.z},
 			{mMapTileSize, mMapTileSize, 0}, glm::vec2(clip.x, clip.y), glm::vec2(clip.z, clip.w));
 
 		// -1 is an empty tile
@@ -134,7 +135,7 @@ void Map::UpdateTile(int tileIndex, int brushIndex)
 
 	mMapTiles[tileIndex] = mResourceManager.CreateTile(
 		mTileSetDescription->getTexturePath(),
-		{mMapPosition.x + (posX * mMapTileSize), mMapPosition.y + (currentRow * mMapTileSize), 0},
+		{mMapPosition.x + (posX * mMapTileSize), mMapPosition.y + (currentRow * mMapTileSize), mMapPosition.z},
 		{mMapTileSize, mMapTileSize, 0}, glm::vec2(clip.x, clip.y), glm::vec2(clip.z, clip.w));
 
 	mRawTiles[tileIndex] = brushIndex;

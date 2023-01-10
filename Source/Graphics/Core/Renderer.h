@@ -22,17 +22,15 @@ public:
 
 	void OnDrawFrame(const std::function<void()>& drawCallback) const;
 
-	LLGL::RenderContext& GetContext() const
+	LLGL::SwapChain& GetSwapChain() const
 	{
-		return *mContext;
+		return *mSwapChain;
 	}
 
 	const std::unique_ptr<LLGL::RenderSystem>& GetRendererSystem() const
 	{
 		return mRenderer;
 	}
-
-	void SetTexture(int textureId) const;
 
 	void UpdateProjection();
 	void UpdateView(glm::mat4 view);
@@ -58,7 +56,7 @@ private:
 	void _Init();
 
 	std::unique_ptr<LLGL::RenderSystem> mRenderer; // Render system
-	LLGL::RenderContext* mContext = nullptr; // Main render context
+	LLGL::SwapChain* mSwapChain = nullptr; // Main render context
 	LLGL::CommandBuffer* mCommands = nullptr; // Main command buffer
 	LLGL::CommandQueue* mCommandQueue = nullptr; // Command queue
 

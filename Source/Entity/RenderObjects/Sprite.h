@@ -12,8 +12,6 @@ public:
 
 	const glm::mat4& GetSpriteModelData() const;
 	glm::mat4 GetTextureClip() const;
-
 protected:
-	int mTextureId = 0;
 	glm::mat4 mTextureClip = glm::mat4(1.0f);
 };

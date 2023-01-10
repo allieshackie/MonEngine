@@ -7,7 +7,6 @@
 #include "MapEditor.h"
 #include "TileSetEditor.h"
 #include "UIInputManager.h"
-#include "RenderObjects/Tile.h"
 
 #include "Game.h"
 
@@ -34,28 +33,20 @@ void Game::configureLevel()
 	mWindow = std::make_unique<Window>(*mRenderer);
 	mGUISystem = std::make_unique<GUISystem>(*mRenderer);
 
-	mCamera = std::make_unique<Camera>(*mRenderer);
-	mCamera->UpdateView();
-
 	mInputHandler = std::make_shared<InputHandler>(*mGUISystem);
 	mInputManager = std::make_unique<InputManager>(*mInputHandler);
 
 	auto& llglWindow = mWindow->GetWindow();
 	llglWindow.AddEventListener(mInputHandler);
 
+	mCamera = std::make_unique<Camera>(*mRenderer, *mInputManager);
+
+	// Register exit button
 	mInputManager->registerButtonUpHandler(LLGL::Key::Escape, [=]() { mRunning = false; });
-
-	// Register camera handlers
-	mInputManager->registerButtonUpHandler(LLGL::Key::Up, [=]() { mCamera->MoveUp(); });
-	mInputManager->registerButtonUpHandler(LLGL::Key::Down, [=]() { mCamera->MoveDown(); });
-	mInputManager->registerButtonUpHandler(LLGL::Key::Left, [=]() { mCamera->MoveLeft(); });
-	mInputManager->registerButtonUpHandler(LLGL::Key::Right, [=]() { mCamera->MoveRight(); });
-
-	mInputManager->registerZoomInHandler([=]() { mCamera->ZoomIn(); });
-	mInputManager->registerZoomOutHandler([=]() { mCamera->ZoomOut(); });
 
 	mInteractionManager = std::make_unique<InteractionManager>(*mRenderer, *mCamera, *mInputManager, *mResourceManager);
 
+	// Editors
 	mTileSetEditor = std::make_unique<TileSetEditor>(*mRenderer, *mResourceManager, *mCamera);
 	mMapEditor = std::make_unique<MapEditor>(*mRenderer, *mResourceManager, *mInteractionManager);
 }
@@ -67,15 +58,19 @@ void Game::closeGame()
 
 void Game::runGame() const
 {
-	while (mRenderer->GetContext().GetSurface().ProcessEvents() && mRunning)
+	//mResourceManager->AddTile("tiles.jpg", {0, 0, 10}, {1, 1, 1}, {.1, .1}, {1, 1});
+	//mResourceManager->CreateBox(*mRenderer, {0, 0, 10}, {1, 1, 1}, {255, 0, 0});
+	mResourceManager->AddSprite("awesomeface.png", {0, 0, 10}, {1, 1, 1});
+	//mResourceManager->CreateMap({0, 0, 10}, "map0");
+	while (mRenderer->GetSwapChain().GetSurface().ProcessEvents() && mRunning)
 	{
 		mRenderer->OnDrawFrame([=]()
 		{
 			// Render GUI
 			mGUISystem->GUIStartFrame();
-			mTileSetEditor->RenderGUI();
-			mMapEditor->RenderGUI();
-			//mTileSetEditor->RenderTest();
+			//mTileSetEditor->RenderGUI();
+			//mMapEditor->RenderGUI();
+			mTileSetEditor->RenderTest();
 			mGUISystem->GUIEndFrame();
 		});
 	}

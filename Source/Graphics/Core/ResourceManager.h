@@ -27,17 +27,13 @@ public:
 	void LoadAllTexturesFromFolder(LLGL::RenderSystem& renderer);
 	void LoadTexture(LLGL::RenderSystem& renderer, const std::string& filePath, const std::string& textureName,
 	                 int textureId);
-	void SetTexture(LLGL::CommandBuffer& commands, int textureId);
+
 	int GetTextureId(const std::string& filePath);
 	glm::vec2 GetTextureSize(int textureId);
 
 	Texture* GetTextureFromName(const std::string& filePath);
 
-	void CreateResourceHeap(LLGL::RenderSystem& renderer, LLGL::PipelineLayout& pipelineLayout,
-	                        LLGL::Buffer& constantBuffer);
-
-	void BindTexture(LLGL::CommandBuffer& commands);
-	void SetCurrentTexture(int textureId);
+	const std::unordered_map<int, Texture*>& getTextures();
 
 	// Helper used for editor
 	void AddSprite(const std::string& textureName, glm::vec3 pos, glm::vec3 size);
@@ -71,7 +67,4 @@ private:
 	std::unordered_map<std::string, int> mTextureIds;
 	std::vector<RenderObject*> mDrawList;
 	std::vector<DebugDrawable*> mDebugDrawList;
-
-	LLGL::ResourceHeap* mResourceHeap = nullptr;
-	int mResourceIndex = 0;
 };

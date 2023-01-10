@@ -1,6 +1,9 @@
 #version 460
 
-uniform mat4 pvmMat;
+layout(std140) uniform Settings
+{
+    mat4 pvmMat;
+};
 
 // Vertex attributes (these names must match our vertex format attributes)
 in vec3 position;

@@ -29,8 +29,8 @@ private:
 class ResizeEventHandler : public LLGL::Window::EventListener
 {
 public:
-	ResizeEventHandler(Renderer& ref, Window& window, LLGL::RenderContext* context) : mRenderer(ref), mWindow(window),
-		mContext(context)
+	ResizeEventHandler(Renderer& ref, Window& window, LLGL::SwapChain* swapChain) : mRenderer(ref), mWindow(window),
+		mSwapChain(swapChain)
 	{
 	}
 
@@ -38,12 +38,7 @@ public:
 	{
 		if (clientAreaSize.width >= 4 && clientAreaSize.height >= 4)
 		{
-			// Update video mode
-			auto videoMode = mContext->GetVideoMode();
-			{
-				videoMode.resolution = clientAreaSize;
-			}
-			mContext->SetVideoMode(videoMode);
+			mSwapChain->ResizeBuffers(clientAreaSize);
 
 			// Re-draw frame
 			if (mWindow.isLoadingDone())
@@ -68,5 +63,5 @@ public:
 private:
 	Renderer& mRenderer;
 	Window& mWindow;
-	LLGL::RenderContext* mContext;
+	LLGL::SwapChain* mSwapChain;
 };

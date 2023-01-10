@@ -26,6 +26,9 @@ private:
 	void _InitPipeline();
 
 	LLGL::PipelineState* mPipeline = nullptr;
+
+	LLGL::ResourceHeap* mResourceHeap = nullptr;
+
 	Shader* mShader = nullptr;
 	LLGL::Buffer* mConstantBuffer = nullptr;
 	LLGL::Buffer* mVertexBuffer = nullptr;
@@ -33,7 +36,7 @@ private:
 	struct SpriteSettings
 	{
 		glm::mat4 pvmMat;
-		glm::mat4 textureClip;
+		glm::mat4 textureTransform;
 	}
 	spriteSettings = {};
 

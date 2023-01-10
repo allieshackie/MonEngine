@@ -50,15 +50,6 @@ void ResourceManager::LoadTexture(LLGL::RenderSystem& renderer, const std::strin
 	}
 }
 
-void ResourceManager::SetTexture(LLGL::CommandBuffer& commands, int textureId)
-{
-	if (textureId != mResourceIndex)
-	{
-		SetCurrentTexture(textureId);
-		BindTexture(commands);
-	}
-}
-
 int ResourceManager::GetTextureId(const std::string& filePath)
 {
 	if (const auto& it = mTextureIds.find(filePath); it != mTextureIds.end())
@@ -89,14 +80,9 @@ Texture* ResourceManager::GetTextureFromName(const std::string& filePath)
 	return textureIt->second;
 }
 
-void ResourceManager::BindTexture(LLGL::CommandBuffer& commands)
+const std::unordered_map<int, Texture*>& ResourceManager::getTextures()
 {
-	commands.SetResourceHeap(*mResourceHeap, mResourceIndex);
-}
-
-void ResourceManager::SetCurrentTexture(int textureId)
-{
-	mResourceIndex = textureId;
+	return mTextures;
 }
 
 const std::vector<RenderObject*>& ResourceManager::GetDrawList()
@@ -168,7 +154,7 @@ Map* ResourceManager::CreateMap(glm::vec3 pos, const char* fileName)
 	// TODO: Why is this pointer empty? 
 	const auto map = new Map(*this, pos, fileName);
 	//Renderer::GetInstance()->Add2DRenderObject(*map);
-	//mDrawList.emplace_back(map);
+	mDrawList.emplace_back(map);
 	return map;
 }
 
@@ -306,24 +292,6 @@ void ResourceManager::CreateGrid(const Renderer& renderer, glm::vec3 position, g
 
 	renderer.AddDebugRenderObject(*debugGrid);
 	mDebugDrawList.push_back(debugGrid);
-}
-
-void ResourceManager::CreateResourceHeap(LLGL::RenderSystem& renderer, LLGL::PipelineLayout& pipelineLayout,
-                                         LLGL::Buffer& constantBuffer)
-{
-	LLGL::ResourceHeapDescriptor resourceHeapDesc;
-	{
-		resourceHeapDesc.pipelineLayout = &pipelineLayout;
-		resourceHeapDesc.resourceViews.reserve(mTextures.size() * 3);
-
-		for (const auto& texture : mTextures)
-		{
-			resourceHeapDesc.resourceViews.emplace_back(&constantBuffer);
-			resourceHeapDesc.resourceViews.emplace_back(&texture.second->GetTextureData());
-			resourceHeapDesc.resourceViews.emplace_back(&texture.second->GetSamplerData());
-		}
-	}
-	mResourceHeap = renderer.CreateResourceHeap(resourceHeapDesc);
 }
 
 // Simple helper function to load an image into a OpenGL texture with common settings

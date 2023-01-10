@@ -3,6 +3,8 @@
 #include <LLGL/LLGL.h>
 #include <queue>
 
+#include "LLGL/Window.h"
+
 class GUISystem;
 class Window;
 
@@ -32,7 +34,7 @@ struct InputEvent
 	wchar_t mChar = '_';
 };
 
-class InputHandler : public LLGL::Input
+class InputHandler : public LLGL::Window::EventListener
 {
 public:
 	InputHandler(GUISystem& guiSystem);

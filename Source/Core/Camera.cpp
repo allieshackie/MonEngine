@@ -1,10 +1,21 @@
 #include "Core/Renderer.h"
+#include "InputManager.h"
 
 #include "Camera.h"
 
-Camera::Camera(Renderer& renderer)
+Camera::Camera(Renderer& renderer, const InputManager& inputManager)
 	: mRenderer(renderer)
 {
+	// Register camera handlers
+	inputManager.registerButtonUpHandler(LLGL::Key::Up, [=]() { MoveUp(); });
+	inputManager.registerButtonUpHandler(LLGL::Key::Down, [=]() { MoveDown(); });
+	inputManager.registerButtonUpHandler(LLGL::Key::Left, [=]() { MoveLeft(); });
+	inputManager.registerButtonUpHandler(LLGL::Key::Right, [=]() { MoveRight(); });
+
+	inputManager.registerZoomInHandler([=]() { ZoomIn(); });
+	inputManager.registerZoomOutHandler([=]() { ZoomOut(); });
+
+	UpdateView();
 }
 
 glm::mat4 Camera::GetView() const

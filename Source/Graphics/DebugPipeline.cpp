@@ -1,4 +1,4 @@
-#include "LLGL/Utility.h"
+#include "LLGL/Misc/Utility.h"
 #include "Core/Renderer.h"
 #include "Core/ResourceManager.h"
 #include "Core/Shader.h"
@@ -16,6 +16,7 @@ void DebugPipeline::Render(LLGL::CommandBuffer& commands) const
 {
 	// set graphics pipeline
 	commands.SetPipelineState(*mPipeline);
+	commands.SetResourceHeap(*mResourceHeap);
 
 	const auto renderObjects = mResourceManager.GetDebugDrawList();
 	for (const auto obj : renderObjects)
@@ -26,11 +27,10 @@ void DebugPipeline::Render(LLGL::CommandBuffer& commands) const
 }
 
 void DebugPipeline::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& commands, glm::mat4 model,
-                                                     glm::mat4 projection, glm::mat4 view) const
+                                                     glm::mat4 projection, glm::mat4 view)
 {
-	const LLGL::UniformLocation pvmUniform = mShader->GetShaderProgram().FindUniformLocation("pvmMat");
-	const auto pvmMat = projection * view * model;
-	commands.SetUniform(pvmUniform, &pvmMat, sizeof(pvmMat));
+	settings.pvmMat = projection * view * model;
+	commands.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
 }
 
 void DebugPipeline::ClearDebugDraw() const
@@ -52,18 +52,35 @@ void DebugPipeline::AddRenderObjectVBuffer(RenderObject& obj) const
 
 void DebugPipeline::_InitPipeline()
 {
+	mConstantBuffer = mRenderer.GetRendererSystem()->CreateBuffer(LLGL::ConstantBufferDesc(sizeof(Settings)),
+	                                                              &settings);
 	LLGL::VertexFormat vertexFormat;
 	vertexFormat.AppendAttribute({"position", LLGL::Format::RGB32Float});
 	vertexFormat.AppendAttribute({"color", LLGL::Format::RGB32Float});
 	vertexFormat.AppendAttribute({"texCoord", LLGL::Format::RG32Float});
+	vertexFormat.SetStride(sizeof(Vertex));
 
 	mShader = new Shader(*mRenderer.GetRendererSystem(), vertexFormat, "debug.vert", "debug.frag");
+
+	// Create pipeline layout
+	const auto pipelineLayout = mRenderer.GetRendererSystem()->CreatePipelineLayout(LLGL::PipelineLayoutDesc(
+		"cbuffer(0):vert:frag"));
 
 	// Create graphics pipeline
 	LLGL::GraphicsPipelineDescriptor pipelineDesc;
 	{
-		pipelineDesc.shaderProgram = &mShader->GetShaderProgram();
+		pipelineDesc.vertexShader = &mShader->GetVertexShader();
+		pipelineDesc.fragmentShader = &mShader->GetFragmentShader();
 		pipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::LineList;
 	}
 	mPipeline = mRenderer.GetRendererSystem()->CreatePipelineState(pipelineDesc);
+
+	auto textures = mResourceManager.getTextures();
+
+	LLGL::ResourceHeapDescriptor resourceHeapDesc;
+	{
+		resourceHeapDesc.pipelineLayout = pipelineLayout;
+		resourceHeapDesc.resourceViews = {mConstantBuffer};
+	}
+	mResourceHeap = mRenderer.GetRendererSystem()->CreateResourceHeap(resourceHeapDesc);
 }

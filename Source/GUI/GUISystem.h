@@ -23,7 +23,7 @@ public:
 	void GUIEndFrame();
 
 private:
-	const char* GLSL_VERSION = "#version 130";
+	const char* GLSL_VERSION = "#version 460";
 	HWND mNativeWindow = nullptr;
 
 	// example

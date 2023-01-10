@@ -8,7 +8,7 @@ class Renderer;
 class RenderObject
 {
 public:
-	RenderObject(glm::vec3 pos, glm::vec3 size);
+	RenderObject(glm::vec3 pos, glm::vec3 size, int textureId = 0);
 
 	virtual ~RenderObject() = default;
 
@@ -30,6 +30,8 @@ public:
 	void SetVertexBuffer(LLGL::Buffer* buffer);
 	const std::vector<Vertex>& GetVertices() const;
 
+	int getTextureId() const;
+
 protected:
 	void _UpdateModelMatrix();
 
@@ -41,4 +43,6 @@ protected:
 
 	LLGL::Buffer* mVertexBuffer = nullptr;
 	std::vector<Vertex> mVertices;
+
+	int mTextureId = 0;
 };

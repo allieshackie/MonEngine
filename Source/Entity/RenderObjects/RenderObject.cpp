@@ -2,7 +2,8 @@
 
 #include "RenderObject.h"
 
-RenderObject::RenderObject(glm::vec3 pos, glm::vec3 size) : mPosition(pos), mSize(size)
+RenderObject::RenderObject(glm::vec3 pos, glm::vec3 size, int textureId) : mPosition(pos), mSize(size),
+                                                                           mTextureId(textureId)
 {
 }
 
@@ -74,4 +75,9 @@ void RenderObject::SetVertexBuffer(LLGL::Buffer* buffer)
 const std::vector<Vertex>& RenderObject::GetVertices() const
 {
 	return mVertices;
+}
+
+int RenderObject::getTextureId() const
+{
+	return mTextureId;
 }

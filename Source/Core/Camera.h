@@ -4,12 +4,13 @@
 #include <glm/vec3.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
+class InputManager;
 class Renderer;
 
 class Camera
 {
 public:
-	Camera(Renderer& renderer);
+	Camera(Renderer& renderer, const InputManager& inputManager);
 	~Camera() = default;
 
 	glm::mat4 GetView() const;

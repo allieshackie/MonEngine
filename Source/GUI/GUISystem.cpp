@@ -53,7 +53,7 @@ void GUISystem::initGUI(const Renderer& renderer)
 
 	// Setup Renderer backend
 	LLGL::NativeHandle mainWindowHandle;
-	renderer.GetContext().GetSurface().GetNativeHandle(&mainWindowHandle, sizeof(mainWindowHandle));
+	renderer.GetSwapChain().GetSurface().GetNativeHandle(&mainWindowHandle, sizeof(mainWindowHandle));
 	mNativeWindow = mainWindowHandle.window;
 
 	ImGui_ImplWin32_Init(mainWindowHandle.window);

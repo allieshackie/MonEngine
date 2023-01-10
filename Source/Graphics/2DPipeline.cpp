@@ -1,11 +1,15 @@
-#include "LLGL/Utility.h"
+#include "LLGL/Misc/VertexFormat.h"
+#include "LLGL/Misc/Utility.h"
 
 #include "Core/Renderer.h"
 #include "Core/ResourceManager.h"
 #include "Core/Shader.h"
 #include "RenderObjects/RenderObject.h"
+#include "RenderObjects/Sprite.h"
+#include "Texture.h"
 
 #include "2DPipeline.h"
+
 
 Pipeline2D::Pipeline2D(Renderer& renderer, ResourceManager& resourceManager)
 	: mRenderer(renderer), mResourceManager(resourceManager)
@@ -22,6 +26,7 @@ void Pipeline2D::Render(LLGL::CommandBuffer& commands) const
 	const auto renderObjects = mResourceManager.GetDrawList();
 	for (const auto obj : renderObjects)
 	{
+		commands.SetResourceHeap(*mResourceHeap, obj->getTextureId());
 		obj->Draw(mRenderer, commands);
 	}
 }
@@ -39,32 +44,35 @@ void Pipeline2D::_InitPipeline()
 	mShader = new Shader(*mRenderer.GetRendererSystem(), vertexFormat, "sprite.vert", "sprite.frag");
 
 	// All layout bindings that will be used by graphics and compute pipelines
-	LLGL::PipelineLayoutDescriptor layoutDesc;
-	{
-		layoutDesc.bindings =
-		{
-			LLGL::BindingDescriptor{
-				LLGL::ResourceType::Buffer, LLGL::BindFlags::ConstantBuffer, LLGL::StageFlags::AllStages, 0
-			},
-			LLGL::BindingDescriptor{
-				LLGL::ResourceType::Texture, LLGL::BindFlags::Sampled, LLGL::StageFlags::FragmentStage, 0u
-			},
-			LLGL::BindingDescriptor{LLGL::ResourceType::Sampler, 0, LLGL::StageFlags::FragmentStage, 0},
-		};
-	}
 	// Create pipeline layout
-	const auto pipelineLayout = mRenderer.GetRendererSystem()->CreatePipelineLayout(layoutDesc);
+	const auto pipelineLayout = mRenderer.GetRendererSystem()->CreatePipelineLayout(LLGL::PipelineLayoutDesc(
+		"cbuffer(0):vert:frag, texture(0):frag, sampler(0):frag"));
 
 	// Create graphics pipeline
 	LLGL::GraphicsPipelineDescriptor pipelineDesc;
 	{
-		pipelineDesc.shaderProgram = &mShader->GetShaderProgram();
+		pipelineDesc.vertexShader = &mShader->GetVertexShader();
+		pipelineDesc.fragmentShader = &mShader->GetFragmentShader();
 		pipelineDesc.pipelineLayout = pipelineLayout;
 		pipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::TriangleStrip;
 	}
 	mPipeline = mRenderer.GetRendererSystem()->CreatePipelineState(pipelineDesc);
 
-	mResourceManager.CreateResourceHeap(*mRenderer.GetRendererSystem(), *pipelineLayout, *mConstantBuffer);
+	auto textures = mResourceManager.getTextures();
+
+	LLGL::ResourceHeapDescriptor resourceHeapDesc;
+	{
+		resourceHeapDesc.pipelineLayout = pipelineLayout;
+		resourceHeapDesc.resourceViews.reserve(textures.size() * 3);
+
+		for (const auto& texture : textures)
+		{
+			resourceHeapDesc.resourceViews.emplace_back(mConstantBuffer);
+			resourceHeapDesc.resourceViews.emplace_back(&texture.second->GetTextureData());
+			resourceHeapDesc.resourceViews.emplace_back(&texture.second->GetSamplerData());
+		}
+	}
+	mResourceHeap = mRenderer.GetRendererSystem()->CreateResourceHeap(resourceHeapDesc);
 
 	mVertexBuffer = mRenderer.GetRendererSystem()->CreateBuffer(
 		VertexBufferDesc(static_cast<std::uint32_t>(mVertices.size() * sizeof(Vertex)), mShader->GetVertexFormat()),
@@ -76,7 +84,13 @@ void Pipeline2D::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& commands,
                                                   glm::mat4 view)
 {
 	spriteSettings.pvmMat = projection * view * model;
-	commands.UpdateBuffer(*mConstantBuffer, 0, &spriteSettings, sizeof(SpriteSettings));
+	commands.UpdateBuffer(*mConstantBuffer, 0, &spriteSettings, sizeof(spriteSettings));
+}
+
+void Pipeline2D::UpdateTextureClipUniform(LLGL::CommandBuffer& commands, glm::mat4 textureClip)
+{
+	spriteSettings.textureTransform = textureClip;
+	commands.UpdateBuffer(*mConstantBuffer, 0, &spriteSettings, sizeof(spriteSettings));
 }
 
 // TODO: We don't need individual vertex buffers since they all share one
@@ -89,10 +103,4 @@ void Pipeline2D::AddRenderObjectVBuffer(RenderObject& obj) const
 		mVertices.data()
 	));
 	 */
-}
-
-void Pipeline2D::UpdateTextureClipUniform(LLGL::CommandBuffer& commands, glm::mat4 textureClip)
-{
-	spriteSettings.textureClip = textureClip;
-	commands.UpdateBuffer(*mConstantBuffer, 0, &spriteSettings, sizeof(SpriteSettings));
 }

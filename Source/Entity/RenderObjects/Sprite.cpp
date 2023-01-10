@@ -3,7 +3,7 @@
 
 #include "Sprite.h"
 
-Sprite::Sprite(int textureId, glm::vec3 pos, glm::vec3 size) : RenderObject(pos, size), mTextureId(textureId)
+Sprite::Sprite(int textureId, glm::vec3 pos, glm::vec3 size) : RenderObject(pos, size, textureId)
 {
 	mVertices = {
 		{{-0.5, -0.5, 1}, {1, 1, 1}, {0, 0}}, // top left
@@ -16,9 +16,9 @@ Sprite::Sprite(int textureId, glm::vec3 pos, glm::vec3 size) : RenderObject(pos,
 
 void Sprite::Draw(const Renderer& renderer, LLGL::CommandBuffer& commands)
 {
-	renderer.SetTexture(mTextureId);
 	Update();
 	renderer.Update2DProjectionViewModelUniform(mModel);
+	renderer.Update2DTextureClipUniform(mTextureClip);
 	commands.Draw(4, 0);
 }
 

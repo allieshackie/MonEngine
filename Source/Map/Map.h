@@ -16,7 +16,6 @@ public:
 
 	void Draw(const Renderer& renderer, LLGL::CommandBuffer& commands) override;
 
-
 	glm::vec3 GetMapPosition() const;
 	glm::vec2 GetMapRowsColumns() const;
 	glm::vec3 GetMapSize() const;

@@ -14,7 +14,6 @@ void Tile::Draw(const Renderer& renderer, LLGL::CommandBuffer& commands)
 {
 	if (!mEmpty)
 	{
-		renderer.SetTexture(mTextureId);
 		Update();
 		renderer.Update2DProjectionViewModelUniform(mModel);
 		UpdateTextureClip();
