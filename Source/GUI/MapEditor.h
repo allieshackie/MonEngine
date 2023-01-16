@@ -12,14 +12,14 @@ class MapEditor
 {
 public:
 	MapEditor(Renderer& renderer, ResourceManager& resourceManager, InteractionManager& interactionManager);
-	~MapEditor() = default;
+	~MapEditor();
 
 	void RenderGUI();
 
 	static void ShowNewMapMenu();
 	static void ShowLoadMapMenu();
 
-	void PaintTile(RenderObject& tile);
+	void PaintTile(RenderObject& tile) const;
 
 private:
 	// PALLETTE
@@ -48,7 +48,7 @@ private:
 	int current_brush_index = 0;
 
 	int current_hovered_tile_index = -1;
-	Map* mCurrentMap = nullptr;
+	std::shared_ptr<Map> mCurrentMap = nullptr;
 
 	GLuint mPalletteTextureId = -1;
 	int mPalletteTextureWidth = 0;

@@ -80,31 +80,32 @@ private:
 class Grid : public DebugDrawable
 {
 public:
-	Grid(Box box, std::vector<Line> lines, glm::vec3 pos, glm::vec3 size, glm::vec3 colorParam)
+	Grid(std::unique_ptr<Box> box, std::vector<std::unique_ptr<Line>>& lines, glm::vec3 pos, glm::vec3 size,
+	     glm::vec3 colorParam)
 		: DebugDrawable(pos, size, colorParam), mOutline(std::move(box)), mLines(std::move(lines))
 	{
 		mVertices = {
-			{mOutline.GetPointA(), color, {0, 0}},
-			{mOutline.GetPointB(), color, {0, 0}},
-			{mOutline.GetPointB(), color, {0, 0}},
-			{mOutline.GetPointD(), color, {0, 0}},
-			{mOutline.GetPointD(), color, {0, 0}},
-			{mOutline.GetPointC(), color, {0, 0}},
-			{mOutline.GetPointC(), color, {0, 0}},
-			{mOutline.GetPointA(), color, {0, 0}},
+			{mOutline->GetPointA(), color, {0, 0}},
+			{mOutline->GetPointB(), color, {0, 0}},
+			{mOutline->GetPointB(), color, {0, 0}},
+			{mOutline->GetPointD(), color, {0, 0}},
+			{mOutline->GetPointD(), color, {0, 0}},
+			{mOutline->GetPointC(), color, {0, 0}},
+			{mOutline->GetPointC(), color, {0, 0}},
+			{mOutline->GetPointA(), color, {0, 0}},
 		};
 
 		for (auto& line : mLines)
 		{
-			mVertices.push_back({line.GetPointA(), line.GetColor(), {0, 0}});
-			mVertices.push_back({line.GetPointB(), line.GetColor(), {0, 0}});
+			mVertices.push_back({line->GetPointA(), line->GetColor(), {0, 0}});
+			mVertices.push_back({line->GetPointB(), line->GetColor(), {0, 0}});
 		}
 	}
 
-	const Box& GetOutline() { return mOutline; }
-	const std::vector<Line>& GetLines() { return mLines; }
+	const Box& GetOutline() const { return *mOutline; }
+	const std::vector<std::unique_ptr<Line>>& GetLines() { return mLines; }
 
 private:
-	Box mOutline;
-	std::vector<Line> mLines;
+	std::unique_ptr<Box> mOutline;
+	std::vector<std::unique_ptr<Line>> mLines;
 };

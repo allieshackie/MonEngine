@@ -21,6 +21,13 @@ MapEditor::MapEditor(Renderer& renderer, ResourceManager& resourceManager, Inter
 	_GetAllMapFileNames();
 }
 
+MapEditor::~MapEditor()
+{
+	//delete MAP_FOLDER;
+	//delete TILESET_FOLDER;
+	//delete TEXT_FILE;
+}
+
 void MapEditor::RenderGUI()
 {
 	if (show_new_map_menu) _NewMapMenu(&show_new_map_menu);
@@ -39,9 +46,12 @@ void MapEditor::ShowLoadMapMenu()
 	show_load_map_menu = true;
 }
 
-void MapEditor::PaintTile(RenderObject& tile)
+void MapEditor::PaintTile(RenderObject& tile) const
 {
-	std::cout << "Paint Tile" << std::endl;
+	if (const auto tileObj = dynamic_cast<Tile*>(&tile); tileObj != nullptr)
+	{
+		mCurrentMap->UpdateTile(tileObj->GetIndex(), current_brush_index);
+	}
 }
 
 void MapEditor::_GetAllMapFileNames()
@@ -139,7 +149,7 @@ void MapEditor::_LoadMapMenu(bool* p_open)
 
 void MapEditor::_LoadMap(const char* mapName)
 {
-	mCurrentMap = mResourceManager.CreateMap({0, 0, 0}, mapName);
+	mCurrentMap = mResourceManager.CreateMap({0, 0, 10}, mapName);
 	for (const auto& tile : mCurrentMap->GetTiles())
 	{
 		mInteractionManager.AddInteractableObject(tile);
@@ -221,7 +231,6 @@ void MapEditor::_CreateMapDebugGrid(const Map& map)
 	const glm::vec2 rowsColumns = map.GetMapRowsColumns();
 
 	mResourceManager.CreateGrid(mRenderer, pos, size, rowsColumns.x, rowsColumns.y, {255, 255, 255});
-	mResourceManager.CreateBox(mRenderer, {-50, -50, 0}, {1, 1, 1}, {255, 0, 0}); //red
 }
 
 void MapEditor::_CenterWindow(float width, float height)
