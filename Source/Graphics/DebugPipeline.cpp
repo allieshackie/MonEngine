@@ -12,6 +12,11 @@ DebugPipeline::DebugPipeline(Renderer& renderer, ResourceManager& resourceManage
 	_InitPipeline();
 }
 
+DebugPipeline::~DebugPipeline()
+{
+	delete mPipeline;
+}
+
 void DebugPipeline::Render(LLGL::CommandBuffer& commands) const
 {
 	// set graphics pipeline
@@ -44,8 +49,8 @@ void DebugPipeline::AddRenderObjectVBuffer(RenderObject& obj) const
 	{
 		obj.SetVertexBuffer(
 			mRenderer.GetRendererSystem()->CreateBuffer(
-				VertexBufferDesc(static_cast<std::uint32_t>(obj.GetVertices().size() * sizeof(Vertex)),
-				                 mShader->GetVertexFormat()),
+				LLGL::VertexBufferDesc(static_cast<std::uint32_t>(obj.GetVertices().size() * sizeof(Vertex)),
+				                       mShader->GetVertexFormat()),
 				obj.GetVertices().data()));
 	}
 }
@@ -60,7 +65,7 @@ void DebugPipeline::_InitPipeline()
 	vertexFormat.AppendAttribute({"texCoord", LLGL::Format::RG32Float});
 	vertexFormat.SetStride(sizeof(Vertex));
 
-	mShader = new Shader(*mRenderer.GetRendererSystem(), vertexFormat, "debug.vert", "debug.frag");
+	mShader = std::make_unique<Shader>(*mRenderer.GetRendererSystem(), vertexFormat, "debug.vert", "debug.frag");
 
 	// Create pipeline layout
 	const auto pipelineLayout = mRenderer.GetRendererSystem()->CreatePipelineLayout(LLGL::PipelineLayoutDesc(

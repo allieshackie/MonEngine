@@ -18,7 +18,7 @@ class Renderer
 {
 public:
 	Renderer(ResourceManager& resourceManager);
-	~Renderer() = default;
+	~Renderer();
 
 	void OnDrawFrame(const std::function<void()>& drawCallback) const;
 

@@ -7,6 +7,11 @@ RenderObject::RenderObject(glm::vec3 pos, glm::vec3 size, int textureId) : mPosi
 {
 }
 
+RenderObject::~RenderObject()
+{
+	mVertices.clear();
+}
+
 void RenderObject::Update()
 {
 	_UpdateModelMatrix();

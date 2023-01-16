@@ -12,6 +12,14 @@ Pipeline3D::Pipeline3D(Renderer& renderer, ResourceManager& resourceManager)
 	_InitPipeline();
 }
 
+Pipeline3D::~Pipeline3D()
+{
+	delete mPipeline;
+	delete mConstantBuffer;
+	delete mVertexBuffer;
+	delete mVolumeResourceHeap;
+}
+
 void Pipeline3D::Render(LLGL::CommandBuffer& commands) const
 {
 	// Set resources
@@ -36,7 +44,7 @@ void Pipeline3D::_InitPipeline()
 	vertexFormat.AppendAttribute({"texCoord", LLGL::Format::RG32Float});
 	vertexFormat.SetStride(sizeof(TexturedVertex));
 
-	mShader = new Shader(*mRenderer.GetRendererSystem(), vertexFormat, "volume.vert", "volume.frag");
+	mShader = std::make_unique<Shader>(*mRenderer.GetRendererSystem(), vertexFormat, "volume.vert", "volume.frag");
 
 	// All layout bindings that will be used by graphics and compute pipelines
 	LLGL::PipelineLayoutDescriptor layoutDesc;
@@ -68,6 +76,8 @@ void Pipeline3D::_InitPipeline()
 		heapDesc.resourceViews = {mConstantBuffer};
 	}
 	mVolumeResourceHeap = mRenderer.GetRendererSystem()->CreateResourceHeap(heapDesc);
+
+	delete pipelineLayout;
 }
 
 void Pipeline3D::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& commands, glm::mat4 model, glm::mat4 projection,
@@ -83,7 +93,7 @@ void Pipeline3D::AddRenderObjectVBuffer(RenderObject& obj)
 	// TODO: Hardcoded volume test
 	std::vector<TexturedVertex> vertices;
 	mResourceManager.LoadObjModel(vertices, "../Data/Models/Pyramid.obj");
-	model = new Model();
+	model = std::make_unique<Model>();
 	model->numVertices = static_cast<std::uint32_t>(vertices.size());
 
 	mVertexBuffer = mRenderer.GetRendererSystem()->CreateBuffer(

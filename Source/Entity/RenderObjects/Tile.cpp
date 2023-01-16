@@ -54,3 +54,13 @@ void Tile::SetEmpty(bool empty)
 {
 	mEmpty = empty;
 }
+
+int Tile::GetIndex() const
+{
+	return mIndex;
+}
+
+void Tile::SetIndex(int index)
+{
+	mIndex = index;
+}

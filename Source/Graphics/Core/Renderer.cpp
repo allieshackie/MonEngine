@@ -15,6 +15,13 @@ Renderer::Renderer(ResourceManager& resourceManager): mResourceManager(resourceM
 	_Init();
 }
 
+Renderer::~Renderer()
+{
+	//delete mSwapChain;
+	//delete mCommands;
+	//delete mCommandQueue;
+}
+
 void Renderer::_Init()
 {
 	try
@@ -33,8 +40,12 @@ void Renderer::_Init()
 		mSwapChain = mRenderer->CreateSwapChain(swapChainDesc);
 		mSwapChain->SetVsyncInterval(1);
 
+		LLGL::CommandBufferDescriptor cmdBufferDesc;
+		{
+			cmdBufferDesc.flags = LLGL::CommandBufferFlags::ImmediateSubmit;
+		}
 		// Create command buffer to submit graphics commands
-		mCommands = mRenderer->CreateCommandBuffer();
+		mCommands = mRenderer->CreateCommandBuffer(cmdBufferDesc);
 
 		// Get command queue to record and submit command buffers
 		mCommandQueue = mRenderer->GetCommandQueue();
@@ -66,7 +77,7 @@ void Renderer::_Init()
 	mResourceManager.LoadAllTexturesFromFolder(*mRenderer);
 	mPipeline2D = std::make_unique<Pipeline2D>(*this, mResourceManager);
 	// TODO: Enable for 3D
-	//mPipeline3D = std::make_unique<Pipeline3D>(*mRenderer);
+	//mPipeline3D = std::make_unique<Pipeline3D>(*this, mResourceManager);
 	mDebugPipeline = std::make_unique<DebugPipeline>(*this, mResourceManager);
 	// NOTE: Projection update must occur after debug shader is initialized
 	UpdateProjection();
@@ -109,7 +120,7 @@ void Renderer::UpdateProjection()
 	const auto res = mSwapChain->GetResolution();
 	mProjection = glm::perspective(glm::radians(45.0f),
 	                               static_cast<float>(res.width) / static_cast<float>(res.height),
-	                               0.1f, 1000.0f);
+	                               0.1f, 100.0f);
 }
 
 void Renderer::UpdateView(glm::mat4 view)
@@ -125,7 +136,7 @@ glm::mat4 Renderer::GetProjection() const
 glm::vec3 Renderer::NormalizedDeviceCoords(glm::vec3 vec) const
 {
 	const auto res = mSwapChain->GetResolution();
-	return {vec.x / res.width - 1.0f, 1.0f - vec.y / res.height, vec.z};
+	return {(2.0f * vec.x) / res.width - 1.0f, 1.0f - (2.0f * vec.y) / res.height, vec.z};
 }
 
 void Renderer::Update2DProjectionViewModelUniform(glm::mat4 model) const

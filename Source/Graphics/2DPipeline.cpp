@@ -17,6 +17,13 @@ Pipeline2D::Pipeline2D(Renderer& renderer, ResourceManager& resourceManager)
 	_InitPipeline();
 }
 
+Pipeline2D::~Pipeline2D()
+{
+	delete mPipeline;
+	delete mConstantBuffer;
+	delete mVertexBuffer;
+}
+
 void Pipeline2D::Render(LLGL::CommandBuffer& commands) const
 {
 	// set graphics pipeline
@@ -41,7 +48,7 @@ void Pipeline2D::_InitPipeline()
 	vertexFormat.AppendAttribute({"color", LLGL::Format::RGB32Float});
 	vertexFormat.AppendAttribute({"texCoord", LLGL::Format::RG32Float});
 
-	mShader = new Shader(*mRenderer.GetRendererSystem(), vertexFormat, "sprite.vert", "sprite.frag");
+	mShader = std::make_unique<Shader>(*mRenderer.GetRendererSystem(), vertexFormat, "sprite.vert", "sprite.frag");
 
 	// All layout bindings that will be used by graphics and compute pipelines
 	// Create pipeline layout
@@ -78,6 +85,8 @@ void Pipeline2D::_InitPipeline()
 		VertexBufferDesc(static_cast<std::uint32_t>(mVertices.size() * sizeof(Vertex)), mShader->GetVertexFormat()),
 		mVertices.data()
 	);
+
+	delete pipelineLayout;
 }
 
 void Pipeline2D::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& commands, glm::mat4 model, glm::mat4 projection,

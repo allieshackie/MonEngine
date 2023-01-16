@@ -1,4 +1,5 @@
 #include "Core/Window.h"
+#include "Core/ResourceManager.h"
 #include "Camera.h"
 #include "GUISystem.h"
 #include "InputHandler.h"
@@ -9,8 +10,6 @@
 #include "UIInputManager.h"
 
 #include "Game.h"
-
-#include "Core/ResourceManager.h"
 
 int main(int argc, char** argv)
 {
@@ -58,19 +57,15 @@ void Game::closeGame()
 
 void Game::runGame() const
 {
-	//mResourceManager->AddTile("tiles.jpg", {0, 0, 10}, {1, 1, 1}, {.1, .1}, {1, 1});
-	//mResourceManager->CreateBox(*mRenderer, {0, 0, 10}, {1, 1, 1}, {255, 0, 0});
-	mResourceManager->AddSprite("awesomeface.png", {0, 0, 10}, {1, 1, 1});
-	//mResourceManager->CreateMap({0, 0, 10}, "map0");
 	while (mRenderer->GetSwapChain().GetSurface().ProcessEvents() && mRunning)
 	{
 		mRenderer->OnDrawFrame([=]()
 		{
 			// Render GUI
 			mGUISystem->GUIStartFrame();
-			//mTileSetEditor->RenderGUI();
-			//mMapEditor->RenderGUI();
-			mTileSetEditor->RenderTest();
+			mTileSetEditor->RenderGUI();
+			mMapEditor->RenderGUI();
+			//mTileSetEditor->RenderTest();
 			mGUISystem->GUIEndFrame();
 		});
 	}

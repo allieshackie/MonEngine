@@ -14,7 +14,7 @@ class TileSetEditor
 {
 public:
 	TileSetEditor(Renderer& renderer, ResourceManager& resourceManager, Camera& camera);
-	~TileSetEditor() = default;
+	~TileSetEditor();
 
 	void RenderGUI();
 	void RenderTest();
@@ -40,7 +40,7 @@ private:
 
 	void _CenterWindow(float width, float height);
 
-	Tile* mCurrentSprite = nullptr;
+	std::shared_ptr<Tile> mCurrentSprite = nullptr;
 	Camera& mCamera;
 	std::shared_ptr<TileSetDescription> mCurrentTileset;
 	ImGuiWindowFlags mWindowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;

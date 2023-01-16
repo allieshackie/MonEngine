@@ -16,16 +16,7 @@ namespace fs = std::filesystem;
 
 ResourceManager::~ResourceManager()
 {
-	for (const auto& tex : mTextures)
-	{
-		delete(tex.second);
-	}
 	mTextures.clear();
-
-	for (const auto draw : mDrawList)
-	{
-		delete(draw);
-	}
 	mDrawList.clear();
 }
 
@@ -44,8 +35,8 @@ void ResourceManager::LoadTexture(LLGL::RenderSystem& renderer, const std::strin
 {
 	if (mTextures.find(textureId) == mTextures.end())
 	{
-		const auto texture = new Texture(renderer, filePath);
-		mTextures[textureId] = texture;
+		auto texture = std::make_shared<Texture>(renderer, filePath);
+		mTextures[textureId] = std::move(texture);
 		mTextureIds[textureName] = textureId;
 	}
 }
@@ -70,7 +61,7 @@ glm::vec2 ResourceManager::GetTextureSize(int textureId)
 	return {0, 0};
 }
 
-Texture* ResourceManager::GetTextureFromName(const std::string& filePath)
+std::shared_ptr<Texture> ResourceManager::GetTextureFromName(const std::string& filePath)
 {
 	const auto textureId = GetTextureId(filePath);
 	const auto textureIt = mTextures.find(textureId);
@@ -80,17 +71,17 @@ Texture* ResourceManager::GetTextureFromName(const std::string& filePath)
 	return textureIt->second;
 }
 
-const std::unordered_map<int, Texture*>& ResourceManager::getTextures()
+const std::unordered_map<int, std::shared_ptr<Texture>>& ResourceManager::getTextures()
 {
 	return mTextures;
 }
 
-const std::vector<RenderObject*>& ResourceManager::GetDrawList()
+const std::vector<std::shared_ptr<RenderObject>>& ResourceManager::GetDrawList()
 {
 	return mDrawList;
 }
 
-const std::vector<DebugDrawable*>& ResourceManager::GetDebugDrawList()
+const std::vector<std::shared_ptr<DebugDrawable>>& ResourceManager::GetDebugDrawList()
 {
 	return mDebugDrawList;
 }
@@ -105,9 +96,9 @@ void ResourceManager::AddSprite(const std::string& textureName, glm::vec3 pos, g
 	const auto textureId = mTextureIds.find(textureName);
 	if (textureId != mTextureIds.end())
 	{
-		const auto sprite = new Sprite(textureId->second, pos, size);
+		auto sprite = std::make_shared<Sprite>(textureId->second, pos, size);
 		//Renderer::GetInstance()->Add2DRenderObject(*sprite);
-		mDrawList.emplace_back(sprite);
+		mDrawList.emplace_back(std::move(sprite));
 	}
 }
 
@@ -118,47 +109,47 @@ void ResourceManager::AddTile(const std::string& textureName, glm::vec3 pos, glm
 	const auto textureId = mTextureIds.find(textureName);
 	if (textureId != mTextureIds.end())
 	{
-		const auto sprite = new Tile(textureId->second, pos, size, clip, scale);
+		auto tile = std::make_shared<Tile>(textureId->second, pos, size, clip, scale);
 		//Renderer::GetInstance()->Add2DRenderObject(*sprite);
-		mDrawList.emplace_back(sprite);
+		mDrawList.emplace_back(std::move(tile));
 	}
 }
 
-Sprite* ResourceManager::CreateSprite(const std::string& textureName, glm::vec3 pos, glm::vec3 size)
+std::shared_ptr<Sprite> ResourceManager::CreateSprite(const std::string& textureName, glm::vec3 pos, glm::vec3 size)
 {
 	const auto textureId = mTextureIds.find(textureName);
 	if (textureId != mTextureIds.end())
 	{
-		const auto sprite = new Sprite(textureId->second, pos, size);
+		auto sprite = std::make_shared<Sprite>(textureId->second, pos, size);
 		return sprite;
 	}
 
 	return nullptr;
 }
 
-Tile* ResourceManager::CreateTile(const std::string& textureName, glm::vec3 pos, glm::vec3 size,
-                                  glm::vec2 clip,
-                                  glm::vec2 scale)
+std::shared_ptr<Tile> ResourceManager::CreateTile(const std::string& textureName, glm::vec3 pos, glm::vec3 size,
+                                                  glm::vec2 clip,
+                                                  glm::vec2 scale)
 {
 	const auto textureId = mTextureIds.find(textureName);
 	if (textureId != mTextureIds.end())
 	{
-		const auto tile = new Tile(textureId->second, pos, size, clip, scale);
+		auto tile = std::make_shared<Tile>(textureId->second, pos, size, clip, scale);
 		return tile;
 	}
 	return nullptr;
 }
 
-Map* ResourceManager::CreateMap(glm::vec3 pos, const char* fileName)
+std::shared_ptr<Map> ResourceManager::CreateMap(glm::vec3 pos, const char* fileName)
 {
 	// TODO: Why is this pointer empty? 
-	const auto map = new Map(*this, pos, fileName);
+	auto map = std::make_shared<Map>(*this, pos, fileName);
 	//Renderer::GetInstance()->Add2DRenderObject(*map);
 	mDrawList.emplace_back(map);
 	return map;
 }
 
-void ResourceManager::AddRenderObjectToDrawList(RenderObject* obj)
+void ResourceManager::AddRenderObjectToDrawList(std::shared_ptr<RenderObject> obj)
 {
 	mDrawList.emplace_back(obj);
 }
@@ -251,47 +242,57 @@ TriangleMesh ResourceManager::LoadObjModel(std::vector<TexturedVertex>& vertices
 
 void ResourceManager::CreateLine(const Renderer& renderer, glm::vec3 pointA, glm::vec3 pointB, glm::vec3 color)
 {
-	const auto debugLine = new Line(pointA, pointB, {0, 0, 0}, {1, 1, 1}, color);
+	auto debugLine = std::make_shared<Line>(pointA, pointB, glm::vec3{0, 0, 0}, glm::vec3{1, 1, 1}, color);
 	renderer.AddDebugRenderObject(*debugLine);
-	mDebugDrawList.push_back(debugLine);
+	mDebugDrawList.push_back(std::move(debugLine));
 }
 
 void ResourceManager::CreateBox(const Renderer& renderer, glm::vec3 position, glm::vec3 size, glm::vec3 color)
 {
-	const auto debugBox = new Box(position, size, color);
+	auto debugBox = std::make_shared<Box>(position, size, color);
 	renderer.AddDebugRenderObject(*debugBox);
-	mDebugDrawList.push_back(debugBox);
+	mDebugDrawList.push_back(std::move(debugBox));
 }
 
 void ResourceManager::CreateGrid(const Renderer& renderer, glm::vec3 position, glm::vec3 size, int rows, int columns,
                                  glm::vec3 color)
 {
-	Box debugBox(position, size, color);
-	std::vector<Line> lines;
-	float totalYDist = abs(debugBox.GetPointB().y - debugBox.GetPointA().y);
-	float yAmountToJump = totalYDist / rows;
+	auto debugBox = std::make_unique<Box>(position, size, color);
+	std::vector<std::unique_ptr<Line>> lines;
+	const float totalYDist = abs(debugBox->GetPointB().y - debugBox->GetPointA().y);
+	const float yAmountToJump = totalYDist / rows;
 	for (int i = 1; i < rows; i++)
 	{
-		Line line({debugBox.GetPointA().x, debugBox.GetPointA().y - (i * yAmountToJump), debugBox.GetPointA().z}, {
-			          debugBox.GetPointC().x, debugBox.GetPointC().y - (i * yAmountToJump), debugBox.GetPointC().z
-		          }, position, size, color);
-		lines.push_back(line);
+		auto line = std::make_unique<Line>(glm::vec3{
+			                                   debugBox->GetPointA().x, debugBox->GetPointA().y - (i * yAmountToJump),
+			                                   debugBox->GetPointA().z
+		                                   },
+		                                   glm::vec3{
+			                                   debugBox->GetPointC().x, debugBox->GetPointC().y - (i * yAmountToJump),
+			                                   debugBox->GetPointC().z
+		                                   }, position, size, color);
+		lines.push_back(std::move(line));
 	}
 
-	float totalXDist = abs(debugBox.GetPointC().x - debugBox.GetPointA().x);
-	float xAmountToJump = totalXDist / columns;
+	const float totalXDist = abs(debugBox->GetPointC().x - debugBox->GetPointA().x);
+	const float xAmountToJump = totalXDist / columns;
 	for (int i = 1; i < columns; i++)
 	{
-		Line line({debugBox.GetPointA().x + (i * xAmountToJump), debugBox.GetPointA().y, debugBox.GetPointA().z}, {
-			          debugBox.GetPointB().x + (i * xAmountToJump), debugBox.GetPointB().y, debugBox.GetPointB().z
-		          }, position, size, color);
-		lines.push_back(line);
+		auto line = std::make_unique<Line>(glm::vec3{
+			                                   debugBox->GetPointA().x + (i * xAmountToJump), debugBox->GetPointA().y,
+			                                   debugBox->GetPointA().z
+		                                   },
+		                                   glm::vec3{
+			                                   debugBox->GetPointB().x + (i * xAmountToJump), debugBox->GetPointB().y,
+			                                   debugBox->GetPointB().z
+		                                   }, position, size, color);
+		lines.push_back(std::move(line));
 	}
 
-	auto debugGrid = new Grid(debugBox, lines, position, size, color);
+	auto debugGrid = std::make_shared<Grid>(std::move(debugBox), lines, position, size, color);
 
 	renderer.AddDebugRenderObject(*debugGrid);
-	mDebugDrawList.push_back(debugGrid);
+	mDebugDrawList.push_back(std::move(debugGrid));
 }
 
 // Simple helper function to load an image into a OpenGL texture with common settings

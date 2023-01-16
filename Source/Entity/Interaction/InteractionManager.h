@@ -16,21 +16,21 @@ public:
 	~InteractionManager() = default;
 
 	void RegisterAction(std::function<void (RenderObject&)> cb);
-	void AddInteractableObject(RenderObject* obj);
+	void AddInteractableObject(const std::shared_ptr<RenderObject>& obj);
 
 private:
 	void _HandleMouseMove(LLGL::Offset2D mousePos);
 	void _OnClick() const;
-	bool _Intersects(RenderObject& obj, glm::vec3 mouseRay);
+	bool _Intersects(const RenderObject& obj, glm::vec3 mouseRay);
 
 	glm::vec3 _CalculateMouseRay(LLGL::Offset2D mousePos) const;
-	glm::vec3 _GetPlaneNormal(const RenderObject* obj) const;
-	bool _IntersectTest(RenderObject& obj, glm::vec3 mouseRay);
+	glm::vec3 _GetPlaneNormal(const RenderObject& obj) const;
+	bool _IntersectTest(const RenderObject& obj, glm::vec3 mouseRay);
 
-	std::vector<RenderObject*> mInteractableObjects;
+	std::vector<std::shared_ptr<RenderObject>> mInteractableObjects;
 	glm::vec3 mMousePos = {0, 0, 0};
 	std::vector<std::function<void(RenderObject&)>> mActionCallbacks;
-	RenderObject* mCurrentSelectedObject = nullptr;
+	std::shared_ptr<RenderObject> mCurrentSelectedObject = nullptr;
 
 	Camera& mCamera;
 	Renderer& mRenderer;

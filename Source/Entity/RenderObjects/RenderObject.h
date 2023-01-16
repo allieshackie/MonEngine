@@ -10,7 +10,7 @@ class RenderObject
 public:
 	RenderObject(glm::vec3 pos, glm::vec3 size, int textureId = 0);
 
-	virtual ~RenderObject() = default;
+	virtual ~RenderObject();
 
 	virtual void Draw(const Renderer& renderer, LLGL::CommandBuffer& commands) = 0;
 	void Update();

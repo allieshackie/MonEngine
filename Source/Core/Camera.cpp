@@ -59,8 +59,38 @@ void Camera::ZoomOut()
 	UpdateView();
 }
 
+void Camera::DebugUpdatePosition(glm::vec3 position)
+{
+	mCameraPos = position;
+	UpdateView();
+}
+
+glm::vec3 Camera::GetFront() const
+{
+	return mCameraFront;
+}
+
+void Camera::SetFront(glm::vec3 front)
+{
+	mCameraFront = front;
+	UpdateView();
+}
+
+glm::vec3 Camera::GetPosition() const
+{
+	return mCameraPos;
+}
+
+void Camera::SetPosition(glm::vec3 pos)
+{
+	mCameraPos = pos;
+	UpdateView();
+}
+
 void Camera::UpdateView()
 {
-	mView = lookAt(mCameraPos, mCameraPos + mCameraFront, mCameraUp);
+	// TODO: look into proper view matrix calculation
+	//mView = glm::lookAt(mCameraPos, mCameraPos + mCameraFront, mCameraUp);
+	mView = glm::lookAt(mCameraPos, mCameraFront, mCameraUp);
 	mRenderer.UpdateView(mView);
 }

@@ -2,10 +2,11 @@
 #include <LLGL/LLGL.h>
 #include <glm/vec2.hpp>
 
-class Texture {
+class Texture
+{
 public:
 	Texture(LLGL::RenderSystem& renderer, const std::string& path);
-	~Texture() = default;
+	~Texture();
 
 	LLGL::Texture& GetTextureData() const;
 	LLGL::Sampler& GetSamplerData() const;

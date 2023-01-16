@@ -16,6 +16,7 @@ GUISystem::GUISystem(const Renderer& renderer)
 GUISystem::~GUISystem()
 {
 	closeGUI();
+	//delete GLSL_VERSION;
 }
 
 void GUISystem::initGUI(const Renderer& renderer)

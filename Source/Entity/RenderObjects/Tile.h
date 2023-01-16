@@ -20,8 +20,12 @@ public:
 
 	void SetEmpty(bool empty);
 
+	int GetIndex() const;
+	void SetIndex(int index);
+
 private:
 	glm::vec2 mClip = {0.0f, 0.0f};
 	glm::vec2 mScale = {1.0f, 1.0f};
+	int mIndex = 0;
 	bool mEmpty = false;
 };

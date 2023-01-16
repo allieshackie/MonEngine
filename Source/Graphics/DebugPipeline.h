@@ -11,7 +11,7 @@ class DebugPipeline
 {
 public:
 	DebugPipeline(Renderer& renderer, ResourceManager& resourceManager);
-	~DebugPipeline() = default;
+	~DebugPipeline();
 
 	void Render(LLGL::CommandBuffer& commands) const;
 
@@ -34,7 +34,7 @@ private:
 	LLGL::PipelineState* mPipeline = nullptr;
 	LLGL::ResourceHeap* mResourceHeap = nullptr;
 	LLGL::Buffer* mConstantBuffer = nullptr;
-	Shader* mShader = nullptr;
+	std::unique_ptr<Shader> mShader = nullptr;
 
 	Renderer& mRenderer;
 	ResourceManager& mResourceManager;

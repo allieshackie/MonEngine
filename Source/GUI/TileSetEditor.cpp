@@ -19,6 +19,12 @@ TileSetEditor::TileSetEditor(Renderer& renderer, ResourceManager& resourceManage
 	_GetTilesetFileNames();
 }
 
+TileSetEditor::~TileSetEditor()
+{
+	//delete TEXTURE_FOLDER_GUI;
+	//delete TILESET_FOLDER;
+}
+
 void TileSetEditor::RenderGUI()
 {
 	// Exceptionally add an extra assert here for people confused about initial Dear ImGui setup

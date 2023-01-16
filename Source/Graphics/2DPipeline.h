@@ -12,7 +12,7 @@ class Pipeline2D
 {
 public:
 	Pipeline2D(Renderer& renderer, ResourceManager& resourceManager);
-	~Pipeline2D() = default;
+	~Pipeline2D();
 
 	void Render(LLGL::CommandBuffer& commands) const;
 
@@ -26,10 +26,9 @@ private:
 	void _InitPipeline();
 
 	LLGL::PipelineState* mPipeline = nullptr;
-
 	LLGL::ResourceHeap* mResourceHeap = nullptr;
 
-	Shader* mShader = nullptr;
+	std::unique_ptr<Shader> mShader = nullptr;
 	LLGL::Buffer* mConstantBuffer = nullptr;
 	LLGL::Buffer* mVertexBuffer = nullptr;
 

@@ -23,26 +23,13 @@ public:
 	void ZoomIn();
 	void ZoomOut();
 
-	void DebugUpdatePosition(glm::vec3 position)
-	{
-		mCameraPos = position;
-		UpdateView();
-	}
+	void DebugUpdatePosition(glm::vec3 position);
 
-	glm::vec3 GetPosition() const { return mCameraPos; }
-	glm::vec3 GetFront() const { return mCameraFront; }
+	glm::vec3 GetFront() const;
+	void SetFront(glm::vec3 front);
 
-	void SetPosition(glm::vec3 pos)
-	{
-		mCameraPos = pos;
-		UpdateView();
-	}
-
-	void SetFront(glm::vec3 front)
-	{
-		mCameraFront = front;
-		UpdateView();
-	}
+	glm::vec3 GetPosition() const;
+	void SetPosition(glm::vec3 pos);
 
 	void UpdateView();
 
@@ -51,7 +38,7 @@ private:
 	glm::vec3 mCameraFront = glm::vec3(0.0f, 0.0f, 1.0f);
 	glm::vec3 mCameraUp = glm::vec3(0.0f, -1.0f, 0.0f);
 
-	glm::mat4 mView = lookAt(mCameraPos, mCameraPos + mCameraFront, mCameraUp);
+	glm::mat4 mView = glm::identity<glm::mat4>();
 
 	float mCameraSpeed = 0.1f; // adjust accordingly
 

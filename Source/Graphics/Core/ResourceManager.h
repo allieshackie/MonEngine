@@ -31,9 +31,9 @@ public:
 	int GetTextureId(const std::string& filePath);
 	glm::vec2 GetTextureSize(int textureId);
 
-	Texture* GetTextureFromName(const std::string& filePath);
+	std::shared_ptr<Texture> GetTextureFromName(const std::string& filePath);
 
-	const std::unordered_map<int, Texture*>& getTextures();
+	const std::unordered_map<int, std::shared_ptr<Texture>>& getTextures();
 
 	// Helper used for editor
 	void AddSprite(const std::string& textureName, glm::vec3 pos, glm::vec3 size);
@@ -41,18 +41,18 @@ public:
 	             glm::vec2 clip = {0.0f, 0.0f},
 	             glm::vec2 scale = {1.0f, 1.0f});
 
-	Sprite* CreateSprite(const std::string& textureName, glm::vec3 pos, glm::vec3 size);
-	Tile* CreateTile(const std::string& textureName, glm::vec3 pos, glm::vec3 size,
-	                 glm::vec2 clip = {0.0f, 0.0f},
-	                 glm::vec2 scale = {1.0f, 1.0f});
-	Map* CreateMap(glm::vec3 pos, const char* fileName);
+	std::shared_ptr<Sprite> CreateSprite(const std::string& textureName, glm::vec3 pos, glm::vec3 size);
+	std::shared_ptr<Tile> CreateTile(const std::string& textureName, glm::vec3 pos, glm::vec3 size,
+	                                 glm::vec2 clip = {0.0f, 0.0f},
+	                                 glm::vec2 scale = {1.0f, 1.0f});
+	std::shared_ptr<Map> CreateMap(glm::vec3 pos, const char* fileName);
 
-	void AddRenderObjectToDrawList(RenderObject* obj);
+	void AddRenderObjectToDrawList(std::shared_ptr<RenderObject> obj);
 
 	TriangleMesh LoadObjModel(std::vector<TexturedVertex>& vertices, const std::string& filename) const;
 
-	const std::vector<RenderObject*>& GetDrawList();
-	const std::vector<DebugDrawable*>& GetDebugDrawList();
+	const std::vector<std::shared_ptr<RenderObject>>& GetDrawList();
+	const std::vector<std::shared_ptr<DebugDrawable>>& GetDebugDrawList();
 	void ClearDebugDrawList();
 
 	void CreateLine(const Renderer& renderer, glm::vec3 pointA, glm::vec3 pointB, glm::vec3 color);
@@ -63,8 +63,8 @@ public:
 	bool CreateSimpleOpenGLTexture(std::string& filename, GLuint* out_texture, int* out_width, int* out_height);
 
 private:
-	std::unordered_map<int, Texture*> mTextures;
+	std::unordered_map<int, std::shared_ptr<Texture>> mTextures;
 	std::unordered_map<std::string, int> mTextureIds;
-	std::vector<RenderObject*> mDrawList;
-	std::vector<DebugDrawable*> mDebugDrawList;
+	std::vector<std::shared_ptr<RenderObject>> mDrawList;
+	std::vector<std::shared_ptr<DebugDrawable>> mDebugDrawList;
 };

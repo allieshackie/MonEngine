@@ -38,6 +38,7 @@ public:
 	{
 		if (clientAreaSize.width >= 4 && clientAreaSize.height >= 4)
 		{
+			// Update swap buffers
 			mSwapChain->ResizeBuffers(clientAreaSize);
 
 			// Re-draw frame
@@ -63,5 +64,5 @@ public:
 private:
 	Renderer& mRenderer;
 	Window& mWindow;
-	LLGL::SwapChain* mSwapChain;
+	LLGL::SwapChain* mSwapChain = nullptr;
 };
