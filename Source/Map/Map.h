@@ -24,7 +24,7 @@ public:
 	const std::string& getTexturePath() const;
 	glm::vec4 GetClipForTile(int index) const;
 
-	const std::vector<Tile*>& GetTiles() const;
+	const std::vector<std::shared_ptr<Tile>>& GetTiles() const;
 
 	void UpdateTile(int tileIndex, int brushIndex);
 
@@ -35,13 +35,13 @@ private:
 	void _CreateTiles();
 
 	std::vector<int> mRawTiles;
-	std::vector<Tile*> mMapTiles;
+	std::vector<std::shared_ptr<Tile>> mMapTiles;
 
 	std::string mMapPath;
 	glm::vec3 mMapPosition = {0, 0, 0};
 	glm::vec2 mMapRowsColumns = {0, 0};
 	glm::vec3 mMapSize = {0, 0, 1};
-	int mMapTileSize = 0;
+	float mMapTileSize = 0.0f;
 
 	std::unique_ptr<TileSetDescription> mTileSetDescription;
 

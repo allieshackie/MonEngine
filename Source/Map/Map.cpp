@@ -12,7 +12,7 @@ Map::Map(ResourceManager& resourceManager, glm::vec3 position, const char* fileN
 
 void Map::Draw(const Renderer& renderer, LLGL::CommandBuffer& commands)
 {
-	for (const auto tile : mMapTiles)
+	for (const auto& tile : mMapTiles)
 	{
 		tile->Draw(renderer, commands);
 	}
@@ -53,7 +53,7 @@ void Map::_ReadFile(const char* fileName)
 			mMapRowsColumns.y = std::stof(str);
 			break;
 		case 3:
-			mMapTileSize = std::stoi(str);
+			mMapTileSize = std::stof(str);
 			mMapSize = {mMapRowsColumns.y * mMapTileSize, mMapRowsColumns.x * mMapTileSize, 1};
 			break;
 		default:
@@ -87,6 +87,8 @@ void Map::_CreateTiles()
 		{
 			tile->SetEmpty(true);
 		}
+
+		tile->SetIndex(i);
 
 		mMapTiles.push_back(tile);
 	}
@@ -122,7 +124,7 @@ glm::vec4 Map::GetClipForTile(int index) const
 	return mTileSetDescription->GetClipForTile(index);
 }
 
-const std::vector<Tile*>& Map::GetTiles() const
+const std::vector<std::shared_ptr<Tile>>& Map::GetTiles() const
 {
 	return mMapTiles;
 }
@@ -132,11 +134,18 @@ void Map::UpdateTile(int tileIndex, int brushIndex)
 	const float posX = tileIndex % static_cast<int>(mMapRowsColumns.y);
 	const float currentRow = floor(tileIndex / mMapRowsColumns.y);
 	const auto clip = mTileSetDescription->GetClipForTile(brushIndex);
+	const glm::vec2 mapTopLeft = {
+		mMapPosition.x - (mMapSize.x / 2) + (mMapTileSize / 2), mMapPosition.y - (mMapSize.y / 2) + (mMapTileSize / 2)
+	};
 
-	mMapTiles[tileIndex] = mResourceManager.CreateTile(
+	auto tile = mResourceManager.CreateTile(
 		mTileSetDescription->getTexturePath(),
-		{mMapPosition.x + (posX * mMapTileSize), mMapPosition.y + (currentRow * mMapTileSize), mMapPosition.z},
+		{mapTopLeft.x + (posX * mMapTileSize), mapTopLeft.y + (currentRow * mMapTileSize), mMapPosition.z},
 		{mMapTileSize, mMapTileSize, 0}, glm::vec2(clip.x, clip.y), glm::vec2(clip.z, clip.w));
+
+	tile->SetIndex(tileIndex);
+
+	mMapTiles[tileIndex] = std::move(tile);
 
 	mRawTiles[tileIndex] = brushIndex;
 }
