@@ -1,0 +1,20 @@
+{
+    "template_name": "map", 
+    "components" : {
+        "transform" : {
+            "position": [0,0,0],
+            "size": [1,1,1],
+            "rotation": 0
+        },
+        "sprite": {
+            "resource_path": "tiles.json",
+            "rows": 3,
+            "columns": 4
+        },
+        "map": {
+            "rows": 5,
+            "columns": 5,
+            "tile_size": 2
+        }
+    }
+}

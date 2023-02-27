@@ -2,26 +2,24 @@
 
 #include "DescriptionBase.h"
 
-struct SpriteDescription : DescriptionBase
+struct MapDescription : DescriptionBase
 {
 public:
-	SpriteDescription() = default;
-	~SpriteDescription() override = default;
+	MapDescription() = default;
+	~MapDescription() override = default;
 
 	void ApplyToEntity(EntityId entity, EntityRegistry& entityRegistry) override;
 
 	void ParseJSON(const nlohmann::json& json) override;
 
-	static constexpr char JsonName[] = "sprite";
+	static constexpr char JsonName[] = "map";
 
 private:
-	static constexpr char RESOURCE_PATH_STRING[] = "resource_path";
 	static constexpr char ROWS_STRING[] = "rows";
 	static constexpr char COLUMNS_STRING[] = "columns";
+	static constexpr char TILE_SIZE_STRING[] = "tile_size";
 
-	std::string mResourcePath;
-
-	// optional
 	int mRows = 0;
 	int mColumns = 0;
+	int mTileSize = 0;
 };

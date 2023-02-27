@@ -1,23 +1,12 @@
 #pragma once
 #include <nlohmann/json.hpp>
+#include "EntityRegistry.h"
 
-class EntityContext;
-
-struct ComponentDescriptionBase
+struct DescriptionBase
 {
-public:
-	virtual ~ComponentDescriptionBase() = default;
-
-	virtual void ApplyToEntity(EntityContext& entity) = 0;
-	virtual void ParseJSON(const nlohmann::json& jsonFrag) = 0;
-};
-
-struct DescriptionBase {
 public:
 	virtual ~DescriptionBase() = default;
 
-	virtual void ApplyToEntity(EntityContext& entity) = 0;
-
-private:
-	virtual void ParseJSON(const char* fileName) = 0;
-}; 
+	virtual void ApplyToEntity(EntityId entity, EntityRegistry& entityRegistry) = 0;
+	virtual void ParseJSON(const nlohmann::json& jsonFrag) = 0;
+};

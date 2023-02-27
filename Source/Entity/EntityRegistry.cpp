@@ -1,22 +1,37 @@
-#include "MonEntityContext.h"
+#include "DescriptionBase.h"
+#include "EntityTemplateRegistry.h"
 
 #include "EntityRegistry.h"
 
-
-MonEntityRegistry::MonEntityRegistry() {
-
+EntityRegistry::EntityRegistry(EntityTemplateRegistry& entityTemplateRegistry)
+	: mEntityTemplateRegistry(entityTemplateRegistry)
+{
 }
 
-MonEntityRegistry::~MonEntityRegistry() {
-
+EnTTRegistry& EntityRegistry::GetEnttRegistry()
+{
+	return mRegistry;
 }
 
-MonEntityContext MonEntityRegistry::CreateEntity() {
-	MonEntityContext entity = { mRegistry, mRegistry.create() };
+EntityId EntityRegistry::CreateEntityFromTemplate(const char* templateName)
+{
+	const auto descriptions = mEntityTemplateRegistry.GetEntityTemplateDescriptions(templateName);
+	const auto entity = CreateEntity();
+
+	for (const auto& description : descriptions)
+	{
+		description->ApplyToEntity(entity, *this);
+	}
+
 	return entity;
 }
 
-void MonEntityRegistry::RemoveEntity(EntityId id)
+EntityId EntityRegistry::CreateEntity()
 {
-	//mRegistry.destroy(id);
+	return mRegistry.create();
+}
+
+void EntityRegistry::RemoveEntity(const EntityId id)
+{
+	mRegistry.destroy(id);
 }

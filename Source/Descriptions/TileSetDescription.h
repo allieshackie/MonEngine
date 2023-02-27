@@ -17,13 +17,9 @@
 struct TileSetDescription : DescriptionBase
 {
 public:
-	TileSetDescription(const char* fileName);
+	TileSetDescription() = default;
 
-	void Load(const char* fileName);
-
-	void ApplyToEntity(EntityContext& entity) override
-	{
-	}
+	void ApplyToEntity(EntityId entity, EntityRegistry& entityRegistry) override;
 
 	const std::string& getTexturePath() const;
 	int GetRows() const;
@@ -37,20 +33,15 @@ public:
 	void setColumns(int columns);
 	void UpdateSize(int rows, int columns);
 
-private:
-	void ParseJSON(const char* fileName) override;
+	void ParseJSON(const nlohmann::json& json) override;
 
-public:
-	static constexpr char JsonName[] = "mondev:tileset";
+	static constexpr char JsonName[] = "tileset";
 private:
-	static constexpr char JSON_PATH[] = "../Data/Tileset/";
 	static constexpr char ID_STRING[] = "id";
 	static constexpr char TEXTURE_STRING[] = "texture_path";
 	static constexpr char SIZE_STRING[] = "rows_columns";
 
 	nlohmann::json mJson;
-	std::string mTileSetFilePath = JSON_PATH;
-
 	std::string mTexturePath;
 
 	int mTilesetRows = 0;
