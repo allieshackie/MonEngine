@@ -3,9 +3,9 @@
 #include "InputManager.h"
 #include "Core/Renderer.h"
 #include "Core/ResourceManager.h"
-#include "RenderObjects/RenderObject.h"
 
 #include "InteractionManager.h"
+
 
 InteractionManager::InteractionManager(Renderer& renderer, Camera& camera, const InputManager& inputManager,
                                        ResourceManager& resourceManager)
@@ -13,14 +13,17 @@ InteractionManager::InteractionManager(Renderer& renderer, Camera& camera, const
 {
 	inputManager.registerMouseMoveHandler([this](LLGL::Offset2D mousePos) { _HandleMouseMove(mousePos); });
 	inputManager.registerButtonDownHandler(LLGL::Key::LButton, [this]() { _OnClick(); });
+
+	mResourceManager.AddBox({0, 0, 0}, {.1, .1, 1}, "debug_box");
+	mDebugBox = mResourceManager.GetDrawDataById("debug_box");
 }
 
-void InteractionManager::RegisterAction(std::function<void(RenderObject&)> cb)
+void InteractionManager::RegisterAction(std::function<void(DrawData&)> cb)
 {
 	mActionCallbacks.push_back(std::move(cb));
 }
 
-void InteractionManager::AddInteractableObject(const std::shared_ptr<RenderObject>& obj)
+void InteractionManager::AddInteractableObject(const std::shared_ptr<DrawData>& obj)
 {
 	mInteractableObjects.push_back(obj);
 }
@@ -49,7 +52,7 @@ void InteractionManager::_OnClick() const
 	}
 }
 
-bool InteractionManager::_Intersects(const RenderObject& obj, glm::vec3 mouseRay)
+bool InteractionManager::_Intersects(const DrawData& obj, glm::vec3 mouseRay)
 {
 	const auto planeNormal = _GetPlaneNormal(obj);
 	const auto cameraPos = mCamera.GetPosition();
@@ -59,7 +62,7 @@ bool InteractionManager::_Intersects(const RenderObject& obj, glm::vec3 mouseRay
 	// if denominator is 0, then ray is parallel to plane
 	if (denominator > 0.001f)
 	{
-		const auto difference = -1 * (dot(cameraPos, planeNormal) + obj.GetPosition().z);
+		const auto difference = -1 * (dot(cameraPos, planeNormal) + obj.mPosition.z);
 		if (const auto t = difference / denominator; t > 0.001f)
 		{
 			return true;
@@ -75,18 +78,12 @@ glm::vec3 InteractionManager::_CalculateMouseRay(LLGL::Offset2D mousePos) const
 	const glm::vec4 homogenousClip = {normalizeCoords.x, normalizeCoords.y, -1.0f, 1.0f};
 	glm::vec4 eyeRay = glm::inverse(mRenderer.GetProjection()) * homogenousClip;
 	eyeRay = glm::vec4(eyeRay.x, eyeRay.y, -1.0f, 1.0f);
-	const glm::vec3 rayWorld = glm::inverse(mCamera.GetView()) * eyeRay;
-	const auto ray = rayWorld;
-
-	//std::cout << "Ray: " << ray.x << "," << ray.y << "," << ray.z << std::endl;
-
-	return ray;
+	return glm::inverse(mCamera.GetView()) * eyeRay;
 }
 
-glm::vec3 InteractionManager::_GetPlaneNormal(const RenderObject& obj) const
+glm::vec3 InteractionManager::_GetPlaneNormal(const DrawData& obj) const
 {
-	const auto& vertices = obj.GetVertices();
-	const auto model = obj.GetModel();
+	const auto model = obj.mModel;
 	const glm::vec3 position = model * glm::vec4(vertices[0].position, 1.0);
 
 	const glm::vec3 topRight = model * glm::vec4(vertices[1].position, 1.0);
@@ -97,10 +94,9 @@ glm::vec3 InteractionManager::_GetPlaneNormal(const RenderObject& obj) const
 	return glm::normalize(glm::cross(widthVector, heightVector));
 }
 
-bool InteractionManager::_IntersectTest(const RenderObject& obj, glm::vec3 mouseRay)
+bool InteractionManager::_IntersectTest(const DrawData& obj, glm::vec3 mouseRay)
 {
-	const auto& vertices = obj.GetVertices();
-	const auto model = obj.GetModel();
+	const auto model = obj.mModel;
 
 	// plane values
 	const glm::vec3 position = model * glm::vec4(vertices[0].position, 1.0);
@@ -128,8 +124,7 @@ bool InteractionManager::_IntersectTest(const RenderObject& obj, glm::vec3 mouse
 		// TODO: Debug info
 		std::cout << "Intersection: " << intersectionPoint.x << "," << intersectionPoint.y << "," << intersectionPoint.z
 			<< std::endl;
-		//mResourceManager.ClearDebugDrawList();
-		//mResourceManager.CreateBox(mRenderer, intersectionPoint, {.1, .1, 1}, {255, 0, 0});
+		mDebugBox->mPosition = intersectionPoint;
 
 		const auto width = glm::length(widthVector);
 		const auto height = glm::length(heightVector);

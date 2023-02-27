@@ -1,25 +1,19 @@
 #include "LLGL/Misc/TypeNames.h"
 #include <glm/ext/matrix_clip_space.hpp>
+
 #include "ResourceManager.h"
-#include "RenderObjects/DebugDraw.h"
+#include "Debug/DebugDraw.h"
 
 #include "Renderer.h"
-
 
 static constexpr int SCREEN_WIDTH = 800;
 static constexpr int SCREEN_HEIGHT = 600;
 
-Renderer::Renderer(ResourceManager& resourceManager): mResourceManager(resourceManager)
+Renderer::Renderer(ResourceManager& resourceManager, EntityRegistry& entityRegistry)
+	: mEntityRegistry(entityRegistry), mResourceManager(resourceManager)
 {
 	// Initialize default projection matrix
 	_Init();
-}
-
-Renderer::~Renderer()
-{
-	//delete mSwapChain;
-	//delete mCommands;
-	//delete mCommandQueue;
 }
 
 void Renderer::_Init()
@@ -75,7 +69,7 @@ void Renderer::_Init()
 	}
 
 	mResourceManager.LoadAllTexturesFromFolder(*mRenderer);
-	mPipeline2D = std::make_unique<Pipeline2D>(*this, mResourceManager);
+	mPipeline2D = std::make_unique<Pipeline2D>(*this, mResourceManager, mEntityRegistry);
 	// TODO: Enable for 3D
 	//mPipeline3D = std::make_unique<Pipeline3D>(*this, mResourceManager);
 	mDebugPipeline = std::make_unique<DebugPipeline>(*this, mResourceManager);
@@ -96,7 +90,7 @@ void Renderer::OnDrawFrame(const std::function<void()>& drawCallback) const
 		// set the render context as the initial render target
 		mCommands->BeginRenderPass(*mSwapChain);
 		{
-			mPipeline2D->Render(*mCommands);
+			mPipeline2D->Tick();
 			mDebugPipeline->Render(*mCommands);
 			// TODO: Enable for 3D
 			//mPipeline3D->Render(*mCommands);
@@ -133,48 +127,13 @@ glm::mat4 Renderer::GetProjection() const
 	return mProjection;
 }
 
+glm::mat4 Renderer::GetView() const
+{
+	return mView;
+}
+
 glm::vec3 Renderer::NormalizedDeviceCoords(glm::vec3 vec) const
 {
 	const auto res = mSwapChain->GetResolution();
 	return {(2.0f * vec.x) / res.width - 1.0f, 1.0f - (2.0f * vec.y) / res.height, vec.z};
-}
-
-void Renderer::Update2DProjectionViewModelUniform(glm::mat4 model) const
-{
-	mPipeline2D->UpdateProjectionViewModelUniform(*mCommands, model, mProjection, mView);
-}
-
-void Renderer::Update2DTextureClipUniform(glm::mat4 textureClip) const
-{
-	mPipeline2D->UpdateTextureClipUniform(*mCommands, textureClip);
-}
-
-void Renderer::Add2DRenderObject(RenderObject& obj) const
-{
-	mPipeline2D->AddRenderObjectVBuffer(obj);
-}
-
-void Renderer::Update3DProjectionViewModelUniform(glm::mat4 model) const
-{
-	mPipeline3D->UpdateProjectionViewModelUniform(*mCommands, model, mProjection, mView);
-}
-
-void Renderer::Add3DRenderObject(RenderObject& obj) const
-{
-	mPipeline3D->AddRenderObjectVBuffer(obj);
-}
-
-void Renderer::UpdateDebugProjectionViewModelUniform(glm::mat4 model) const
-{
-	mDebugPipeline->UpdateProjectionViewModelUniform(*mCommands, model, mProjection, mView);
-}
-
-void Renderer::ClearDebugDraw() const
-{
-	mDebugPipeline->ClearDebugDraw();
-}
-
-void Renderer::AddDebugRenderObject(RenderObject& obj) const
-{
-	mDebugPipeline->AddRenderObjectVBuffer(obj);
 }

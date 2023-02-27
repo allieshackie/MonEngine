@@ -4,17 +4,24 @@
 #include "Core/Renderer.h"
 #include "Core/ResourceManager.h"
 #include "Core/Shader.h"
-#include "RenderObjects/RenderObject.h"
-#include "RenderObjects/Sprite.h"
+#include "Components/TransformComponent.h"
+#include "Components/SpriteComponent.h"
+#include "EntityRegistry.h"
 #include "Texture.h"
 
 #include "2DPipeline.h"
 
-
-Pipeline2D::Pipeline2D(Renderer& renderer, ResourceManager& resourceManager)
-	: mRenderer(renderer), mResourceManager(resourceManager)
+Pipeline2D::Pipeline2D(Renderer& renderer, ResourceManager& resourceManager, EntityRegistry& entityRegistry)
+	: mRenderer(renderer), mResourceManager(resourceManager), mEntityRegistry(entityRegistry)
 {
 	_InitPipeline();
+
+	const auto sprite = std::make_unique<Sprite>();
+	mVertexBuffer = mRenderer.GetRendererSystem()->CreateBuffer(
+		VertexBufferDesc(static_cast<std::uint32_t>(sprite->GetVertices().size() * sizeof(Vertex)),
+		                 mShader->GetVertexFormat()),
+		sprite->GetVertices().data()
+	);
 }
 
 Pipeline2D::~Pipeline2D()
@@ -24,18 +31,59 @@ Pipeline2D::~Pipeline2D()
 	delete mVertexBuffer;
 }
 
-void Pipeline2D::Render(LLGL::CommandBuffer& commands) const
+void Pipeline2D::Tick() const
 {
+	auto& commands = mRenderer.GetCommandBuffer();
 	// set graphics pipeline
 	commands.SetPipelineState(*mPipeline);
 	commands.SetVertexBuffer(*mVertexBuffer);
 
-	const auto renderObjects = mResourceManager.GetDrawList();
-	for (const auto obj : renderObjects)
+	const auto view = mEntityRegistry.GetEnttRegistry().view<const TransformComponent, const SpriteComponent>();
+	view.each([=](const TransformComponent& transform, const SpriteComponent& sprite)
 	{
-		commands.SetResourceHeap(*mResourceHeap, obj->getTextureId());
-		obj->Draw(mRenderer, commands);
+		Render(transform, sprite);
+	});
+}
+
+void Pipeline2D::Render(const TransformComponent& transform, const SpriteComponent& sprite) const
+{
+	auto& commands = mRenderer.GetCommandBuffer();
+	const auto textureId = mResourceManager.GetTextureId(sprite.mTexturePath);
+	if (textureId == -1)
+	{
+		commands.SetResourceHeap(*mResourceHeap);
 	}
+	else
+	{
+		commands.SetResourceHeap(*mResourceHeap, textureId);
+	}
+
+	_UpdateUniforms(transform, sprite);
+
+	commands.Draw(4, 0);
+}
+
+void Pipeline2D::_UpdateUniforms(const TransformComponent& transform, const SpriteComponent& sprite) const
+{
+	auto& commands = mRenderer.GetCommandBuffer();
+	// Update
+	auto model = glm::mat4(1.0f);
+
+	model = translate(model, transform.mPosition);
+
+	model = translate(model, glm::vec3(0.5f * transform.mSize.x, 0.5f * transform.mSize.y, 0.0f));
+	model = rotate(model, glm::radians(transform.mRotation), glm::vec3(0.0f, 0.0f, 1.0f));
+	model = translate(model, glm::vec3(-0.5f * transform.mSize.x, -0.5f * transform.mSize.y, 0.0f));
+
+	model = scale(model, transform.mSize);
+
+	auto textureClip = glm::mat4(1.0f);
+	textureClip = translate(textureClip, glm::vec3(sprite.mTexClip.x, sprite.mTexClip.y, 0.0f));
+
+	textureClip = scale(textureClip, glm::vec3(sprite.mTexScale, 1.0f));
+
+	const SpriteSettings settings = {model * mRenderer.GetProjection() * mRenderer.GetView(), textureClip};
+	commands.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
 }
 
 void Pipeline2D::_InitPipeline()
@@ -81,35 +129,5 @@ void Pipeline2D::_InitPipeline()
 	}
 	mResourceHeap = mRenderer.GetRendererSystem()->CreateResourceHeap(resourceHeapDesc);
 
-	mVertexBuffer = mRenderer.GetRendererSystem()->CreateBuffer(
-		VertexBufferDesc(static_cast<std::uint32_t>(mVertices.size() * sizeof(Vertex)), mShader->GetVertexFormat()),
-		mVertices.data()
-	);
-
 	delete pipelineLayout;
-}
-
-void Pipeline2D::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& commands, glm::mat4 model, glm::mat4 projection,
-                                                  glm::mat4 view)
-{
-	spriteSettings.pvmMat = projection * view * model;
-	commands.UpdateBuffer(*mConstantBuffer, 0, &spriteSettings, sizeof(spriteSettings));
-}
-
-void Pipeline2D::UpdateTextureClipUniform(LLGL::CommandBuffer& commands, glm::mat4 textureClip)
-{
-	spriteSettings.textureTransform = textureClip;
-	commands.UpdateBuffer(*mConstantBuffer, 0, &spriteSettings, sizeof(spriteSettings));
-}
-
-// TODO: We don't need individual vertex buffers since they all share one
-void Pipeline2D::AddRenderObjectVBuffer(RenderObject& obj) const
-{
-	/*
-	 *
-	obj.SetVertexBuffer(Renderer::GetInstance()->GetRendererSystem()->CreateBuffer(
-		VertexBufferDesc(static_cast<std::uint32_t>(mVertices.size() * sizeof(Vertex)), mShader->GetVertexFormat()),
-		mVertices.data()
-	));
-	 */
 }

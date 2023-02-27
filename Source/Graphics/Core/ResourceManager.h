@@ -5,9 +5,9 @@
 #include <glm/vec3.hpp>
 #include "Vertex.h"
 
+struct DrawData;
 class DebugDrawable;
 class Map;
-class RenderObject;
 class Renderer;
 class Shader;
 class Sprite;
@@ -36,35 +36,28 @@ public:
 	const std::unordered_map<int, std::shared_ptr<Texture>>& getTextures();
 
 	// Helper used for editor
-	void AddSprite(const std::string& textureName, glm::vec3 pos, glm::vec3 size);
-	void AddTile(const std::string& textureName, glm::vec3 pos, glm::vec3 size,
-	             glm::vec2 clip = {0.0f, 0.0f},
-	             glm::vec2 scale = {1.0f, 1.0f});
+	void AddSprite(const std::string& textureName, glm::vec3 pos, glm::vec3 size, std::string id = "");
+	void AddSprite(const std::string& textureName, glm::vec3 pos, glm::vec3 size, glm::vec2 clip,
+	               glm::vec2 scale, std::string id = "");
+	void AddBox(glm::vec3 position, glm::vec3 size, std::string id = "");
 
-	std::shared_ptr<Sprite> CreateSprite(const std::string& textureName, glm::vec3 pos, glm::vec3 size);
-	std::shared_ptr<Tile> CreateTile(const std::string& textureName, glm::vec3 pos, glm::vec3 size,
-	                                 glm::vec2 clip = {0.0f, 0.0f},
-	                                 glm::vec2 scale = {1.0f, 1.0f});
-	std::shared_ptr<Map> CreateMap(glm::vec3 pos, const char* fileName);
-
-	void AddRenderObjectToDrawList(std::shared_ptr<RenderObject> obj);
+	std::shared_ptr<DrawData>& GetDrawDataById(const std::string& id);
 
 	TriangleMesh LoadObjModel(std::vector<TexturedVertex>& vertices, const std::string& filename) const;
 
-	const std::vector<std::shared_ptr<RenderObject>>& GetDrawList();
-	const std::vector<std::shared_ptr<DebugDrawable>>& GetDebugDrawList();
-	void ClearDebugDrawList();
+	const std::vector<std::shared_ptr<DrawData>>& GetSpriteDrawList();
+	const std::vector<std::shared_ptr<DrawData>>& GetDebugDrawList();
 
-	void CreateLine(const Renderer& renderer, glm::vec3 pointA, glm::vec3 pointB, glm::vec3 color);
-	void CreateBox(const Renderer& renderer, glm::vec3 position, glm::vec3 size, glm::vec3 color);
-	void CreateGrid(const Renderer& renderer, glm::vec3 position, glm::vec3 size, int rows, int columns,
-	                glm::vec3 color);
+	void ClearDebugDrawList();
 
 	bool CreateSimpleOpenGLTexture(std::string& filename, GLuint* out_texture, int* out_width, int* out_height);
 
 private:
 	std::unordered_map<int, std::shared_ptr<Texture>> mTextures;
 	std::unordered_map<std::string, int> mTextureIds;
-	std::vector<std::shared_ptr<RenderObject>> mDrawList;
-	std::vector<std::shared_ptr<DebugDrawable>> mDebugDrawList;
+
+	std::vector<std::shared_ptr<DrawData>> mSpriteDrawList;
+	std::vector<std::shared_ptr<DrawData>> mDebugDrawList;
+
+	std::shared_ptr<DrawData> mEmptyData;
 };

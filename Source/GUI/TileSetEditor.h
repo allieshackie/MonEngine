@@ -3,7 +3,7 @@
 class Camera;
 class Sprite;
 class Texture;
-class Tile;
+class DrawData;
 class TileSetDescription;
 class Renderer;
 class ResourceManager;
@@ -14,7 +14,7 @@ class TileSetEditor
 {
 public:
 	TileSetEditor(Renderer& renderer, ResourceManager& resourceManager, Camera& camera);
-	~TileSetEditor();
+	~TileSetEditor() = default;
 
 	void RenderGUI();
 	void RenderTest();
@@ -30,17 +30,14 @@ private:
 	void _LoadTileSetMenu(bool* p_open);
 	void _TileSetInfoMenu(bool* p_open);
 	void _LoadTextureMenu(bool* p_open);
-	void _LoadTileSetTexture(const char* textureName, bool debugGrid);
+	void _LoadTileSetTexture(const char* textureName);
 	void _TextureDisplayMenu(bool* p_open);
-
-	// DEBUG
-	void _CreateTextureDebugGrid() const;
 
 	void _CameraInfo(bool* p_open) const;
 
 	void _CenterWindow(float width, float height);
 
-	std::shared_ptr<Tile> mCurrentSprite = nullptr;
+	std::shared_ptr<DrawData> mCurrentSprite = nullptr;
 	Camera& mCamera;
 	std::shared_ptr<TileSetDescription> mCurrentTileset;
 	ImGuiWindowFlags mWindowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;

@@ -17,7 +17,7 @@ bool MapEditor::show_load_map_menu = false;
 MapEditor::MapEditor(Renderer& renderer, ResourceManager& resourceManager, InteractionManager& interactionManager)
 	: mRenderer(renderer), mResourceManager(resourceManager), mInteractionManager(interactionManager)
 {
-	interactionManager.RegisterAction([=](RenderObject& obj) { PaintTile(obj); });
+	interactionManager.RegisterAction([=](DrawData& obj) { PaintTile(obj); });
 	_GetAllMapFileNames();
 }
 
@@ -46,12 +46,9 @@ void MapEditor::ShowLoadMapMenu()
 	show_load_map_menu = true;
 }
 
-void MapEditor::PaintTile(RenderObject& tile) const
+void MapEditor::PaintTile(DrawData& tile) const
 {
-	if (const auto tileObj = dynamic_cast<Tile*>(&tile); tileObj != nullptr)
-	{
-		mCurrentMap->UpdateTile(tileObj->GetIndex(), current_brush_index);
-	}
+	//mCurrentMap->UpdateTile(tileObj->GetIndex(), current_brush_index);
 }
 
 void MapEditor::_GetAllMapFileNames()
@@ -149,14 +146,15 @@ void MapEditor::_LoadMapMenu(bool* p_open)
 
 void MapEditor::_LoadMap(const char* mapName)
 {
-	mCurrentMap = mResourceManager.CreateMap({0, 0, 10}, mapName);
+	mCurrentMap = std::make_shared<Map>(mResourceManager, glm::vec3{0, 0, 10}, mapName);
+	/*
+	 *
 	for (const auto& tile : mCurrentMap->GetTiles())
 	{
 		mInteractionManager.AddInteractableObject(tile);
 	}
-	_CreateMapDebugGrid(*mCurrentMap);
+	 */
 	auto mapTexture = mCurrentMap->getTexturePath();
-	mResourceManager.AddRenderObjectToDrawList(mCurrentMap);
 	if (mResourceManager.CreateSimpleOpenGLTexture(
 		mapTexture, &mPalletteTextureId, &mPalletteTextureWidth, &mPalletteTextureHeight))
 	{
@@ -219,18 +217,6 @@ void MapEditor::_PalletteMenu(bool* p_open)
 		}
 	}
 	ImGui::End();
-}
-
-void MapEditor::_CreateMapDebugGrid(const Map& map)
-{
-	mRenderer.ClearDebugDraw();
-
-	const auto pos = map.GetMapPosition();
-	const auto size = map.GetMapSize();
-
-	const glm::vec2 rowsColumns = map.GetMapRowsColumns();
-
-	mResourceManager.CreateGrid(mRenderer, pos, size, rowsColumns.x, rowsColumns.y, {255, 255, 255});
 }
 
 void MapEditor::_CenterWindow(float width, float height)

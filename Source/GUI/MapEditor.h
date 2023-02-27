@@ -19,7 +19,7 @@ public:
 	static void ShowNewMapMenu();
 	static void ShowLoadMapMenu();
 
-	void PaintTile(RenderObject& tile) const;
+	void PaintTile(DrawData& tile) const;
 
 private:
 	// PALLETTE
@@ -30,9 +30,6 @@ private:
 	void _LoadMapMenu(bool* p_open);
 
 	void _LoadMap(const char* mapName);
-
-	// DEBUG
-	void _CreateMapDebugGrid(const Map& map);
 
 	// File display helpers
 	void _GetAllMapFileNames();

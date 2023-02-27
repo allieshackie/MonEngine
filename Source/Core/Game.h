@@ -1,5 +1,7 @@
 #pragma once
 
+class EntityRegistry;
+class EntityTemplateRegistry;
 class Camera;
 class InputHandler;
 class InputManager;
@@ -19,16 +21,16 @@ public:
 	Game() = default;
 	~Game() = default;
 
-	Window& getWindow() const;
+	Window& GetWindow() const;
 
-	void configureLevel();
+	void ConfigureLevel();
 
 	//void registerEntityTemplates();
 
-	void closeGame();
+	void CloseGame();
 
 protected:
-	void runGame() const;
+	void RunGame() const;
 
 private:
 	std::unique_ptr<Renderer> mRenderer;
@@ -43,6 +45,9 @@ private:
 	std::unique_ptr<GUISystem> mGUISystem;
 	std::unique_ptr<TileSetEditor> mTileSetEditor;
 	std::unique_ptr<MapEditor> mMapEditor;
+
+	std::unique_ptr<EntityTemplateRegistry> mEntityTemplateRegistry;
+	std::unique_ptr<EntityRegistry> mEntityRegistry;
 
 	bool mRunning = true;
 

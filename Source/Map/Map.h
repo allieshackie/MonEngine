@@ -1,5 +1,4 @@
 #pragma once
-#include "RenderObjects/RenderObject.h"
 
 struct TileSetDescription;
 
@@ -8,13 +7,11 @@ class Tile;
 
 static constexpr char MAP_PATH[] = "../Data/Maps/";
 
-class Map : public RenderObject
+class Map
 {
 public:
 	Map(ResourceManager& resourceManager, glm::vec3 position, const char* fileName);
-	~Map() override = default;
-
-	void Draw(const Renderer& renderer, LLGL::CommandBuffer& commands) override;
+	~Map() = default;
 
 	glm::vec3 GetMapPosition() const;
 	glm::vec2 GetMapRowsColumns() const;

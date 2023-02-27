@@ -2,13 +2,11 @@
 #include "imgui/imgui.h"
 #include "Core/Renderer.h"
 #include "Core/ResourceManager.h"
-#include "Camera.h"
-#include "RenderObjects/Tile.h"
 #include "TileSetDescription.h"
+#include "Camera.h"
+#include "MapEditor.h"
 
 #include "TileSetEditor.h"
-
-#include "MapEditor.h"
 
 namespace fs = std::filesystem;
 
@@ -17,12 +15,6 @@ TileSetEditor::TileSetEditor(Renderer& renderer, ResourceManager& resourceManage
 {
 	_GetTextureFileNames();
 	_GetTilesetFileNames();
-}
-
-TileSetEditor::~TileSetEditor()
-{
-	//delete TEXTURE_FOLDER_GUI;
-	//delete TILESET_FOLDER;
 }
 
 void TileSetEditor::RenderGUI()
@@ -134,9 +126,9 @@ void TileSetEditor::_LoadTileSetMenu(bool* p_open)
 			clicked = true;
 		if (clicked)
 		{
-			mCurrentTileset = std::make_shared<TileSetDescription>(tilesetFileNames[current_tileset_selected]);
+			//mCurrentTileset = std::make_shared<TileSetDescription>(tilesetFileNames[current_tileset_selected]);
 			if (mCurrentTileset == nullptr) return;
-			_LoadTileSetTexture(mCurrentTileset->getTexturePath().c_str(), true);
+			_LoadTileSetTexture(mCurrentTileset->getTexturePath().c_str());
 			show_texture_display_data = true;
 			show_tileset_info_menu = true;
 			show_load_tileset_menu = false;
@@ -172,7 +164,6 @@ void TileSetEditor::_TileSetInfoMenu(bool* p_open)
 			if (saveButtonClicked)
 			{
 				mCurrentTileset->UpdateSize(rows, columns);
-				_CreateTextureDebugGrid();
 				saveButtonClicked = false;
 			}
 		}
@@ -193,7 +184,7 @@ void TileSetEditor::_LoadTextureMenu(bool* p_open)
 			clicked = true;
 		if (clicked)
 		{
-			_LoadTileSetTexture(textureFileNames[current_texture_selected], false);
+			_LoadTileSetTexture(textureFileNames[current_texture_selected]);
 			show_load_texture_menu = false;
 			current_texture_selected = 0;
 			show_texture_display_data = true;
@@ -203,15 +194,10 @@ void TileSetEditor::_LoadTextureMenu(bool* p_open)
 	ImGui::End();
 }
 
-void TileSetEditor::_LoadTileSetTexture(const char* textureName, bool debugGrid)
+void TileSetEditor::_LoadTileSetTexture(const char* textureName)
 {
-	mCurrentSprite = mResourceManager.CreateTile(textureName, {0, 0, 1}, {25, 20, 1});
-	mResourceManager.AddRenderObjectToDrawList(mCurrentSprite);
-
-	if (debugGrid)
-	{
-		_CreateTextureDebugGrid();
-	}
+	mResourceManager.AddSprite(textureName, {0, 0, 10}, {5, 5, 1}, "tile-set-editor");
+	mCurrentSprite = mResourceManager.GetDrawDataById("tile-set-editor");
 }
 
 void TileSetEditor::_TextureDisplayMenu(bool* p_open)
@@ -224,75 +210,58 @@ void TileSetEditor::_TextureDisplayMenu(bool* p_open)
 		{
 			ImGui::Text("Transform");
 			// POSITION
-			static glm::vec3 pos = mCurrentSprite->GetPosition();
+			static glm::vec3 pos = mCurrentSprite->mPosition;
 			ImGui::SliderFloat("Pos X", &pos.x, -1000, 1000);
 			ImGui::SliderFloat("Pos Y", &pos.y, -1000, 1000);
 
-			if (pos != mCurrentSprite->GetPosition() && !ImGui::IsItemActive())
+			if (pos != mCurrentSprite->mPosition && !ImGui::IsItemActive())
 			{
-				mCurrentSprite->SetPosition(pos);
-				_CreateTextureDebugGrid();
+				mCurrentSprite->mPosition = pos;
 			}
 
 			// SIZE
-			static glm::vec3 size = mCurrentSprite->GetSize();
+			static glm::vec3 size = mCurrentSprite->mSize;
 			ImGui::SliderFloat("Size X", &size.x, 1, 100);
 			ImGui::SliderFloat("Size Y", &size.y, 1, 100);
 
-			if (size != mCurrentSprite->GetSize() && !ImGui::IsItemActive())
+			if (size != mCurrentSprite->mSize && !ImGui::IsItemActive())
 			{
-				mCurrentSprite->SetSize(size);
-				_CreateTextureDebugGrid();
+				mCurrentSprite->mSize = size;
 			}
 
 			// ROTATION
-			static float rot = mCurrentSprite->GetRotation();
+			static float rot = mCurrentSprite->mRotation;
 			ImGui::SliderFloat("Rotation", &rot, 0, 360);
 
-			if (rot != mCurrentSprite->GetRotation() && !ImGui::IsItemActive())
+			if (rot != mCurrentSprite->mRotation && !ImGui::IsItemActive())
 			{
-				mCurrentSprite->SetRotation(rot);
+				mCurrentSprite->mRotation = rot;
 			}
 
 			// TEXTURE COORDS
 			ImGui::Separator();
 			ImGui::Text("Texture Coords");
 
-			static glm::vec2 clip = mCurrentSprite->GetClip();
+			static glm::vec2 clip = mCurrentSprite->mTexClip;
 			ImGui::SliderFloat("Clip X", &clip.x, -2, 2);
 			ImGui::SliderFloat("Clip Y", &clip.y, -2, 2);
 
-			if (clip != mCurrentSprite->GetClip() && !ImGui::IsItemActive())
+			if (clip != mCurrentSprite->mTexClip && !ImGui::IsItemActive())
 			{
-				mCurrentSprite->UpdateClip(clip);
+				mCurrentSprite->mTexClip = clip;
 			}
 
-			static glm::vec2 scale = mCurrentSprite->GetScale();
+			static glm::vec2 scale = mCurrentSprite->mTexScale;
 			ImGui::SliderFloat("Scale X", &scale.x, 0, 1);
 			ImGui::SliderFloat("Scale Y", &scale.y, 0, 1);
 
-			if (scale != mCurrentSprite->GetScale() && !ImGui::IsItemActive())
+			if (scale != mCurrentSprite->mTexScale && !ImGui::IsItemActive())
 			{
-				mCurrentSprite->UpdateScale(scale);
+				mCurrentSprite->mTexScale = scale;
 			}
 		}
 		ImGui::End();
 	}
-}
-
-// ==== DEBUG ====
-void TileSetEditor::_CreateTextureDebugGrid() const
-{
-	if (mCurrentTileset == nullptr || mCurrentSprite == nullptr) return;
-	mRenderer.ClearDebugDraw();
-
-	const auto pos = mCurrentSprite->GetPosition();
-	const auto size = mCurrentSprite->GetSize();
-
-	const int rows = mCurrentTileset->GetRows();
-	const int columns = mCurrentTileset->GetColumns();
-
-	mResourceManager.CreateGrid(mRenderer, pos, size, rows, columns, {255, 255, 255});
 }
 
 void TileSetEditor::_CameraInfo(bool* p_open) const
