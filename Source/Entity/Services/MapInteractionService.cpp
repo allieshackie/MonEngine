@@ -22,6 +22,7 @@ MapInteractionService::MapInteractionService(Renderer& renderer, Camera& camera,
 
 void MapInteractionService::Tick() const
 {
+	DebugDrawManager::GetInstance()->DrawLine(mCamera.GetPosition(), mIntersectionPoint, {255, 0, 0});
 	DebugDrawManager::GetInstance()->DrawBox(mIntersectionPoint, 0.1f, {255, 255, 255});
 }
 
@@ -38,9 +39,10 @@ void MapInteractionService::_OnClick()
 	interactableView.each([=, &ray](const TransformComponent& transform, const SpriteComponent& sprite,
 	                                const MapComponent& map)
 	{
-		const glm::vec2 mapTopLeft = {
+		const glm::vec3 mapTopLeft = {
 			transform.mPosition.x - (map.mMapSize.x / 2) + (map.mTileSize / 2),
-			transform.mPosition.y - (map.mMapSize.y / 2) + (map.mTileSize / 2)
+			transform.mPosition.y - (map.mMapSize.y / 2) + (map.mTileSize / 2),
+			transform.mPosition.z
 		};
 		auto model = glm::mat4(1.0f);
 		model = translate(model, transform.mPosition);
@@ -48,7 +50,7 @@ void MapInteractionService::_OnClick()
 		model = rotate(model, glm::radians(transform.mRotation), glm::vec3(0.0f, 0.0f, 1.0f));
 		model = translate(model, glm::vec3(-0.5f * transform.mSize.x, -0.5f * transform.mSize.y, 0.0f));
 		model = scale(model, transform.mSize);
-		if (const auto t = _WithinMapBounds(model, ray); t >= 0)
+		if (const auto t = _WithinMapBounds(mapTopLeft, map.mMapSize, ray); t >= 0)
 		{
 			for (int i = 0; i < map.mData.size(); i++)
 			{
@@ -62,7 +64,9 @@ void MapInteractionService::_OnClick()
 				};
 				const glm::vec3 size = {map.mTileSize, map.mTileSize, 0};
 
-				if (_Intersect(pos, size, ray * t))
+				const auto intersection = (mCamera.GetPosition() + ray) * t;
+				mIntersectionPoint = {intersection.x, intersection.y, -3.5f};
+				if (_Intersect(pos, size, mIntersectionPoint))
 				{
 					std::cout << "Hovered tile: " << i << std::endl;
 					//mCurrentSelectedObject = obj;
@@ -81,14 +85,11 @@ glm::vec3 MapInteractionService::_CalculateMouseRay(glm::vec2 mousePos) const
 	return glm::normalize(glm::inverse(mCamera.GetView()) * eyeRay);
 }
 
-float MapInteractionService::_WithinMapBounds(glm::mat4 model, glm::vec3 mouseRay) const
+float MapInteractionService::_WithinMapBounds(glm::vec3 position, glm::vec3 size, glm::vec3 mouseRay) const
 {
-	// plane value
-	const glm::vec3 position = model * glm::vec4(vertices[0].position, 1.0);
-
 	// width/height vectors
-	const glm::vec3 p1 = model * glm::vec4(vertices[1].position, 1.0);
-	const glm::vec3 p2 = model * glm::vec4(vertices[2].position, 1.0);
+	const glm::vec3 p1 = {position.x, position.y + size.y, position.z};
+	const glm::vec3 p2 = {position.x + size.x, position.y, position.z};
 	const glm::vec3 widthVector = p2 - position;
 	const glm::vec3 heightVector = p1 - position;
 
