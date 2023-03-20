@@ -89,6 +89,7 @@ void Camera::SetPosition(glm::vec3 pos)
 
 void Camera::UpdateView()
 {
+	mCameraFront = {mCameraPos.x, mCameraPos.y, mCameraFront.z};
 	mView = glm::lookAt(mCameraPos, mCameraFront, mCameraUp);
 	mRenderer.UpdateView(mView);
 }
