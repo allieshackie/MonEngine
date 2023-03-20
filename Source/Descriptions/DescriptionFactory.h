@@ -1,6 +1,7 @@
 #pragma once
 
 #include "DescriptionBase.h"
+#include "InteractiveDescription.h"
 #include "RenderDescription.h"
 #include "MapDescription.h"
 #include "SpriteDescription.h"
@@ -41,6 +42,13 @@ public:
 			const auto transform = std::make_shared<TransformDescription>();
 			transform->ParseJSON(json);
 			return transform;
+		}
+
+		if (descriptionName == InteractiveDescription::JsonName)
+		{
+			const auto interactive = std::make_shared<InteractiveDescription>();
+			interactive->ParseJSON(json);
+			return interactive;
 		}
 
 		std::cout << "tried to create an undefined description: " << descriptionName << std::endl;

@@ -1,0 +1,28 @@
+{
+    "template_name": "tiles_map",
+    "components": {
+        "transform" : {
+            "position": [0,0,0],
+            "size": [1,1,1],
+            "rotation": 0
+        },
+        "sprite": {
+            "resource_path": "tiles.jpg",
+            "rows": 3,
+            "columns": 4
+        },
+        "map": {
+            "rows": 5,
+            "columns": 5,
+            "tile_size": 1,
+            "data": [
+                8,8,8,8,8,
+                1,1,1,1,1,
+                4,4,4,4,4,
+                0,0,0,0,0,
+                8,-1,8,-1,8
+            ]
+        },
+        "interactive": {}
+    }
+}

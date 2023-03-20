@@ -8,11 +8,6 @@
         },
         "sprite": {
             "resource_path": "awesomeface.png"
-        },
-        "map": {
-            "rows": 4,
-            "columns": 4,
-            "tile_size": 2
         }
     },
     "render": {

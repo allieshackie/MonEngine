@@ -1,11 +1,10 @@
-#include "SpriteComponent.h"
+#include "Components/SpriteComponent.h"
 
 #include "SpriteDescription.h"
 
 void SpriteDescription::ApplyToEntity(EntityId entity, EntityRegistry& entityRegistry)
 {
-	// TexClip + TexScale ?
-	entityRegistry.AddComponent<SpriteComponent>(entity, mResourcePath);
+	entityRegistry.AddComponent<SpriteComponent>(entity, mResourcePath, mRows, mColumns);
 }
 
 void SpriteDescription::ParseJSON(const nlohmann::json& json)

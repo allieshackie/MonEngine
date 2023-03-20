@@ -1,4 +1,4 @@
-#include "RenderComponent.h"
+#include "Components/RenderComponent.h"
 
 #include "RenderDescription.h"
 
