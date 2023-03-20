@@ -1,5 +1,4 @@
 #include "Core/ResourceManager.h"
-#include "TileSetDescription.h"
 
 #include "Map.h"
 
@@ -62,11 +61,13 @@ void Map::_CreateTiles()
 
 	for (int i = 0; i < mRawTiles.size(); i++)
 	{
+		/*
 		const float posX = i % static_cast<int>(mMapRowsColumns.y);
 		const float currentRow = floor(i / mMapRowsColumns.y);
 		const auto clip = mTileSetDescription->GetClipForTile(mRawTiles[i]);
 
 		const auto id = "tile-" + std::to_string(i);
+		 *
 		const auto tile = std::make_shared<Tile>(id, i, mRawTiles[i] == -1);
 
 		const glm::vec3 pos = {
@@ -85,6 +86,7 @@ void Map::_CreateTiles()
 		mResourceManager.AddBox(pos, size, id);
 
 		mMapTiles.push_back(tile);
+		 */
 	}
 }
 
@@ -128,9 +130,12 @@ void Map::UpdateTile(int tileIndex, int brushIndex)
 	const auto clip = mTileSetDescription->GetClipForTile(brushIndex);
 
 	const auto tile = mMapTiles[tileIndex];
+	/*
+	 *
 	const auto tileDrawData = mResourceManager.GetDrawDataById(tile->GetId());
 	tileDrawData->mTexClip = glm::vec2(clip.x, clip.y);
 	tileDrawData->mTexScale = glm::vec2(clip.z, clip.w);
+	 */
 
 	mRawTiles[tileIndex] = brushIndex;
 }

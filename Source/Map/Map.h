@@ -1,6 +1,6 @@
 #pragma once
 
-struct TileSetDescription;
+#include "Descriptions/TileSetDescription.h"
 
 class ResourceManager;
 class Tile;

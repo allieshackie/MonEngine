@@ -2,9 +2,8 @@
 #include "imgui/imgui.h"
 #include "Core/Renderer.h"
 #include "Core/ResourceManager.h"
-#include "Interaction/InteractionManager.h"
+#include "Entity/Services/MapInteractionService.h"
 #include "Map.h"
-#include "RenderObjects/Tile.h"
 
 #include "MapEditor.h"
 
@@ -14,18 +13,10 @@ bool MapEditor::show_pallette_menu = false;
 bool MapEditor::show_new_map_menu = false;
 bool MapEditor::show_load_map_menu = false;
 
-MapEditor::MapEditor(Renderer& renderer, ResourceManager& resourceManager, InteractionManager& interactionManager)
-	: mRenderer(renderer), mResourceManager(resourceManager), mInteractionManager(interactionManager)
+MapEditor::MapEditor(Renderer& renderer, ResourceManager& resourceManager, MapInteractionService& mapInteractionService)
+	: mRenderer(renderer), mResourceManager(resourceManager), mMapInteractionService(mapInteractionService)
 {
-	interactionManager.RegisterAction([=](DrawData& obj) { PaintTile(obj); });
 	_GetAllMapFileNames();
-}
-
-MapEditor::~MapEditor()
-{
-	//delete MAP_FOLDER;
-	//delete TILESET_FOLDER;
-	//delete TEXT_FILE;
 }
 
 void MapEditor::RenderGUI()
@@ -46,23 +37,12 @@ void MapEditor::ShowLoadMapMenu()
 	show_load_map_menu = true;
 }
 
-void MapEditor::PaintTile(DrawData& tile) const
-{
-	//mCurrentMap->UpdateTile(tileObj->GetIndex(), current_brush_index);
-}
-
 void MapEditor::_GetAllMapFileNames()
 {
 	mapFileNames.clear();
 	for (const auto& entry : fs::directory_iterator(MAP_FOLDER))
 	{
 		mapFileNames.push_back(_strdup(entry.path().filename().string().c_str()));
-	}
-
-	tilesetFileNames.clear();
-	for (const auto& entry : fs::directory_iterator(TILESET_FOLDER))
-	{
-		tilesetFileNames.push_back(_strdup(entry.path().filename().string().c_str()));
 	}
 }
 
@@ -151,7 +131,7 @@ void MapEditor::_LoadMap(const char* mapName)
 	 *
 	for (const auto& tile : mCurrentMap->GetTiles())
 	{
-		mInteractionManager.AddInteractableObject(tile);
+		mInteractionService.AddInteractableObject(tile);
 	}
 	 */
 	auto mapTexture = mCurrentMap->getTexturePath();

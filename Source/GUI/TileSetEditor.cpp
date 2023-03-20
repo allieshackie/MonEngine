@@ -196,12 +196,14 @@ void TileSetEditor::_LoadTextureMenu(bool* p_open)
 
 void TileSetEditor::_LoadTileSetTexture(const char* textureName)
 {
-	mResourceManager.AddSprite(textureName, {0, 0, 10}, {5, 5, 1}, "tile-set-editor");
-	mCurrentSprite = mResourceManager.GetDrawDataById("tile-set-editor");
+	//mResourceManager.AddSprite(textureName, {0, 0, 10}, {5, 5, 1}, "tile-set-editor");
+	//mCurrentSprite = mResourceManager.GetDrawDataById("tile-set-editor");
 }
 
 void TileSetEditor::_TextureDisplayMenu(bool* p_open)
 {
+	/*
+	 *
 	if (mCurrentSprite != nullptr)
 	{
 		ImGui::SetNextWindowSize(ImVec2(200, 350));
@@ -262,6 +264,7 @@ void TileSetEditor::_TextureDisplayMenu(bool* p_open)
 		}
 		ImGui::End();
 	}
+	 */
 }
 
 void TileSetEditor::_CameraInfo(bool* p_open) const

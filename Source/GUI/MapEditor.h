@@ -1,7 +1,7 @@
 #pragma once
 
 class InputManager;
-class InteractionManager;
+class MapInteractionService;
 class Map;
 class Renderer;
 class ResourceManager;
@@ -11,15 +11,13 @@ using GLuint = unsigned int;
 class MapEditor
 {
 public:
-	MapEditor(Renderer& renderer, ResourceManager& resourceManager, InteractionManager& interactionManager);
-	~MapEditor();
+	MapEditor(Renderer& renderer, ResourceManager& resourceManager, MapInteractionService& mapInteractionService);
+	~MapEditor() = default;
 
 	void RenderGUI();
 
 	static void ShowNewMapMenu();
 	static void ShowLoadMapMenu();
-
-	void PaintTile(DrawData& tile) const;
 
 private:
 	// PALLETTE
@@ -63,5 +61,5 @@ private:
 
 	Renderer& mRenderer;
 	ResourceManager& mResourceManager;
-	InteractionManager& mInteractionManager;
+	MapInteractionService& mMapInteractionService;
 };
