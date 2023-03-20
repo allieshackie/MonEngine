@@ -89,8 +89,6 @@ void Camera::SetPosition(glm::vec3 pos)
 
 void Camera::UpdateView()
 {
-	// TODO: look into proper view matrix calculation
-	//mView = glm::lookAt(mCameraPos, mCameraPos + mCameraFront, mCameraUp);
 	mView = glm::lookAt(mCameraPos, mCameraFront, mCameraUp);
 	mRenderer.UpdateView(mView);
 }

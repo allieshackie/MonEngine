@@ -34,7 +34,7 @@ public:
 	void UpdateView();
 
 private:
-	glm::vec3 mCameraPos = glm::vec3(0.0f, 0.0f, -10.0f);
+	glm::vec3 mCameraPos = glm::vec3(0.0f, 0.0f, -5.0f);
 	glm::vec3 mCameraFront = glm::vec3(0.0f, 0.0f, 1.0f);
 	glm::vec3 mCameraUp = glm::vec3(0.0f, -1.0f, 0.0f);
 

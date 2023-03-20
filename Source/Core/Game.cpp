@@ -6,10 +6,11 @@
 #include "GUISystem.h"
 #include "InputHandler.h"
 #include "InputManager.h"
-#include "Interaction/InteractionManager.h"
+#include "Services/MapInteractionService.h"
 #include "MapEditor.h"
 #include "TileSetEditor.h"
 #include "UIInputManager.h"
+#include "Debug/DebugDraw.h"
 
 #include "Game.h"
 
@@ -47,11 +48,12 @@ void Game::ConfigureLevel()
 
 	// Register exit button
 	mInputManager->registerButtonUpHandler(LLGL::Key::Escape, [=]() { mRunning = false; });
-	mInteractionManager = std::make_unique<InteractionManager>(*mRenderer, *mCamera, *mInputManager, *mResourceManager);
+	mMapInteractionService = std::make_unique<MapInteractionService>(*mRenderer, *mCamera, *mInputManager,
+	                                                                 *mEntityRegistry);
 
 	// Editors
 	//mTileSetEditor = std::make_unique<TileSetEditor>(*mRenderer, *mResourceManager, *mCamera);
-	//mMapEditor = std::make_unique<MapEditor>(*mRenderer, *mResourceManager, *mInteractionManager);
+	mMapEditor = std::make_unique<MapEditor>(*mRenderer, *mResourceManager, *mMapInteractionService);
 }
 
 void Game::CloseGame()
@@ -61,15 +63,28 @@ void Game::CloseGame()
 
 void Game::RunGame() const
 {
-	mEntityRegistry->CreateEntityFromTemplate("test");
+	// Debug calls need to happen on tick
+	mEntityRegistry->CreateEntityFromTemplate("tiles_map");
+	//mEntityRegistry->CreateEntityFromTemplate("test");
 	while (mRenderer->GetSwapChain().GetSurface().ProcessEvents() && mRunning)
 	{
+		mMapInteractionService->Tick();
+		// Render XYZ Axis
+		/*
+		 *
+		DebugDrawManager::GetInstance()->DrawLine({-1, 0, 0}, {1, 0, 0}, {255, 0, 0});
+		DebugDrawManager::GetInstance()->DrawBox({1, 0, 0}, 0.1f, {255, 0, 0});
+		DebugDrawManager::GetInstance()->DrawLine({0, -1, 0}, {0, 1, 0}, {0, 255, 0});
+		DebugDrawManager::GetInstance()->DrawBox({0, 1, 0}, 0.1f, {0, 255, 0});
+		DebugDrawManager::GetInstance()->DrawLine({0, 0, -1}, {0, 0, 1}, {0, 0, 255});
+		DebugDrawManager::GetInstance()->DrawBox({0, 0, 1}, 0.1f, {0, 0, 255});
+		 */
 		mRenderer->OnDrawFrame([=]()
 		{
 			// Render GUI
 			mGUISystem->GUIStartFrame();
 			//mTileSetEditor->RenderGUI();
-			//mMapEditor->RenderGUI();
+			mMapEditor->RenderGUI();
 			//mTileSetEditor->RenderTest();
 			mGUISystem->GUIEndFrame();
 		});

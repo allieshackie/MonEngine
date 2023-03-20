@@ -5,7 +5,7 @@ class EntityTemplateRegistry;
 class Camera;
 class InputHandler;
 class InputManager;
-class InteractionManager;
+class MapInteractionService;
 class GUISystem;
 class MapEditor;
 class Renderer;
@@ -39,7 +39,7 @@ private:
 
 	std::shared_ptr<InputHandler> mInputHandler;
 	std::unique_ptr<InputManager> mInputManager;
-	std::unique_ptr<InteractionManager> mInteractionManager;
+	std::unique_ptr<MapInteractionService> mMapInteractionService;
 	std::unique_ptr<ResourceManager> mResourceManager;
 
 	std::unique_ptr<GUISystem> mGUISystem;
