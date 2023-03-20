@@ -14,8 +14,6 @@ namespace fs = std::filesystem;
 ResourceManager::~ResourceManager()
 {
 	mTextures.clear();
-	mSpriteDrawList.clear();
-	mDebugDrawList.clear();
 }
 
 void ResourceManager::LoadAllTexturesFromFolder(LLGL::RenderSystem& renderer)
@@ -72,55 +70,6 @@ std::shared_ptr<Texture> ResourceManager::GetTextureFromName(const std::string& 
 const std::unordered_map<int, std::shared_ptr<Texture>>& ResourceManager::getTextures()
 {
 	return mTextures;
-}
-
-const std::vector<std::shared_ptr<DrawData>>& ResourceManager::GetSpriteDrawList()
-{
-	return mSpriteDrawList;
-}
-
-const std::vector<std::shared_ptr<DrawData>>& ResourceManager::GetDebugDrawList()
-{
-	return mDebugDrawList;
-}
-
-void ResourceManager::ClearDebugDrawList()
-{
-	mDebugDrawList.clear();
-}
-
-void ResourceManager::AddSprite(const std::string& textureName, glm::vec3 pos, glm::vec3 size, std::string id)
-{
-	const auto textureId = mTextureIds.find(textureName);
-	if (textureId != mTextureIds.end())
-	{
-		auto sprite = std::make_shared<DrawData>(pos, size, 0, std::move(id), textureId->second);
-		mSpriteDrawList.emplace_back(std::move(sprite));
-	}
-}
-
-void ResourceManager::AddSprite(const std::string& textureName, glm::vec3 pos, glm::vec3 size, glm::vec2 clip,
-                                glm::vec2 scale, std::string id)
-{
-	const auto textureId = mTextureIds.find(textureName);
-	if (textureId != mTextureIds.end())
-	{
-		auto tile = std::make_shared<DrawData>(pos, size, 0, std::move(id), textureId->second, clip, scale);
-		mSpriteDrawList.emplace_back(std::move(tile));
-	}
-}
-
-std::shared_ptr<DrawData>& ResourceManager::GetDrawDataById(const std::string& id)
-{
-	for (auto& drawData : mSpriteDrawList)
-	{
-		if (drawData->mId == id)
-		{
-			return drawData;
-		}
-	}
-
-	return mEmptyData;
 }
 
 TriangleMesh ResourceManager::LoadObjModel(std::vector<TexturedVertex>& vertices, const std::string& filename) const
@@ -207,12 +156,6 @@ TriangleMesh ResourceManager::LoadObjModel(std::vector<TexturedVertex>& vertices
 	}
 
 	return mesh;
-}
-
-void ResourceManager::AddBox(glm::vec3 position, glm::vec3 size, std::string id)
-{
-	auto debugBox = std::make_shared<DrawData>(position, size, 0.0f, std::move(id));
-	mDebugDrawList.push_back(std::move(debugBox));
 }
 
 // Simple helper function to load an image into a OpenGL texture with common settings

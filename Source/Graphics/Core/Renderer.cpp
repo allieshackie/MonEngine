@@ -72,7 +72,7 @@ void Renderer::_Init()
 	mPipeline2D = std::make_unique<Pipeline2D>(*this, mResourceManager, mEntityRegistry);
 	// TODO: Enable for 3D
 	//mPipeline3D = std::make_unique<Pipeline3D>(*this, mResourceManager);
-	mDebugPipeline = std::make_unique<DebugPipeline>(*this, mResourceManager);
+	mDebugPipeline = std::make_unique<DebugPipeline>(*this);
 	// NOTE: Projection update must occur after debug shader is initialized
 	UpdateProjection();
 }
@@ -91,7 +91,7 @@ void Renderer::OnDrawFrame(const std::function<void()>& drawCallback) const
 		mCommands->BeginRenderPass(*mSwapChain);
 		{
 			mPipeline2D->Tick();
-			mDebugPipeline->Render(*mCommands);
+			mDebugPipeline->Tick();
 			// TODO: Enable for 3D
 			//mPipeline3D->Render(*mCommands);
 			// gui draw calls, this can include images so we want it to

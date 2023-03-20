@@ -2,6 +2,9 @@
 #include <LLGL/LLGL.h>
 #include <glm/mat4x4.hpp>
 
+#include "Core/Vertex.h"
+
+struct MapComponent;
 struct SpriteComponent;
 struct TransformComponent;
 
@@ -19,10 +22,12 @@ public:
 
 	void Tick() const;
 	void Render(const TransformComponent& transform, const SpriteComponent& sprite) const;
+	void RenderMap(const TransformComponent& transform, const SpriteComponent& sprite, const MapComponent& map) const;
 
 private:
 	void _InitPipeline();
-	void _UpdateUniforms(const TransformComponent& transform, const SpriteComponent& sprite) const;
+	void _UpdateUniforms(const TransformComponent& transform) const;
+	void _UpdateUniforms(glm::vec3 pos, glm::vec3 size, float rot, glm::vec4 texClip) const;
 
 	LLGL::PipelineState* mPipeline = nullptr;
 	LLGL::ResourceHeap* mResourceHeap = nullptr;
@@ -38,6 +43,13 @@ private:
 		glm::mat4 textureTransform;
 	}
 	spriteSettings = {};
+
+	std::vector<Vertex> mVertices = {
+		{{-0.5, -0.5, 1}, {1, 1, 1}, {0, 0}}, // top left
+		{{-0.5, 0.5, 1}, {1, 1, 1}, {0, 1}}, // bottom left
+		{{0.5, -0.5, 1}, {1, 1, 1}, {1, 0}}, // top right
+		{{0.5, 0.5, 1}, {1, 1, 1}, {1, 1}}, // bottom right
+	};
 
 	Renderer& mRenderer;
 	ResourceManager& mResourceManager;
