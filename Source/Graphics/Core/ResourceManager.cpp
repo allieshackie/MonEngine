@@ -4,11 +4,8 @@
 #include <sstream>
 #include "Util/stb_image.h"
 
-#include "Map.h"
 #include "Texture.h"
 #include "Renderer.h"
-#include "Entity/RenderObjects/DebugDraw.h"
-#include "Entity/RenderObjects/Tile.h"
 
 #include "ResourceManager.h"
 
@@ -16,17 +13,7 @@ namespace fs = std::filesystem;
 
 ResourceManager::~ResourceManager()
 {
-	for (const auto& tex : mTextures)
-	{
-		delete(tex.second);
-	}
 	mTextures.clear();
-
-	for (const auto draw : mDrawList)
-	{
-		delete(draw);
-	}
-	mDrawList.clear();
 }
 
 void ResourceManager::LoadAllTexturesFromFolder(LLGL::RenderSystem& renderer)
@@ -44,18 +31,9 @@ void ResourceManager::LoadTexture(LLGL::RenderSystem& renderer, const std::strin
 {
 	if (mTextures.find(textureId) == mTextures.end())
 	{
-		const auto texture = new Texture(renderer, filePath);
-		mTextures[textureId] = texture;
+		auto texture = std::make_shared<Texture>(renderer, filePath);
+		mTextures[textureId] = std::move(texture);
 		mTextureIds[textureName] = textureId;
-	}
-}
-
-void ResourceManager::SetTexture(LLGL::CommandBuffer& commands, int textureId)
-{
-	if (textureId != mResourceIndex)
-	{
-		SetCurrentTexture(textureId);
-		BindTexture(commands);
 	}
 }
 
@@ -79,7 +57,7 @@ glm::vec2 ResourceManager::GetTextureSize(int textureId)
 	return {0, 0};
 }
 
-Texture* ResourceManager::GetTextureFromName(const std::string& filePath)
+std::shared_ptr<Texture> ResourceManager::GetTextureFromName(const std::string& filePath)
 {
 	const auto textureId = GetTextureId(filePath);
 	const auto textureIt = mTextures.find(textureId);
@@ -89,92 +67,9 @@ Texture* ResourceManager::GetTextureFromName(const std::string& filePath)
 	return textureIt->second;
 }
 
-void ResourceManager::BindTexture(LLGL::CommandBuffer& commands)
+const std::unordered_map<int, std::shared_ptr<Texture>>& ResourceManager::getTextures()
 {
-	commands.SetResourceHeap(*mResourceHeap, mResourceIndex);
-}
-
-void ResourceManager::SetCurrentTexture(int textureId)
-{
-	mResourceIndex = textureId;
-}
-
-const std::vector<RenderObject*>& ResourceManager::GetDrawList()
-{
-	return mDrawList;
-}
-
-const std::vector<DebugDrawable*>& ResourceManager::GetDebugDrawList()
-{
-	return mDebugDrawList;
-}
-
-void ResourceManager::ClearDebugDrawList()
-{
-	mDebugDrawList.clear();
-}
-
-void ResourceManager::AddSprite(const std::string& textureName, glm::vec3 pos, glm::vec3 size)
-{
-	const auto textureId = mTextureIds.find(textureName);
-	if (textureId != mTextureIds.end())
-	{
-		const auto sprite = new Sprite(textureId->second, pos, size);
-		//Renderer::GetInstance()->Add2DRenderObject(*sprite);
-		mDrawList.emplace_back(sprite);
-	}
-}
-
-void ResourceManager::AddTile(const std::string& textureName, glm::vec3 pos, glm::vec3 size,
-                              glm::vec2 clip,
-                              glm::vec2 scale)
-{
-	const auto textureId = mTextureIds.find(textureName);
-	if (textureId != mTextureIds.end())
-	{
-		const auto sprite = new Tile(textureId->second, pos, size, clip, scale);
-		//Renderer::GetInstance()->Add2DRenderObject(*sprite);
-		mDrawList.emplace_back(sprite);
-	}
-}
-
-Sprite* ResourceManager::CreateSprite(const std::string& textureName, glm::vec3 pos, glm::vec3 size)
-{
-	const auto textureId = mTextureIds.find(textureName);
-	if (textureId != mTextureIds.end())
-	{
-		const auto sprite = new Sprite(textureId->second, pos, size);
-		return sprite;
-	}
-
-	return nullptr;
-}
-
-Tile* ResourceManager::CreateTile(const std::string& textureName, glm::vec3 pos, glm::vec3 size,
-                                  glm::vec2 clip,
-                                  glm::vec2 scale)
-{
-	const auto textureId = mTextureIds.find(textureName);
-	if (textureId != mTextureIds.end())
-	{
-		const auto tile = new Tile(textureId->second, pos, size, clip, scale);
-		return tile;
-	}
-	return nullptr;
-}
-
-Map* ResourceManager::CreateMap(glm::vec3 pos, const char* fileName)
-{
-	// TODO: Why is this pointer empty? 
-	const auto map = new Map(*this, pos, fileName);
-	//Renderer::GetInstance()->Add2DRenderObject(*map);
-	//mDrawList.emplace_back(map);
-	return map;
-}
-
-void ResourceManager::AddRenderObjectToDrawList(RenderObject* obj)
-{
-	mDrawList.emplace_back(obj);
+	return mTextures;
 }
 
 TriangleMesh ResourceManager::LoadObjModel(std::vector<TexturedVertex>& vertices, const std::string& filename) const
@@ -261,69 +156,6 @@ TriangleMesh ResourceManager::LoadObjModel(std::vector<TexturedVertex>& vertices
 	}
 
 	return mesh;
-}
-
-void ResourceManager::CreateLine(const Renderer& renderer, glm::vec3 pointA, glm::vec3 pointB, glm::vec3 color)
-{
-	const auto debugLine = new Line(pointA, pointB, {0, 0, 0}, {1, 1, 1}, color);
-	renderer.AddDebugRenderObject(*debugLine);
-	mDebugDrawList.push_back(debugLine);
-}
-
-void ResourceManager::CreateBox(const Renderer& renderer, glm::vec3 position, glm::vec3 size, glm::vec3 color)
-{
-	const auto debugBox = new Box(position, size, color);
-	renderer.AddDebugRenderObject(*debugBox);
-	mDebugDrawList.push_back(debugBox);
-}
-
-void ResourceManager::CreateGrid(const Renderer& renderer, glm::vec3 position, glm::vec3 size, int rows, int columns,
-                                 glm::vec3 color)
-{
-	Box debugBox(position, size, color);
-	std::vector<Line> lines;
-	float totalYDist = abs(debugBox.GetPointB().y - debugBox.GetPointA().y);
-	float yAmountToJump = totalYDist / rows;
-	for (int i = 1; i < rows; i++)
-	{
-		Line line({debugBox.GetPointA().x, debugBox.GetPointA().y - (i * yAmountToJump), debugBox.GetPointA().z}, {
-			          debugBox.GetPointC().x, debugBox.GetPointC().y - (i * yAmountToJump), debugBox.GetPointC().z
-		          }, position, size, color);
-		lines.push_back(line);
-	}
-
-	float totalXDist = abs(debugBox.GetPointC().x - debugBox.GetPointA().x);
-	float xAmountToJump = totalXDist / columns;
-	for (int i = 1; i < columns; i++)
-	{
-		Line line({debugBox.GetPointA().x + (i * xAmountToJump), debugBox.GetPointA().y, debugBox.GetPointA().z}, {
-			          debugBox.GetPointB().x + (i * xAmountToJump), debugBox.GetPointB().y, debugBox.GetPointB().z
-		          }, position, size, color);
-		lines.push_back(line);
-	}
-
-	auto debugGrid = new Grid(debugBox, lines, position, size, color);
-
-	renderer.AddDebugRenderObject(*debugGrid);
-	mDebugDrawList.push_back(debugGrid);
-}
-
-void ResourceManager::CreateResourceHeap(LLGL::RenderSystem& renderer, LLGL::PipelineLayout& pipelineLayout,
-                                         LLGL::Buffer& constantBuffer)
-{
-	LLGL::ResourceHeapDescriptor resourceHeapDesc;
-	{
-		resourceHeapDesc.pipelineLayout = &pipelineLayout;
-		resourceHeapDesc.resourceViews.reserve(mTextures.size() * 3);
-
-		for (const auto& texture : mTextures)
-		{
-			resourceHeapDesc.resourceViews.emplace_back(&constantBuffer);
-			resourceHeapDesc.resourceViews.emplace_back(&texture.second->GetTextureData());
-			resourceHeapDesc.resourceViews.emplace_back(&texture.second->GetSamplerData());
-		}
-	}
-	mResourceHeap = renderer.CreateResourceHeap(resourceHeapDesc);
 }
 
 // Simple helper function to load an image into a OpenGL texture with common settings

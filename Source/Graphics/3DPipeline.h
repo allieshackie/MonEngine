@@ -26,7 +26,7 @@ private:
 	void _InitPipeline();
 
 	LLGL::PipelineState* mPipeline = nullptr;
-	Shader* mShader = nullptr;
+	std::unique_ptr<Shader> mShader = nullptr;
 	LLGL::Buffer* mConstantBuffer = nullptr;
 	LLGL::Buffer* mVertexBuffer = nullptr;
 	LLGL::ResourceHeap* mVolumeResourceHeap = nullptr;
@@ -38,7 +38,7 @@ private:
 	}
 	volumeSettings = {};
 
-	Model* model = nullptr;
+	std::unique_ptr<Model> model = nullptr;
 
 	Renderer& mRenderer;
 	ResourceManager& mResourceManager;

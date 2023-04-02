@@ -1,30 +1,50 @@
-#pragma once 
+#pragma once
 
 #include "DescriptionBase.h"
+#include "InteractiveDescription.h"
+#include "RenderDescription.h"
+#include "SpriteDescription.h"
+#include "TransformDescription.h"
 
-class DescriptionFactoryBase {
-public:
-	DescriptionFactoryBase() = default;
-	virtual ~DescriptionFactoryBase() = default;
-	DescriptionFactoryBase& operator=(const DescriptionFactoryBase&) = delete;
-
-	std::unique_ptr<DescriptionBase> create() {
-		std::unique_ptr<DescriptionBase> created = _create();
-		return created;
-	}
-protected:
-	virtual std::unique_ptr<DescriptionBase> _create() = 0;
-};
-
-
-template<class TDescription>
-class DescriptionFactory : DescriptionFactoryBase {
+class DescriptionFactory
+{
 public:
 	DescriptionFactory() = default;
-	virtual ~DescriptionFactory() {}
+	~DescriptionFactory() = default;
 
-protected:
-	virtual std::unique_ptr<DescriptionBase> _create() override {
-		return std::make_unique<TDescription>();
+	std::shared_ptr<DescriptionBase> CreateDescription(const std::string& descriptionName,
+	                                                   const nlohmann::json& json) const
+	{
+		if (descriptionName == RenderDescription::JsonName)
+		{
+			const auto render = std::make_shared<RenderDescription>();
+			render->ParseJSON(json);
+			return render;
+		}
+
+		if (descriptionName == SpriteDescription::JsonName)
+		{
+			const auto sprite = std::make_shared<SpriteDescription>();
+			sprite->ParseJSON(json);
+			return sprite;
+		}
+
+		if (descriptionName == TransformDescription::JsonName)
+		{
+			const auto transform = std::make_shared<TransformDescription>();
+			transform->ParseJSON(json);
+			return transform;
+		}
+
+		if (descriptionName == InteractiveDescription::JsonName)
+		{
+			const auto interactive = std::make_shared<InteractiveDescription>();
+			interactive->ParseJSON(json);
+			return interactive;
+		}
+
+		std::cout << "tried to create an undefined description: " << descriptionName << std::endl;
+		assert(false);
+		return nullptr;
 	}
 };

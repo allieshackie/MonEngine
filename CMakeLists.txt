@@ -31,21 +31,20 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 
 set(FOLDERS
     Source/Core
+    Source/Descriptions
     Source/Entity
     Source/Entity/Components
-    Source/Entity/RenderObjects
-    Source/Entity/Interaction
+    Source/Entity/Systems
     Source/Graphics
     Source/Graphics/Core
+    Source/Graphics/Debug
     Source/Graphics/Util
-    Source/Input
-    Source/Descriptions
-    Source/Map
-    Source/Map/Components
-    Source/UI
     Source/GUI
     Source/GUI/imgui
     Source/GUI/imgui/backends
+    Source/Input
+    Source/Map
+    Source/UI
 )
 
 foreach(ITEM ${FOLDERS})
@@ -79,15 +78,12 @@ target_include_directories(
     "Source/"
     "Source/Core"
     "Source/Entity"
-    "Source/Entity/Components"
     "Source/Graphics"
     "Source/Input"
     "Source/Descriptions"
     "Source/Map"
-    "Source/Map/Components"
     "Source/UI"
     "Source/GUI"
-    "Source/GUI/backends"
 )
 
 # ENTT Library

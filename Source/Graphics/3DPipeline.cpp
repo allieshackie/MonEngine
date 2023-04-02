@@ -1,4 +1,4 @@
-#include "LLGL/Utility.h"
+#include "LLGL/Misc/Utility.h"
 
 #include "Core/Renderer.h"
 #include "Core/ResourceManager.h"
@@ -36,7 +36,7 @@ void Pipeline3D::_InitPipeline()
 	vertexFormat.AppendAttribute({"texCoord", LLGL::Format::RG32Float});
 	vertexFormat.SetStride(sizeof(TexturedVertex));
 
-	mShader = new Shader(*mRenderer.GetRendererSystem(), vertexFormat, "volume.vert", "volume.frag");
+	mShader = std::make_unique<Shader>(*mRenderer.GetRendererSystem(), vertexFormat, "volume.vert", "volume.frag");
 
 	// All layout bindings that will be used by graphics and compute pipelines
 	LLGL::PipelineLayoutDescriptor layoutDesc;
@@ -54,7 +54,8 @@ void Pipeline3D::_InitPipeline()
 	// Create graphics pipeline
 	LLGL::GraphicsPipelineDescriptor pipelineDesc;
 	{
-		pipelineDesc.shaderProgram = &mShader->GetShaderProgram();
+		pipelineDesc.vertexShader = &mShader->GetVertexShader();
+		pipelineDesc.fragmentShader = &mShader->GetFragmentShader();
 		pipelineDesc.pipelineLayout = pipelineLayout;
 		pipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::TriangleStrip;
 	}
@@ -67,6 +68,8 @@ void Pipeline3D::_InitPipeline()
 		heapDesc.resourceViews = {mConstantBuffer};
 	}
 	mVolumeResourceHeap = mRenderer.GetRendererSystem()->CreateResourceHeap(heapDesc);
+
+	delete pipelineLayout;
 }
 
 void Pipeline3D::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& commands, glm::mat4 model, glm::mat4 projection,
@@ -82,7 +85,7 @@ void Pipeline3D::AddRenderObjectVBuffer(RenderObject& obj)
 	// TODO: Hardcoded volume test
 	std::vector<TexturedVertex> vertices;
 	mResourceManager.LoadObjModel(vertices, "../Data/Models/Pyramid.obj");
-	model = new Model();
+	model = std::make_unique<Model>();
 	model->numVertices = static_cast<std::uint32_t>(vertices.size());
 
 	mVertexBuffer = mRenderer.GetRendererSystem()->CreateBuffer(

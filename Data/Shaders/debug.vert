@@ -1,6 +1,9 @@
 #version 460
 
-uniform mat4 pvmMat;
+layout(std140) uniform Settings
+{
+    mat4 pvMat;
+};
 
 // Vertex attributes (these names must match our vertex format attributes)
 in vec3 position;
@@ -12,6 +15,6 @@ out vec3 vertexColor;
 // Vertex shader main function
 void main()
 {
-	gl_Position = pvmMat * vec4(position, 1.0);
+	gl_Position = pvMat * vec4(position, 1.0);
 	vertexColor = color;
 }

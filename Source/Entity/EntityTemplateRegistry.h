@@ -1,12 +1,21 @@
 #pragma once
 
-class EntityTemplateRegistry {
+struct DescriptionBase;
+
+class EntityTemplateRegistry
+{
 public:
-	EntityTemplateRegistry() = default;
+	EntityTemplateRegistry();
 	virtual ~EntityTemplateRegistry() = default;
 
-private:
-	void _registerEntityTemplates();
+	std::vector<std::shared_ptr<DescriptionBase>>& GetEntityTemplateDescriptions(const std::string& templateName);
 
-	const char* entitiesFilePath = "";
+private:
+	void _RegisterEntityTemplates();
+
+	const char* mEntitiesFilePath = "../Data/Entities/";
+	const char* TEMPLATE_NAME_STRING = "template_name";
+	const char* COMPONENTS_STRING = "components";
+
+	std::unordered_map<std::string, std::vector<std::shared_ptr<DescriptionBase>>> mEntityTemplates;
 };

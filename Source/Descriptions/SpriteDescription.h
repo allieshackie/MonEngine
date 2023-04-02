@@ -2,16 +2,26 @@
 
 #include "DescriptionBase.h"
 
-struct SpriteDescription : ComponentDescriptionBase {
+struct SpriteDescription : DescriptionBase
+{
 public:
-	SpriteDescription();
+	SpriteDescription() = default;
+	~SpriteDescription() override = default;
 
-	void ApplyToEntity(EntityContext& entity) override {}
-    void ParseJSON(const nlohmann::json& jsonFrag) override;
+	void ApplyToEntity(EntityId entity, EntityRegistry& entityRegistry) override;
 
-public:
-	static constexpr char JsonName[] = "mondev:sprite";
+	void ParseJSON(const nlohmann::json& json) override;
+
+	static constexpr char JsonName[] = "sprite";
+
 private:
 	static constexpr char RESOURCE_PATH_STRING[] = "resource_path";
+	static constexpr char ROWS_STRING[] = "rows";
+	static constexpr char COLUMNS_STRING[] = "columns";
 
+	std::string mResourcePath;
+
+	// optional
+	int mRows = 0;
+	int mColumns = 0;
 };

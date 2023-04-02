@@ -4,16 +4,6 @@
 
 using json = nlohmann::json;
 
-TileSetDescription::TileSetDescription(const char* fileName)
-{
-	Load(fileName);
-}
-
-void TileSetDescription::Load(const char* fileName)
-{
-	ParseJSON(fileName);
-}
-
 const std::string& TileSetDescription::getTexturePath() const
 {
 	return mTexturePath;
@@ -57,6 +47,8 @@ void TileSetDescription::setColumns(int columns)
 
 void TileSetDescription::UpdateSize(int rows, int columns)
 {
+	/*
+	 *
 	if (mTileSetFilePath != JSON_PATH)
 	{
 		mTilesetRows = rows;
@@ -68,25 +60,5 @@ void TileSetDescription::UpdateSize(int rows, int columns)
 		std::ofstream ofs(mTileSetFilePath.c_str(), std::ios::out | std::ios::trunc);
 		ofs << std::setw(4) << mJson << std::endl;
 	}
-}
-
-void TileSetDescription::ParseJSON(const char* fileName)
-{
-	// parse and serialize JSON
-	mTileSetFilePath.append(fileName);
-	if (mTileSetFilePath.find(".json") == std::string::npos)
-	{
-		mTileSetFilePath.append(".json");
-	}
-	std::ifstream ifs(mTileSetFilePath.c_str());
-
-	mJson = json::parse(ifs, nullptr, false, true);
-
-	auto& size = mJson[SIZE_STRING];
-	mTilesetRows = size[0];
-	mTilesetColumns = size[1];
-
-	mTexturePath = mJson[TEXTURE_STRING];
-
-	ifs.close();
+	 */
 }

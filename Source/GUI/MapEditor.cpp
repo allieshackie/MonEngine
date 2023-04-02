@@ -1,23 +1,23 @@
 #include <filesystem>
+#include <nlohmann/json.hpp>
 #include "imgui/imgui.h"
 #include "Core/Renderer.h"
 #include "Core/ResourceManager.h"
-#include "Interaction/InteractionManager.h"
-#include "Map.h"
-#include "RenderObjects/Tile.h"
+#include "Camera.h"
+#include "Debug/DebugDraw.h"
+#include "MapDescription.h"
+#include "MapInteractionSystem.h"
+#include "MapSystem.h"
 
 #include "MapEditor.h"
 
 namespace fs = std::filesystem;
 
-bool MapEditor::show_pallette_menu = false;
-bool MapEditor::show_new_map_menu = false;
-bool MapEditor::show_load_map_menu = false;
-
-MapEditor::MapEditor(Renderer& renderer, ResourceManager& resourceManager, InteractionManager& interactionManager)
-	: mRenderer(renderer), mResourceManager(resourceManager), mInteractionManager(interactionManager)
+MapEditor::MapEditor(ResourceManager& resourceManager, MapSystem& mapSystem, MapInteractionSystem& mapInteractionSystem,
+                     Camera& camera)
+	: mResourceManager(resourceManager), mMapSystem(mapSystem), mMapInteractionSystem(mapInteractionSystem),
+	  mCamera(camera)
 {
-	interactionManager.RegisterAction([=](RenderObject& obj) { PaintTile(obj); });
 	_GetAllMapFileNames();
 }
 
@@ -26,22 +26,30 @@ void MapEditor::RenderGUI()
 	if (show_new_map_menu) _NewMapMenu(&show_new_map_menu);
 	if (show_load_map_menu) _LoadMapMenu(&show_load_map_menu);
 
-	if (show_pallette_menu) _PalletteMenu(&show_pallette_menu);
-}
+	if (show_palette_menu) _PaletteMenu(&show_palette_menu);
 
-void MapEditor::ShowNewMapMenu()
-{
-	show_new_map_menu = true;
-}
+	if (show_camera_info) _CameraInfo(&show_camera_info);
 
-void MapEditor::ShowLoadMapMenu()
-{
-	show_load_map_menu = true;
-}
+	if (show_texture_menu) _TextureMenu(&show_texture_menu);
+	if (draw_debug_texture_grid) _DrawTextureDebugGrid();
+	if (draw_debug_map_grid) _DrawMapDebugGrid();
 
-void MapEditor::PaintTile(RenderObject& tile)
-{
-	std::cout << "Paint Tile" << std::endl;
+	if (ImGui::BeginMainMenuBar())
+	{
+		if (ImGui::MenuItem("New"))
+		{
+			show_new_map_menu = !show_new_map_menu;
+		}
+		if (ImGui::MenuItem("Load"))
+		{
+			show_load_map_menu = !show_load_map_menu;
+		}
+		if (ImGui::MenuItem("Toggle Camera Info"))
+		{
+			show_camera_info = !show_camera_info;
+		}
+		ImGui::EndMainMenuBar();
+	}
 }
 
 void MapEditor::_GetAllMapFileNames()
@@ -49,13 +57,16 @@ void MapEditor::_GetAllMapFileNames()
 	mapFileNames.clear();
 	for (const auto& entry : fs::directory_iterator(MAP_FOLDER))
 	{
-		mapFileNames.push_back(_strdup(entry.path().filename().string().c_str()));
+		if (entry.path().filename().string().find(".json") != std::string::npos)
+		{
+			mapFileNames.push_back(_strdup(entry.path().filename().string().c_str()));
+		}
 	}
 
-	tilesetFileNames.clear();
-	for (const auto& entry : fs::directory_iterator(TILESET_FOLDER))
+	textureFileNames.clear();
+	for (const auto& entry : fs::directory_iterator(TEXTURES_FOLDER))
 	{
-		tilesetFileNames.push_back(_strdup(entry.path().filename().string().c_str()));
+		textureFileNames.push_back(_strdup(entry.path().filename().string().c_str()));
 	}
 }
 
@@ -65,14 +76,15 @@ void MapEditor::_NewMapMenu(bool* p_open)
 	_CenterWindow(300, 300);
 	if (ImGui::Begin("New Map", p_open, ImGuiWindowFlags_MenuBar))
 	{
-		static char buf1[64] = "";
-		ImGui::InputText("File Name", buf1, IM_ARRAYSIZE(buf1));
+		static char fileName[64] = "";
+		ImGui::InputText("File Name", fileName, IM_ARRAYSIZE(fileName));
 		ImGui::TextColored(ImVec4(1, 0, 0, 1), "Do not include spaces in name");
 
 		ImGui::Spacing();
-		static int current_tileset_selected = 0;
-		ImGui::Combo("TileSets", &current_tileset_selected, tilesetFileNames.data(), tilesetFileNames.size());
+		static char id[64] = "";
+		ImGui::InputText("Id", id, IM_ARRAYSIZE(id));
 
+		ImGui::Spacing();
 		static int rows = 1;
 		ImGui::InputInt("Rows", &rows, 1);
 		static int columns = 1;
@@ -80,23 +92,54 @@ void MapEditor::_NewMapMenu(bool* p_open)
 		static int tileSize = 1;
 		ImGui::InputInt("Tile Size", &tileSize, 1);
 
+		ImGui::Spacing();
+		static float position[3] = {0, 0, 0};
+		ImGui::InputFloat3("Position", position);
+		static float size[3] = {0, 0, 0};
+		ImGui::InputFloat3("Size", size);
+		static float rotation = 0;
+		ImGui::InputFloat("Rotation", &rotation);
+
+		ImGui::Spacing();
+		ImGui::Text("Texture Data:");
+		static int current_texture_selected = 0;
+		ImGui::Combo("Textures", &current_texture_selected, textureFileNames.data(), textureFileNames.size());
+		// TODO: Show texture preview?
+		static int texMapRows = 1;
+		ImGui::InputInt("Texture Map Rows", &texMapRows, 1);
+		static int texMapColumns = 1;
+		ImGui::InputInt("Texture Map Columns", &texMapColumns, 1);
+
 		if (ImGui::Button("Create"))
 		{
-			std::string newMapPath = MAP_FOLDER;
-			newMapPath.append(buf1).append(".txt");
-			std::ofstream fileOut(newMapPath);
-			std::string tileSetName = tilesetFileNames[current_tileset_selected];
-			// Search for the substring in string
-			const std::string toErase = ".json";
-			const size_t pos = tileSetName.find(toErase);
-			if (pos != std::string::npos)
-			{
-				// If found then erase it from string
-				tileSetName.erase(pos, toErase.length());
-			}
+			// Create map json file
+			nlohmann::json mapJsonData;
+			mapJsonData[MapDescription::ID_STRING] = id;
+			mapJsonData[MapDescription::ROWS_STRING] = rows;
+			mapJsonData[MapDescription::COLUMNS_STRING] = columns;
+			mapJsonData[MapDescription::TILE_SIZE_STRING] = tileSize;
 
-			fileOut << tileSetName << "," << rows << "," << columns << "," << tileSize << "," << "\n";
+			mapJsonData[MapDescription::TRANSFORM_STRING] = {
+				{MapDescription::POSITION_STRING, position},
+				{MapDescription::SIZE_STRING, size},
+				{MapDescription::ROTATION_STRING, rotation}
+			};
 
+			mapJsonData[MapDescription::TEXTURE_DATA_STRING] = {
+				{MapDescription::TEXTURE_PATH_STRING, textureFileNames[current_texture_selected]},
+				{MapDescription::ROWS_STRING, texMapRows},
+				{MapDescription::COLUMNS_STRING, texMapColumns},
+			};
+
+			std::string mapJson = MAP_FOLDER;
+			mapJson.append(fileName).append(".json");
+			std::ofstream mapWrite(mapJson);
+			mapWrite << mapJsonData;
+			mapWrite.close();
+
+			std::string mapTxt = MAP_FOLDER;
+			mapTxt.append(fileName).append(".txt");
+			std::ofstream dataWrite(mapTxt);
 			std::string tilesStr;
 			for (int i = 0; i < rows; i++)
 			{
@@ -104,17 +147,18 @@ void MapEditor::_NewMapMenu(bool* p_open)
 				{
 					tilesStr += "-1,";
 				}
-				fileOut << tilesStr;
+				dataWrite << tilesStr;
 				if (i != rows - 1)
 				{
-					fileOut << "\n";
+					dataWrite << "\n";
 				}
 				tilesStr.clear();
 			}
+			dataWrite.close();
 
-			fileOut.close();
-
-			_LoadMap(buf1);
+			std::string openFileName = fileName;
+			openFileName.append(".json");
+			_LoadMap(openFileName.c_str());
 
 			show_new_map_menu = false;
 		}
@@ -133,30 +177,33 @@ void MapEditor::_LoadMapMenu(bool* p_open)
 			_LoadMap(mapFileNames[current_map_selected]);
 			show_load_map_menu = false;
 		}
+		if (ImGui::Button("Preview Texture"))
+		{
+			_PreviewTexture(mapFileNames[current_map_selected]);
+			show_load_map_menu = false;
+		}
 	}
 	ImGui::End();
 }
 
 void MapEditor::_LoadMap(const char* mapName)
 {
-	mCurrentMap = mResourceManager.CreateMap({0, 0, 0}, mapName);
-	for (const auto& tile : mCurrentMap->GetTiles())
-	{
-		mInteractionManager.AddInteractableObject(tile);
-	}
-	_CreateMapDebugGrid(*mCurrentMap);
-	auto mapTexture = mCurrentMap->getTexturePath();
-	mResourceManager.AddRenderObjectToDrawList(mCurrentMap);
+	mMapSystem.CreateMap(mapName);
+
+	auto mapTexture = mMapSystem.GetCurrentMapDescription()->GetTexturePath();
 	if (mResourceManager.CreateSimpleOpenGLTexture(
 		mapTexture, &mPalletteTextureId, &mPalletteTextureWidth, &mPalletteTextureHeight))
 	{
-		show_pallette_menu = true;
+		mMapInteractionSystem.SetPaletteBrush(current_brush_index);
+		show_palette_menu = true;
+		draw_debug_map_grid = true;
 	}
 }
 
 // ==== PALLETTE ====
-void MapEditor::_PalletteMenu(bool* p_open)
+void MapEditor::_PaletteMenu(bool* p_open)
 {
+	const auto& mapDescription = mMapSystem.GetCurrentMapDescription();
 	const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
 	ImGui::SetNextWindowSize(ImVec2(200, main_viewport->Size.y - 20));
 	ImGui::SetNextWindowPos(ImVec2(0, 20));
@@ -172,13 +219,14 @@ void MapEditor::_PalletteMenu(bool* p_open)
 
 		ImGui::Text("Brush Index: %d", current_brush_index);
 		ImGui::SameLine();
-		const static int totalTiles = mCurrentMap->GetTotalTileSetTiles();
+		const static int totalTiles = mapDescription->GetTextureMapRows() * mapDescription->GetTextureMapColumns();
 		if (ImGui::ArrowButton("##up", ImGuiDir_Up))
 		{
 			if (current_brush_index < totalTiles - 1)
 			{
 				current_brush_index++;
 			}
+			mMapInteractionSystem.SetPaletteBrush(current_brush_index);
 		}
 		ImGui::SameLine();
 		if (ImGui::ArrowButton("##down", ImGuiDir_Down))
@@ -187,12 +235,13 @@ void MapEditor::_PalletteMenu(bool* p_open)
 			{
 				current_brush_index--;
 			}
+			mMapInteractionSystem.SetPaletteBrush(current_brush_index);
 		}
 
 		ImGui::Spacing();
 		ImGui::Text("Current Brush: ");
 
-		const auto texClip = mCurrentMap->GetClipForTile(current_brush_index);
+		const auto texClip = mapDescription->GetClipForTile(current_brush_index);
 
 		ImGui::Image((ImTextureID)mPalletteTextureId,
 		             ImVec2(50, 50), ImVec2(texClip.x, texClip.y),
@@ -204,24 +253,60 @@ void MapEditor::_PalletteMenu(bool* p_open)
 			saveChanges = true;
 		if (saveChanges)
 		{
-			mCurrentMap->SaveTilesToFile();
+			// TODO: Save Changes
+			//mCurrentMap->SaveTilesToFile();
 			saveChanges = false;
 		}
 	}
 	ImGui::End();
 }
 
-void MapEditor::_CreateMapDebugGrid(const Map& map)
+void MapEditor::_PreviewTexture(const char* mapName)
 {
-	mRenderer.ClearDebugDraw();
+	mMapSystem.CreateMap(mapName);
 
-	const auto pos = map.GetMapPosition();
-	const auto size = map.GetMapSize();
+	// RenderDebug will render the map texture instead of the map tiles
+	mMapSystem.GetCurrentMapDescription()->SetRenderDebug(true);
 
-	const glm::vec2 rowsColumns = map.GetMapRowsColumns();
+	// Draw grid overlay on the texture to show how texture map is split by rows/columns
+	draw_debug_texture_grid = true;
+	show_texture_menu = true;
+}
 
-	mResourceManager.CreateGrid(mRenderer, pos, size, rowsColumns.x, rowsColumns.y, {255, 255, 255});
-	mResourceManager.CreateBox(mRenderer, {-50, -50, 0}, {1, 1, 1}, {255, 0, 0}); //red
+void MapEditor::_TextureMenu(bool* p_open) const
+{
+	const auto& mapDescription = mMapSystem.GetCurrentMapDescription();
+	const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
+	ImGui::SetNextWindowSize(ImVec2(200, main_viewport->Size.y - 20));
+	ImGui::SetNextWindowPos(ImVec2(0, 20));
+	if (ImGui::Begin("Texture", p_open, mWindowFlags))
+	{
+		static int rows = mapDescription->GetTextureMapRows();
+		ImGui::InputInt("Rows", &rows);
+		if (rows != mapDescription->GetTextureMapRows())
+		{
+			mapDescription->SetTextureMapRows(rows);
+		}
+
+		static int columns = mapDescription->GetTextureMapColumns();
+		ImGui::InputInt("Columns", &columns);
+		if (columns != mapDescription->GetTextureMapColumns())
+		{
+			mapDescription->SetTextureMapColumns(columns);
+		}
+
+
+		static bool saveChanges = false;
+		if (ImGui::Button("Save"))
+			saveChanges = true;
+		if (saveChanges)
+		{
+			// TODO: Save Changes
+			//mCurrentMap->SaveTilesToFile();
+			saveChanges = false;
+		}
+	}
+	ImGui::End();
 }
 
 void MapEditor::_CenterWindow(float width, float height)
@@ -231,4 +316,46 @@ void MapEditor::_CenterWindow(float width, float height)
 	const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
 	ImGui::SetNextWindowPos(ImVec2(main_viewport->Size.x / 2 - (width / 2), main_viewport->Size.y / 2 - (height / 2)));
 	ImGui::SetNextWindowSize(ImVec2(width, height));
+}
+
+void MapEditor::_DrawTextureDebugGrid() const
+{
+	const auto& map = mMapSystem.GetCurrentMapDescription();
+	DebugDrawManager::GetInstance()->DrawGrid(map->GetPosition(), map->GetMapSize(), {255, 0, 0},
+	                                          map->GetTextureMapRows(), map->GetTextureMapColumns());
+}
+
+void MapEditor::_DrawMapDebugGrid() const
+{
+	const auto& map = mMapSystem.GetCurrentMapDescription();
+	DebugDrawManager::GetInstance()->DrawGrid(map->GetPosition(), map->GetMapSize(), {255, 0, 0},
+	                                          map->GetRows(), map->GetColumns());
+}
+
+
+void MapEditor::_CameraInfo(bool* p_open) const
+{
+	if (ImGui::Begin("Camera Info", p_open, ImGuiWindowFlags_MenuBar))
+	{
+		static glm::vec3 cameraFront = mCamera.GetFront();
+		ImGui::SliderFloat("Front X", &cameraFront.x, -2, 2);
+		ImGui::SliderFloat("Front Y", &cameraFront.y, -2, 2);
+		ImGui::SliderFloat("Front Z", &cameraFront.z, -2, 2);
+
+		if (cameraFront != mCamera.GetFront() && !ImGui::IsItemActive())
+		{
+			mCamera.SetFront(cameraFront);
+		}
+
+		static glm::vec3 cameraPos = mCamera.GetPosition();
+		ImGui::SliderFloat("Pos X", &cameraPos.x, -2, 2);
+		ImGui::SliderFloat("Pos Y", &cameraPos.y, -2, 2);
+		ImGui::SliderFloat("Pos Z", &cameraPos.z, -1000, 10);
+
+		if (cameraPos != mCamera.GetPosition() && !ImGui::IsItemActive())
+		{
+			mCamera.SetPosition(cameraPos);
+		}
+	}
+	ImGui::End();
 }
