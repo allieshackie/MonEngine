@@ -1,16 +1,17 @@
 #include "Core/Window.h"
 #include "Core/ResourceManager.h"
+#include "Debug/DebugDraw.h"
 #include "Camera.h"
+#include "Defines.h"
 #include "EntityTemplateRegistry.h"
 #include "EntityRegistry.h"
-#include "GUISystem.h"
 #include "InputHandler.h"
 #include "InputManager.h"
-#include "Services/MapInteractionService.h"
+#include "GUISystem.h"
 #include "MapEditor.h"
-#include "TileSetEditor.h"
+#include "MapSystem.h"
+#include "MapInteractionSystem.h"
 #include "UIInputManager.h"
-#include "Debug/DebugDraw.h"
 
 #include "Game.h"
 
@@ -32,9 +33,10 @@ void Game::ConfigureLevel()
 {
 	mEntityTemplateRegistry = std::make_unique<EntityTemplateRegistry>();
 	mEntityRegistry = std::make_unique<EntityRegistry>(*mEntityTemplateRegistry);
+	mMapSystem = std::make_unique<MapSystem>();
 
 	mResourceManager = std::make_unique<ResourceManager>();
-	mRenderer = std::make_unique<Renderer>(*mResourceManager, *mEntityRegistry);
+	mRenderer = std::make_unique<Renderer>(*mResourceManager, *mEntityRegistry, *mMapSystem);
 	mWindow = std::make_unique<Window>(*mRenderer);
 	mGUISystem = std::make_unique<GUISystem>(*mRenderer);
 
@@ -48,12 +50,10 @@ void Game::ConfigureLevel()
 
 	// Register exit button
 	mInputManager->registerButtonUpHandler(LLGL::Key::Escape, [=]() { mRunning = false; });
-	mMapInteractionService = std::make_unique<MapInteractionService>(*mRenderer, *mCamera, *mInputManager,
-	                                                                 *mEntityRegistry);
+	mMapInteractionSystem = std::make_unique<MapInteractionSystem>(*mMapSystem, *mRenderer, *mCamera, *mInputManager);
 
 	// Editors
-	//mTileSetEditor = std::make_unique<TileSetEditor>(*mRenderer, *mResourceManager, *mCamera);
-	mMapEditor = std::make_unique<MapEditor>(*mRenderer, *mResourceManager, *mMapInteractionService);
+	mMapEditor = std::make_unique<MapEditor>(*mResourceManager, *mMapSystem, *mMapInteractionSystem, *mCamera);
 }
 
 void Game::CloseGame()
@@ -61,29 +61,36 @@ void Game::CloseGame()
 	mRunning = false;
 }
 
-void Game::RunGame() const
+/*
+ * Draw the XYZ axis at 0,0,0
+ * Note: Not ideal for debugging since the axises are drawn in world
+ * space and don't follow the camera
+ * Ideally, this could be draw directly to screen space and remain in the view
+ * like UI
+ */
+void Game::_DrawAxis()
 {
-	// Debug calls need to happen on tick
-	mEntityRegistry->CreateEntityFromTemplate("tiles_map");
-	//mEntityRegistry->CreateEntityFromTemplate("test");
+	DebugDrawManager::GetInstance()->DrawLine({-1, 0, 0}, {1, 0, 0}, {255, 0, 0});
+	DebugDrawManager::GetInstance()->DrawBox({1, 0, 0}, {0.1f, 0.1f, 1.0f}, {255, 0, 0});
+	DebugDrawManager::GetInstance()->DrawLine({0, -1, 0}, {0, 1, 0}, {0, 255, 0});
+	DebugDrawManager::GetInstance()->DrawBox({0, 1, 0}, {0.1f, 0.1f, 1.0f}, {0, 255, 0});
+	DebugDrawManager::GetInstance()->DrawLine({0, 0, -1}, {0, 0, 1}, {0, 0, 255});
+	DebugDrawManager::GetInstance()->DrawBox({0, 0, 1}, {0.1f, 0.1f, 1.0f}, {0, 0, 255});
+}
+
+void Game::RunGame()
+{
+	mMapSystem->CreateMap("tiles_map.json");
 	while (mRenderer->GetSwapChain().GetSurface().ProcessEvents() && mRunning)
 	{
-		mMapInteractionService->Tick();
-		// Render XYZ Axis
-		/*
-		 *
-		DebugDrawManager::GetInstance()->DrawLine({-1, 0, 0}, {1, 0, 0}, {255, 0, 0});
-		DebugDrawManager::GetInstance()->DrawBox({1, 0, 0}, 0.1f, {255, 0, 0});
-		DebugDrawManager::GetInstance()->DrawLine({0, -1, 0}, {0, 1, 0}, {0, 255, 0});
-		DebugDrawManager::GetInstance()->DrawBox({0, 1, 0}, 0.1f, {0, 255, 0});
-		DebugDrawManager::GetInstance()->DrawLine({0, 0, -1}, {0, 0, 1}, {0, 0, 255});
-		DebugDrawManager::GetInstance()->DrawBox({0, 0, 1}, 0.1f, {0, 0, 255});
-		 */
+		mMapInteractionSystem->Tick();
+		const auto& map = mMapSystem->GetCurrentMapDescription();
+		DebugDrawManager::GetInstance()->DrawBox(map->GetPosition(), map->GetMapSize(), {255, 0, 0});
+		//_DrawAxis();
 		mRenderer->OnDrawFrame([=]()
 		{
 			// Render GUI
 			mGUISystem->GUIStartFrame();
-			//mTileSetEditor->RenderGUI();
 			mMapEditor->RenderGUI();
 			//mTileSetEditor->RenderTest();
 			mGUISystem->GUIEndFrame();

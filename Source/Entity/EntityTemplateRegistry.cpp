@@ -1,5 +1,4 @@
 #include <filesystem>
-
 #include <nlohmann/json.hpp>
 #include "DescriptionFactory.h"
 

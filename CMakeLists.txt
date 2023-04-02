@@ -34,7 +34,7 @@ set(FOLDERS
     Source/Descriptions
     Source/Entity
     Source/Entity/Components
-    Source/Entity/Services
+    Source/Entity/Systems
     Source/Graphics
     Source/Graphics/Core
     Source/Graphics/Debug

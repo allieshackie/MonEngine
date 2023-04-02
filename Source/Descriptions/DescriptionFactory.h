@@ -3,7 +3,6 @@
 #include "DescriptionBase.h"
 #include "InteractiveDescription.h"
 #include "RenderDescription.h"
-#include "MapDescription.h"
 #include "SpriteDescription.h"
 #include "TransformDescription.h"
 
@@ -16,13 +15,6 @@ public:
 	std::shared_ptr<DescriptionBase> CreateDescription(const std::string& descriptionName,
 	                                                   const nlohmann::json& json) const
 	{
-		if (descriptionName == MapDescription::JsonName)
-		{
-			const auto map = std::make_shared<MapDescription>();
-			map->ParseJSON(json);
-			return map;
-		}
-
 		if (descriptionName == RenderDescription::JsonName)
 		{
 			const auto render = std::make_shared<RenderDescription>();

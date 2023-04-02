@@ -5,12 +5,12 @@ class EntityTemplateRegistry;
 class Camera;
 class InputHandler;
 class InputManager;
-class MapInteractionService;
 class GUISystem;
 class MapEditor;
+class MapSystem;
+class MapInteractionSystem;
 class Renderer;
 class ResourceManager;
-class TileSetEditor;
 class Window;
 
 int main(int argc, char** argv);
@@ -25,12 +25,11 @@ public:
 
 	void ConfigureLevel();
 
-	//void registerEntityTemplates();
-
 	void CloseGame();
 
 protected:
-	void RunGame() const;
+	void _DrawAxis();
+	void RunGame();
 
 private:
 	std::unique_ptr<Renderer> mRenderer;
@@ -39,11 +38,12 @@ private:
 
 	std::shared_ptr<InputHandler> mInputHandler;
 	std::unique_ptr<InputManager> mInputManager;
-	std::unique_ptr<MapInteractionService> mMapInteractionService;
+
+	std::unique_ptr<MapSystem> mMapSystem;
+	std::unique_ptr<MapInteractionSystem> mMapInteractionSystem;
 	std::unique_ptr<ResourceManager> mResourceManager;
 
 	std::unique_ptr<GUISystem> mGUISystem;
-	std::unique_ptr<TileSetEditor> mTileSetEditor;
 	std::unique_ptr<MapEditor> mMapEditor;
 
 	std::unique_ptr<EntityTemplateRegistry> mEntityTemplateRegistry;
