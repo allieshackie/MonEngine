@@ -11,15 +11,15 @@ class Box;
 class DebugDrawable;
 class EntityRegistry;
 class Line;
+class MapSystem;
 class ResourceManager;
-class Shader;
 
 class RenderObject;
 
 class Renderer
 {
 public:
-	Renderer(ResourceManager& resourceManager, EntityRegistry& entityRegistry);
+	Renderer(ResourceManager& resourceManager, EntityRegistry& entityRegistry, MapSystem& mapSystem);
 	~Renderer() = default;
 
 	void OnDrawFrame(const std::function<void()>& drawCallback) const;
@@ -34,7 +34,7 @@ public:
 		return mRenderer;
 	}
 
-	LLGL::CommandBuffer& GetCommandBuffer()
+	LLGL::CommandBuffer& GetCommandBuffer() const
 	{
 		return *mCommands;
 	}
@@ -47,7 +47,7 @@ public:
 	glm::vec3 NormalizedDeviceCoords(glm::vec3 vec) const;
 
 private:
-	void _Init();
+	void _Init(MapSystem& mapSystem);
 
 	std::unique_ptr<LLGL::RenderSystem> mRenderer; // Render system
 	LLGL::SwapChain* mSwapChain = nullptr; // Main render context

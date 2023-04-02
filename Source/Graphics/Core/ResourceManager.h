@@ -7,11 +7,9 @@
 
 class Map;
 class Renderer;
-class Shader;
 class Texture;
 
 static const char* TEXTURE_FOLDER = "../Data/Textures";
-
 using GLuint = unsigned int;
 
 class ResourceManager
@@ -32,8 +30,6 @@ public:
 	const std::unordered_map<int, std::shared_ptr<Texture>>& getTextures();
 
 	TriangleMesh LoadObjModel(std::vector<TexturedVertex>& vertices, const std::string& filename) const;
-
-	void ClearDebugDrawList();
 
 	bool CreateSimpleOpenGLTexture(std::string& filename, GLuint* out_texture, int* out_width, int* out_height);
 

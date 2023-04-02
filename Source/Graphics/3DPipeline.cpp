@@ -12,14 +12,6 @@ Pipeline3D::Pipeline3D(Renderer& renderer, ResourceManager& resourceManager)
 	_InitPipeline();
 }
 
-Pipeline3D::~Pipeline3D()
-{
-	delete mPipeline;
-	delete mConstantBuffer;
-	delete mVertexBuffer;
-	delete mVolumeResourceHeap;
-}
-
 void Pipeline3D::Render(LLGL::CommandBuffer& commands) const
 {
 	// Set resources

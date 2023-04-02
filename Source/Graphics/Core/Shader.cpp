@@ -2,8 +2,6 @@
 
 #include "Shader.h"
 
-#include "LLGL/Misc/Utility.h"
-
 Shader::Shader(LLGL::RenderSystem& renderer, LLGL::VertexFormat vertexFormat, const char* vertexFilePath,
                const char* fragmentFilePath) : mVertexFormat(std::move(vertexFormat))
 {

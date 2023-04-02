@@ -3,17 +3,19 @@
 
 #include "Core/Renderer.h"
 #include "Core/ResourceManager.h"
-#include "Core/Shader.h"
 #include "Components/MapComponent.h"
 #include "Components/TransformComponent.h"
 #include "Components/SpriteComponent.h"
+#include "MapDescription.h"
+#include "MapSystem.h"
 #include "EntityRegistry.h"
 #include "Texture.h"
 
 #include "2DPipeline.h"
 
-Pipeline2D::Pipeline2D(Renderer& renderer, ResourceManager& resourceManager, EntityRegistry& entityRegistry)
-	: mRenderer(renderer), mResourceManager(resourceManager), mEntityRegistry(entityRegistry)
+Pipeline2D::Pipeline2D(Renderer& renderer, ResourceManager& resourceManager, EntityRegistry& entityRegistry,
+                       MapSystem& mapSystem)
+	: mRenderer(renderer), mResourceManager(resourceManager), mEntityRegistry(entityRegistry), mMapSystem(mapSystem)
 {
 	_InitPipeline();
 
@@ -22,13 +24,6 @@ Pipeline2D::Pipeline2D(Renderer& renderer, ResourceManager& resourceManager, Ent
 		                 mShader->GetVertexFormat()),
 		mVertices.data()
 	);
-}
-
-Pipeline2D::~Pipeline2D()
-{
-	delete mPipeline;
-	delete mConstantBuffer;
-	delete mVertexBuffer;
 }
 
 void Pipeline2D::Tick() const
@@ -45,12 +40,17 @@ void Pipeline2D::Tick() const
 		Render(transform, sprite);
 	});
 
-	const auto mapView = mEntityRegistry.GetEnttRegistry().view<
-		const TransformComponent, const SpriteComponent, const MapComponent>();
-	mapView.each([=](const TransformComponent& transform, const SpriteComponent& sprite, const MapComponent& map)
+	for (const auto& map : mMapSystem.GetAllMaps())
 	{
-		RenderMap(transform, sprite, map);
-	});
+		if (map->GetRenderDebug())
+		{
+			RenderMapTexture(map);
+		}
+		else
+		{
+			RenderMapTiles(map);
+		}
+	}
 }
 
 void Pipeline2D::Render(const TransformComponent& transform, const SpriteComponent& sprite) const
@@ -68,44 +68,41 @@ void Pipeline2D::Render(const TransformComponent& transform, const SpriteCompone
 	commands.Draw(4, 0);
 }
 
-void Pipeline2D::RenderMap(const TransformComponent& transform, const SpriteComponent& sprite,
-                           const MapComponent& map) const
+void Pipeline2D::RenderMapTiles(const std::unique_ptr<MapDescription>& mapDesc) const
 {
 	auto& commands = mRenderer.GetCommandBuffer();
-	const auto textureId = mResourceManager.GetTextureId(sprite.mTexturePath);
+	const auto textureId = mResourceManager.GetTextureId(mapDesc->GetTexturePath());
 
 	// If this assert is hit, need to add a case for commands.SetResourceHeap(*mResourceHeap);
 	assert(textureId != -1);
 
 	commands.SetResourceHeap(*mResourceHeap, textureId);
-
-	const glm::vec2 mapTopLeft = {
-		transform.mPosition.x - (map.mMapSize.x / 2) + (map.mTileSize / 2),
-		transform.mPosition.y - (map.mMapSize.y / 2) + (map.mTileSize / 2)
-	};
-	for (int i = 0; i < map.mData.size(); i++)
+	const auto mapData = mapDesc->GetMapData();
+	for (int i = 0; i < mapData.size(); i++)
 	{
-		const int tile = map.mData[i];
-		const float posX = i % static_cast<int>(map.mColumns);
-		const double currentRow = floor(i / map.mColumns);
+		glm::vec3 tilePos;
+		glm::vec3 size;
+		glm::vec4 clip;
+		mapDesc->CalculateTileDrawData(i, tilePos, size, clip);
 
-		const glm::vec2 clipStart = {
-			fmod(tile, sprite.mColumns) / sprite.mColumns, fmod(tile, sprite.mRows) / sprite.mRows
-		};
-		const glm::vec4 clip = {
-			clipStart.x, clipStart.y, 1.0 / sprite.mColumns, 1.0 / sprite.mRows
-		};
-
-		const glm::vec3 pos = {
-			mapTopLeft.x + (posX * map.mTileSize),
-			mapTopLeft.y + (currentRow * map.mTileSize),
-			transform.mPosition.z
-		};
-		const glm::vec3 size = {map.mTileSize, map.mTileSize, 0};
-
-		_UpdateUniforms(pos, size, transform.mRotation, clip);
+		_UpdateUniforms(tilePos, size, mapDesc->GetRotation(), clip);
 		commands.Draw(4, 0);
 	}
+}
+
+void Pipeline2D::RenderMapTexture(const std::unique_ptr<MapDescription>& mapDesc) const
+{
+	auto& commands = mRenderer.GetCommandBuffer();
+	const auto textureId = mResourceManager.GetTextureId(mapDesc->GetTexturePath());
+
+	// If this assert is hit, need to add a case for commands.SetResourceHeap(*mResourceHeap);
+	assert(textureId != -1);
+
+	commands.SetResourceHeap(*mResourceHeap, textureId);
+	const auto pos = mapDesc->GetPosition();
+	const auto mapSize = mapDesc->GetMapSize();
+	_UpdateUniforms(pos, mapSize, mapDesc->GetRotation(), {1, 1, 1, 1});
+	commands.Draw(4, 0);
 }
 
 void Pipeline2D::_UpdateUniforms(const TransformComponent& transform) const

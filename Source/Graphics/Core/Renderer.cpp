@@ -9,14 +9,14 @@
 static constexpr int SCREEN_WIDTH = 800;
 static constexpr int SCREEN_HEIGHT = 600;
 
-Renderer::Renderer(ResourceManager& resourceManager, EntityRegistry& entityRegistry)
+Renderer::Renderer(ResourceManager& resourceManager, EntityRegistry& entityRegistry, MapSystem& mapSystem)
 	: mEntityRegistry(entityRegistry), mResourceManager(resourceManager)
 {
 	// Initialize default projection matrix
-	_Init();
+	_Init(mapSystem);
 }
 
-void Renderer::_Init()
+void Renderer::_Init(MapSystem& mapSystem)
 {
 	try
 	{
@@ -69,7 +69,7 @@ void Renderer::_Init()
 	}
 
 	mResourceManager.LoadAllTexturesFromFolder(*mRenderer);
-	mPipeline2D = std::make_unique<Pipeline2D>(*this, mResourceManager, mEntityRegistry);
+	mPipeline2D = std::make_unique<Pipeline2D>(*this, mResourceManager, mEntityRegistry, mapSystem);
 	// TODO: Enable for 3D
 	//mPipeline3D = std::make_unique<Pipeline3D>(*this, mResourceManager);
 	mDebugPipeline = std::make_unique<DebugPipeline>(*this);
@@ -135,5 +135,5 @@ glm::mat4 Renderer::GetView() const
 glm::vec3 Renderer::NormalizedDeviceCoords(glm::vec3 vec) const
 {
 	const auto res = mSwapChain->GetResolution();
-	return {(2.0f * vec.x) / res.width - 1.0f, 1.0f - (2.0f * vec.y) / res.height, vec.z};
+	return {(vec.x / (res.width / 2.0f) - 1.0f), -1 * (vec.y / (res.height / 2.0f) - 1.0f), vec.z};
 }

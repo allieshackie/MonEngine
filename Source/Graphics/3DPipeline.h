@@ -13,7 +13,7 @@ class Pipeline3D
 {
 public:
 	Pipeline3D(Renderer& renderer, ResourceManager& resourceManager);
-	~Pipeline3D();
+	~Pipeline3D() = default;
 
 	void Render(LLGL::CommandBuffer& commands) const;
 
