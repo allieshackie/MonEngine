@@ -6,12 +6,16 @@
 Camera::Camera(Renderer& renderer, const InputManager& inputManager)
 	: mRenderer(renderer)
 {
-	// Register camera handlers
+	// Register camera handlers for moving the camera position
+	// If the mCameraFront remains the same, this will result in the
+	// camera view angling.  We can adjust the mCameraFront.xy to match the
+	// camera position so that the view will not angle
 	inputManager.registerButtonUpHandler(LLGL::Key::Up, [=]() { MoveUp(); });
 	inputManager.registerButtonUpHandler(LLGL::Key::Down, [=]() { MoveDown(); });
 	inputManager.registerButtonUpHandler(LLGL::Key::Left, [=]() { MoveLeft(); });
 	inputManager.registerButtonUpHandler(LLGL::Key::Right, [=]() { MoveRight(); });
 
+	// Handlers for handling the camera zoom
 	inputManager.registerZoomInHandler([=]() { ZoomIn(); });
 	inputManager.registerZoomOutHandler([=]() { ZoomOut(); });
 
@@ -87,6 +91,12 @@ void Camera::SetPosition(glm::vec3 pos)
 	UpdateView();
 }
 
+/*
+ * The view matrix is used in the projection-view-model matrix calculation to
+ * determine a vertex's final position in clip space
+ * The view matrix is queried by the Renderer/Pipelines to update the mvp matrix
+ * uniform in the shader files
+ */
 void Camera::UpdateView()
 {
 	mCameraFront = {mCameraPos.x, mCameraPos.y, mCameraFront.z};
