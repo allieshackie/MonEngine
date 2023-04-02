@@ -9,8 +9,5 @@
         "sprite": {
             "resource_path": "awesomeface.png"
         }
-    },
-    "render": {
-        "texture": ""
     }
 }
