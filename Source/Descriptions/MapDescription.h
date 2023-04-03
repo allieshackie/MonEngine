@@ -25,8 +25,12 @@ public:
 	glm::vec3 GetMapSize() const { return mMapSize; }
 
 	glm::vec3 GetPosition() const { return mPosition; }
+	void SetPosition(glm::vec3 pos);
+
 	glm::vec3 GetSize() const { return mSize; }
+
 	float GetRotation() const { return mRotation; }
+	void SetRotation(float rotation);
 
 	const std::string& GetTexturePath() { return mTexturePath; }
 
@@ -44,6 +48,8 @@ public:
 	glm::vec4 GetClipForTile(int index) const;
 
 	void CalculateTileDrawData(int tileIndex, glm::vec3& pos, glm::vec3& size, glm::vec4& clip);
+
+	void SaveTilesToFile() const;
 
 	static constexpr char ID_STRING[] = "id";
 
@@ -80,6 +86,7 @@ private:
 	int mTextureMapRows = 0;
 	int mTextureMapColumns = 0;
 
+	std::string mDataPath;
 	std::vector<int> mData;
 
 	bool mRenderDebug = false;

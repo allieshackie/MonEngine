@@ -40,7 +40,7 @@ void Pipeline2D::Tick() const
 		Render(transform, sprite);
 	});
 
-	for (const auto& map : mMapSystem.GetAllMaps())
+	for (const auto map : mMapSystem.GetAllMaps())
 	{
 		if (map->GetRenderDebug())
 		{
@@ -68,7 +68,7 @@ void Pipeline2D::Render(const TransformComponent& transform, const SpriteCompone
 	commands.Draw(4, 0);
 }
 
-void Pipeline2D::RenderMapTiles(const std::unique_ptr<MapDescription>& mapDesc) const
+void Pipeline2D::RenderMapTiles(const std::shared_ptr<MapDescription> mapDesc) const
 {
 	auto& commands = mRenderer.GetCommandBuffer();
 	const auto textureId = mResourceManager.GetTextureId(mapDesc->GetTexturePath());
@@ -90,7 +90,7 @@ void Pipeline2D::RenderMapTiles(const std::unique_ptr<MapDescription>& mapDesc) 
 	}
 }
 
-void Pipeline2D::RenderMapTexture(const std::unique_ptr<MapDescription>& mapDesc) const
+void Pipeline2D::RenderMapTexture(const std::shared_ptr<MapDescription> mapDesc) const
 {
 	auto& commands = mRenderer.GetCommandBuffer();
 	const auto textureId = mResourceManager.GetTextureId(mapDesc->GetTexturePath());
@@ -183,6 +183,4 @@ void Pipeline2D::_InitPipeline()
 		}
 	}
 	mResourceHeap = mRenderer.GetRendererSystem()->CreateResourceHeap(resourceHeapDesc);
-
-	delete pipelineLayout;
 }
