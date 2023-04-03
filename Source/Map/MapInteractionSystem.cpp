@@ -1,5 +1,6 @@
 #include "LLGL/Key.h"
 #include "Camera.h"
+#include "Defines.h"
 #include "InputManager.h"
 #include "MapSystem.h"
 #include "Core/Renderer.h"
@@ -16,10 +17,12 @@ MapInteractionSystem::MapInteractionSystem(MapSystem& mapSystem, Renderer& rende
 	inputManager.registerButtonDownHandler(LLGL::Key::LButton, [this]() { _OnClick(); });
 }
 
-void MapInteractionSystem::Tick()
+void MapInteractionSystem::Tick() const
 {
-	DebugDrawManager::GetInstance()->DrawBox(mMapTopLeft, {0.1f, 0.1f, 1.0f}, {255, 255, 255});
-	//DebugDrawManager::GetInstance()->DrawBox(mIntersectionPoint, {.05, .05, .05}, {100, 50, 20});
+	if (DEBUG_DRAW)
+	{
+		DebugDrawManager::GetInstance()->DrawBox(mIntersectionPoint, {.05, .05, .05}, {100, 50, 20});
+	}
 }
 
 void MapInteractionSystem::SetPaletteBrush(int brushIndex)
@@ -40,7 +43,6 @@ void MapInteractionSystem::_OnClick()
 	for (auto& map : mMapSystem.GetAllMaps())
 	{
 		const auto pos = map->GetPosition();
-		const auto size = map->GetSize();
 		const auto mapSize = map->GetMapSize();
 		auto& data = map->GetMapData();
 
@@ -49,13 +51,6 @@ void MapInteractionSystem::_OnClick()
 			pos.y + (mapSize.y / 2),
 			pos.z
 		};
-		mMapTopLeft = mapTopLeft;
-		auto model = glm::mat4(1.0f);
-		model = translate(model, pos);
-		model = translate(model, glm::vec3(0.5f * size.x, 0.5f * size.y, 0.0f));
-		model = rotate(model, glm::radians(map->GetRotation()), glm::vec3(0.0f, 0.0f, 1.0f));
-		model = translate(model, glm::vec3(-0.5f * size.x, -0.5f * size.y, 0.0f));
-		model = scale(model, size);
 		if (const auto t = _WithinMapBounds(mapTopLeft, mapSize, ray); t >= 0)
 		{
 			//mCurrentFocusedMapIndex = i;
@@ -109,19 +104,19 @@ float MapInteractionSystem::_WithinMapBounds(glm::vec3 position, glm::vec3 size,
 	return -1 * (numerator / denominator);
 }
 
+// pos is center of the tile
 bool MapInteractionSystem::_Intersect(glm::vec3 pos, glm::vec3 size, glm::vec3 intersection)
 {
-	const auto minX = pos.x;
-	const auto maxX = pos.x + size.x;
-	const auto minY = pos.y;
-	const auto maxY = pos.y + size.y;
+	const auto minX = pos.x - (size.x / 2);
+	const auto maxX = pos.x + (size.x / 2);
+	const auto minY = pos.y + (size.y / 2);
+	const auto maxY = pos.y - (size.y / 2);
 
-	if (intersection.x > minX && intersection.x < maxX && intersection.y > minY && intersection.y < maxY)
+	if (intersection.x > minX && intersection.x < maxX && intersection.y < minY && intersection.y > maxY)
 	{
 		mIntersectionPoint = intersection;
 		return true;
 	}
-
 
 	return false;
 }

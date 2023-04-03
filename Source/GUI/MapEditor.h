@@ -25,6 +25,7 @@ private:
 	void _LoadMapMenu(bool* p_open);
 
 	void _LoadMap(const char* mapName);
+	void _MapMenu(bool* p_open);
 	void _PaletteMenu(bool* p_open);
 
 	void _PreviewTexture(const char* mapName);
@@ -39,6 +40,7 @@ private:
 	void _DrawMapDebugGrid() const;
 
 	bool show_palette_menu = false;
+	bool show_map_menu = false;
 
 	bool show_new_map_menu = false;
 	bool show_load_map_menu = false;

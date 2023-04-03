@@ -16,8 +16,8 @@ public:
 	                     const InputManager& inputManager);
 	~MapInteractionSystem() = default;
 
+	void Tick() const;
 	void SetPaletteBrush(int brushIndex);
-	void Tick();
 
 private:
 	void _HandleMouseMove(LLGL::Offset2D mousePos);
@@ -29,7 +29,6 @@ private:
 
 	glm::vec2 mMousePos = {0, 0};
 	glm::vec3 mIntersectionPoint = {0, 0, 0};
-	glm::vec3 mMapTopLeft = {0, 0, 0};
 
 	Camera& mCamera;
 	Renderer& mRenderer;

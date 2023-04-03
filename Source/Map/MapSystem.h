@@ -8,11 +8,13 @@ public:
 	~MapSystem() = default;
 
 	void CreateMap(const std::string& mapPath);
-	const std::vector<std::unique_ptr<MapDescription>>& GetAllMaps();
-	std::unique_ptr<MapDescription>& GetCurrentMapDescription();
+	const std::vector<std::shared_ptr<MapDescription>>& GetAllMaps();
+	std::shared_ptr<MapDescription> GetCurrentMapDescription();
+
+	void CloseCurrentMap();
 
 private:
-	std::vector<std::unique_ptr<MapDescription>> mMaps;
+	std::vector<std::shared_ptr<MapDescription>> mMaps;
 
 	int mCurrentFocusedMapIndex = -1;
 };

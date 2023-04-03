@@ -27,6 +27,7 @@ void MapEditor::RenderGUI()
 	if (show_load_map_menu) _LoadMapMenu(&show_load_map_menu);
 
 	if (show_palette_menu) _PaletteMenu(&show_palette_menu);
+	if (show_map_menu) _MapMenu(&show_map_menu);
 
 	if (show_camera_info) _CameraInfo(&show_camera_info);
 
@@ -196,17 +197,65 @@ void MapEditor::_LoadMap(const char* mapName)
 	{
 		mMapInteractionSystem.SetPaletteBrush(current_brush_index);
 		show_palette_menu = true;
+		show_map_menu = true;
 		draw_debug_map_grid = true;
 	}
+}
+
+void MapEditor::_MapMenu(bool* p_open)
+{
+	const auto mapDescription = mMapSystem.GetCurrentMapDescription();
+	ImGui::SetNextWindowSize(ImVec2(200, 200));
+	ImGui::SetNextWindowPos(ImVec2(0, 20));
+	if (ImGui::Begin("Map", p_open, mWindowFlags))
+	{
+		const auto pos = mapDescription->GetPosition();
+		static float mapPosition[3] = {pos.x, pos.y, pos.z};
+		if (ImGui::InputFloat3("Position", mapPosition))
+		{
+			mapDescription->SetPosition({mapPosition[0], mapPosition[1], mapPosition[2]});
+		}
+
+		static float rotation = mapDescription->GetRotation();
+		if (ImGui::InputFloat("Rotation", &rotation))
+		{
+			mapDescription->SetRotation(rotation);
+		}
+
+		ImGui::Separator();
+		ImGui::Spacing();
+		static int rows = mapDescription->GetRows();
+		if (ImGui::InputInt("Rows", &rows))
+		{
+			//mapDescription->SetTextureMapRows(rows);
+		}
+
+		static int columns = mapDescription->GetColumns();
+		if (ImGui::InputInt("Columns", &columns))
+		{
+			//mapDescription->SetTextureMapRows(rows);
+		}
+
+		static int tileSize = mapDescription->GetTileSize();
+		if (ImGui::InputInt("Tile Size", &tileSize))
+		{
+			//mapDescription->SetTextureMapRows(rows);
+		}
+
+		if (ImGui::Button("Save"))
+		{
+			mapDescription->SaveTilesToFile();
+		}
+	}
+	ImGui::End();
 }
 
 // ==== PALLETTE ====
 void MapEditor::_PaletteMenu(bool* p_open)
 {
-	const auto& mapDescription = mMapSystem.GetCurrentMapDescription();
-	const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
-	ImGui::SetNextWindowSize(ImVec2(200, main_viewport->Size.y - 20));
-	ImGui::SetNextWindowPos(ImVec2(0, 20));
+	const auto mapDescription = mMapSystem.GetCurrentMapDescription();
+	ImGui::SetNextWindowSize(ImVec2(200, 600));
+	ImGui::SetNextWindowPos(ImVec2(0, 220));
 	if (ImGui::Begin("Pallette", p_open, mWindowFlags))
 	{
 		ImGui::Text("Map Texture: ");
@@ -247,15 +296,16 @@ void MapEditor::_PaletteMenu(bool* p_open)
 		             ImVec2(50, 50), ImVec2(texClip.x, texClip.y),
 		             ImVec2(texClip.x + texClip.z, texClip.y + texClip.w));
 
-
-		static bool saveChanges = false;
 		if (ImGui::Button("Save"))
-			saveChanges = true;
-		if (saveChanges)
 		{
-			// TODO: Save Changes
-			//mCurrentMap->SaveTilesToFile();
-			saveChanges = false;
+			mapDescription->SaveTilesToFile();
+		}
+		if (ImGui::Button("Close"))
+		{
+			mMapSystem.CloseCurrentMap();
+			show_palette_menu = false;
+			show_map_menu = false;
+			draw_debug_map_grid = false;
 		}
 	}
 	ImGui::End();
@@ -275,26 +325,23 @@ void MapEditor::_PreviewTexture(const char* mapName)
 
 void MapEditor::_TextureMenu(bool* p_open) const
 {
-	const auto& mapDescription = mMapSystem.GetCurrentMapDescription();
+	const auto mapDescription = mMapSystem.GetCurrentMapDescription();
 	const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
 	ImGui::SetNextWindowSize(ImVec2(200, main_viewport->Size.y - 20));
 	ImGui::SetNextWindowPos(ImVec2(0, 20));
 	if (ImGui::Begin("Texture", p_open, mWindowFlags))
 	{
 		static int rows = mapDescription->GetTextureMapRows();
-		ImGui::InputInt("Rows", &rows);
-		if (rows != mapDescription->GetTextureMapRows())
+		if (ImGui::InputInt("Rows", &rows))
 		{
 			mapDescription->SetTextureMapRows(rows);
 		}
 
 		static int columns = mapDescription->GetTextureMapColumns();
-		ImGui::InputInt("Columns", &columns);
-		if (columns != mapDescription->GetTextureMapColumns())
+		if (ImGui::InputInt("Columns", &columns))
 		{
 			mapDescription->SetTextureMapColumns(columns);
 		}
-
 
 		static bool saveChanges = false;
 		if (ImGui::Button("Save"))
@@ -320,14 +367,14 @@ void MapEditor::_CenterWindow(float width, float height)
 
 void MapEditor::_DrawTextureDebugGrid() const
 {
-	const auto& map = mMapSystem.GetCurrentMapDescription();
+	const auto map = mMapSystem.GetCurrentMapDescription();
 	DebugDrawManager::GetInstance()->DrawGrid(map->GetPosition(), map->GetMapSize(), {255, 0, 0},
 	                                          map->GetTextureMapRows(), map->GetTextureMapColumns());
 }
 
 void MapEditor::_DrawMapDebugGrid() const
 {
-	const auto& map = mMapSystem.GetCurrentMapDescription();
+	const auto map = mMapSystem.GetCurrentMapDescription();
 	DebugDrawManager::GetInstance()->DrawGrid(map->GetPosition(), map->GetMapSize(), {255, 0, 0},
 	                                          map->GetRows(), map->GetColumns());
 }
@@ -337,24 +384,18 @@ void MapEditor::_CameraInfo(bool* p_open) const
 {
 	if (ImGui::Begin("Camera Info", p_open, ImGuiWindowFlags_MenuBar))
 	{
-		static glm::vec3 cameraFront = mCamera.GetFront();
-		ImGui::SliderFloat("Front X", &cameraFront.x, -2, 2);
-		ImGui::SliderFloat("Front Y", &cameraFront.y, -2, 2);
-		ImGui::SliderFloat("Front Z", &cameraFront.z, -2, 2);
-
-		if (cameraFront != mCamera.GetFront() && !ImGui::IsItemActive())
+		const auto front = mCamera.GetFront();
+		static float cameraFront[3] = {front.x, front.y, front.z};
+		if (ImGui::SliderFloat3("Camera Front", cameraFront, -2, 2))
 		{
-			mCamera.SetFront(cameraFront);
+			mCamera.SetFront({cameraFront[0], cameraFront[1], cameraFront[2]});
 		}
 
-		static glm::vec3 cameraPos = mCamera.GetPosition();
-		ImGui::SliderFloat("Pos X", &cameraPos.x, -2, 2);
-		ImGui::SliderFloat("Pos Y", &cameraPos.y, -2, 2);
-		ImGui::SliderFloat("Pos Z", &cameraPos.z, -1000, 10);
-
-		if (cameraPos != mCamera.GetPosition() && !ImGui::IsItemActive())
+		const auto cameraPos = mCamera.GetFront();
+		static float cameraPosition[3] = {cameraPos.x, cameraPos.y, cameraPos.z};
+		if (ImGui::SliderFloat3("Camera Position", cameraPosition, -100, 100))
 		{
-			mCamera.SetPosition(cameraPos);
+			mCamera.SetPosition({cameraPosition[0], cameraPosition[1], cameraPosition[2]});
 		}
 	}
 	ImGui::End();
