@@ -70,23 +70,23 @@ void Game::CloseGame()
  */
 void Game::_DrawAxis()
 {
-	DebugDrawManager::GetInstance()->DrawLine({-1, 0, 0}, {1, 0, 0}, {255, 0, 0});
-	DebugDrawManager::GetInstance()->DrawBox({1, 0, 0}, {0.1f, 0.1f, 1.0f}, {255, 0, 0});
-	DebugDrawManager::GetInstance()->DrawLine({0, -1, 0}, {0, 1, 0}, {0, 255, 0});
-	DebugDrawManager::GetInstance()->DrawBox({0, 1, 0}, {0.1f, 0.1f, 1.0f}, {0, 255, 0});
-	DebugDrawManager::GetInstance()->DrawLine({0, 0, -1}, {0, 0, 1}, {0, 0, 255});
-	DebugDrawManager::GetInstance()->DrawBox({0, 0, 1}, {0.1f, 0.1f, 1.0f}, {0, 0, 255});
+	if (DEBUG_DRAW)
+	{
+		DebugDrawManager::GetInstance()->DrawLine({-1, 0, 0}, {1, 0, 0}, {255, 0, 0});
+		DebugDrawManager::GetInstance()->DrawBox({1, 0, 0}, {0.1f, 0.1f, 1.0f}, {255, 0, 0});
+		DebugDrawManager::GetInstance()->DrawLine({0, -1, 0}, {0, 1, 0}, {0, 255, 0});
+		DebugDrawManager::GetInstance()->DrawBox({0, 1, 0}, {0.1f, 0.1f, 1.0f}, {0, 255, 0});
+		DebugDrawManager::GetInstance()->DrawLine({0, 0, -1}, {0, 0, 1}, {0, 0, 255});
+		DebugDrawManager::GetInstance()->DrawBox({0, 0, 1}, {0.1f, 0.1f, 1.0f}, {0, 0, 255});
+	}
 }
 
 void Game::RunGame()
 {
-	mMapSystem->CreateMap("tiles_map.json");
 	while (mRenderer->GetSwapChain().GetSurface().ProcessEvents() && mRunning)
 	{
 		mMapInteractionSystem->Tick();
-		const auto& map = mMapSystem->GetCurrentMapDescription();
-		DebugDrawManager::GetInstance()->DrawBox(map->GetPosition(), map->GetMapSize(), {255, 0, 0});
-		//_DrawAxis();
+		_DrawAxis();
 		mRenderer->OnDrawFrame([=]()
 		{
 			// Render GUI
