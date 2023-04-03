@@ -20,7 +20,11 @@ class Renderer
 {
 public:
 	Renderer(ResourceManager& resourceManager, EntityRegistry& entityRegistry, MapSystem& mapSystem);
-	~Renderer() = default;
+
+	virtual ~Renderer()
+	{
+		std::cout << "Delete Renderer" << std::endl;
+	}
 
 	void OnDrawFrame(const std::function<void()>& drawCallback) const;
 

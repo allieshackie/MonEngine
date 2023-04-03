@@ -10,8 +10,7 @@ Texture::Texture(LLGL::RenderSystem& renderer, const std::string& path)
 
 Texture::~Texture()
 {
-	delete mTexture;
-	delete mSampler;
+	std::cout << "Delete Texture" << std::endl;
 }
 
 LLGL::Texture& Texture::GetTextureData() const

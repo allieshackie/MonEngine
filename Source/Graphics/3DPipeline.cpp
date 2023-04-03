@@ -68,8 +68,6 @@ void Pipeline3D::_InitPipeline()
 		heapDesc.resourceViews = {mConstantBuffer};
 	}
 	mVolumeResourceHeap = mRenderer.GetRendererSystem()->CreateResourceHeap(heapDesc);
-
-	delete pipelineLayout;
 }
 
 void Pipeline3D::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& commands, glm::mat4 model, glm::mat4 projection,

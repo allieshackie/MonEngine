@@ -20,10 +20,15 @@ public:
 	Pipeline2D(Renderer& renderer, ResourceManager& resourceManager, EntityRegistry& entityRegistry,
 	           MapSystem& mapSystem);
 
+	~Pipeline2D()
+	{
+		std::cout << "Delete Pipeline2D" << std::endl;
+	}
+
 	void Tick() const;
 	void Render(const TransformComponent& transform, const SpriteComponent& sprite) const;
-	void RenderMapTiles(const std::unique_ptr<MapDescription>& mapDesc) const;
-	void RenderMapTexture(const std::unique_ptr<MapDescription>& mapDesc) const;
+	void RenderMapTiles(std::shared_ptr<MapDescription> mapDesc) const;
+	void RenderMapTexture(std::shared_ptr<MapDescription> mapDesc) const;
 
 private:
 	void _InitPipeline();
@@ -33,9 +38,9 @@ private:
 	LLGL::PipelineState* mPipeline = nullptr;
 	LLGL::ResourceHeap* mResourceHeap = nullptr;
 
-	std::unique_ptr<Shader> mShader = nullptr;
-	LLGL::Buffer* mConstantBuffer = nullptr;
+	std::unique_ptr<Shader> mShader;
 
+	LLGL::Buffer* mConstantBuffer = nullptr;
 	LLGL::Buffer* mVertexBuffer = nullptr;
 
 	struct SpriteSettings

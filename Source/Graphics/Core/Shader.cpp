@@ -10,8 +10,7 @@ Shader::Shader(LLGL::RenderSystem& renderer, LLGL::VertexFormat vertexFormat, co
 
 Shader::~Shader()
 {
-	delete mVertexShader;
-	delete mFragmentShader;
+	std::cout << "Delete Shader" << std::endl;
 }
 
 LLGL::Shader& Shader::GetVertexShader() const
