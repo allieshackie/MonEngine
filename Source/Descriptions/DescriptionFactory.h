@@ -2,6 +2,7 @@
 
 #include "DescriptionBase.h"
 #include "InteractiveDescription.h"
+#include "PlayerDescription.h"
 #include "RenderDescription.h"
 #include "SpriteDescription.h"
 #include "TransformDescription.h"
@@ -41,6 +42,13 @@ public:
 			const auto interactive = std::make_shared<InteractiveDescription>();
 			interactive->ParseJSON(json);
 			return interactive;
+		}
+
+		if (descriptionName == PlayerDescription::JsonName)
+		{
+			const auto player = std::make_shared<PlayerDescription>();
+			player->ParseJSON(json);
+			return player;
 		}
 
 		std::cout << "tried to create an undefined description: " << descriptionName << std::endl;
