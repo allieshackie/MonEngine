@@ -26,6 +26,8 @@ private:
 	glm::vec3 _CalculateMouseRay(glm::vec2 mousePos) const;
 	bool _Intersect(glm::vec3 position, glm::vec3 size, glm::vec3 intersection);
 	float _WithinMapBounds(glm::vec3 position, glm::vec3 size, glm::vec3 mouseRay) const;
+	void _CalculateTileInteractionData(const std::shared_ptr<Map>& map, int columns, int tileIndex, glm::vec3& pos,
+	                                   glm::vec3& size) const;
 
 	glm::vec2 mMousePos = {0, 0};
 	glm::vec3 mIntersectionPoint = {0, 0, 0};

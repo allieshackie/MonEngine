@@ -1,5 +1,5 @@
 #pragma once
-#include "MapDescription.h"
+class Map;
 
 class MapSystem
 {
@@ -8,13 +8,19 @@ public:
 	~MapSystem() = default;
 
 	void CreateMap(const std::string& mapPath);
-	const std::vector<std::shared_ptr<MapDescription>>& GetAllMaps();
-	std::shared_ptr<MapDescription> GetCurrentMapDescription();
+	const std::vector<std::shared_ptr<Map>>& GetAllMaps();
+	std::shared_ptr<Map> GetCurrentMap();
+
+	void RegisterOnCreateCallback(std::function<void(std::shared_ptr<Map>&)> cb);
+	void RegisterOnUpdateCallback(std::function<void()> cb);
 
 	void CloseCurrentMap();
 
 private:
-	std::vector<std::shared_ptr<MapDescription>> mMaps;
+	std::vector<std::shared_ptr<Map>> mMaps;
+
+	std::function<void(std::shared_ptr<Map>&)> mOnCreateCallback;
+	std::function<void()> mOnUpdateCallback;
 
 	int mCurrentFocusedMapIndex = -1;
 };

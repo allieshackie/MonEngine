@@ -2,6 +2,8 @@
 #include "Camera.h"
 #include "Defines.h"
 #include "InputManager.h"
+#include "Map.h"
+#include "MapDescription.h"
 #include "MapSystem.h"
 #include "Core/Renderer.h"
 #include "Core/ResourceManager.h"
@@ -19,7 +21,7 @@ MapInteractionSystem::MapInteractionSystem(MapSystem& mapSystem, Renderer& rende
 
 void MapInteractionSystem::Tick() const
 {
-	if (DEBUG_DRAW)
+	if (MonDev::DEBUG_DRAW)
 	{
 		DebugDrawManager::GetInstance()->DrawBox(mIntersectionPoint, {.05, .05, .05}, {100, 50, 20});
 	}
@@ -42,14 +44,15 @@ void MapInteractionSystem::_OnClick()
 	//int i = 0;
 	for (auto& map : mMapSystem.GetAllMaps())
 	{
-		const auto pos = map->GetPosition();
+		const auto& mapDesc = map->GetMapDescription();
+		auto& data = mapDesc->GetMapData();
 		const auto mapSize = map->GetMapSize();
-		auto& data = map->GetMapData();
+		const auto position = map->GetPosition();
 
 		const glm::vec3 mapTopLeft = {
-			pos.x - (mapSize.x / 2),
-			pos.y + (mapSize.y / 2),
-			pos.z
+			position.x - (mapSize.x / 2),
+			position.y + (mapSize.y / 2),
+			position.z
 		};
 		if (const auto t = _WithinMapBounds(mapTopLeft, mapSize, ray); t >= 0)
 		{
@@ -58,15 +61,14 @@ void MapInteractionSystem::_OnClick()
 			{
 				glm::vec3 tilePos;
 				glm::vec3 size;
-				glm::vec4 clip;
-				map->CalculateTileDrawData(i, tilePos, size, clip);
+				_CalculateTileInteractionData(map, mapDesc->GetColumns(), i, tilePos, size);
 
 				const auto cameraPos = mCamera.GetPosition();
 				const auto intersection = glm::vec3(cameraPos.x + ray.x * t, cameraPos.y + ray.y * t,
 				                                    cameraPos.z + ray.z * t);
 				if (_Intersect(tilePos, size, intersection))
 				{
-					data[i] = mCurrentBrushIndex;
+					map->UpdateTile(i, mCurrentBrushIndex);
 				}
 			}
 		}
@@ -102,6 +104,32 @@ float MapInteractionSystem::_WithinMapBounds(glm::vec3 position, glm::vec3 size,
 	const auto numerator = glm::dot(mCamera.GetPosition(), normal) + d;
 	const auto denominator = glm::dot(mouseRay, normal);
 	return -1 * (numerator / denominator);
+}
+
+void MapInteractionSystem::_CalculateTileInteractionData(const std::shared_ptr<Map>& map, int columns, int tileIndex,
+                                                         glm::vec3& pos, glm::vec3& size) const
+{
+	const auto mapSize = map->GetMapSize();
+	const auto position = map->GetPosition();
+	const auto tileSize = map->GetTileSize();
+	const float halfTileSize = static_cast<float>(tileSize) / 2.0f;
+	const glm::vec3 mapTopLeft = {
+		position.x - (mapSize.x / 2) + halfTileSize,
+		position.y + (mapSize.y / 2) - halfTileSize,
+		position.z
+	};
+
+	const float posX = tileIndex % columns;
+	const float currentRow = floorf(tileIndex / columns);
+
+	pos = {
+		mapTopLeft.x + (posX * tileSize),
+		mapTopLeft.y - (currentRow * tileSize),
+		mapTopLeft.z
+	};
+	// TODO: Draw center of each tile
+	//DebugDrawManager::GetInstance()->DrawBox(pos, {0.1f, 0.1f, 1.0f}, {255, 0, 0});
+	size = {tileSize, tileSize, 1.0f};
 }
 
 // pos is center of the tile
