@@ -4,11 +4,11 @@
 #include "Core/Vertex.h"
 #include "Core/Shader.h"
 
-struct MapDescription;
 struct SpriteComponent;
 struct TransformComponent;
 
 class EntityRegistry;
+class Map;
 class MapSystem;
 class Renderer;
 class ResourceManager;
@@ -27,14 +27,24 @@ public:
 
 	void Tick() const;
 	void Render(const TransformComponent& transform, const SpriteComponent& sprite) const;
-	void RenderMapTiles(std::shared_ptr<MapDescription> mapDesc) const;
-	void RenderMapTexture(std::shared_ptr<MapDescription> mapDesc) const;
+	void RenderMap(const std::shared_ptr<Map>& map) const;
+	void RenderMapTexture(const std::shared_ptr<Map>& map) const;
+
+	void QueueWriteMapTexture(const std::shared_ptr<Map>& map);
+	void WriteQueuedMapTextures();
 
 private:
 	void _InitPipeline();
-	void _UpdateUniforms(const TransformComponent& transform) const;
-	void _UpdateUniforms(glm::vec3 pos, glm::vec3 size, float rot, glm::vec4 texClip) const;
+	void _CreateResourceHeap();
 
+	void _UpdateUniforms(const TransformComponent& transform) const;
+	void _UpdateUniforms(glm::vec3 pos, glm::vec3 size, glm::vec3 rot) const;
+	void _UpdateUniformsModel(glm::vec3 pos, glm::vec3 size, glm::vec3 rot, glm::vec4 texClip) const;
+
+	void _InitMapTexturePipeline(std::shared_ptr<Map>& map);
+	void _WriteMapTexture(std::shared_ptr<Map>& map) const;
+
+	LLGL::PipelineLayout* mPipelineLayout = nullptr;
 	LLGL::PipelineState* mPipeline = nullptr;
 	LLGL::ResourceHeap* mResourceHeap = nullptr;
 
@@ -61,4 +71,6 @@ private:
 	ResourceManager& mResourceManager;
 	EntityRegistry& mEntityRegistry;
 	MapSystem& mMapSystem;
+
+	std::vector<std::shared_ptr<Map>> mQueuedMaps;
 };

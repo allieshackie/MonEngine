@@ -5,16 +5,15 @@
 
 #include "2DPipeline.h"
 #include "3DPipeline.h"
+#include "GUIPipeline.h"
 #include "Debug/DebugPipeline.h"
 
-class Box;
-class DebugDrawable;
 class EntityRegistry;
-class Line;
+class GUISystem;
+class MainGameGUI;
+class MapEditor;
 class MapSystem;
 class ResourceManager;
-
-class RenderObject;
 
 class Renderer
 {
@@ -26,7 +25,7 @@ public:
 		std::cout << "Delete Renderer" << std::endl;
 	}
 
-	void OnDrawFrame(const std::function<void()>& drawCallback) const;
+	void OnDrawFrame() const;
 
 	LLGL::SwapChain& GetSwapChain() const
 	{
@@ -50,6 +49,8 @@ public:
 	glm::mat4 GetView() const;
 	glm::vec3 NormalizedDeviceCoords(glm::vec3 vec) const;
 
+	void InitGUIPipeline(GUISystem& guiSystem, MapEditor& mapEditor, MainGameGUI& mainGameGUI);
+
 private:
 	void _Init(MapSystem& mapSystem);
 
@@ -62,6 +63,7 @@ private:
 	glm::mat4 mView = glm::identity<glm::mat4>();
 
 	std::unique_ptr<Pipeline2D> mPipeline2D;
+	std::unique_ptr<PipelineGUI> mPipelineGUI;
 	std::unique_ptr<Pipeline3D> mPipeline3D;
 	std::unique_ptr<DebugPipeline> mDebugPipeline;
 

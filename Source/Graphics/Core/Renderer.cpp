@@ -77,28 +77,28 @@ void Renderer::_Init(MapSystem& mapSystem)
 	UpdateProjection();
 }
 
-void Renderer::OnDrawFrame(const std::function<void()>& drawCallback) const
+void Renderer::InitGUIPipeline(GUISystem& guiSystem, MapEditor& mapEditor, MainGameGUI& mainGameGUI)
+{
+	mPipelineGUI = std::make_unique<PipelineGUI>(*this, guiSystem, mapEditor, mainGameGUI);
+}
+
+void Renderer::OnDrawFrame() const
 {
 	// Render Commands to Queue
 	mCommands->Begin();
 	{
-		// clear color buffer
 		mCommands->Clear(LLGL::ClearFlags::Color);
 		// set viewport and scissor rectangle
 		mCommands->SetViewport(mSwapChain->GetResolution());
 
-		// set the render context as the initial render target
+		mPipeline2D->WriteQueuedMapTextures();
+
 		mCommands->BeginRenderPass(*mSwapChain);
 		{
 			mPipeline2D->Tick();
+			mPipelineGUI->Tick();
 			mDebugPipeline->Tick();
-			// TODO: Enable for 3D
-			//mPipeline3D->Render(*mCommands);
-			// gui draw calls, this can include images so we want it to
-			// piggyback off the pipeline change in the sprite draw call
-			drawCallback();
 		}
-
 		mCommands->EndRenderPass();
 	}
 	mCommands->End();
