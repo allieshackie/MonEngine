@@ -5,6 +5,7 @@
 #include "Core/ResourceManager.h"
 #include "Camera.h"
 #include "Debug/DebugDraw.h"
+#include "Map.h"
 #include "MapDescription.h"
 #include "MapInteractionSystem.h"
 #include "MapSystem.h"
@@ -90,16 +91,6 @@ void MapEditor::_NewMapMenu(bool* p_open)
 		ImGui::InputInt("Rows", &rows, 1);
 		static int columns = 1;
 		ImGui::InputInt("Columns", &columns, 1);
-		static int tileSize = 1;
-		ImGui::InputInt("Tile Size", &tileSize, 1);
-
-		ImGui::Spacing();
-		static float position[3] = {0, 0, 0};
-		ImGui::InputFloat3("Position", position);
-		static float size[3] = {0, 0, 0};
-		ImGui::InputFloat3("Size", size);
-		static float rotation = 0;
-		ImGui::InputFloat("Rotation", &rotation);
 
 		ImGui::Spacing();
 		ImGui::Text("Texture Data:");
@@ -118,13 +109,6 @@ void MapEditor::_NewMapMenu(bool* p_open)
 			mapJsonData[MapDescription::ID_STRING] = id;
 			mapJsonData[MapDescription::ROWS_STRING] = rows;
 			mapJsonData[MapDescription::COLUMNS_STRING] = columns;
-			mapJsonData[MapDescription::TILE_SIZE_STRING] = tileSize;
-
-			mapJsonData[MapDescription::TRANSFORM_STRING] = {
-				{MapDescription::POSITION_STRING, position},
-				{MapDescription::SIZE_STRING, size},
-				{MapDescription::ROTATION_STRING, rotation}
-			};
 
 			mapJsonData[MapDescription::TEXTURE_DATA_STRING] = {
 				{MapDescription::TEXTURE_PATH_STRING, textureFileNames[current_texture_selected]},
@@ -191,7 +175,7 @@ void MapEditor::_LoadMap(const char* mapName)
 {
 	mMapSystem.CreateMap(mapName);
 
-	auto mapTexture = mMapSystem.GetCurrentMapDescription()->GetTexturePath();
+	auto mapTexture = mMapSystem.GetCurrentMap()->GetMapDescription()->GetTexturePath();
 	if (mResourceManager.CreateSimpleOpenGLTexture(
 		mapTexture, &mPalletteTextureId, &mPalletteTextureWidth, &mPalletteTextureHeight))
 	{
@@ -204,24 +188,11 @@ void MapEditor::_LoadMap(const char* mapName)
 
 void MapEditor::_MapMenu(bool* p_open)
 {
-	const auto mapDescription = mMapSystem.GetCurrentMapDescription();
+	const auto& mapDescription = mMapSystem.GetCurrentMap()->GetMapDescription();
 	ImGui::SetNextWindowSize(ImVec2(200, 200));
 	ImGui::SetNextWindowPos(ImVec2(0, 20));
 	if (ImGui::Begin("Map", p_open, mWindowFlags))
 	{
-		const auto pos = mapDescription->GetPosition();
-		static float mapPosition[3] = {pos.x, pos.y, pos.z};
-		if (ImGui::InputFloat3("Position", mapPosition))
-		{
-			mapDescription->SetPosition({mapPosition[0], mapPosition[1], mapPosition[2]});
-		}
-
-		static float rotation = mapDescription->GetRotation();
-		if (ImGui::InputFloat("Rotation", &rotation))
-		{
-			mapDescription->SetRotation(rotation);
-		}
-
 		ImGui::Separator();
 		ImGui::Spacing();
 		static int rows = mapDescription->GetRows();
@@ -236,15 +207,10 @@ void MapEditor::_MapMenu(bool* p_open)
 			//mapDescription->SetTextureMapRows(rows);
 		}
 
-		static int tileSize = mapDescription->GetTileSize();
-		if (ImGui::InputInt("Tile Size", &tileSize))
-		{
-			//mapDescription->SetTextureMapRows(rows);
-		}
 
 		if (ImGui::Button("Save"))
 		{
-			mapDescription->SaveTilesToFile();
+			mMapSystem.GetCurrentMap()->SaveTilesToFile();
 		}
 	}
 	ImGui::End();
@@ -253,7 +219,8 @@ void MapEditor::_MapMenu(bool* p_open)
 // ==== PALLETTE ====
 void MapEditor::_PaletteMenu(bool* p_open)
 {
-	const auto mapDescription = mMapSystem.GetCurrentMapDescription();
+	const auto& mapDescription = mMapSystem.GetCurrentMap()->GetMapDescription();
+	const auto& map = mMapSystem.GetCurrentMap();
 	ImGui::SetNextWindowSize(ImVec2(200, 600));
 	ImGui::SetNextWindowPos(ImVec2(0, 220));
 	if (ImGui::Begin("Pallette", p_open, mWindowFlags))
@@ -290,7 +257,7 @@ void MapEditor::_PaletteMenu(bool* p_open)
 		ImGui::Spacing();
 		ImGui::Text("Current Brush: ");
 
-		const auto texClip = mapDescription->GetClipForTile(current_brush_index);
+		const auto texClip = map->GetClipForTile(current_brush_index);
 
 		ImGui::Image((ImTextureID)mPalletteTextureId,
 		             ImVec2(50, 50), ImVec2(texClip.x, texClip.y),
@@ -298,7 +265,7 @@ void MapEditor::_PaletteMenu(bool* p_open)
 
 		if (ImGui::Button("Save"))
 		{
-			mapDescription->SaveTilesToFile();
+			map->SaveTilesToFile();
 		}
 		if (ImGui::Button("Close"))
 		{
@@ -316,7 +283,7 @@ void MapEditor::_PreviewTexture(const char* mapName)
 	mMapSystem.CreateMap(mapName);
 
 	// RenderDebug will render the map texture instead of the map tiles
-	mMapSystem.GetCurrentMapDescription()->SetRenderDebug(true);
+	mMapSystem.GetCurrentMap()->SetRenderDebug(true);
 
 	// Draw grid overlay on the texture to show how texture map is split by rows/columns
 	draw_debug_texture_grid = true;
@@ -325,7 +292,7 @@ void MapEditor::_PreviewTexture(const char* mapName)
 
 void MapEditor::_TextureMenu(bool* p_open) const
 {
-	const auto mapDescription = mMapSystem.GetCurrentMapDescription();
+	const auto& mapDescription = mMapSystem.GetCurrentMap()->GetMapDescription();
 	const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
 	ImGui::SetNextWindowSize(ImVec2(200, main_viewport->Size.y - 20));
 	ImGui::SetNextWindowPos(ImVec2(0, 20));
@@ -367,16 +334,18 @@ void MapEditor::_CenterWindow(float width, float height)
 
 void MapEditor::_DrawTextureDebugGrid() const
 {
-	const auto map = mMapSystem.GetCurrentMapDescription();
+	const auto& map = mMapSystem.GetCurrentMap();
+	const auto& mapDesc = map->GetMapDescription();
 	DebugDrawManager::GetInstance()->DrawGrid(map->GetPosition(), map->GetMapSize(), {255, 0, 0},
-	                                          map->GetTextureMapRows(), map->GetTextureMapColumns());
+	                                          mapDesc->GetTextureMapRows(), mapDesc->GetTextureMapColumns());
 }
 
 void MapEditor::_DrawMapDebugGrid() const
 {
-	const auto map = mMapSystem.GetCurrentMapDescription();
+	const auto& map = mMapSystem.GetCurrentMap();
+	const auto& mapDesc = map->GetMapDescription();
 	DebugDrawManager::GetInstance()->DrawGrid(map->GetPosition(), map->GetMapSize(), {255, 0, 0},
-	                                          map->GetRows(), map->GetColumns());
+	                                          mapDesc->GetRows(), mapDesc->GetColumns());
 }
 
 
