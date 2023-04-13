@@ -2,16 +2,11 @@
     "id": "ground_map",
     "rows": 4,
     "columns": 10,
-    "tile_size": 2,
-    "transform": {
-        "position": [0,0,0],
-        "size": [1,1,1],
-        "rotation": 0
-    },
     "texture_data": {
         "texture_path": "ground_tileset_01.png",
         "rows": 28,
         "columns": 94
     },
-    "data_path": "ground_map.txt"
+    "data_path": "ground_map.txt",
+    "texture_size": [512, 256]
 }
