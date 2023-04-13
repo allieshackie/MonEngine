@@ -1,11 +1,10 @@
 #include "DescriptionBase.h"
-#include "EntityTemplateRegistry.h"
 
 #include "EntityRegistry.h"
 
-EntityRegistry::EntityRegistry(EntityTemplateRegistry& entityTemplateRegistry)
-	: mEntityTemplateRegistry(entityTemplateRegistry)
+EntityRegistry::EntityRegistry()
 {
+	mEntityTemplateRegistry = std::make_unique<EntityTemplateRegistry>();
 }
 
 EnTTRegistry& EntityRegistry::GetEnttRegistry()
@@ -15,7 +14,7 @@ EnTTRegistry& EntityRegistry::GetEnttRegistry()
 
 EntityId EntityRegistry::CreateEntityFromTemplate(const char* templateName)
 {
-	const auto descriptions = mEntityTemplateRegistry.GetEntityTemplateDescriptions(templateName);
+	const auto descriptions = mEntityTemplateRegistry->GetEntityTemplateDescriptions(templateName);
 	const auto entity = CreateEntity();
 
 	for (const auto& description : descriptions)

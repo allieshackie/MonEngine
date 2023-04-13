@@ -1,11 +1,11 @@
 #pragma once
 
 class EntityRegistry;
-class EntityTemplateRegistry;
 class Camera;
 class InputHandler;
 class InputManager;
 class GUISystem;
+class MainGameGUI;
 class MapEditor;
 class MapSystem;
 class MapInteractionSystem;
@@ -23,7 +23,7 @@ public:
 
 	Window& GetWindow() const;
 
-	void ConfigureLevel();
+	void ConfigureBaseGame();
 
 	void CloseGame();
 
@@ -45,8 +45,8 @@ private:
 
 	std::unique_ptr<GUISystem> mGUISystem;
 	std::unique_ptr<MapEditor> mMapEditor;
+	std::unique_ptr<MainGameGUI> mMainGameGUI;
 
-	std::unique_ptr<EntityTemplateRegistry> mEntityTemplateRegistry;
 	std::unique_ptr<EntityRegistry> mEntityRegistry;
 
 	bool mRunning = true;
