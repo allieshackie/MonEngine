@@ -50,11 +50,17 @@ void InputHandler::OnWheelMotion(LLGL::Window& sender, int motion)
 	{
 		if (motion > 0)
 		{
-			mZoomOutCallback();
+			if (mZoomOutCallback)
+			{
+				mZoomOutCallback();
+			}
 		}
 		else
 		{
-			mZoomInCallback();
+			if (mZoomInCallback)
+			{
+				mZoomInCallback();
+			}
 		}
 	}
 }

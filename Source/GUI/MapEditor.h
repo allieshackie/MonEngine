@@ -1,8 +1,9 @@
 #pragma once
+#include "MapInteractionSystem.h"
 
 class Camera;
 class InputManager;
-class MapInteractionSystem;
+class LevelManager;
 class MapSystem;
 class Map;
 class Renderer;
@@ -13,10 +14,11 @@ using GLuint = unsigned int;
 class MapEditor
 {
 public:
-	MapEditor(ResourceManager& resourceManager, MapSystem& mapSystem, MapInteractionSystem& mapInteractionSystem,
-	          Camera& camera);
+	MapEditor(InputManager& inputManager, LevelManager& levelManager, MapSystem& mapSystem, Renderer& renderer,
+	          ResourceManager& resourceManager);
 	~MapEditor() = default;
 
+	void InitCameraInputs() const;
 	void RenderGUI();
 
 private:
@@ -25,7 +27,7 @@ private:
 	void _LoadMapMenu(bool* p_open);
 
 	void _LoadMap(const char* mapName);
-	void _MapMenu(bool* p_open);
+	void _MapMenu(bool* p_open) const;
 	void _PaletteMenu(bool* p_open);
 
 	void _PreviewTexture(const char* mapName);
@@ -66,8 +68,11 @@ private:
 	const char* MAP_FOLDER = "../Data/Maps/";
 	const char* TEXTURES_FOLDER = "../Data/Textures/";
 
-	ResourceManager& mResourceManager;
+	InputManager& mInputManager;
 	MapSystem& mMapSystem;
-	MapInteractionSystem& mMapInteractionSystem;
-	Camera& mCamera;
+	Renderer& mRenderer;
+	ResourceManager& mResourceManager;
+
+	std::shared_ptr<Camera> mEditorCamera;
+	std::unique_ptr<MapInteractionSystem> mMapInteractionSystem;
 };

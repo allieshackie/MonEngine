@@ -7,7 +7,8 @@ public:
 	MapSystem() = default;
 	~MapSystem() = default;
 
-	void CreateMap(const std::string& mapPath);
+	void CreateMap(const std::string& mapPath, glm::vec3 pos, glm::vec3 rotation, float tileSize);
+	void CreateMapEditMode(const std::string& mapPath);
 	const std::vector<std::shared_ptr<Map>>& GetAllMaps();
 	std::shared_ptr<Map> GetCurrentMap();
 

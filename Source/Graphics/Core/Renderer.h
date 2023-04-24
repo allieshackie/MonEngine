@@ -10,6 +10,7 @@
 
 class EntityRegistry;
 class GUISystem;
+class LevelManager;
 class MainGameGUI;
 class MapEditor;
 class MapSystem;
@@ -18,7 +19,7 @@ class ResourceManager;
 class Renderer
 {
 public:
-	Renderer(ResourceManager& resourceManager, EntityRegistry& entityRegistry, MapSystem& mapSystem);
+	Renderer(EntityRegistry& entityRegistry, ResourceManager& resourceManager);
 
 	virtual ~Renderer()
 	{
@@ -43,16 +44,15 @@ public:
 	}
 
 	void UpdateProjection();
-	void UpdateView(glm::mat4 view);
 
 	glm::mat4 GetProjection() const;
-	glm::mat4 GetView() const;
 	glm::vec3 NormalizedDeviceCoords(glm::vec3 vec) const;
 
-	void InitGUIPipeline(GUISystem& guiSystem, MapEditor& mapEditor, MainGameGUI& mainGameGUI);
+	void InitPipelines(LevelManager& levelManager, MapSystem& mapSystem);
+	void InitGUIPipeline(GUISystem& guiSystem, MainGameGUI& mainGameGUI);
 
 private:
-	void _Init(MapSystem& mapSystem);
+	void _Init();
 
 	std::unique_ptr<LLGL::RenderSystem> mRenderer; // Render system
 	LLGL::SwapChain* mSwapChain = nullptr; // Main render context
@@ -60,7 +60,6 @@ private:
 	LLGL::CommandQueue* mCommandQueue = nullptr; // Command queue
 
 	glm::mat4 mProjection = glm::identity<glm::mat4>();
-	glm::mat4 mView = glm::identity<glm::mat4>();
 
 	std::unique_ptr<Pipeline2D> mPipeline2D;
 	std::unique_ptr<PipelineGUI> mPipelineGUI;

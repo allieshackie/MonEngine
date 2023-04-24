@@ -6,7 +6,7 @@
 MapDescription::MapDescription(const std::string& fileName)
 {
 	// parse and serialize JSON
-	std::string fullFileName = MonDev::MAP_PATH;
+	std::string fullFileName = Defines::MAP_PATH;
 	fullFileName.append(fileName);
 
 	std::ifstream ifs(fullFileName.c_str());
@@ -43,7 +43,7 @@ void MapDescription::_ParseJSON(const nlohmann::json& json)
 
 void MapDescription::_ReadFile(const char* fileName)
 {
-	std::string mapPath = MonDev::MAP_PATH;
+	std::string mapPath = Defines::MAP_PATH;
 	mapPath.append(fileName);
 
 	std::ifstream file(mapPath);

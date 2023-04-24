@@ -81,7 +81,7 @@ void Map::SetRenderDebug(bool renderDebug)
 
 void Map::SaveTilesToFile() const
 {
-	std::string mapPath = MonDev::MAP_PATH;
+	std::string mapPath = Defines::MAP_PATH;
 	mapPath.append(mMapDescription->GetDataPath());
 
 	const auto& data = mMapDescription->GetMapData();
@@ -155,14 +155,24 @@ glm::vec3 Map::GetPosition() const
 	return mPosition;
 }
 
-glm::vec3 Map::GetMapSize() const
+void Map::SetPosition(glm::vec3 pos)
 {
-	return mMapSize;
+	mPosition = pos;
 }
 
 glm::vec3 Map::GetRotation() const
 {
 	return mRotation;
+}
+
+void Map::SetRotation(glm::vec3 rot)
+{
+	mRotation = rot;
+}
+
+glm::vec3 Map::GetMapSize() const
+{
+	return mMapSize;
 }
 
 float Map::GetTileSize() const

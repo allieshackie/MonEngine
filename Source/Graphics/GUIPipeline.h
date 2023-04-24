@@ -2,13 +2,12 @@
 
 class GUISystem;
 class MainGameGUI;
-class MapEditor;
 class Renderer;
 
 class PipelineGUI
 {
 public:
-	PipelineGUI(Renderer& renderer, GUISystem& guiSystem, MapEditor& mapEditor, MainGameGUI& mainGameGUI);
+	PipelineGUI(GUISystem& guiSystem, MainGameGUI& mainGameGUI);
 
 	~PipelineGUI()
 	{
@@ -20,6 +19,4 @@ public:
 private:
 	GUISystem& mGUISystem;
 	MainGameGUI& mMainGameGUI;
-	MapEditor& mMapEditor;
-	Renderer& mRenderer;
 };

@@ -3,23 +3,42 @@
 #include "imgui/imgui.h"
 #include "Core/Renderer.h"
 #include "Core/ResourceManager.h"
-#include "Camera.h"
 #include "Debug/DebugDraw.h"
+#include "Camera.h"
+#include "InputManager.h"
+#include "Level.h"
+#include "LevelManager.h"
 #include "Map.h"
 #include "MapDescription.h"
-#include "MapInteractionSystem.h"
 #include "MapSystem.h"
 
 #include "MapEditor.h"
 
 namespace fs = std::filesystem;
 
-MapEditor::MapEditor(ResourceManager& resourceManager, MapSystem& mapSystem, MapInteractionSystem& mapInteractionSystem,
-                     Camera& camera)
-	: mResourceManager(resourceManager), mMapSystem(mapSystem), mMapInteractionSystem(mapInteractionSystem),
-	  mCamera(camera)
+MapEditor::MapEditor(InputManager& inputManager, LevelManager& levelManager, MapSystem& mapSystem, Renderer& renderer,
+                     ResourceManager& resourceManager)
+	: mInputManager(inputManager), mMapSystem(mapSystem), mRenderer(renderer), mResourceManager(resourceManager)
 {
+	levelManager.LoadLevel("editor.json");
+	mEditorCamera = levelManager.GetLevel("editor.json")->GetCamera();
 	_GetAllMapFileNames();
+}
+
+void MapEditor::InitCameraInputs() const
+{
+	// Register camera handlers for moving the camera position
+	// If the mCameraFront remains the same, this will result in the
+	// camera view angling.  We can adjust the mCameraFront.xy to match the
+	// camera position so that the view will not angle
+	mInputManager.registerButtonUpHandler(LLGL::Key::Up, [=]() { mEditorCamera->MoveUp(); });
+	mInputManager.registerButtonUpHandler(LLGL::Key::Down, [=]() { mEditorCamera->MoveDown(); });
+	mInputManager.registerButtonUpHandler(LLGL::Key::Left, [=]() { mEditorCamera->MoveLeft(); });
+	mInputManager.registerButtonUpHandler(LLGL::Key::Right, [=]() { mEditorCamera->MoveRight(); });
+
+	// Handlers for handling the camera zoom
+	mInputManager.registerZoomInHandler([=]() { mEditorCamera->ZoomIn(); });
+	mInputManager.registerZoomOutHandler([=]() { mEditorCamera->ZoomOut(); });
 }
 
 void MapEditor::RenderGUI()
@@ -173,40 +192,58 @@ void MapEditor::_LoadMapMenu(bool* p_open)
 
 void MapEditor::_LoadMap(const char* mapName)
 {
-	mMapSystem.CreateMap(mapName);
+	mMapSystem.CreateMapEditMode(mapName);
+	mMapInteractionSystem = std::make_unique<MapInteractionSystem>(mEditorCamera, mInputManager, mMapSystem, mRenderer);
 
 	auto mapTexture = mMapSystem.GetCurrentMap()->GetMapDescription()->GetTexturePath();
 	if (mResourceManager.CreateSimpleOpenGLTexture(
 		mapTexture, &mPalletteTextureId, &mPalletteTextureWidth, &mPalletteTextureHeight))
 	{
-		mMapInteractionSystem.SetPaletteBrush(current_brush_index);
+		assert(mMapInteractionSystem != nullptr);
+		mMapInteractionSystem->SetPaletteBrush(current_brush_index);
 		show_palette_menu = true;
 		show_map_menu = true;
 		draw_debug_map_grid = true;
 	}
 }
 
-void MapEditor::_MapMenu(bool* p_open)
+void MapEditor::_MapMenu(bool* p_open) const
 {
-	const auto& mapDescription = mMapSystem.GetCurrentMap()->GetMapDescription();
+	const auto& map = mMapSystem.GetCurrentMap();
+	const auto& mapDescription = map->GetMapDescription();
 	ImGui::SetNextWindowSize(ImVec2(200, 200));
 	ImGui::SetNextWindowPos(ImVec2(0, 20));
 	if (ImGui::Begin("Map", p_open, mWindowFlags))
 	{
+		const auto mapPos = map->GetPosition();
+		static float mapPosition[3] = {mapPos.x, mapPos.y, mapPos.z};
+		if (ImGui::InputFloat3("Position", mapPosition))
+		{
+			map->SetPosition({mapPosition[0], mapPosition[1], mapPosition[2]});
+		}
+
+		ImGui::Separator();
+
+		const auto mapRot = map->GetRotation();
+		static float mapRotation[3] = {mapRot.x, mapRot.y, mapRot.z};
+		if (ImGui::InputFloat3("Rotation", mapRotation))
+		{
+			map->SetRotation({mapRotation[0], mapRotation[1], mapRotation[2]});
+		}
+
 		ImGui::Separator();
 		ImGui::Spacing();
 		static int rows = mapDescription->GetRows();
 		if (ImGui::InputInt("Rows", &rows))
 		{
-			//mapDescription->SetTextureMapRows(rows);
+			mapDescription->SetTextureMapRows(rows);
 		}
 
 		static int columns = mapDescription->GetColumns();
 		if (ImGui::InputInt("Columns", &columns))
 		{
-			//mapDescription->SetTextureMapRows(rows);
+			mapDescription->SetTextureMapRows(rows);
 		}
-
 
 		if (ImGui::Button("Save"))
 		{
@@ -242,7 +279,7 @@ void MapEditor::_PaletteMenu(bool* p_open)
 			{
 				current_brush_index++;
 			}
-			mMapInteractionSystem.SetPaletteBrush(current_brush_index);
+			mMapInteractionSystem->SetPaletteBrush(current_brush_index);
 		}
 		ImGui::SameLine();
 		if (ImGui::ArrowButton("##down", ImGuiDir_Down))
@@ -251,7 +288,7 @@ void MapEditor::_PaletteMenu(bool* p_open)
 			{
 				current_brush_index--;
 			}
-			mMapInteractionSystem.SetPaletteBrush(current_brush_index);
+			mMapInteractionSystem->SetPaletteBrush(current_brush_index);
 		}
 
 		ImGui::Spacing();
@@ -280,7 +317,7 @@ void MapEditor::_PaletteMenu(bool* p_open)
 
 void MapEditor::_PreviewTexture(const char* mapName)
 {
-	mMapSystem.CreateMap(mapName);
+	mMapSystem.CreateMapEditMode(mapName);
 
 	// RenderDebug will render the map texture instead of the map tiles
 	mMapSystem.GetCurrentMap()->SetRenderDebug(true);
@@ -336,7 +373,7 @@ void MapEditor::_DrawTextureDebugGrid() const
 {
 	const auto& map = mMapSystem.GetCurrentMap();
 	const auto& mapDesc = map->GetMapDescription();
-	DebugDrawManager::GetInstance()->DrawGrid(map->GetPosition(), map->GetMapSize(), {255, 0, 0},
+	DebugDrawManager::GetInstance()->DrawGrid(map->GetPosition(), map->GetRotation(), map->GetMapSize(), {255, 0, 0},
 	                                          mapDesc->GetTextureMapRows(), mapDesc->GetTextureMapColumns());
 }
 
@@ -344,27 +381,28 @@ void MapEditor::_DrawMapDebugGrid() const
 {
 	const auto& map = mMapSystem.GetCurrentMap();
 	const auto& mapDesc = map->GetMapDescription();
-	DebugDrawManager::GetInstance()->DrawGrid(map->GetPosition(), map->GetMapSize(), {255, 0, 0},
+	DebugDrawManager::GetInstance()->DrawGrid(map->GetPosition(), map->GetRotation(), map->GetMapSize(), {255, 0, 0},
 	                                          mapDesc->GetRows(), mapDesc->GetColumns());
 }
 
 
 void MapEditor::_CameraInfo(bool* p_open) const
 {
+	if (mEditorCamera == nullptr) return;
 	if (ImGui::Begin("Camera Info", p_open, ImGuiWindowFlags_MenuBar))
 	{
-		const auto front = mCamera.GetFront();
+		const auto front = mEditorCamera->GetFront();
 		static float cameraFront[3] = {front.x, front.y, front.z};
 		if (ImGui::SliderFloat3("Camera Front", cameraFront, -2, 2))
 		{
-			mCamera.SetFront({cameraFront[0], cameraFront[1], cameraFront[2]});
+			mEditorCamera->SetFront({cameraFront[0], cameraFront[1], cameraFront[2]});
 		}
 
-		const auto cameraPos = mCamera.GetFront();
+		const auto cameraPos = mEditorCamera->GetFront();
 		static float cameraPosition[3] = {cameraPos.x, cameraPos.y, cameraPos.z};
 		if (ImGui::SliderFloat3("Camera Position", cameraPosition, -100, 100))
 		{
-			mCamera.SetPosition({cameraPosition[0], cameraPosition[1], cameraPosition[2]});
+			mEditorCamera->SetPosition({cameraPosition[0], cameraPosition[1], cameraPosition[2]});
 		}
 	}
 	ImGui::End();

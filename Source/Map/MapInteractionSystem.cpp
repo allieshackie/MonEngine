@@ -1,19 +1,19 @@
 #include "LLGL/Key.h"
+#include "Core/Renderer.h"
+#include "Core/ResourceManager.h"
+#include "Debug/DebugDraw.h"
 #include "Camera.h"
 #include "Defines.h"
 #include "InputManager.h"
 #include "Map.h"
 #include "MapDescription.h"
 #include "MapSystem.h"
-#include "Core/Renderer.h"
-#include "Core/ResourceManager.h"
-#include "Debug/DebugDraw.h"
 
 #include "MapInteractionSystem.h"
 
-MapInteractionSystem::MapInteractionSystem(MapSystem& mapSystem, Renderer& renderer, Camera& camera,
-                                           const InputManager& inputManager)
-	: mCamera(camera), mRenderer(renderer), mMapSystem(mapSystem)
+MapInteractionSystem::MapInteractionSystem(std::shared_ptr<Camera> camera, const InputManager& inputManager,
+                                           MapSystem& mapSystem, Renderer& renderer)
+	: mRenderer(renderer), mMapSystem(mapSystem), mCamera(std::move(camera))
 {
 	inputManager.registerMouseMoveHandler([this](LLGL::Offset2D mousePos) { _HandleMouseMove(mousePos); });
 	inputManager.registerButtonDownHandler(LLGL::Key::LButton, [this]() { _OnClick(); });
@@ -21,7 +21,7 @@ MapInteractionSystem::MapInteractionSystem(MapSystem& mapSystem, Renderer& rende
 
 void MapInteractionSystem::Tick() const
 {
-	if (MonDev::DEBUG_DRAW)
+	if (Defines::GetInstance()->GetDebugDraw())
 	{
 		DebugDrawManager::GetInstance()->DrawBox(mIntersectionPoint, {.05, .05, .05}, {100, 50, 20});
 	}
@@ -63,7 +63,7 @@ void MapInteractionSystem::_OnClick()
 				glm::vec3 size;
 				_CalculateTileInteractionData(map, mapDesc->GetColumns(), i, tilePos, size);
 
-				const auto cameraPos = mCamera.GetPosition();
+				const auto cameraPos = mCamera->GetPosition();
 				const auto intersection = glm::vec3(cameraPos.x + ray.x * t, cameraPos.y + ray.y * t,
 				                                    cameraPos.z + ray.z * t);
 				if (_Intersect(tilePos, size, intersection))
@@ -82,7 +82,7 @@ glm::vec3 MapInteractionSystem::_CalculateMouseRay(glm::vec2 mousePos) const
 	const glm::vec4 homogenousClip = {normalizeCoords.x, normalizeCoords.y, -1.0f, 1.0f};
 	glm::vec4 eyeRay = glm::inverse(mRenderer.GetProjection()) * homogenousClip;
 	eyeRay = glm::vec4(eyeRay.x, eyeRay.y, -1.0f, 0.0f);
-	const auto ray = glm::normalize(glm::inverse(mCamera.GetView()) * eyeRay);
+	const auto ray = glm::normalize(glm::inverse(mCamera->GetView()) * eyeRay);
 	return ray;
 }
 
@@ -101,7 +101,7 @@ float MapInteractionSystem::_WithinMapBounds(glm::vec3 position, glm::vec3 size,
 	const auto d = -((unitNormal.x * p1.x) + (unitNormal.y * p1.y) + (unitNormal.z * p1.z));
 
 	// ray-plane intersection check
-	const auto numerator = glm::dot(mCamera.GetPosition(), normal) + d;
+	const auto numerator = glm::dot(mCamera->GetPosition(), normal) + d;
 	const auto denominator = glm::dot(mouseRay, normal);
 	return -1 * (numerator / denominator);
 }

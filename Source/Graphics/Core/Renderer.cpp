@@ -9,14 +9,14 @@
 static constexpr int SCREEN_WIDTH = 800;
 static constexpr int SCREEN_HEIGHT = 600;
 
-Renderer::Renderer(ResourceManager& resourceManager, EntityRegistry& entityRegistry, MapSystem& mapSystem)
+Renderer::Renderer(EntityRegistry& entityRegistry, ResourceManager& resourceManager)
 	: mEntityRegistry(entityRegistry), mResourceManager(resourceManager)
 {
 	// Initialize default projection matrix
-	_Init(mapSystem);
+	_Init();
 }
 
-void Renderer::_Init(MapSystem& mapSystem)
+void Renderer::_Init()
 {
 	try
 	{
@@ -69,17 +69,21 @@ void Renderer::_Init(MapSystem& mapSystem)
 	}
 
 	mResourceManager.LoadAllTexturesFromFolder(*mRenderer);
-	mPipeline2D = std::make_unique<Pipeline2D>(*this, mResourceManager, mEntityRegistry, mapSystem);
 	// TODO: Enable for 3D
 	//mPipeline3D = std::make_unique<Pipeline3D>(*this, mResourceManager);
-	mDebugPipeline = std::make_unique<DebugPipeline>(*this);
 	// NOTE: Projection update must occur after debug shader is initialized
 	UpdateProjection();
 }
 
-void Renderer::InitGUIPipeline(GUISystem& guiSystem, MapEditor& mapEditor, MainGameGUI& mainGameGUI)
+void Renderer::InitPipelines(LevelManager& levelManager, MapSystem& mapSystem)
 {
-	mPipelineGUI = std::make_unique<PipelineGUI>(*this, guiSystem, mapEditor, mainGameGUI);
+	mPipeline2D = std::make_unique<Pipeline2D>(mEntityRegistry, levelManager, mapSystem, *this, mResourceManager);
+	mDebugPipeline = std::make_unique<DebugPipeline>(levelManager, *this);
+}
+
+void Renderer::InitGUIPipeline(GUISystem& guiSystem, MainGameGUI& mainGameGUI)
+{
+	mPipelineGUI = std::make_unique<PipelineGUI>(guiSystem, mainGameGUI);
 }
 
 void Renderer::OnDrawFrame() const
@@ -117,23 +121,16 @@ void Renderer::UpdateProjection()
 	                               0.1f, 100.0f);
 }
 
-void Renderer::UpdateView(glm::mat4 view)
-{
-	mView = view;
-}
-
 glm::mat4 Renderer::GetProjection() const
 {
 	return mProjection;
 }
 
-glm::mat4 Renderer::GetView() const
-{
-	return mView;
-}
-
 glm::vec3 Renderer::NormalizedDeviceCoords(glm::vec3 vec) const
 {
 	const auto res = mSwapChain->GetResolution();
-	return {(vec.x / (res.width / 2.0f) - 1.0f), -1 * (vec.y / (res.height / 2.0f) - 1.0f), vec.z};
+	return {
+		(vec.x / (static_cast<float>(res.width) / 2.0f) - 1.0f),
+		-1 * (vec.y / (static_cast<float>(res.height) / 2.0f) - 1.0f), vec.z
+	};
 }

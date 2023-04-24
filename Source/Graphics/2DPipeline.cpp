@@ -6,6 +6,8 @@
 #include "Components/MapComponent.h"
 #include "Components/TransformComponent.h"
 #include "Components/SpriteComponent.h"
+#include "Camera.h"
+#include "LevelManager.h"
 #include "Map.h"
 #include "MapDescription.h"
 #include "MapSystem.h"
@@ -14,9 +16,10 @@
 
 #include "2DPipeline.h"
 
-Pipeline2D::Pipeline2D(Renderer& renderer, ResourceManager& resourceManager, EntityRegistry& entityRegistry,
-                       MapSystem& mapSystem)
-	: mRenderer(renderer), mResourceManager(resourceManager), mEntityRegistry(entityRegistry), mMapSystem(mapSystem)
+Pipeline2D::Pipeline2D(EntityRegistry& entityRegistry, LevelManager& levelManager, MapSystem& mapSystem,
+                       Renderer& renderer, ResourceManager& resourceManager)
+	: mEntityRegistry(entityRegistry), mLevelManager(levelManager), mMapSystem(mapSystem), mRenderer(renderer),
+	  mResourceManager(resourceManager)
 {
 	_InitPipeline();
 
@@ -27,6 +30,8 @@ Pipeline2D::Pipeline2D(Renderer& renderer, ResourceManager& resourceManager, Ent
 	);
 
 	mMapSystem.RegisterOnCreateCallback([=](const std::shared_ptr<Map>& map) { QueueWriteMapTexture(map); });
+
+	// Callback only usable when editor is active, not for in-game use
 	mMapSystem.RegisterOnUpdateCallback([=]() { QueueWriteMapTexture(mMapSystem.GetCurrentMap()); });
 }
 
@@ -111,7 +116,9 @@ void Pipeline2D::_UpdateUniforms(const TransformComponent& transform) const
 
 	const auto textureClip = glm::mat4(1.0f);
 
-	const SpriteSettings settings = {mRenderer.GetProjection() * mRenderer.GetView() * model, textureClip};
+	const auto& camera = mLevelManager.GetCurrentLevel()->GetCamera();
+
+	const SpriteSettings settings = {mRenderer.GetProjection() * camera->GetView() * model, textureClip};
 	commands.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
 }
 
@@ -132,7 +139,9 @@ void Pipeline2D::_UpdateUniforms(glm::vec3 pos, glm::vec3 size, glm::vec3 rot) c
 
 	const auto textureClip = glm::mat4(1.0f);
 
-	const SpriteSettings settings = {mRenderer.GetProjection() * mRenderer.GetView() * model, textureClip};
+	const auto& camera = mLevelManager.GetCurrentLevel()->GetCamera();
+
+	const SpriteSettings settings = {mRenderer.GetProjection() * camera->GetView() * model, textureClip};
 	commands.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
 }
 

@@ -8,6 +8,7 @@ struct SpriteComponent;
 struct TransformComponent;
 
 class EntityRegistry;
+class LevelManager;
 class Map;
 class MapSystem;
 class Renderer;
@@ -17,8 +18,8 @@ class RenderObject;
 class Pipeline2D
 {
 public:
-	Pipeline2D(Renderer& renderer, ResourceManager& resourceManager, EntityRegistry& entityRegistry,
-	           MapSystem& mapSystem);
+	Pipeline2D(EntityRegistry& entityRegistry, LevelManager& levelManager, MapSystem& mapSystem, Renderer& renderer,
+	           ResourceManager& resourceManager);
 
 	~Pipeline2D()
 	{
@@ -67,10 +68,11 @@ private:
 		{{0.5, 0.5, 1}, {1, 1, 1}, {1, 0}}, // bottom right
 	};
 
+	EntityRegistry& mEntityRegistry;
+	LevelManager& mLevelManager;
+	MapSystem& mMapSystem;
 	Renderer& mRenderer;
 	ResourceManager& mResourceManager;
-	EntityRegistry& mEntityRegistry;
-	MapSystem& mMapSystem;
 
 	std::vector<std::shared_ptr<Map>> mQueuedMaps;
 };

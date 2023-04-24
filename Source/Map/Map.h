@@ -43,8 +43,11 @@ public:
 	void UpdateTile(int tileIndex, int brush) const;
 
 	glm::vec3 GetPosition() const;
-	glm::vec3 GetMapSize() const;
+	void SetPosition(glm::vec3 pos);
 	glm::vec3 GetRotation() const;
+	void SetRotation(glm::vec3 pos);
+
+	glm::vec3 GetMapSize() const;
 	float GetTileSize() const;
 
 private:

@@ -2,7 +2,14 @@
 
 #include "MapSystem.h"
 
-void MapSystem::CreateMap(const std::string& mapPath)
+void MapSystem::CreateMap(const std::string& mapPath, glm::vec3 pos, glm::vec3 rotation, float tileSize)
+{
+	auto map = std::make_shared<Map>(mapPath, pos, rotation, tileSize);
+	mOnCreateCallback(map);
+	mMaps.push_back(std::move(map));
+}
+
+void MapSystem::CreateMapEditMode(const std::string& mapPath)
 {
 	auto map = std::make_shared<Map>(mapPath, mOnUpdateCallback);
 	mOnCreateCallback(map);
