@@ -1,16 +1,14 @@
 #include "Core/Window.h"
 #include "Core/ResourceManager.h"
 #include "Debug/DebugDraw.h"
-#include "Camera.h"
 #include "Defines.h"
 #include "EntityRegistry.h"
 #include "InputHandler.h"
 #include "InputManager.h"
 #include "GUISystem.h"
+#include "LevelManager.h"
 #include "MainGameGUI.h"
-#include "MapEditor.h"
 #include "MapSystem.h"
-#include "MapInteractionSystem.h"
 #include "UIInputManager.h"
 
 #include "Game.h"
@@ -35,7 +33,7 @@ void Game::ConfigureBaseGame()
 	mMapSystem = std::make_unique<MapSystem>();
 
 	mResourceManager = std::make_unique<ResourceManager>();
-	mRenderer = std::make_unique<Renderer>(*mResourceManager, *mEntityRegistry, *mMapSystem);
+	mRenderer = std::make_unique<Renderer>(*mEntityRegistry, *mResourceManager);
 	mWindow = std::make_unique<Window>(*mRenderer);
 	mGUISystem = std::make_unique<GUISystem>(*mRenderer);
 
@@ -46,14 +44,13 @@ void Game::ConfigureBaseGame()
 	llglWindow.AddEventListener(mInputHandler);
 	// Register exit button
 	mInputManager->registerButtonUpHandler(LLGL::Key::Escape, [=]() { mRunning = false; });
+	mLevelManager = std::make_unique<LevelManager>(*mMapSystem, *mInputManager);
 
-	mCamera = std::make_unique<Camera>(*mRenderer, *mInputManager);
-	mMapInteractionSystem = std::make_unique<MapInteractionSystem>(*mMapSystem, *mRenderer, *mCamera, *mInputManager);
-	// Editors
-	mMapEditor = std::make_unique<MapEditor>(*mResourceManager, *mMapSystem, *mMapInteractionSystem, *mCamera);
+	mMainGameGUI = std::make_unique<MainGameGUI>(*mInputManager, *mLevelManager, *mMapSystem, *mRenderer,
+	                                             *mResourceManager);
 
-	mMainGameGUI = std::make_unique<MainGameGUI>();
-	mRenderer->InitGUIPipeline(*mGUISystem, *mMapEditor, *mMainGameGUI);
+	mRenderer->InitPipelines(*mLevelManager, *mMapSystem);
+	mRenderer->InitGUIPipeline(*mGUISystem, *mMainGameGUI);
 }
 
 void Game::CloseGame()
@@ -70,7 +67,7 @@ void Game::CloseGame()
  */
 void Game::_DrawAxis()
 {
-	if (MonDev::DEBUG_DRAW)
+	if (Defines::GetInstance()->GetDebugDraw())
 	{
 		DebugDrawManager::GetInstance()->DrawLine({-1, 0, 0}, {1, 0, 0}, {255, 0, 0});
 		DebugDrawManager::GetInstance()->DrawBox({1, 0, 0}, {0.1f, 0.1f, 1.0f}, {255, 0, 0});
@@ -85,7 +82,6 @@ void Game::RunGame()
 {
 	while (mRenderer->GetSwapChain().GetSurface().ProcessEvents() && mRunning)
 	{
-		mMapInteractionSystem->Tick();
 		_DrawAxis();
 		mRenderer->OnDrawFrame();
 	}

@@ -1,15 +1,24 @@
 #pragma once
-#include "Scene.h"
+#include "Level.h"
 
-class SceneManager {
+class InputManager;
+class MapSystem;
+
+class LevelManager
+{
 public:
-	SceneManager();
-	~SceneManager();
+	LevelManager(MapSystem& mapSystem, InputManager& inputManager);
+	~LevelManager() = default;
 
-	void LoadScene();
+	std::unique_ptr<Level>& GetLevel(const std::string& levelName);
+	std::unique_ptr<Level>& GetCurrentLevel();
 
-	void LoadScenesFromJson();
+	void LoadLevel(const std::string& levelName);
+
 
 private:
-	std::unordered_map<char*, Scene> mScenes;
+	std::map<std::string, std::unique_ptr<Level>> mLevels;
+
+	InputManager& mInputManager;
+	MapSystem& mMapSystem;
 };
