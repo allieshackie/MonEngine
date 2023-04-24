@@ -2,7 +2,7 @@
     "editor": {},
     "camera": {
         "position": [0,0,10],
-        "forward": [0,0,-1],
+        "front": [0,0,-1],
         "up": [0,1,0]
     }
 }

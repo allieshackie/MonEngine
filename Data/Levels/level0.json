@@ -1,7 +1,7 @@
 {
     "camera": {
         "position": [0,0,10],
-        "forward": [0,0,-1],
+        "front": [0,0,-1],
         "up": [0,1,0]
     },
     "player_spawn": [0,0,0],
@@ -9,8 +9,8 @@
         {
             "name": "ground_map",
             "position": [0,0,0],
-            "size": [1,1,1],
-            "rotation": [45,0,50]
+            "rotation": [45,0,50],
+            "tile_size": 1
         }
     ]
 }
