@@ -16,6 +16,8 @@ class MapEditor;
 class MapSystem;
 class ResourceManager;
 
+struct State;
+
 class Renderer
 {
 public:
@@ -26,7 +28,7 @@ public:
 		std::cout << "Delete Renderer" << std::endl;
 	}
 
-	void OnDrawFrame() const;
+	void Render() const;
 
 	LLGL::SwapChain& GetSwapChain() const
 	{

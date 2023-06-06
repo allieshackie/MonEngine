@@ -3,6 +3,7 @@
 
 #include "ResourceManager.h"
 #include "Debug/DebugDraw.h"
+#include "Timer.h"
 
 #include "Renderer.h"
 
@@ -86,7 +87,7 @@ void Renderer::InitGUIPipeline(GUISystem& guiSystem, MainGameGUI& mainGameGUI)
 	mPipelineGUI = std::make_unique<PipelineGUI>(guiSystem, mainGameGUI);
 }
 
-void Renderer::OnDrawFrame() const
+void Renderer::Render() const
 {
 	// Render Commands to Queue
 	mCommands->Begin();

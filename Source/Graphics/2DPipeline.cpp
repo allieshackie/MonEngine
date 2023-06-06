@@ -43,14 +43,7 @@ void Pipeline2D::Tick() const
 	commands.SetPipelineState(*mPipeline);
 	commands.SetVertexBuffer(*mVertexBuffer);
 
-	const auto spriteView = mEntityRegistry.GetEnttRegistry().view<const TransformComponent, const SpriteComponent>(
-		entt::exclude<MapComponent>);
-	spriteView.each([=](const TransformComponent& transform, const SpriteComponent& sprite)
-	{
-		Render(transform, sprite);
-	});
-
-	// Render map
+	// Render map, draw first so other sprites are drawn on top
 	for (const auto& map : mMapSystem.GetAllMaps())
 	{
 		if (map->GetRenderDebug())
@@ -62,6 +55,13 @@ void Pipeline2D::Tick() const
 			RenderMap(map);
 		}
 	}
+
+	const auto spriteView = mEntityRegistry.GetEnttRegistry().view<const TransformComponent, const SpriteComponent>(
+		entt::exclude<MapComponent>);
+	spriteView.each([=](const TransformComponent& transform, const SpriteComponent& sprite)
+	{
+		Render(transform, sprite);
+	});
 }
 
 void Pipeline2D::Render(const TransformComponent& transform, const SpriteComponent& sprite) const
@@ -110,7 +110,11 @@ void Pipeline2D::_UpdateUniforms(const TransformComponent& transform) const
 	auto model = glm::mat4(1.0f);
 	model = translate(model, transform.mPosition);
 	model = translate(model, glm::vec3(0.5f * transform.mSize.x, 0.5f * transform.mSize.y, 0.0f));
-	model = rotate(model, glm::radians(transform.mRotation), glm::vec3(0.0f, 0.0f, 1.0f));
+	// Apply rotation in ZXY order
+	model = rotate(model, glm::radians(transform.mRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+	model = rotate(model, glm::radians(transform.mRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+	model = rotate(model, glm::radians(transform.mRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+
 	model = translate(model, glm::vec3(-0.5f * transform.mSize.x, -0.5f * transform.mSize.y, 0.0f));
 	model = scale(model, transform.mSize);
 

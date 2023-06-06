@@ -373,7 +373,7 @@ void MapEditor::_DrawTextureDebugGrid() const
 {
 	const auto& map = mMapSystem.GetCurrentMap();
 	const auto& mapDesc = map->GetMapDescription();
-	DebugDrawManager::GetInstance()->DrawGrid(map->GetPosition(), map->GetRotation(), map->GetMapSize(), {255, 0, 0},
+	DebugDrawManager::GetInstance()->DrawGrid(map->GetPosition(), map->GetMapSize(), {255, 0, 0},
 	                                          mapDesc->GetTextureMapRows(), mapDesc->GetTextureMapColumns());
 }
 
@@ -381,7 +381,7 @@ void MapEditor::_DrawMapDebugGrid() const
 {
 	const auto& map = mMapSystem.GetCurrentMap();
 	const auto& mapDesc = map->GetMapDescription();
-	DebugDrawManager::GetInstance()->DrawGrid(map->GetPosition(), map->GetRotation(), map->GetMapSize(), {255, 0, 0},
+	DebugDrawManager::GetInstance()->DrawGrid(map->GetPosition(), map->GetMapSize(), {255, 0, 0},
 	                                          mapDesc->GetRows(), mapDesc->GetColumns());
 }
 

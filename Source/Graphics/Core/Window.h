@@ -45,7 +45,7 @@ public:
 			if (mWindow.isLoadingDone())
 			{
 				mRenderer.UpdateProjection();
-				mRenderer.OnDrawFrame();
+				mRenderer.Render();
 			}
 		}
 	}
@@ -54,7 +54,7 @@ public:
 	{
 		// Re-draw frame
 		if (mWindow.isLoadingDone())
-			mRenderer.OnDrawFrame();
+			mRenderer.Render();
 	}
 
 private:
