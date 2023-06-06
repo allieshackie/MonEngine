@@ -22,6 +22,11 @@ std::shared_ptr<Camera>& Level::GetCamera()
 	return mCamera;
 }
 
+glm::vec3 Level::GetPlayerSpawn() const
+{
+	return mPlayerSpawn;
+}
+
 void Level::_ParseJson(const nlohmann::json& json)
 {
 	assert(json.contains(CAMERA_STRING));

@@ -1,5 +1,6 @@
 #pragma once
 
+class CollisionSystem;
 class EntityRegistry;
 class InputHandler;
 class InputManager;
@@ -9,7 +10,11 @@ class MainGameGUI;
 class MapSystem;
 class Renderer;
 class ResourceManager;
+class PhysicsSystem;
+class PlayerSystem;
 class Window;
+
+struct Timer;
 
 int main(int argc, char** argv);
 
@@ -26,17 +31,17 @@ public:
 	void CloseGame();
 
 protected:
-	void _DrawAxis();
-	void RunGame();
+	void RunGame() const;
+	void Update() const;
 
 private:
 	std::unique_ptr<Renderer> mRenderer;
 	std::unique_ptr<Window> mWindow;
+	std::unique_ptr<Timer> mTimer;
 
 	std::shared_ptr<InputHandler> mInputHandler;
 	std::unique_ptr<InputManager> mInputManager;
 
-	std::unique_ptr<MapSystem> mMapSystem;
 	std::unique_ptr<ResourceManager> mResourceManager;
 
 	std::unique_ptr<LevelManager> mLevelManager;
@@ -45,6 +50,12 @@ private:
 	std::unique_ptr<MainGameGUI> mMainGameGUI;
 
 	std::unique_ptr<EntityRegistry> mEntityRegistry;
+
+	// systems
+	std::unique_ptr<CollisionSystem> mCollisionSystem;
+	std::unique_ptr<MapSystem> mMapSystem;
+	std::unique_ptr<PhysicsSystem> mPhysicsSystem;
+	std::unique_ptr<PlayerSystem> mPlayerSystem;
 
 	bool mRunning = true;
 

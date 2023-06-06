@@ -1,6 +1,9 @@
 #include "Core/Window.h"
 #include "Core/ResourceManager.h"
 #include "Debug/DebugDraw.h"
+#include "Entity/Systems/CollisionSystem.h"
+#include "Entity/Systems/PhysicsSystem.h"
+#include "Entity/Systems/PlayerSystem.h"
 #include "Defines.h"
 #include "EntityRegistry.h"
 #include "InputHandler.h"
@@ -9,6 +12,7 @@
 #include "LevelManager.h"
 #include "MainGameGUI.h"
 #include "MapSystem.h"
+#include "Timer.h"
 #include "UIInputManager.h"
 
 #include "Game.h"
@@ -31,6 +35,7 @@ void Game::ConfigureBaseGame()
 {
 	mEntityRegistry = std::make_unique<EntityRegistry>();
 	mMapSystem = std::make_unique<MapSystem>();
+	mTimer = std::make_unique<Timer>();
 
 	mResourceManager = std::make_unique<ResourceManager>();
 	mRenderer = std::make_unique<Renderer>(*mEntityRegistry, *mResourceManager);
@@ -46,8 +51,13 @@ void Game::ConfigureBaseGame()
 	mInputManager->registerButtonUpHandler(LLGL::Key::Escape, [=]() { mRunning = false; });
 	mLevelManager = std::make_unique<LevelManager>(*mMapSystem, *mInputManager);
 
-	mMainGameGUI = std::make_unique<MainGameGUI>(*mInputManager, *mLevelManager, *mMapSystem, *mRenderer,
-	                                             *mResourceManager);
+	// systems
+	mCollisionSystem = std::make_unique<CollisionSystem>(*mEntityRegistry);
+	mPhysicsSystem = std::make_unique<PhysicsSystem>(*mEntityRegistry);
+	mPlayerSystem = std::make_unique<PlayerSystem>(*mEntityRegistry, *mInputManager);
+
+	mMainGameGUI = std::make_unique<MainGameGUI>(*mInputManager, *mLevelManager, *mMapSystem,
+	                                             *mRenderer, *mResourceManager, *mPlayerSystem);
 
 	mRenderer->InitPipelines(*mLevelManager, *mMapSystem);
 	mRenderer->InitGUIPipeline(*mGUISystem, *mMainGameGUI);
@@ -65,7 +75,7 @@ void Game::CloseGame()
  * Ideally, this could be draw directly to screen space and remain in the view
  * like UI
  */
-void Game::_DrawAxis()
+static void _DrawAxis()
 {
 	if (Defines::GetInstance()->GetDebugDraw())
 	{
@@ -78,11 +88,40 @@ void Game::_DrawAxis()
 	}
 }
 
-void Game::RunGame()
+void Game::RunGame() const
 {
+	// Init current time
+	mTimer->mCurrentTime = Clock::now();
+
 	while (mRenderer->GetSwapChain().GetSurface().ProcessEvents() && mRunning)
 	{
+		auto frameTime = Clock::now();
+		Duration elapsed = frameTime - mTimer->mCurrentTime;
+		mTimer->mCurrentTime = frameTime;
+
+		double deltaTime = elapsed.count();
+		if (deltaTime > 0.25)
+		{
+			// Clamp large deltaTime to prevent "spiral of death"
+			// where we could potentially always be "catching up"
+			deltaTime = 0.25;
+		}
+
+		mTimer->mAccumulator += deltaTime;
+
+		while (mTimer->mAccumulator >= deltaTime)
+		{
+			Update();
+			mTimer->mAccumulator -= deltaTime;
+		}
+
+		// Debug draw
 		_DrawAxis();
-		mRenderer->OnDrawFrame();
+		mRenderer->Render();
 	}
+}
+
+void Game::Update() const
+{
+	mPhysicsSystem->Update(mTimer->mDT);
 }
