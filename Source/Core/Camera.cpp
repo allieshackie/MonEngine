@@ -1,24 +1,10 @@
-#include "Core/Renderer.h"
 #include "InputManager.h"
 
 #include "Camera.h"
 
-Camera::Camera(Renderer& renderer, const InputManager& inputManager)
-	: mRenderer(renderer)
+Camera::Camera(const InputManager& inputManager, glm::vec3 position, glm::vec3 front, glm::vec3 up)
+	: mCameraPos(position), mCameraFront(front), mCameraUp(up)
 {
-	// Register camera handlers for moving the camera position
-	// If the mCameraFront remains the same, this will result in the
-	// camera view angling.  We can adjust the mCameraFront.xy to match the
-	// camera position so that the view will not angle
-	inputManager.registerButtonUpHandler(LLGL::Key::Up, [=]() { MoveUp(); });
-	inputManager.registerButtonUpHandler(LLGL::Key::Down, [=]() { MoveDown(); });
-	inputManager.registerButtonUpHandler(LLGL::Key::Left, [=]() { MoveLeft(); });
-	inputManager.registerButtonUpHandler(LLGL::Key::Right, [=]() { MoveRight(); });
-
-	// Handlers for handling the camera zoom
-	inputManager.registerZoomInHandler([=]() { ZoomIn(); });
-	inputManager.registerZoomOutHandler([=]() { ZoomOut(); });
-
 	UpdateView();
 }
 
@@ -41,25 +27,25 @@ void Camera::MoveRight()
 
 void Camera::MoveUp()
 {
-	mCameraPos.y -= mCameraSpeed;
+	mCameraPos.y += mCameraSpeed;
 	UpdateView();
 }
 
 void Camera::MoveDown()
 {
-	mCameraPos.y += mCameraSpeed;
+	mCameraPos.y -= mCameraSpeed;
 	UpdateView();
 }
 
 void Camera::ZoomIn()
 {
-	mCameraPos.z -= 0.1f;
+	mCameraPos.z += 0.3f;
 	UpdateView();
 }
 
 void Camera::ZoomOut()
 {
-	mCameraPos.z += 0.1f;
+	mCameraPos.z -= 0.3f;
 	UpdateView();
 }
 
@@ -99,7 +85,5 @@ void Camera::SetPosition(glm::vec3 pos)
  */
 void Camera::UpdateView()
 {
-	mCameraFront = {mCameraPos.x, mCameraPos.y, mCameraFront.z};
 	mView = glm::lookAt(mCameraPos, mCameraFront, mCameraUp);
-	mRenderer.UpdateView(mView);
 }

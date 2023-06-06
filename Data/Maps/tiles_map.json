@@ -2,16 +2,11 @@
     "id": "tiles_map",
     "rows": 5,
     "columns": 5,
-    "tile_size": 1,
-    "transform": {
-        "position": [0,0,0],
-        "size": [1,1,1],
-        "rotation": 0
-    },
     "texture_data": {
         "texture_path": "tiles.jpg",
         "rows": 3,
         "columns": 4
     },
-    "data_path": "tiles_map.txt"
+    "data_path": "tiles_map.txt",
+    "texture_size": [512, 512]
 }

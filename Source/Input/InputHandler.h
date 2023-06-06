@@ -1,8 +1,6 @@
 #pragma once
 
-#include <LLGL/LLGL.h>
 #include <queue>
-
 #include "LLGL/Window.h"
 
 class GUISystem;

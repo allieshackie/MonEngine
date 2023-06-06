@@ -1,7 +1,7 @@
 #pragma once
 #include <entt/entt.hpp>
+#include "EntityTemplateRegistry.h"
 
-class EntityTemplateRegistry;
 class MonEntityContext;
 
 struct EntityId
@@ -33,7 +33,7 @@ using EnTTRegistry = entt::basic_registry<EntityId>;
 class EntityRegistry
 {
 public:
-	EntityRegistry(EntityTemplateRegistry& entityTemplateRegistry);
+	EntityRegistry();
 	~EntityRegistry() = default;
 	EntityRegistry(const EntityRegistry& other) = delete;
 	void operator=(const EntityRegistry&) = delete;
@@ -95,5 +95,5 @@ public:
 
 private:
 	EnTTRegistry mRegistry;
-	EntityTemplateRegistry& mEntityTemplateRegistry;
+	std::unique_ptr<EntityTemplateRegistry> mEntityTemplateRegistry;
 };

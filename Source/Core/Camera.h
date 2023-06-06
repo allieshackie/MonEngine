@@ -5,12 +5,11 @@
 #include <glm/ext/matrix_transform.hpp>
 
 class InputManager;
-class Renderer;
 
 class Camera
 {
 public:
-	Camera(Renderer& renderer, const InputManager& inputManager);
+	Camera(const InputManager& inputManager, glm::vec3 position, glm::vec3 front, glm::vec3 up);
 	~Camera() = default;
 
 	glm::mat4 GetView() const;
@@ -41,6 +40,4 @@ private:
 	glm::mat4 mView = glm::identity<glm::mat4>();
 
 	float mCameraSpeed = 0.1f; // adjust accordingly
-
-	Renderer& mRenderer;
 };

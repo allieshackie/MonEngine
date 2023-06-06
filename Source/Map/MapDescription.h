@@ -1,8 +1,5 @@
 #pragma once
 #include <nlohmann/json.hpp>
-#include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
-#include <glm/vec4.hpp>
 
 /*
  * This description isn't associated with a component
@@ -20,17 +17,8 @@ public:
 
 	int GetRows() const { return mRows; }
 	int GetColumns() const { return mColumns; }
-	int GetTileSize() const { return mTileSize; }
 
-	glm::vec3 GetMapSize() const { return mMapSize; }
-
-	glm::vec3 GetPosition() const { return mPosition; }
-	void SetPosition(glm::vec3 pos);
-
-	glm::vec3 GetSize() const { return mSize; }
-
-	float GetRotation() const { return mRotation; }
-	void SetRotation(float rotation);
+	std::array<uint32_t, 2> GetTextureSize() const { return mTextureSize; }
 
 	const std::string& GetTexturePath() { return mTexturePath; }
 
@@ -41,26 +29,13 @@ public:
 	void SetTextureMapColumns(int columns);
 
 	std::vector<int>& GetMapData() { return mData; }
-
-	bool GetRenderDebug() const { return mRenderDebug; }
-	void SetRenderDebug(bool renderDebug);
-
-	glm::vec4 GetClipForTile(int index) const;
-
-	void CalculateTileDrawData(int tileIndex, glm::vec3& pos, glm::vec3& size, glm::vec4& clip);
-
-	void SaveTilesToFile() const;
+	const std::string& GetDataPath() const { return mDataPath; }
 
 	static constexpr char ID_STRING[] = "id";
 
 	static constexpr char ROWS_STRING[] = "rows";
 	static constexpr char COLUMNS_STRING[] = "columns";
-	static constexpr char TILE_SIZE_STRING[] = "tile_size";
-
-	static constexpr char TRANSFORM_STRING[] = "transform";
-	static constexpr char POSITION_STRING[] = "position";
-	static constexpr char SIZE_STRING[] = "size";
-	static constexpr char ROTATION_STRING[] = "rotation";
+	static constexpr char TEXTURE_SIZE_STRING[] = "texture_size";
 
 	static constexpr char TEXTURE_DATA_STRING[] = "texture_data";
 	static constexpr char TEXTURE_PATH_STRING[] = "texture_path";
@@ -74,13 +49,8 @@ private:
 
 	int mRows = 0;
 	int mColumns = 0;
-	int mTileSize = 0;
 
-	glm::vec3 mMapSize = {0, 0, 0};
-
-	glm::vec3 mPosition = {0, 0, 0};
-	glm::vec3 mSize = {0, 0, 0};
-	float mRotation = 0;
+	std::array<uint32_t, 2> mTextureSize = {0, 0};
 
 	std::string mTexturePath;
 	int mTextureMapRows = 0;
@@ -88,6 +58,4 @@ private:
 
 	std::string mDataPath;
 	std::vector<int> mData;
-
-	bool mRenderDebug = false;
 };

@@ -73,6 +73,7 @@ void Pipeline3D::_InitPipeline()
 void Pipeline3D::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& commands, glm::mat4 model, glm::mat4 projection,
                                                   glm::mat4 view)
 {
+	// TODO: Apply rotation in ZXY order
 	volumeSettings.pvmMat = projection * view * model;
 	commands.UpdateBuffer(*mConstantBuffer, 0, &volumeSettings, sizeof(VolumeSettings));
 }

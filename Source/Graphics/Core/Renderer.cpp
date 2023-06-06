@@ -9,14 +9,14 @@
 static constexpr int SCREEN_WIDTH = 800;
 static constexpr int SCREEN_HEIGHT = 600;
 
-Renderer::Renderer(ResourceManager& resourceManager, EntityRegistry& entityRegistry, MapSystem& mapSystem)
+Renderer::Renderer(EntityRegistry& entityRegistry, ResourceManager& resourceManager)
 	: mEntityRegistry(entityRegistry), mResourceManager(resourceManager)
 {
 	// Initialize default projection matrix
-	_Init(mapSystem);
+	_Init();
 }
 
-void Renderer::_Init(MapSystem& mapSystem)
+void Renderer::_Init()
 {
 	try
 	{
@@ -69,36 +69,40 @@ void Renderer::_Init(MapSystem& mapSystem)
 	}
 
 	mResourceManager.LoadAllTexturesFromFolder(*mRenderer);
-	mPipeline2D = std::make_unique<Pipeline2D>(*this, mResourceManager, mEntityRegistry, mapSystem);
 	// TODO: Enable for 3D
 	//mPipeline3D = std::make_unique<Pipeline3D>(*this, mResourceManager);
-	mDebugPipeline = std::make_unique<DebugPipeline>(*this);
 	// NOTE: Projection update must occur after debug shader is initialized
 	UpdateProjection();
 }
 
-void Renderer::OnDrawFrame(const std::function<void()>& drawCallback) const
+void Renderer::InitPipelines(LevelManager& levelManager, MapSystem& mapSystem)
+{
+	mPipeline2D = std::make_unique<Pipeline2D>(mEntityRegistry, levelManager, mapSystem, *this, mResourceManager);
+	mDebugPipeline = std::make_unique<DebugPipeline>(levelManager, *this);
+}
+
+void Renderer::InitGUIPipeline(GUISystem& guiSystem, MainGameGUI& mainGameGUI)
+{
+	mPipelineGUI = std::make_unique<PipelineGUI>(guiSystem, mainGameGUI);
+}
+
+void Renderer::OnDrawFrame() const
 {
 	// Render Commands to Queue
 	mCommands->Begin();
 	{
-		// clear color buffer
 		mCommands->Clear(LLGL::ClearFlags::Color);
 		// set viewport and scissor rectangle
 		mCommands->SetViewport(mSwapChain->GetResolution());
 
-		// set the render context as the initial render target
+		mPipeline2D->WriteQueuedMapTextures();
+
 		mCommands->BeginRenderPass(*mSwapChain);
 		{
 			mPipeline2D->Tick();
+			mPipelineGUI->Tick();
 			mDebugPipeline->Tick();
-			// TODO: Enable for 3D
-			//mPipeline3D->Render(*mCommands);
-			// gui draw calls, this can include images so we want it to
-			// piggyback off the pipeline change in the sprite draw call
-			drawCallback();
 		}
-
 		mCommands->EndRenderPass();
 	}
 	mCommands->End();
@@ -117,23 +121,16 @@ void Renderer::UpdateProjection()
 	                               0.1f, 100.0f);
 }
 
-void Renderer::UpdateView(glm::mat4 view)
-{
-	mView = view;
-}
-
 glm::mat4 Renderer::GetProjection() const
 {
 	return mProjection;
 }
 
-glm::mat4 Renderer::GetView() const
-{
-	return mView;
-}
-
 glm::vec3 Renderer::NormalizedDeviceCoords(glm::vec3 vec) const
 {
 	const auto res = mSwapChain->GetResolution();
-	return {(vec.x / (res.width / 2.0f) - 1.0f), -1 * (vec.y / (res.height / 2.0f) - 1.0f), vec.z};
+	return {
+		(vec.x / (static_cast<float>(res.width) / 2.0f) - 1.0f),
+		-1 * (vec.y / (static_cast<float>(res.height) / 2.0f) - 1.0f), vec.z
+	};
 }
