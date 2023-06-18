@@ -1,7 +1,9 @@
 #pragma once
 
+#include "CollisionDescription.h"
 #include "DescriptionBase.h"
 #include "InteractiveDescription.h"
+#include "PhysicsDescription.h"
 #include "PlayerDescription.h"
 #include "RenderDescription.h"
 #include "SpriteDescription.h"
@@ -49,6 +51,21 @@ public:
 			const auto player = std::make_shared<PlayerDescription>();
 			player->ParseJSON(json);
 			return player;
+		}
+
+
+		if (descriptionName == PhysicsDescription::JsonName)
+		{
+			const auto physics = std::make_shared<PhysicsDescription>();
+			physics->ParseJSON(json);
+			return physics;
+		}
+
+		if (descriptionName == CollisionDescription::JsonName)
+		{
+			const auto collision = std::make_shared<CollisionDescription>();
+			collision->ParseJSON(json);
+			return collision;
 		}
 
 		std::cout << "tried to create an undefined description: " << descriptionName << std::endl;
