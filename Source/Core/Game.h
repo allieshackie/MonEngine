@@ -2,6 +2,7 @@
 
 class CollisionSystem;
 class EntityRegistry;
+class EventListener;
 class InputHandler;
 class InputManager;
 class GUISystem;
@@ -50,6 +51,7 @@ private:
 	std::unique_ptr<MainGameGUI> mMainGameGUI;
 
 	std::unique_ptr<EntityRegistry> mEntityRegistry;
+	std::unique_ptr<EventListener> mEventListener;
 
 	// systems
 	std::unique_ptr<CollisionSystem> mCollisionSystem;

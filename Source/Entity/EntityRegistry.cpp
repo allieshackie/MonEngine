@@ -2,7 +2,7 @@
 
 #include "EntityRegistry.h"
 
-EntityRegistry::EntityRegistry()
+EntityRegistry::EntityRegistry(EventListener& eventListener) : mEventListener(eventListener)
 {
 	mEntityTemplateRegistry = std::make_unique<EntityTemplateRegistry>();
 }
@@ -30,7 +30,7 @@ EntityId EntityRegistry::CreateEntity()
 	return mRegistry.create();
 }
 
-void EntityRegistry::RemoveEntity(const EntityId id)
+void EntityRegistry::RemoveEntity(const EntityId& id)
 {
 	mRegistry.destroy(id);
 }

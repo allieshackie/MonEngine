@@ -6,6 +6,7 @@
 #include "Entity/Systems/PlayerSystem.h"
 #include "Defines.h"
 #include "EntityRegistry.h"
+#include "EventListener.h"
 #include "InputHandler.h"
 #include "InputManager.h"
 #include "GUISystem.h"
@@ -33,7 +34,8 @@ Window& Game::GetWindow() const
 
 void Game::ConfigureBaseGame()
 {
-	mEntityRegistry = std::make_unique<EntityRegistry>();
+	mEventListener = std::make_unique<EventListener>();
+	mEntityRegistry = std::make_unique<EntityRegistry>(*mEventListener);
 	mMapSystem = std::make_unique<MapSystem>();
 	mTimer = std::make_unique<Timer>();
 
