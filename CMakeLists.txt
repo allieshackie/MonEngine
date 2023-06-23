@@ -31,7 +31,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 
 set(FOLDERS
     Source/Core
-    Source/Core/Math
     Source/Descriptions
     Source/Entity
     Source/Entity/Components

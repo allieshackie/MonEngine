@@ -1,29 +1,36 @@
 #include "EventListener.h"
 
-void EventListener::AddListener(const std::string& eventType, const EventCallback& callback)
+std::shared_ptr<EventPublisher::EventSubscription> EventPublisher::AddListener(const std::string& eventType,
+                                                                               EventFunc& callback)
 {
-	mListeners[eventType].push_back(callback);
+	auto sub = std::make_shared<EventSubscription>(callback);
+	mList[eventType].push_back(sub);
+
+	sub->mEventType = eventType;
+	sub->mIterator = std::prev(mList[eventType].end());
+
+	return sub;
 }
 
-void EventListener::RemoveListener(const std::string& eventType, const EventCallback& callback)
+void EventPublisher::RemoveListener(const EventSubscription& sub)
 {
-	const auto it = mListeners.find(eventType);
-	if (it != mListeners.end())
+	const auto it = mList.find(sub.mEventType);
+	if (it != mList.end())
 	{
 		auto& eventListeners = it->second;
-		eventListeners.erase(std::remove(eventListeners.begin(), eventListeners.end(), callback), eventListeners.end());
+		eventListeners.erase(sub.mIterator);
 	}
 }
 
-void EventListener::Notify(const std::string& eventType, int entityId, const std::type_info& typeInfo)
+void EventPublisher::Notify(const std::string& eventType, int entityId, const std::type_info& typeInfo)
 {
-	const auto it = mListeners.find(eventType);
-	if (it != mListeners.end())
+	const auto it = mList.find(eventType);
+	if (it != mList.end())
 	{
 		const auto& eventListeners = it->second;
 		for (const auto& listener : eventListeners)
 		{
-			listener(entityId, typeInfo);
+			listener->mHandlerFunc(entityId, typeInfo);
 		}
 	}
 }

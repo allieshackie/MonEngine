@@ -4,6 +4,7 @@ class EntityRegistry;
 class EventListener;
 class MapSystem;
 
+struct CollisionComponent;
 struct TransformComponent;
 
 class CollisionSystem

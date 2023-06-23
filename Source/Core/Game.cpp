@@ -54,7 +54,7 @@ void Game::ConfigureBaseGame()
 	mLevelManager = std::make_unique<LevelManager>(*mMapSystem, *mInputManager);
 
 	// systems
-	mCollisionSystem = std::make_unique<CollisionSystem>(*mEntityRegistry);
+	mCollisionSystem = std::make_unique<CollisionSystem>(*mEntityRegistry, *mEventListener);
 	mPhysicsSystem = std::make_unique<PhysicsSystem>(*mEntityRegistry);
 	mPlayerSystem = std::make_unique<PlayerSystem>(*mEntityRegistry, *mInputManager);
 

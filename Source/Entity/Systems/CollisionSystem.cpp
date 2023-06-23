@@ -6,8 +6,6 @@
 
 #include "CollisionSystem.h"
 
-#include "Math/Vector.h"
-
 // TODO: Potential collision detection methods to explore: AABB, OBB, Sweep and Prune, Hierarchical Grids, Spatial Partitioning
 
 CollisionSystem::CollisionSystem(EntityRegistry& entityRegistry, EventListener& eventListener)
@@ -60,9 +58,9 @@ bool CollisionSystem::_AABBCheck(const CollisionComponent& firstCollider, Transf
                                  const CollisionComponent& secondCollider, TransformComponent& secondTransform)
 {
 	// Entity we're checking for
-	const MonDev::Vector3 firstColliderWorldPosition = firstTransform.mPosition * firstCollider.mSize;
+	const auto firstColliderWorldPosition = firstTransform.mPosition * firstCollider.mSize;
 
-	const glm::vec3 firstMin = firstColliderWorldPosition - (firstCollider.mSize / 2);
+	const auto firstMin = firstColliderWorldPosition - (firstCollider.mSize / 2.0f);
 
 	// Entity we're checking against
 	const glm::vec3 secondColliderWorldPosition = secondTransform.mPosition * secondCollider.mSize;
