@@ -3,8 +3,8 @@
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp> //translate, rotate, scale, perspective
 
-#include "2DPipeline.h"
-#include "3DPipeline.h"
+#include "SpritePipeline.h"
+#include "MeshPipeline.h"
 #include "GUIPipeline.h"
 #include "Debug/DebugPipeline.h"
 
@@ -63,9 +63,9 @@ private:
 
 	glm::mat4 mProjection = glm::identity<glm::mat4>();
 
-	std::unique_ptr<Pipeline2D> mPipeline2D;
+	std::unique_ptr<SpritePipeline> mSpritePipeline;
 	std::unique_ptr<PipelineGUI> mPipelineGUI;
-	std::unique_ptr<Pipeline3D> mPipeline3D;
+	std::unique_ptr<MeshPipeline> mMeshPipeline;
 	std::unique_ptr<DebugPipeline> mDebugPipeline;
 
 	EntityRegistry& mEntityRegistry;

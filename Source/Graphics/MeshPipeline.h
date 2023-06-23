@@ -9,11 +9,11 @@ class Shader;
 class Renderer;
 class ResourceManager;
 
-class Pipeline3D
+class MeshPipeline
 {
 public:
-	Pipeline3D(Renderer& renderer, ResourceManager& resourceManager);
-	~Pipeline3D() = default;
+	MeshPipeline(Renderer& renderer, ResourceManager& resourceManager);
+	~MeshPipeline() = default;
 
 	void Render(LLGL::CommandBuffer& commands) const;
 

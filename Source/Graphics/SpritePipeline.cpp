@@ -14,10 +14,10 @@
 #include "EntityRegistry.h"
 #include "Texture.h"
 
-#include "2DPipeline.h"
+#include "SpritePipeline.h"
 
-Pipeline2D::Pipeline2D(EntityRegistry& entityRegistry, LevelManager& levelManager, MapSystem& mapSystem,
-                       Renderer& renderer, ResourceManager& resourceManager)
+SpritePipeline::SpritePipeline(EntityRegistry& entityRegistry, LevelManager& levelManager, MapSystem& mapSystem,
+                               Renderer& renderer, ResourceManager& resourceManager)
 	: mEntityRegistry(entityRegistry), mLevelManager(levelManager), mMapSystem(mapSystem), mRenderer(renderer),
 	  mResourceManager(resourceManager)
 {
@@ -35,7 +35,7 @@ Pipeline2D::Pipeline2D(EntityRegistry& entityRegistry, LevelManager& levelManage
 	mMapSystem.RegisterOnUpdateCallback([=]() { QueueWriteMapTexture(mMapSystem.GetCurrentMap()); });
 }
 
-void Pipeline2D::Tick() const
+void SpritePipeline::Tick() const
 {
 	auto& commands = mRenderer.GetCommandBuffer();
 
@@ -64,7 +64,7 @@ void Pipeline2D::Tick() const
 	});
 }
 
-void Pipeline2D::Render(const TransformComponent& transform, const SpriteComponent& sprite) const
+void SpritePipeline::Render(const TransformComponent& transform, const SpriteComponent& sprite) const
 {
 	auto& commands = mRenderer.GetCommandBuffer();
 	const auto textureId = mResourceManager.GetTextureId(sprite.mTexturePath);
@@ -79,7 +79,7 @@ void Pipeline2D::Render(const TransformComponent& transform, const SpriteCompone
 	commands.Draw(4, 0);
 }
 
-void Pipeline2D::RenderMap(const std::shared_ptr<Map>& map) const
+void SpritePipeline::RenderMap(const std::shared_ptr<Map>& map) const
 {
 	auto& commands = mRenderer.GetCommandBuffer();
 	commands.SetResourceHeap(*mResourceHeap, map->GetMapTextureId());
@@ -88,7 +88,7 @@ void Pipeline2D::RenderMap(const std::shared_ptr<Map>& map) const
 	commands.Draw(4, 0);
 }
 
-void Pipeline2D::RenderMapTexture(const std::shared_ptr<Map>& map) const
+void SpritePipeline::RenderMapTexture(const std::shared_ptr<Map>& map) const
 {
 	auto& commands = mRenderer.GetCommandBuffer();
 	const auto textureId = mResourceManager.GetTextureId(map->GetMapDescription()->GetTexturePath());
@@ -103,7 +103,7 @@ void Pipeline2D::RenderMapTexture(const std::shared_ptr<Map>& map) const
 	commands.Draw(4, 0);
 }
 
-void Pipeline2D::_UpdateUniforms(const TransformComponent& transform) const
+void SpritePipeline::_UpdateUniforms(const TransformComponent& transform) const
 {
 	auto& commands = mRenderer.GetCommandBuffer();
 	// Update
@@ -126,7 +126,7 @@ void Pipeline2D::_UpdateUniforms(const TransformComponent& transform) const
 	commands.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
 }
 
-void Pipeline2D::_UpdateUniforms(glm::vec3 pos, glm::vec3 size, glm::vec3 rot) const
+void SpritePipeline::_UpdateUniforms(glm::vec3 pos, glm::vec3 size, glm::vec3 rot) const
 {
 	auto& commands = mRenderer.GetCommandBuffer();
 	// Update
@@ -149,7 +149,7 @@ void Pipeline2D::_UpdateUniforms(glm::vec3 pos, glm::vec3 size, glm::vec3 rot) c
 	commands.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
 }
 
-void Pipeline2D::_UpdateUniformsModel(glm::vec3 pos, glm::vec3 size, glm::vec3 rot, glm::vec4 texClip) const
+void SpritePipeline::_UpdateUniformsModel(glm::vec3 pos, glm::vec3 size, glm::vec3 rot, glm::vec4 texClip) const
 {
 	auto& commands = mRenderer.GetCommandBuffer();
 	// Update
@@ -172,7 +172,7 @@ void Pipeline2D::_UpdateUniformsModel(glm::vec3 pos, glm::vec3 size, glm::vec3 r
 	commands.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
 }
 
-void Pipeline2D::_InitPipeline()
+void SpritePipeline::_InitPipeline()
 {
 	mConstantBuffer = mRenderer.GetRendererSystem()->CreateBuffer(LLGL::ConstantBufferDesc(sizeof(SpriteSettings)),
 	                                                              &spriteSettings);
@@ -206,7 +206,7 @@ void Pipeline2D::_InitPipeline()
 	_CreateResourceHeap();
 }
 
-void Pipeline2D::_CreateResourceHeap()
+void SpritePipeline::_CreateResourceHeap()
 {
 	// Resource Heap
 	const auto& textures = mResourceManager.getTextures();
@@ -239,12 +239,12 @@ void Pipeline2D::_CreateResourceHeap()
 	mResourceHeap = mRenderer.GetRendererSystem()->CreateResourceHeap(resourceHeapDesc);
 }
 
-void Pipeline2D::QueueWriteMapTexture(const std::shared_ptr<Map>& map)
+void SpritePipeline::QueueWriteMapTexture(const std::shared_ptr<Map>& map)
 {
 	mQueuedMaps.emplace_back(map);
 }
 
-void Pipeline2D::WriteQueuedMapTextures()
+void SpritePipeline::WriteQueuedMapTextures()
 {
 	if (mQueuedMaps.empty()) return;
 
@@ -257,7 +257,7 @@ void Pipeline2D::WriteQueuedMapTextures()
 	mQueuedMaps.clear();
 }
 
-void Pipeline2D::_InitMapTexturePipeline(std::shared_ptr<Map>& map)
+void SpritePipeline::_InitMapTexturePipeline(std::shared_ptr<Map>& map)
 {
 	const auto& renderTargetSize = map->GetMapTextureSize();
 
@@ -301,7 +301,7 @@ void Pipeline2D::_InitMapTexturePipeline(std::shared_ptr<Map>& map)
 	_CreateResourceHeap();
 }
 
-void Pipeline2D::_WriteMapTexture(std::shared_ptr<Map>& map) const
+void SpritePipeline::_WriteMapTexture(std::shared_ptr<Map>& map) const
 {
 	auto& commands = mRenderer.GetCommandBuffer();
 
