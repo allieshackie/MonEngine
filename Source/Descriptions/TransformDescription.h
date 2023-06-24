@@ -22,5 +22,5 @@ private:
 
 	glm::vec3 mPosition = {0, 0, 0};
 	glm::vec3 mSize = {0, 0, 0};
-	float mRotation = 0.0f;
+	glm::vec3 mRotation = {0, 0, 0};
 };

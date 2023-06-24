@@ -4,15 +4,15 @@
 #include "Core/ResourceManager.h"
 #include "Core/Shader.h"
 
-#include "3DPipeline.h"
+#include "MeshPipeline.h"
 
-Pipeline3D::Pipeline3D(Renderer& renderer, ResourceManager& resourceManager)
+MeshPipeline::MeshPipeline(Renderer& renderer, ResourceManager& resourceManager)
 	: mRenderer(renderer), mResourceManager(resourceManager)
 {
 	_InitPipeline();
 }
 
-void Pipeline3D::Render(LLGL::CommandBuffer& commands) const
+void MeshPipeline::Render(LLGL::CommandBuffer& commands) const
 {
 	// Set resources
 	if (model != nullptr)
@@ -25,7 +25,7 @@ void Pipeline3D::Render(LLGL::CommandBuffer& commands) const
 	}
 }
 
-void Pipeline3D::_InitPipeline()
+void MeshPipeline::_InitPipeline()
 {
 	mConstantBuffer = mRenderer.GetRendererSystem()->CreateBuffer(LLGL::ConstantBufferDesc(sizeof(VolumeSettings)),
 	                                                              &volumeSettings);
@@ -70,8 +70,9 @@ void Pipeline3D::_InitPipeline()
 	mVolumeResourceHeap = mRenderer.GetRendererSystem()->CreateResourceHeap(heapDesc);
 }
 
-void Pipeline3D::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& commands, glm::mat4 model, glm::mat4 projection,
-                                                  glm::mat4 view)
+void MeshPipeline::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& commands, glm::mat4 model,
+                                                    glm::mat4 projection,
+                                                    glm::mat4 view)
 {
 	// TODO: Apply rotation in ZXY order
 	volumeSettings.pvmMat = projection * view * model;
@@ -79,7 +80,7 @@ void Pipeline3D::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& commands,
 }
 
 // TODO: Implement actual model class as RenderObject
-void Pipeline3D::AddRenderObjectVBuffer(RenderObject& obj)
+void MeshPipeline::AddRenderObjectVBuffer(RenderObject& obj)
 {
 	// TODO: Hardcoded volume test
 	std::vector<TexturedVertex> vertices;

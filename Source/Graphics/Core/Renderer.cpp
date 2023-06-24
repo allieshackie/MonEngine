@@ -3,6 +3,7 @@
 
 #include "ResourceManager.h"
 #include "Debug/DebugDraw.h"
+#include "Timer.h"
 
 #include "Renderer.h"
 
@@ -77,7 +78,8 @@ void Renderer::_Init()
 
 void Renderer::InitPipelines(LevelManager& levelManager, MapSystem& mapSystem)
 {
-	mPipeline2D = std::make_unique<Pipeline2D>(mEntityRegistry, levelManager, mapSystem, *this, mResourceManager);
+	mSpritePipeline = std::make_unique<SpritePipeline>(mEntityRegistry, levelManager, mapSystem, *this,
+	                                                   mResourceManager);
 	mDebugPipeline = std::make_unique<DebugPipeline>(levelManager, *this);
 }
 
@@ -86,7 +88,7 @@ void Renderer::InitGUIPipeline(GUISystem& guiSystem, MainGameGUI& mainGameGUI)
 	mPipelineGUI = std::make_unique<PipelineGUI>(guiSystem, mainGameGUI);
 }
 
-void Renderer::OnDrawFrame() const
+void Renderer::Render() const
 {
 	// Render Commands to Queue
 	mCommands->Begin();
@@ -95,11 +97,11 @@ void Renderer::OnDrawFrame() const
 		// set viewport and scissor rectangle
 		mCommands->SetViewport(mSwapChain->GetResolution());
 
-		mPipeline2D->WriteQueuedMapTextures();
+		mSpritePipeline->WriteQueuedMapTextures();
 
 		mCommands->BeginRenderPass(*mSwapChain);
 		{
-			mPipeline2D->Tick();
+			mSpritePipeline->Tick();
 			mPipelineGUI->Tick();
 			mDebugPipeline->Tick();
 		}

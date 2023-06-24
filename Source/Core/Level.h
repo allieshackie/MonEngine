@@ -13,6 +13,7 @@ public:
 	~Level() = default;
 
 	std::shared_ptr<Camera>& GetCamera();
+	glm::vec3 GetPlayerSpawn() const;
 
 private:
 	void _ParseJson(const nlohmann::json& json);

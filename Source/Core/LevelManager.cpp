@@ -15,7 +15,8 @@ std::unique_ptr<Level>& LevelManager::GetLevel(const std::string& levelName)
 std::unique_ptr<Level>& LevelManager::GetCurrentLevel()
 {
 	assert(!mLevels.empty());
-	return mLevels.begin()->second;
+	// return last element 
+	return std::prev(mLevels.end())->second;
 }
 
 void LevelManager::LoadLevel(const std::string& levelName)

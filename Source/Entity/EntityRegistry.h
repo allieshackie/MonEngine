@@ -1,7 +1,9 @@
 #pragma once
 #include <entt/entt.hpp>
+#include "EventListener.h"
 #include "EntityTemplateRegistry.h"
 
+class EventListener;
 class MonEntityContext;
 
 struct EntityId
@@ -33,7 +35,7 @@ using EnTTRegistry = entt::basic_registry<EntityId>;
 class EntityRegistry
 {
 public:
-	EntityRegistry();
+	EntityRegistry(EventListener& eventListener);
 	~EntityRegistry() = default;
 	EntityRegistry(const EntityRegistry& other) = delete;
 	void operator=(const EntityRegistry&) = delete;
@@ -42,30 +44,33 @@ public:
 
 	EntityId CreateEntityFromTemplate(const char* templateName);
 	EntityId CreateEntity();
-	void RemoveEntity(EntityId id);
+	void RemoveEntity(const EntityId& id);
 
-	template <typename T>
-	T& GetComponent(EntityId id)
+	template <typename Component>
+	Component& GetComponent(EntityId id)
 	{
-		return mRegistry.get<T>(id);
+		return mRegistry.get<Component>(id);
 	}
 
-	template <typename T, typename... Args>
+	template <typename Component, typename... Args>
 	void AddComponent(EntityId id, Args&&... args)
 	{
-		mRegistry.emplace<T>(id, std::forward<Args>(args)...);
+		mRegistry.emplace<Component>(id, std::forward<Args>(args)...);
+		mEventListener.Notify("component_added", id, typeid(Component));
 	}
 
-	template <typename T, typename... Args>
-	T& AddOrGetComponent(EntityId id, Args&&... args)
+	template <typename Component, typename... Args>
+	Component& AddOrGetComponent(EntityId id, Args&&... args)
 	{
-		return mRegistry.emplace_or_replace<T>(id, std::forward<Args>(args)...);
+		// TODO: Issue here were we'd like to notify when the component is added
+		return mRegistry.emplace_or_replace<Component>(id, std::forward<Args>(args)...);
 	}
 
 	template <typename Component>
 	void RemoveComponent(EntityId id)
 	{
 		mRegistry.remove<Component>(id);
+		mEventListener.Notify("component_removed", id, typeid(Component));
 	}
 
 	template <typename... Components>
@@ -96,4 +101,5 @@ public:
 private:
 	EnTTRegistry mRegistry;
 	std::unique_ptr<EntityTemplateRegistry> mEntityTemplateRegistry;
+	EventListener& mEventListener;
 };

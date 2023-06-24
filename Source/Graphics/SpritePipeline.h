@@ -15,13 +15,13 @@ class Renderer;
 class ResourceManager;
 class RenderObject;
 
-class Pipeline2D
+class SpritePipeline
 {
 public:
-	Pipeline2D(EntityRegistry& entityRegistry, LevelManager& levelManager, MapSystem& mapSystem, Renderer& renderer,
-	           ResourceManager& resourceManager);
+	SpritePipeline(EntityRegistry& entityRegistry, LevelManager& levelManager, MapSystem& mapSystem, Renderer& renderer,
+	               ResourceManager& resourceManager);
 
-	~Pipeline2D()
+	~SpritePipeline()
 	{
 		std::cout << "Delete Pipeline2D" << std::endl;
 	}
@@ -49,7 +49,7 @@ private:
 	LLGL::PipelineState* mPipeline = nullptr;
 	LLGL::ResourceHeap* mResourceHeap = nullptr;
 
-	std::unique_ptr<Shader> mShader;
+	std::unique_ptr<Shader> mShader = nullptr;
 
 	LLGL::Buffer* mConstantBuffer = nullptr;
 	LLGL::Buffer* mVertexBuffer = nullptr;
@@ -74,5 +74,5 @@ private:
 	Renderer& mRenderer;
 	ResourceManager& mResourceManager;
 
-	std::vector<std::shared_ptr<Map>> mQueuedMaps;
+	std::vector<std::shared_ptr<Map>> mQueuedMaps = {};
 };
