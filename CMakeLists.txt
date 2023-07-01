@@ -1,129 +1,77 @@
-# Generate Solution -> cmake -B ./Solution
+# Generate Solution -> cmake -B ./Build
+# cmake -B ./Build -DBUILD_GAME=ON
 
-# set cmake version
 cmake_minimum_required(VERSION 3.18.2)
 
-# set project name
-set( CMAKE_C_COMPILER "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.33.31629/bin/Hostx64/x64/cl.exe" )
+#  ============== PROJECT ================
 project(MonDev)
 
-set(SOURCE_PROJECT_DIR Source) 
+option(BUILD_GAME "Build the game" ON)
+
+# ============== CONFIG ================
+
 set(THIRD_PARTY_DIR ${CMAKE_SOURCE_DIR}/ThirdParty)
 
 macro(ADD_DEFINE IDENT)
     add_definitions("-D${IDENT}")
 endmacro()
 
-# specify the C++ standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-# initialize property for all targets
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CmakeGenerated")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
 
-set(GLAD_DIR "D:/dev/glad")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 
-set(FOLDERS
-    Source/Core
-    Source/Descriptions
-    Source/Entity
-    Source/Entity/Components
-    Source/Entity/Systems
-    Source/Graphics
-    Source/Graphics/Core
-    Source/Graphics/Debug
-    Source/Graphics/Util
-    Source/GUI
-    Source/GUI/imgui
-    Source/GUI/imgui/backends
-    Source/Input
-    Source/Map
-    Source/UI
-)
+# ============== ENGINE ================
+add_subdirectory(${PROJECT_SOURCE_DIR}/Engine)
 
-foreach(ITEM ${FOLDERS})
-	file(GLOB FLS
-		${CMAKE_CURRENT_SOURCE_DIR}/${ITEM}/*.cpp
-		${CMAKE_CURRENT_SOURCE_DIR}/${ITEM}/*.h)
-	set(SOURCES ${SOURCES} ${FLS})	
-	string(REPLACE / \\ SGROUP ${ITEM})
-	source_group(${SGROUP} FILES ${FLS})
-endforeach(ITEM)
+# ============== GAME ================
+if(${BUILD_GAME})
+  add_subdirectory(${PROJECT_SOURCE_DIR}/Game)
+endif()
 
-set(SOURCES ${SOURCES} Source/glad.cpp)
-
-add_executable(MonDev ${SOURCES})
-
-ADD_DEFINE(LLGL_ENABLE_UTILITY)
-
-target_precompile_headers(MonDev 
-    PUBLIC
-    <iostream>
-    <memory>
-    <vector>
-    <fstream>
-    <unordered_map>
-    <functional>
-)
-
-target_include_directories(
-    MonDev
-    PUBLIC
-    "Source/"
-    "Source/Core"
-    "Source/Entity"
-    "Source/Graphics"
-    "Source/Input"
-    "Source/Descriptions"
-    "Source/Map"
-    "Source/UI"
-    "Source/GUI"
-)
-
-# ENTT Library
+# ============== THIRD PARTY ================
 add_subdirectory(${THIRD_PARTY_DIR}/entt)
 
-# Json parsing library
 add_subdirectory(${THIRD_PARTY_DIR}/json)
 
-# GLM
 add_subdirectory(${THIRD_PARTY_DIR}/glm)
 
-# LLGL
 add_subdirectory(${THIRD_PARTY_DIR}/LLGL)
 
+set(IMGUI_SRC 
+  ${THIRD_PARTY_DIR}/imgui/imgui.cpp
+  ${THIRD_PARTY_DIR}/imgui/imgui_widgets.cpp
+  ${THIRD_PARTY_DIR}/imgui/imgui_tables.cpp
+  ${THIRD_PARTY_DIR}/imgui/imgui_draw.cpp
+  ${THIRD_PARTY_DIR}/imgui/imgui_demo.cpp
+  ${THIRD_PARTY_DIR}/imgui/backends/imgui_impl_opengl3.cpp
+  ${THIRD_PARTY_DIR}/imgui/backends/imgui_impl_win32.cpp
+)
+add_library(imgui ${IMGUI_SRC})
+
+target_include_directories(imgui PUBLIC
+    ${THIRD_PARTY_DIR}/imgui
+)
+
+set(GLAD_SRC 
+  ${THIRD_PARTY_DIR}/glad/src/glad.c
+)
+add_library(glad ${GLAD_SRC})
+
+target_include_directories(glad PUBLIC 
+${THIRD_PARTY_DIR}/glad/include
+)
+
 # SDL + SDL Image 
-find_package(SDL2 REQUIRED)
-find_package(SDL2_image REQUIRED)
-
-target_link_libraries(
-    MonDev 
-    ${SDL2_LIBRARIES} 
-    ${SDL2_IMAGE_LIBRARIES}
-    EnTT
-    nlohmann_json::nlohmann_json
-    glm::glm
-    LLGL
-)
-
-target_include_directories(
-    MonDev 
-    PUBLIC
-    ${SDL2_INCLUDE_DIRS} 
-    ${SDL2_IMAGE_INCLUDE_DIRS}
-    ${GLAD_DIR}/include
-)
-
-add_custom_command(TARGET MonDev POST_BUILD  
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different 
-        "${THIRD_PARTY_DIR}/SDL2-2.0.14/lib/x64/SDL2.dll"    
-        $<TARGET_FILE_DIR:MonDev>)    
+# find_package(SDL2 REQUIRED)
+# find_package(SDL2_image REQUIRED)
 
 # target_include_directories = Include Directories
 # target_link_libraries = Additional Dependencies (lib)
