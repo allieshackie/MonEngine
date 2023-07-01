@@ -1,0 +1,12 @@
+{
+    "id": "ground_map",
+    "rows": 4,
+    "columns": 10,
+    "texture_data": {
+        "texture_path": "ground_tileset_01.png",
+        "rows": 28,
+        "columns": 94
+    },
+    "data_path": "ground_map.txt",
+    "texture_size": [512, 256]
+}

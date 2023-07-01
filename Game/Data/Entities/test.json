@@ -1,0 +1,13 @@
+{
+    "template_name": "test", 
+    "components" : {
+        "transform" : {
+            "position": [0,0,0],
+            "size": [1,1,1],
+            "rotation": [0,0,0]
+        },
+        "sprite": {
+            "resource_path": "awesomeface.png"
+        }
+    }
+}
