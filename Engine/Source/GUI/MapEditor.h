@@ -15,7 +15,7 @@ class MapEditor
 {
 public:
 	MapEditor(InputManager& inputManager, LevelManager& levelManager, MapSystem& mapSystem, Renderer& renderer,
-	          ResourceManager& resourceManager);
+	          ResourceManager& resourceManager, std::string mapsFolderPath, std::string texturesFolderPath);
 	~MapEditor() = default;
 
 	void InitCameraInputs() const;
@@ -65,9 +65,6 @@ private:
 	std::vector<char*> mapFileNames;
 	std::vector<char*> textureFileNames;
 
-	const char* MAP_FOLDER = "../Data/Maps/";
-	const char* TEXTURES_FOLDER = "../Data/Textures/";
-
 	InputManager& mInputManager;
 	MapSystem& mMapSystem;
 	Renderer& mRenderer;
@@ -75,4 +72,7 @@ private:
 
 	std::shared_ptr<Camera> mEditorCamera;
 	std::unique_ptr<MapInteractionSystem> mMapInteractionSystem;
+
+	std::string mMapsFolderPath;
+	std::string mTexturesFolderPath;
 };

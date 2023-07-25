@@ -30,17 +30,14 @@ const LLGL::VertexFormat& Shader::GetVertexFormat() const
 
 void Shader::LoadShaderProgram(LLGL::RenderSystem& renderer, const char* vertexFilePath, const char* fragmentFilePath)
 {
-	std::string fullVertPath = SHADER_PATH + vertexFilePath;
-	std::string fullFragPath = SHADER_PATH + fragmentFilePath;
-
-	auto deviceVertShaderDesc = LLGL::ShaderDescFromFile(LLGL::ShaderType::Vertex, fullVertPath.c_str());
+	auto deviceVertShaderDesc = LLGL::ShaderDescFromFile(LLGL::ShaderType::Vertex, vertexFilePath);
 	{
 		deviceVertShaderDesc.vertex.inputAttribs = mVertexFormat.attributes;
 	}
 
 	mVertexShader = renderer.CreateShader(deviceVertShaderDesc);
 
-	auto deviceFragmentShaderDesc = LLGL::ShaderDescFromFile(LLGL::ShaderType::Fragment, fullFragPath.c_str());
+	auto deviceFragmentShaderDesc = LLGL::ShaderDescFromFile(LLGL::ShaderType::Fragment, fragmentFilePath);
 
 	mFragmentShader = renderer.CreateShader(deviceFragmentShaderDesc);
 }

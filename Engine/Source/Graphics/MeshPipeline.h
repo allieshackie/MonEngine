@@ -12,7 +12,7 @@ class ResourceManager;
 class MeshPipeline
 {
 public:
-	MeshPipeline(Renderer& renderer, ResourceManager& resourceManager);
+	MeshPipeline(Renderer& renderer, ResourceManager& resourceManager, std::string shadersFolderPath);
 	~MeshPipeline() = default;
 
 	void Render(LLGL::CommandBuffer& commands) const;
@@ -42,4 +42,6 @@ private:
 
 	Renderer& mRenderer;
 	ResourceManager& mResourceManager;
+
+	std::string mShadersFolderPath;
 };

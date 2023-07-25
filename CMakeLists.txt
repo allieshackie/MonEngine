@@ -38,10 +38,12 @@ endif()
 
 # ============== THIRD PARTY ================
 add_subdirectory(${THIRD_PARTY_DIR}/entt)
+set_property(TARGET aob PROPERTY FOLDER "ThirdParty")
 
 add_subdirectory(${THIRD_PARTY_DIR}/json)
 
 add_subdirectory(${THIRD_PARTY_DIR}/glm)
+set_property(TARGET uninstall PROPERTY FOLDER "ThirdParty")
 
 add_subdirectory(${THIRD_PARTY_DIR}/LLGL)
 
@@ -56,6 +58,8 @@ set(IMGUI_SRC
 )
 add_library(imgui ${IMGUI_SRC})
 
+set_property(TARGET imgui PROPERTY FOLDER "ThirdParty")
+
 target_include_directories(imgui PUBLIC
     ${THIRD_PARTY_DIR}/imgui
 )
@@ -64,6 +68,8 @@ set(GLAD_SRC
   ${THIRD_PARTY_DIR}/glad/src/glad.c
 )
 add_library(glad ${GLAD_SRC})
+
+set_property(TARGET glad PROPERTY FOLDER "ThirdParty")
 
 target_include_directories(glad PUBLIC 
 ${THIRD_PARTY_DIR}/glad/include

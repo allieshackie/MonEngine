@@ -3,7 +3,6 @@
 #include <LLGL/LLGL.h>
 
 using GLuint = unsigned int;
-static std::string SHADER_PATH = "D:/dev/MonDev/Data/Shaders/";
 
 class Shader
 {

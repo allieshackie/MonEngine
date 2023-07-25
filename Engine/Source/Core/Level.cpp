@@ -7,11 +7,7 @@
 Level::Level(const std::string& levelName, MapSystem& mapSystem, InputManager& inputManager)
 	: mMapSystem(mapSystem), mInputManager(inputManager)
 {
-	// parse and serialize JSON
-	std::string fullFileName = Defines::LEVEL_PATH;
-	fullFileName.append(levelName);
-
-	std::ifstream ifs(fullFileName.c_str());
+	std::ifstream ifs(levelName.c_str());
 
 	const auto json = nlohmann::json::parse(ifs, nullptr, false, true);
 	_ParseJson(json);

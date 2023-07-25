@@ -4,7 +4,7 @@ class Map;
 class MapSystem
 {
 public:
-	MapSystem() = default;
+	MapSystem(std::string mapsFolderPath);
 	~MapSystem() = default;
 
 	void CreateMap(const std::string& mapPath, glm::vec3 pos, glm::vec3 rotation, float tileSize);
@@ -24,4 +24,6 @@ private:
 	std::function<void()> mOnUpdateCallback;
 
 	int mCurrentFocusedMapIndex = -1;
+
+	std::string mMapsFolderPath;
 };

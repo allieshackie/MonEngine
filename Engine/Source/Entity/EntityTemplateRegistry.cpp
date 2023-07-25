@@ -6,9 +6,10 @@
 
 namespace fs = std::filesystem;
 
-EntityTemplateRegistry::EntityTemplateRegistry()
+EntityTemplateRegistry::EntityTemplateRegistry(DescriptionFactory& descriptionFactory, const std::string& path)
+	: mDescriptionFactory(descriptionFactory)
 {
-	_RegisterEntityTemplates();
+	RegisterEntityTemplates(path);
 }
 
 std::vector<std::shared_ptr<DescriptionBase>>& EntityTemplateRegistry::GetEntityTemplateDescriptions(
@@ -18,11 +19,10 @@ std::vector<std::shared_ptr<DescriptionBase>>& EntityTemplateRegistry::GetEntity
 	return it->second;
 }
 
-void EntityTemplateRegistry::_RegisterEntityTemplates()
+void EntityTemplateRegistry::RegisterEntityTemplates(const std::string& path)
 {
-	const auto descriptionFactory = std::make_unique<DescriptionFactory>();
 	std::vector<char*> fileNames;
-	for (const auto& entry : fs::directory_iterator(mEntitiesFilePath))
+	for (const auto& entry : fs::directory_iterator(path))
 	{
 		fileNames.push_back(_strdup(entry.path().filename().string().c_str()));
 	}
@@ -30,7 +30,7 @@ void EntityTemplateRegistry::_RegisterEntityTemplates()
 	for (const auto fileName : fileNames)
 	{
 		// parse and serialize JSON
-		std::string fullFileName = mEntitiesFilePath;
+		std::string fullFileName = path;
 		fullFileName += fileName;
 
 		std::ifstream ifs(fullFileName.c_str());
@@ -41,7 +41,7 @@ void EntityTemplateRegistry::_RegisterEntityTemplates()
 		std::vector<std::shared_ptr<DescriptionBase>> descriptions;
 		for (auto& [key, value] : json[COMPONENTS_STRING].items())
 		{
-			descriptions.push_back(descriptionFactory->CreateDescription(key, value));
+			descriptions.push_back(mDescriptionFactory.CreateDescription(key, value));
 		}
 
 		mEntityTemplates.insert({templateName, descriptions});

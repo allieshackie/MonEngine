@@ -6,8 +6,8 @@
 
 #include "MeshPipeline.h"
 
-MeshPipeline::MeshPipeline(Renderer& renderer, ResourceManager& resourceManager)
-	: mRenderer(renderer), mResourceManager(resourceManager)
+MeshPipeline::MeshPipeline(Renderer& renderer, ResourceManager& resourceManager, std::string shadersFolderPath)
+	: mRenderer(renderer), mResourceManager(resourceManager), mShadersFolderPath(std::move(shadersFolderPath))
 {
 	_InitPipeline();
 }
@@ -36,7 +36,14 @@ void MeshPipeline::_InitPipeline()
 	vertexFormat.AppendAttribute({"texCoord", LLGL::Format::RG32Float});
 	vertexFormat.SetStride(sizeof(TexturedVertex));
 
-	mShader = std::make_unique<Shader>(*mRenderer.GetRendererSystem(), vertexFormat, "volume.vert", "volume.frag");
+	std::string vertPath = mShadersFolderPath;
+	vertPath.append("volume.vert");
+
+	std::string fragPath = mShadersFolderPath;
+	fragPath.append("volume.frag");
+
+	mShader = std::make_unique<Shader>(*mRenderer.GetRendererSystem(), vertexFormat, vertPath.c_str(),
+	                                   fragPath.c_str());
 
 	// All layout bindings that will be used by graphics and compute pipelines
 	LLGL::PipelineLayoutDescriptor layoutDesc;

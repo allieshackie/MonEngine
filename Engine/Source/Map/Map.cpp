@@ -80,13 +80,10 @@ void Map::SetRenderDebug(bool renderDebug)
 
 void Map::SaveTilesToFile() const
 {
-	std::string mapPath = Defines::MAP_PATH;
-	mapPath.append(mMapDescription->GetDataPath());
-
 	const auto& data = mMapDescription->GetMapData();
 
 	std::ofstream file;
-	file.open(mapPath, std::ofstream::out | std::ofstream::trunc);
+	file.open(mMapDescription->GetDataPath(), std::ofstream::out | std::ofstream::trunc);
 
 	for (int i = 0; i < data.size(); i++)
 	{

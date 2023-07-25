@@ -15,8 +15,9 @@
 #include "MapEditor.h"
 
 MapEditor::MapEditor(InputManager& inputManager, LevelManager& levelManager, MapSystem& mapSystem, Renderer& renderer,
-                     ResourceManager& resourceManager)
-	: mInputManager(inputManager), mMapSystem(mapSystem), mRenderer(renderer), mResourceManager(resourceManager)
+                     ResourceManager& resourceManager, std::string mapsFolderPath, std::string texturesFolderPath)
+	: mInputManager(inputManager), mMapSystem(mapSystem), mRenderer(renderer), mResourceManager(resourceManager),
+	  mMapsFolderPath(std::move(mapsFolderPath)), mTexturesFolderPath(std::move(texturesFolderPath))
 {
 	levelManager.LoadLevel("editor.json");
 	mEditorCamera = levelManager.GetLevel("editor.json")->GetCamera();
@@ -74,7 +75,7 @@ void MapEditor::RenderGUI()
 void MapEditor::_GetAllMapFileNames()
 {
 	mapFileNames.clear();
-	for (const auto& entry : std::filesystem::directory_iterator(MAP_FOLDER))
+	for (const auto& entry : std::filesystem::directory_iterator(mMapsFolderPath))
 	{
 		if (entry.path().filename().string().find(".json") != std::string::npos)
 		{
@@ -83,7 +84,7 @@ void MapEditor::_GetAllMapFileNames()
 	}
 
 	textureFileNames.clear();
-	for (const auto& entry : std::filesystem::directory_iterator(TEXTURES_FOLDER))
+	for (const auto& entry : std::filesystem::directory_iterator(mTexturesFolderPath))
 	{
 		textureFileNames.push_back(_strdup(entry.path().filename().string().c_str()));
 	}
@@ -133,13 +134,13 @@ void MapEditor::_NewMapMenu(bool* p_open)
 				{MapDescription::COLUMNS_STRING, texMapColumns},
 			};
 
-			std::string mapJson = MAP_FOLDER;
+			std::string mapJson = mMapsFolderPath;
 			mapJson.append(fileName).append(".json");
 			std::ofstream mapWrite(mapJson);
 			mapWrite << mapJsonData;
 			mapWrite.close();
 
-			std::string mapTxt = MAP_FOLDER;
+			std::string mapTxt = mMapsFolderPath;
 			mapTxt.append(fileName).append(".txt");
 			std::ofstream dataWrite(mapTxt);
 			std::string tilesStr;

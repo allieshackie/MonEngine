@@ -6,8 +6,8 @@
 
 #include "GameGUI.h"
 
-GameGUI::GameGUI(LevelManager& levelManager, PlayerSystem& playerSystem)
-	: mLevelManager(levelManager), mPlayerSystem(playerSystem)
+GameGUI::GameGUI(LevelManager& levelManager, PlayerSystem& playerSystem, std::string levelsFolderPath)
+	: mLevelsFolderPath(std::move(levelsFolderPath)), mLevelManager(levelManager), mPlayerSystem(playerSystem)
 {
 	_GetAllLevelFileNames();
 }
@@ -89,7 +89,7 @@ void GameGUI::_PlayerInfo(bool* p_open) const
 void GameGUI::_GetAllLevelFileNames()
 {
 	levelFileNames.clear();
-	for (const auto& entry : std::filesystem::directory_iterator(LEVELS_FOLDER))
+	for (const auto& entry : std::filesystem::directory_iterator(mLevelsFolderPath))
 	{
 		const auto fileName = entry.path().filename().string();
 		if (fileName.find(EDITOR_LEVEL) != std::string::npos) continue;

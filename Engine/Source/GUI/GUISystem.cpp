@@ -68,7 +68,6 @@ void GUISystem::closeGUI() const
 	ImGui::DestroyContext();
 }
 
-
 bool GUISystem::isGUIContext()
 {
 	const ImGuiIO& io = ImGui::GetIO();

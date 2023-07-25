@@ -2,6 +2,7 @@
 #include "GUIBase.h"
 #include "MapEditor.h"
 
+class ConfigManager;
 class InputManager;
 class LevelManager;
 class MapSystem;
@@ -12,7 +13,7 @@ class EditorGUI : public GUIBase
 {
 public:
 	EditorGUI(InputManager& inputManager, LevelManager& levelManager, MapSystem& mapSystem, Renderer& renderer,
-	          ResourceManager& resourceManager);
+	          ResourceManager& resourceManager, const ConfigManager& configManager);
 	~EditorGUI() override = default;
 
 	void RenderGUI() override;

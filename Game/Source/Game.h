@@ -1,6 +1,8 @@
 #pragma once
 
+class ConfigManager;
 class CollisionSystem;
+class DescriptionFactory;
 class EntityRegistry;
 class EventPublisher;
 class InputHandler;
@@ -25,17 +27,18 @@ public:
 	Game() = default;
 	~Game() = default;
 
-	Window& GetWindow() const;
-
-	void ConfigureBaseGame();
-
-	void CloseGame();
 
 protected:
 	void RunGame() const;
 	void Update() const;
 
 private:
+	void _ConfigureGame();
+	void _RegisterDescriptions() const;
+
+
+	std::unique_ptr<DescriptionFactory> mDescriptionFactory;
+	std::unique_ptr<ConfigManager> mConfigManager;
 	std::unique_ptr<Renderer> mRenderer;
 	std::unique_ptr<Window> mWindow;
 	std::unique_ptr<Timer> mTimer;

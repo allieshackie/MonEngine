@@ -3,8 +3,6 @@
 #include "Core/EventListener.h"
 #include "EntityTemplateRegistry.h"
 
-class MonEntityContext;
-
 struct EntityId
 {
 	using entity_type = std::uint32_t;
@@ -31,10 +29,13 @@ private:
 
 using EnTTRegistry = entt::basic_registry<EntityId>;
 
+class DescriptionFactory;
+
 class EntityRegistry
 {
 public:
-	EntityRegistry(EventPublisher& eventPublisher);
+	EntityRegistry(DescriptionFactory& descriptionFactory, const std::string& entitiesFolderPath,
+	               EventPublisher& eventPublisher);
 	~EntityRegistry() = default;
 	EntityRegistry(const EntityRegistry& other) = delete;
 	void operator=(const EntityRegistry&) = delete;

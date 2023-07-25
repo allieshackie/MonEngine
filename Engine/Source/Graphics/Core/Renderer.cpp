@@ -2,7 +2,6 @@
 #include <glm/ext/matrix_clip_space.hpp>
 
 #include "ResourceManager.h"
-#include "Core/Timer.h"
 #include "Graphics/Debug/DebugDraw.h"
 
 #include "Renderer.h"
@@ -10,8 +9,9 @@
 static constexpr int SCREEN_WIDTH = 800;
 static constexpr int SCREEN_HEIGHT = 600;
 
-Renderer::Renderer(EntityRegistry& entityRegistry, ResourceManager& resourceManager)
-	: mEntityRegistry(entityRegistry), mResourceManager(resourceManager)
+Renderer::Renderer(EntityRegistry& entityRegistry, ResourceManager& resourceManager, std::string shadersFolderPath)
+	: mEntityRegistry(entityRegistry), mResourceManager(resourceManager),
+	  mShadersFolderPath(std::move(shadersFolderPath))
 {
 	// Initialize default projection matrix
 	_Init();
@@ -78,9 +78,11 @@ void Renderer::_Init()
 
 void Renderer::InitPipelines(LevelManager& levelManager, MapSystem& mapSystem)
 {
-	mSpritePipeline = std::make_unique<SpritePipeline>(mEntityRegistry, levelManager, mapSystem, *this,
-	                                                   mResourceManager);
-	mDebugPipeline = std::make_unique<DebugPipeline>(levelManager, *this);
+	mSpritePipeline = std::make_unique<SpritePipeline>(mEntityRegistry, levelManager, *this, mResourceManager,
+	                                                   mShadersFolderPath);
+	mMapPipeline = std::make_unique<MapPipeline>(levelManager, mapSystem, *this, mResourceManager, mShadersFolderPath);
+
+	mDebugPipeline = std::make_unique<DebugPipeline>(levelManager, *this, mShadersFolderPath);
 }
 
 void Renderer::InitGUIPipeline(GUISystem& guiSystem, GUIBase& gui)
@@ -97,10 +99,11 @@ void Renderer::Render() const
 		// set viewport and scissor rectangle
 		mCommands->SetViewport(mSwapChain->GetResolution());
 
-		mSpritePipeline->WriteQueuedMapTextures();
+		mMapPipeline->WriteQueuedMapTextures();
 
 		mCommands->BeginRenderPass(*mSwapChain);
 		{
+			mMapPipeline->Tick();
 			mSpritePipeline->Tick();
 			mPipelineGUI->Tick();
 			mDebugPipeline->Tick();

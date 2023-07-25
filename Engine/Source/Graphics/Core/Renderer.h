@@ -4,8 +4,9 @@
 #include <glm/gtc/matrix_transform.hpp> //translate, rotate, scale, perspective
 
 #include "Graphics/SpritePipeline.h"
-#include "Graphics/MeshPipeline.h"
 #include "Graphics/GUIPipeline.h"
+#include "Graphics/MapPipeline.h"
+#include "Graphics/MeshPipeline.h"
 #include "Graphics/Debug/DebugPipeline.h"
 
 class EntityRegistry;
@@ -21,7 +22,7 @@ struct State;
 class Renderer
 {
 public:
-	Renderer(EntityRegistry& entityRegistry, ResourceManager& resourceManager);
+	Renderer(EntityRegistry& entityRegistry, ResourceManager& resourceManager, std::string shadersFolderPath);
 
 	virtual ~Renderer()
 	{
@@ -66,8 +67,11 @@ private:
 	std::unique_ptr<SpritePipeline> mSpritePipeline;
 	std::unique_ptr<PipelineGUI> mPipelineGUI;
 	std::unique_ptr<MeshPipeline> mMeshPipeline;
+	std::unique_ptr<MapPipeline> mMapPipeline;
 	std::unique_ptr<DebugPipeline> mDebugPipeline;
 
 	EntityRegistry& mEntityRegistry;
 	ResourceManager& mResourceManager;
+
+	std::string mShadersFolderPath;
 };

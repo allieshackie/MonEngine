@@ -2,16 +2,26 @@
 
 #include "MapSystem.h"
 
+MapSystem::MapSystem(std::string mapsFolderPath) : mMapsFolderPath(std::move(mapsFolderPath))
+{
+}
+
 void MapSystem::CreateMap(const std::string& mapPath, glm::vec3 pos, glm::vec3 rotation, float tileSize)
 {
-	auto map = std::make_shared<Map>(mapPath, pos, rotation, tileSize);
+	std::string fullMapPath = mMapsFolderPath;
+	fullMapPath.append(mapPath);
+
+	auto map = std::make_shared<Map>(fullMapPath, pos, rotation, tileSize);
 	mOnCreateCallback(map);
 	mMaps.push_back(std::move(map));
 }
 
 void MapSystem::CreateMapEditMode(const std::string& mapPath)
 {
-	auto map = std::make_shared<Map>(mapPath, mOnUpdateCallback);
+	std::string fullMapPath = mMapsFolderPath;
+	fullMapPath.append(mapPath);
+
+	auto map = std::make_shared<Map>(fullMapPath, mOnUpdateCallback);
 	mOnCreateCallback(map);
 	mMaps.push_back(std::move(map));
 	mCurrentFocusedMapIndex = static_cast<int>(mMaps.size()) - 1;

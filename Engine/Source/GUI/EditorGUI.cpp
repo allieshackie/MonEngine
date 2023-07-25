@@ -5,11 +5,14 @@
 
 #include "EditorGUI.h"
 
+#include "Core/ConfigManager.h"
+
 EditorGUI::EditorGUI(InputManager& inputManager, LevelManager& levelManager, MapSystem& mapSystem,
-                     Renderer& renderer, ResourceManager& resourceManager)
+                     Renderer& renderer, ResourceManager& resourceManager, const ConfigManager& configManager)
 {
 	mMapEditor = std::make_unique<MapEditor>(inputManager, levelManager, mapSystem, renderer,
-	                                         resourceManager);
+	                                         resourceManager, configManager.GetMapsFolderPath(),
+	                                         configManager.GetTexturesFolderPath());
 }
 
 void EditorGUI::RenderGUI()

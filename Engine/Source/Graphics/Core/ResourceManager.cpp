@@ -8,7 +8,9 @@
 
 #include "ResourceManager.h"
 
-namespace fs = std::filesystem;
+ResourceManager::ResourceManager(std::string texturesFolderPath) : mTextureFolder(std::move(texturesFolderPath))
+{
+}
 
 ResourceManager::~ResourceManager()
 {
@@ -18,7 +20,7 @@ ResourceManager::~ResourceManager()
 void ResourceManager::LoadAllTexturesFromFolder(LLGL::RenderSystem& renderer)
 {
 	int textureId = 0;
-	for (const auto& entry : fs::directory_iterator(TEXTURE_FOLDER))
+	for (const auto& entry : std::filesystem::directory_iterator(mTextureFolder))
 	{
 		LoadTexture(renderer, entry.path().string(), entry.path().filename().string(), textureId);
 		textureId++;
@@ -159,13 +161,13 @@ TriangleMesh ResourceManager::LoadObjModel(std::vector<TexturedVertex>& vertices
 
 // Simple helper function to load an image into a OpenGL texture with common settings
 bool ResourceManager::CreateSimpleOpenGLTexture(std::string& filename, GLuint* out_texture, int* out_width,
-                                                int* out_height)
+                                                int* out_height) const
 {
 	// Load from file
 	int image_width = 0;
 	int image_height = 0;
 	filename.insert(0, "/");
-	const std::string fullPath = TEXTURE_FOLDER + filename;
+	const std::string fullPath = mTextureFolder + filename;
 	unsigned char* image_data = stbi_load(fullPath.c_str(), &image_width, &image_height, nullptr, 4);
 	if (image_data == nullptr)
 		return false;

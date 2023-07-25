@@ -1,15 +1,10 @@
-#include "Core/Defines.h"
 #include "Graphics/Debug/DebugDraw.h"
 
 #include "MapDescription.h"
 
 MapDescription::MapDescription(const std::string& fileName)
 {
-	// parse and serialize JSON
-	std::string fullFileName = Defines::MAP_PATH;
-	fullFileName.append(fileName);
-
-	std::ifstream ifs(fullFileName.c_str());
+	std::ifstream ifs(fileName.c_str());
 
 	const auto json = nlohmann::json::parse(ifs, nullptr, false, true);
 	_ParseJSON(json);
@@ -43,10 +38,7 @@ void MapDescription::_ParseJSON(const nlohmann::json& json)
 
 void MapDescription::_ReadFile(const char* fileName)
 {
-	std::string mapPath = Defines::MAP_PATH;
-	mapPath.append(fileName);
-
-	std::ifstream file(mapPath);
+	std::ifstream file(fileName);
 
 	std::string str;
 

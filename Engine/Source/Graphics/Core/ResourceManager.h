@@ -9,13 +9,12 @@ class Map;
 class Renderer;
 class Texture;
 
-static const char* TEXTURE_FOLDER = "../Data/Textures";
 using GLuint = unsigned int;
 
 class ResourceManager
 {
 public:
-	ResourceManager() = default;
+	ResourceManager(std::string texturesFolderPath);
 	~ResourceManager();
 
 	void LoadAllTexturesFromFolder(LLGL::RenderSystem& renderer);
@@ -31,9 +30,11 @@ public:
 
 	TriangleMesh LoadObjModel(std::vector<TexturedVertex>& vertices, const std::string& filename) const;
 
-	bool CreateSimpleOpenGLTexture(std::string& filename, GLuint* out_texture, int* out_width, int* out_height);
+	bool CreateSimpleOpenGLTexture(std::string& filename, GLuint* out_texture, int* out_width, int* out_height) const;
 
 private:
 	std::unordered_map<int, std::shared_ptr<Texture>> mTextures;
 	std::unordered_map<std::string, int> mTextureIds;
+
+	std::string mTextureFolder;
 };

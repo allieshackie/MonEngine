@@ -16,8 +16,6 @@ public:
 	bool GetEditMode() const;
 	void SetEditMode(bool editMode);
 
-	static constexpr char MAP_PATH[] = "../Data/Maps/";
-	static constexpr char LEVEL_PATH[] = "../Data/Levels/";
 protected:
 	Defines() = default;
 	~Defines() = default;

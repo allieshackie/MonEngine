@@ -7,7 +7,7 @@ class PlayerSystem;
 class GameGUI : public GUIBase
 {
 public:
-	GameGUI(LevelManager& levelManager, PlayerSystem& playerSystem);
+	GameGUI(LevelManager& levelManager, PlayerSystem& playerSystem, std::string levelsFolderPath);
 	~GameGUI() override = default;
 
 	void RenderGUI() override;
@@ -28,10 +28,10 @@ private:
 	int current_level_selected = 0;
 
 	std::vector<char*> levelFileNames;
+	std::string mLevelsFolderPath;
 
 	LevelManager& mLevelManager;
 	PlayerSystem& mPlayerSystem;
 
-	const char* LEVELS_FOLDER = "../Data/Levels/";
 	const char* EDITOR_LEVEL = "editor";
 };
