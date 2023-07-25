@@ -9,8 +9,6 @@ struct TransformComponent;
 
 class EntityRegistry;
 class LevelManager;
-class Map;
-class MapSystem;
 class Renderer;
 class ResourceManager;
 class RenderObject;
@@ -18,32 +16,22 @@ class RenderObject;
 class SpritePipeline
 {
 public:
-	SpritePipeline(EntityRegistry& entityRegistry, LevelManager& levelManager, MapSystem& mapSystem, Renderer& renderer,
-	               ResourceManager& resourceManager);
+	SpritePipeline(EntityRegistry& entityRegistry, LevelManager& levelManager, Renderer& renderer,
+	               ResourceManager& resourceManager, std::string shadersFolderPath);
 
 	~SpritePipeline()
 	{
-		std::cout << "Delete Pipeline2D" << std::endl;
+		std::cout << "Delete SpritePipeline" << std::endl;
 	}
 
 	void Tick() const;
 	void Render(const TransformComponent& transform, const SpriteComponent& sprite) const;
-	void RenderMap(const std::shared_ptr<Map>& map) const;
-	void RenderMapTexture(const std::shared_ptr<Map>& map) const;
-
-	void QueueWriteMapTexture(const std::shared_ptr<Map>& map);
-	void WriteQueuedMapTextures();
 
 private:
 	void _InitPipeline();
 	void _CreateResourceHeap();
 
 	void _UpdateUniforms(const TransformComponent& transform) const;
-	void _UpdateUniforms(glm::vec3 pos, glm::vec3 size, glm::vec3 rot) const;
-	void _UpdateUniformsModel(glm::vec3 pos, glm::vec3 size, glm::vec3 rot, glm::vec4 texClip) const;
-
-	void _InitMapTexturePipeline(std::shared_ptr<Map>& map);
-	void _WriteMapTexture(std::shared_ptr<Map>& map) const;
 
 	LLGL::PipelineLayout* mPipelineLayout = nullptr;
 	LLGL::PipelineState* mPipeline = nullptr;
@@ -70,9 +58,8 @@ private:
 
 	EntityRegistry& mEntityRegistry;
 	LevelManager& mLevelManager;
-	MapSystem& mMapSystem;
 	Renderer& mRenderer;
 	ResourceManager& mResourceManager;
 
-	std::vector<std::shared_ptr<Map>> mQueuedMaps = {};
+	std::string mShadersFolderPath;
 };

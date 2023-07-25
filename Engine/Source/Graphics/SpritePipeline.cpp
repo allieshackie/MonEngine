@@ -9,17 +9,14 @@
 #include "Entity/Components/MapComponent.h"
 #include "Entity/Components/TransformComponent.h"
 #include "Entity/Components/SpriteComponent.h"
-#include "Map/Map.h"
-#include "Map/MapDescription.h"
-#include "Map/MapSystem.h"
 #include "Texture.h"
 
 #include "SpritePipeline.h"
 
-SpritePipeline::SpritePipeline(EntityRegistry& entityRegistry, LevelManager& levelManager, MapSystem& mapSystem,
-                               Renderer& renderer, ResourceManager& resourceManager)
-	: mEntityRegistry(entityRegistry), mLevelManager(levelManager), mMapSystem(mapSystem), mRenderer(renderer),
-	  mResourceManager(resourceManager)
+SpritePipeline::SpritePipeline(EntityRegistry& entityRegistry, LevelManager& levelManager, Renderer& renderer,
+                               ResourceManager& resourceManager, std::string shadersFolderPath)
+	: mEntityRegistry(entityRegistry), mLevelManager(levelManager), mRenderer(renderer),
+	  mResourceManager(resourceManager), mShadersFolderPath(std::move(shadersFolderPath))
 {
 	_InitPipeline();
 
@@ -28,11 +25,6 @@ SpritePipeline::SpritePipeline(EntityRegistry& entityRegistry, LevelManager& lev
 		                 mShader->GetVertexFormat()),
 		mVertices.data()
 	);
-
-	mMapSystem.RegisterOnCreateCallback([=](const std::shared_ptr<Map>& map) { QueueWriteMapTexture(map); });
-
-	// Callback only usable when editor is active, not for in-game use
-	mMapSystem.RegisterOnUpdateCallback([=]() { QueueWriteMapTexture(mMapSystem.GetCurrentMap()); });
 }
 
 void SpritePipeline::Tick() const
@@ -42,19 +34,6 @@ void SpritePipeline::Tick() const
 	// set graphics pipeline
 	commands.SetPipelineState(*mPipeline);
 	commands.SetVertexBuffer(*mVertexBuffer);
-
-	// Render map, draw first so other sprites are drawn on top
-	for (const auto& map : mMapSystem.GetAllMaps())
-	{
-		if (map->GetRenderDebug())
-		{
-			RenderMapTexture(map);
-		}
-		else
-		{
-			RenderMap(map);
-		}
-	}
 
 	const auto spriteView = mEntityRegistry.GetEnttRegistry().view<const TransformComponent, const SpriteComponent>(
 		entt::exclude<MapComponent>);
@@ -79,30 +58,6 @@ void SpritePipeline::Render(const TransformComponent& transform, const SpriteCom
 	commands.Draw(4, 0);
 }
 
-void SpritePipeline::RenderMap(const std::shared_ptr<Map>& map) const
-{
-	auto& commands = mRenderer.GetCommandBuffer();
-	commands.SetResourceHeap(*mResourceHeap, map->GetMapTextureId());
-	_UpdateUniforms(map->GetPosition(), map->GetMapSize(),
-	                map->GetRotation());
-	commands.Draw(4, 0);
-}
-
-void SpritePipeline::RenderMapTexture(const std::shared_ptr<Map>& map) const
-{
-	auto& commands = mRenderer.GetCommandBuffer();
-	const auto textureId = mResourceManager.GetTextureId(map->GetMapDescription()->GetTexturePath());
-
-	// If this assert is hit, need to add a case for commands.SetResourceHeap(*mResourceHeap);
-	assert(textureId != -1);
-
-	commands.SetResourceHeap(*mResourceHeap, textureId);
-	const auto pos = map->GetPosition();
-	const auto mapSize = map->GetMapSize();
-	_UpdateUniforms(pos, mapSize, map->GetRotation());
-	commands.Draw(4, 0);
-}
-
 void SpritePipeline::_UpdateUniforms(const TransformComponent& transform) const
 {
 	auto& commands = mRenderer.GetCommandBuffer();
@@ -120,56 +75,12 @@ void SpritePipeline::_UpdateUniforms(const TransformComponent& transform) const
 
 	const auto textureClip = glm::mat4(1.0f);
 
-	const auto& camera = mLevelManager.GetCurrentLevel()->GetCamera();
-
-	const SpriteSettings settings = {mRenderer.GetProjection() * camera->GetView() * model, textureClip};
-	commands.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
-}
-
-void SpritePipeline::_UpdateUniforms(glm::vec3 pos, glm::vec3 size, glm::vec3 rot) const
-{
-	auto& commands = mRenderer.GetCommandBuffer();
-	// Update
-	auto model = glm::mat4(1.0f);
-	model = translate(model, pos);
-	model = translate(model, glm::vec3(0.5f * size.x, 0.5f * size.y, 0.0f));
-	// Apply rotation in ZXY order
-	model = rotate(model, glm::radians(rot.z), glm::vec3(0.0f, 0.0f, 1.0f));
-	model = rotate(model, glm::radians(rot.x), glm::vec3(1.0f, 0.0f, 0.0f));
-	model = rotate(model, glm::radians(rot.y), glm::vec3(0.0f, 1.0f, 0.0f));
-
-	model = translate(model, glm::vec3(-0.5f * size.x, -0.5f * size.y, 0.0f));
-	model = scale(model, size);
-
-	const auto textureClip = glm::mat4(1.0f);
-
-	const auto& camera = mLevelManager.GetCurrentLevel()->GetCamera();
-
-	const SpriteSettings settings = {mRenderer.GetProjection() * camera->GetView() * model, textureClip};
-	commands.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
-}
-
-void SpritePipeline::_UpdateUniformsModel(glm::vec3 pos, glm::vec3 size, glm::vec3 rot, glm::vec4 texClip) const
-{
-	auto& commands = mRenderer.GetCommandBuffer();
-	// Update
-	auto model = glm::mat4(1.0f);
-	model = translate(model, pos);
-	model = translate(model, glm::vec3(0.5f * size.x, 0.5f * size.y, 0.0f));
-	// Apply rotation in ZXY order
-	model = rotate(model, glm::radians(rot.z), glm::vec3(0.0f, 0.0f, 1.0f));
-	model = rotate(model, glm::radians(rot.x), glm::vec3(1.0f, 0.0f, 0.0f));
-	model = rotate(model, glm::radians(rot.y), glm::vec3(0.0f, 1.0f, 0.0f));
-
-	model = translate(model, glm::vec3(-0.5f * size.x, -0.5f * size.y, 0.0f));
-	model = scale(model, size);
-
-	auto textureClip = glm::mat4(1.0f);
-	textureClip = translate(textureClip, glm::vec3(texClip.x, texClip.y, 0.0f));
-	textureClip = scale(textureClip, glm::vec3(texClip.z, texClip.w, 1.0f));
-
-	const SpriteSettings settings = {model, textureClip};
-	commands.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
+	if (const auto& level = mLevelManager.GetCurrentLevel())
+	{
+		const auto& camera = level->GetCamera();
+		const SpriteSettings settings = {mRenderer.GetProjection() * camera->GetView() * model, textureClip};
+		commands.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
+	}
 }
 
 void SpritePipeline::_InitPipeline()
@@ -182,7 +93,14 @@ void SpritePipeline::_InitPipeline()
 	vertexFormat.AppendAttribute({"color", LLGL::Format::RGB32Float});
 	vertexFormat.AppendAttribute({"texCoord", LLGL::Format::RG32Float});
 
-	mShader = std::make_unique<Shader>(*mRenderer.GetRendererSystem(), vertexFormat, "sprite.vert", "sprite.frag");
+	std::string vertPath = mShadersFolderPath;
+	vertPath.append("sprite.vert");
+
+	std::string fragPath = mShadersFolderPath;
+	fragPath.append("sprite.frag");
+
+	mShader = std::make_unique<Shader>(*mRenderer.GetRendererSystem(), vertexFormat, vertPath.c_str(),
+	                                   fragPath.c_str());
 
 	// All layout bindings that will be used by graphics and compute pipelines
 	// Create pipeline layout
@@ -211,13 +129,10 @@ void SpritePipeline::_CreateResourceHeap()
 	// Resource Heap
 	const auto& textures = mResourceManager.getTextures();
 
-	const auto& maps = mMapSystem.GetAllMaps();
-	const int numMaps = static_cast<int>(maps.size());
-
 	LLGL::ResourceHeapDescriptor resourceHeapDesc;
 	{
 		resourceHeapDesc.pipelineLayout = mPipelineLayout;
-		resourceHeapDesc.resourceViews.reserve((textures.size() + numMaps) * 3);
+		resourceHeapDesc.resourceViews.reserve(textures.size() * 3);
 
 		for (const auto& texture : textures)
 		{
@@ -225,112 +140,6 @@ void SpritePipeline::_CreateResourceHeap()
 			resourceHeapDesc.resourceViews.emplace_back(&texture.second->GetTextureData());
 			resourceHeapDesc.resourceViews.emplace_back(&texture.second->GetSamplerData());
 		}
-
-		int i = static_cast<int>(textures.size());
-		for (auto& map : maps)
-		{
-			map->SetMapTextureId(i);
-			resourceHeapDesc.resourceViews.emplace_back(mConstantBuffer);
-			resourceHeapDesc.resourceViews.emplace_back(&map->GetMapTexture());
-			resourceHeapDesc.resourceViews.emplace_back(&textures.at(0)->GetSamplerData());
-			i++;
-		}
 	}
 	mResourceHeap = mRenderer.GetRendererSystem()->CreateResourceHeap(resourceHeapDesc);
-}
-
-void SpritePipeline::QueueWriteMapTexture(const std::shared_ptr<Map>& map)
-{
-	mQueuedMaps.emplace_back(map);
-}
-
-void SpritePipeline::WriteQueuedMapTextures()
-{
-	if (mQueuedMaps.empty()) return;
-
-	for (auto& map : mQueuedMaps)
-	{
-		_InitMapTexturePipeline(map);
-		_WriteMapTexture(map);
-	}
-
-	mQueuedMaps.clear();
-}
-
-void SpritePipeline::_InitMapTexturePipeline(std::shared_ptr<Map>& map)
-{
-	const auto& renderTargetSize = map->GetMapTextureSize();
-
-	// Create Render Target
-	const auto renderTargetTex = mRenderer.GetRendererSystem()->CreateTexture(
-		LLGL::Texture2DDesc(LLGL::Format::RGBA8UNorm, renderTargetSize.width, renderTargetSize.height)
-	);
-	map->SetMapTexture(renderTargetTex);
-
-	// Create render-target with multi-sampling
-	LLGL::RenderTargetDescriptor renderTargetDesc;
-	{
-		renderTargetDesc.resolution = renderTargetSize;
-
-		renderTargetDesc.attachments =
-		{
-			LLGL::AttachmentDescriptor{LLGL::AttachmentType::Depth},
-			LLGL::AttachmentDescriptor{LLGL::AttachmentType::Color, renderTargetTex}
-		};
-	}
-	const auto renderTarget = mRenderer.GetRendererSystem()->CreateRenderTarget(renderTargetDesc);
-	map->SetMapRenderTarget(renderTarget);
-
-	// Render Target Pipeline
-	LLGL::GraphicsPipelineDescriptor pipelineDesc;
-	{
-		pipelineDesc.vertexShader = &mShader->GetVertexShader();
-		pipelineDesc.fragmentShader = &mShader->GetFragmentShader();
-		pipelineDesc.pipelineLayout = mPipelineLayout;
-		pipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::TriangleStrip;
-		pipelineDesc.renderPass = renderTarget->GetRenderPass();
-		pipelineDesc.viewports = {LLGL::Viewport{{0, 0}, renderTarget->GetResolution()}};
-
-		// Enable depth test and writing
-		//pipelineDesc.depth.testEnabled = true;
-		//pipelineDesc.depth.writeEnabled = true;
-	}
-
-	const auto pipeline = mRenderer.GetRendererSystem()->CreatePipelineState(pipelineDesc);
-	map->SetMapTexturePipeline(pipeline);
-	_CreateResourceHeap();
-}
-
-void SpritePipeline::_WriteMapTexture(std::shared_ptr<Map>& map) const
-{
-	auto& commands = mRenderer.GetCommandBuffer();
-
-	// Set the render target and clear the color buffer
-	commands.BeginRenderPass(map->GetMapRenderTarget());
-	{
-		// Clear color and depth buffers of active framebuffer (i.e. the render target)
-		commands.Clear(LLGL::ClearFlags::ColorDepth, {LLGL::ColorRGBAf{0.2f, 0.7f, 0.1f}});
-
-		// Bind graphics pipeline for render target
-		commands.SetPipelineState(map->GetMapTexturePipeline());
-		commands.SetVertexBuffer(*mVertexBuffer);
-
-		const auto textureId = mResourceManager.GetTextureId(map->GetMapDescription()->GetTexturePath());
-		commands.SetResourceHeap(*mResourceHeap, textureId);
-
-		const auto mapData = map->GetMapDescription()->GetMapData();
-		for (int i = 0; i < mapData.size(); i++)
-		{
-			glm::vec3 tilePos;
-			glm::vec3 size;
-			glm::vec4 clip;
-			map->CalculateTileDrawData(i, tilePos, size, clip);
-
-			_UpdateUniformsModel(tilePos, size, map->GetRotation(), clip);
-			commands.Draw(4, 0);
-		}
-	}
-	commands.EndRenderPass();
-
-	commands.GenerateMips(map->GetMapTexture());
 }
