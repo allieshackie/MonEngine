@@ -39,7 +39,10 @@ static void _ProcessPlayerInput(PhysicsComponent& physics, const PlayerComponent
 
 static void _ApplyGravity(PhysicsComponent& physics)
 {
-	physics.mAcceleration.y -= DEFAULT_GRAVITY;
+	if (physics.mApplyGravity)
+	{
+		physics.mAcceleration.y -= DEFAULT_GRAVITY;
+	}
 }
 
 static void _ApplyFriction(PhysicsComponent& physics)

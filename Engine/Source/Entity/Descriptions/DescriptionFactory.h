@@ -7,12 +7,13 @@ class DescriptionFactory
 public:
 	DescriptionFactory() = default;
 	~DescriptionFactory() = default;
-	using DescriptionCreationFunction = std::shared_ptr<DescriptionBase>(*)();
+	using DescriptionCreationFunction = std::function<std::shared_ptr<DescriptionBase>()>;
 
 	template <typename T>
 	void RegisterDescription(const std::string& descriptionName)
 	{
-		mDescriptionRegistry[descriptionName] = []() { return std::make_unique<T>(); };
+		DescriptionCreationFunction func = []() { return std::make_shared<T>(); };
+		mDescriptionRegistry[descriptionName] = std::move(func);
 	}
 
 	std::shared_ptr<DescriptionBase> CreateDescription(const std::string& descriptionName,

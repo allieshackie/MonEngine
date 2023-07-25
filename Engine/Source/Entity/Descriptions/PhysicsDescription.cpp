@@ -19,4 +19,9 @@ void PhysicsDescription::ParseJSON(const nlohmann::json& json)
 
 	assert(json.contains(ACCELERATION_RATE_STRING));
 	mAccelerationRate = json[ACCELERATION_RATE_STRING];
+
+	if (json.contains(APPLY_GRAVITY_STRING))
+	{
+		mApplyGravity = json[APPLY_GRAVITY_STRING];
+	}
 }
