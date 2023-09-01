@@ -4,5 +4,6 @@
     "entities_path": "Entities/",
     "models_path": "Models/",
     "textures_path": "Textures/",
-    "shaders_path": "Shaders/"
+    "shaders_path": "Shaders/",
+    "font_path": "Fonts/"
 }

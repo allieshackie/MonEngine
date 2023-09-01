@@ -76,18 +76,30 @@ void Renderer::_Init()
 	UpdateProjection();
 }
 
-void Renderer::InitPipelines(LevelManager& levelManager, MapSystem& mapSystem)
+void Renderer::InitPipelines(LevelManager& levelManager, MapSystem& mapSystem, std::string fontPath)
 {
 	mSpritePipeline = std::make_unique<SpritePipeline>(mEntityRegistry, levelManager, *this, mResourceManager,
 	                                                   mShadersFolderPath);
 	mMapPipeline = std::make_unique<MapPipeline>(levelManager, mapSystem, *this, mResourceManager, mShadersFolderPath);
 
 	mDebugPipeline = std::make_unique<DebugPipeline>(levelManager, *this, mShadersFolderPath);
+
+	mTextPipeline = std::make_unique<TextPipeline>(*this, levelManager, mShadersFolderPath, std::move(fontPath));
 }
 
 void Renderer::InitGUIPipeline(GUISystem& guiSystem, GUIBase& gui)
 {
 	mPipelineGUI = std::make_unique<PipelineGUI>(guiSystem, gui);
+}
+
+std::unique_ptr<TextPipeline>& Renderer::GetTextPipeline()
+{
+	return mTextPipeline;
+}
+
+void Renderer::LoadFont(const char* fontPath) const
+{
+	mTextPipeline->LoadFont(fontPath);
 }
 
 void Renderer::Render() const
@@ -104,6 +116,7 @@ void Renderer::Render() const
 		mCommands->BeginRenderPass(*mSwapChain);
 		{
 			mMapPipeline->Tick();
+			mTextPipeline->Render();
 			mSpritePipeline->Tick();
 			mPipelineGUI->Tick();
 			mDebugPipeline->Tick();
@@ -121,14 +134,22 @@ void Renderer::Render() const
 void Renderer::UpdateProjection()
 {
 	const auto res = mSwapChain->GetResolution();
-	mProjection = glm::perspective(glm::radians(45.0f),
-	                               static_cast<float>(res.width) / static_cast<float>(res.height),
-	                               0.1f, 100.0f);
+	mPerspectiveProjection = glm::perspective(glm::radians(45.0f),
+	                                          static_cast<float>(res.width) / static_cast<float>(res.height),
+	                                          0.1f, 100.0f);
+
+	mOrthoProjection = glm::ortho(0.0f, static_cast<float>(res.width), 0.0f, static_cast<float>(res.height), 0.1f,
+	                              100.0f);
 }
 
-glm::mat4 Renderer::GetProjection() const
+glm::mat4 Renderer::GetPerspectiveProjection() const
 {
-	return mProjection;
+	return mPerspectiveProjection;
+}
+
+glm::mat4 Renderer::GetOrthoProjection() const
+{
+	return mOrthoProjection;
 }
 
 glm::vec3 Renderer::NormalizedDeviceCoords(glm::vec3 vec) const

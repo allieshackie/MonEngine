@@ -1,16 +1,14 @@
 // GLSL texturing shader
 #version 140
 
-uniform sampler2D colorMap;
+in vec2 fragTexCoords;
 
-// Fragment input from the vertex shader
-in vec2 vTexCoord;
+uniform sampler2D textureAtlas;
 
-// Fragment output color
-out vec4 fragColor;
+void main() {
+    // Sample the texture atlas using the texture coordinates
+    vec4 glyphColor = texture(textureAtlas, fragTexCoords);
 
-// Fragment shader main function
-void main()
-{
-	fragColor = texture(colorMap, vTexCoord);
+    // Output the glyph color (you can apply additional processing here if needed)
+    gl_FragColor = glyphColor;
 }

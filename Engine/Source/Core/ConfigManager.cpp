@@ -29,6 +29,9 @@ void ConfigManager::LoadConfigFile(const std::string& projectDataPath, const std
 
 	mShadersFolderPath = projectDataPath;
 	mShadersFolderPath.append(json[SHADERS_PATH_STRING]);
+
+	mFontFolderPath = projectDataPath;
+	mFontFolderPath.append(json[FONT_PATH_STRING]);
 }
 
 const std::string& ConfigManager::GetMapsFolderPath() const
@@ -59,4 +62,9 @@ const std::string& ConfigManager::GetTexturesFolderPath() const
 const std::string& ConfigManager::GetShadersFolderPath() const
 {
 	return mShadersFolderPath;
+}
+
+const std::string& ConfigManager::GetFontFolderPath() const
+{
+	return mFontFolderPath;
 }

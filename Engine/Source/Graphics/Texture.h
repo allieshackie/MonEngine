@@ -6,6 +6,8 @@ class Texture
 {
 public:
 	Texture(LLGL::RenderSystem& renderer, const std::string& path);
+	Texture(LLGL::RenderSystem& renderer, const unsigned char* imageData, int width, int height,
+	        bool singleChannel = false);
 	~Texture();
 
 	LLGL::Texture& GetTextureData() const;
@@ -14,8 +16,11 @@ public:
 	glm::vec2 GetTextureSize() const;
 
 private:
-	bool LoadFromFile(LLGL::RenderSystem& renderer, const std::string& path);
-	void CreateSampler(LLGL::RenderSystem& renderer);
+	bool _LoadFromFile(LLGL::RenderSystem& renderer, const std::string& path);
+	bool _CreateRGBAFromData(LLGL::RenderSystem& renderer, const unsigned char* imageData, int width, int height);
+	bool _CreateSingleChannelTextureFromData(LLGL::RenderSystem& renderer, const unsigned char* imageData, int width,
+	                                         int height);
+	void _CreateSampler(LLGL::RenderSystem& renderer);
 
 	LLGL::Texture* mTexture = nullptr;
 	LLGL::Sampler* mSampler = nullptr;

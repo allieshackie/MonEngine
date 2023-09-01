@@ -19,20 +19,25 @@
 #include "GUI/GUISystem.h"
 #include "Input/InputHandler.h"
 #include "Input/InputManager.h"
-#include "Input/UIInputManager.h"
 #include "Map/MapSystem.h"
 #include "Physics/CollisionSystem.h"
 #include "Physics/PhysicsSystem.h"
+#include "UI/UISystem.h"
 
 #include "Game.h"
 
-int main(int argc, char** argv)
+int main()
 {
 	const auto app = std::make_unique<Game>();
-	app->_ConfigureGame();
+	app->Setup();
 	app->RunGame();
 
 	return 0;
+}
+
+void Game::Setup()
+{
+	_ConfigureGame();
 }
 
 void Game::_ConfigureGame()
@@ -70,8 +75,12 @@ void Game::_ConfigureGame()
 
 	mGameGUI = std::make_unique<GameGUI>(*mLevelManager, *mPlayerSystem, mConfigManager->GetLevelsFolderPath());
 
-	mRenderer->InitPipelines(*mLevelManager, *mMapSystem);
+	mRenderer->InitPipelines(*mLevelManager, *mMapSystem, mConfigManager->GetFontFolderPath());
 	mRenderer->InitGUIPipeline(*mGUISystem, *mGameGUI);
+	mUISystem = std::make_unique<UISystem>(*mRenderer->GetTextPipeline());
+
+	mRenderer->LoadFont("PixelLettersFull.ttf");
+	mUISystem->AddText("BA", {0, 100}, {10, 10});
 }
 
 void Game::_RegisterDescriptions() const

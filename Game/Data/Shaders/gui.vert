@@ -1,17 +1,20 @@
-// GLSL texturing vertex shader
-#version 140
+// GLSL shader version 1.30 (for OpenGL 3.1)
+#version 460
 
-// Vertex attributes (these names must match out vertex format attributes)
-in vec2 position;
-in vec2 texCoord;
-
-// Vertex output to the fragment shader
-out vec2 vTexCoord;
-
-// Vertex shader main function
-void main()
+layout(std140) uniform GUISettings 
 {
-	// Pass vertex data to tessellation control shader
-	gl_Position = vec4(position, 0, 1);
-	vTexCoord = texCoord;
+    mat4 pvmMat;
+};
+
+in vec2 guiPosition;
+in vec2 guiTexCoord;
+
+out vec2 fragTexCoords;
+
+void main() {
+    // Pass the texture coordinates to the fragment shader
+    fragTexCoords = guiTexCoord;
+
+    // Transform the vertex position
+    gl_Position = pvmMat * vec4(guiPosition.x, guiPosition.y, 0.0, 1.0);
 }

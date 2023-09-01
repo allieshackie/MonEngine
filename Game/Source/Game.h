@@ -15,11 +15,12 @@ class Renderer;
 class ResourceManager;
 class PhysicsSystem;
 class PlayerSystem;
+class UISystem;
 class Window;
 
 struct Timer;
 
-int main(int argc, char** argv);
+int main();
 
 class Game
 {
@@ -29,6 +30,7 @@ public:
 
 
 protected:
+	void Setup();
 	void RunGame() const;
 	void Update() const;
 
@@ -61,8 +63,9 @@ private:
 	std::unique_ptr<MapSystem> mMapSystem;
 	std::unique_ptr<PhysicsSystem> mPhysicsSystem;
 	std::unique_ptr<PlayerSystem> mPlayerSystem;
+	std::unique_ptr<UISystem> mUISystem;
 
 	bool mRunning = true;
 
-	friend int ::main(int argc, char** argv);
+	friend int ::main();
 };

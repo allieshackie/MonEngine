@@ -17,6 +17,8 @@ public:
 	const std::string& GetTexturesFolderPath() const;
 	const std::string& GetShadersFolderPath() const;
 
+	const std::string& GetFontFolderPath() const;
+
 private:
 	static constexpr char MAPS_PATH_STRING[] = "maps_path";
 	static constexpr char LEVELS_PATH_STRING[] = "levels_path";
@@ -24,6 +26,7 @@ private:
 	static constexpr char MODELS_PATH_STRING[] = "models_path";
 	static constexpr char TEXTURES_PATH_STRING[] = "textures_path";
 	static constexpr char SHADERS_PATH_STRING[] = "shaders_path";
+	static constexpr char FONT_PATH_STRING[] = "font_path";
 
 	std::string mMapsFolderPath;
 	std::string mLevelsFolderPath;
@@ -32,4 +35,6 @@ private:
 	std::string mModelsFolderPath;
 	std::string mTexturesFolderPath;
 	std::string mShadersFolderPath;
+
+	std::string mFontFolderPath;
 };

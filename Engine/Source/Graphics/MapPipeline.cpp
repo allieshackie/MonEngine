@@ -98,7 +98,7 @@ void MapPipeline::_UpdateUniforms(glm::vec3 pos, glm::vec3 size, glm::vec3 rot) 
 	if (const auto& level = mLevelManager.GetCurrentLevel())
 	{
 		const auto& camera = level->GetCamera();
-		const SpriteSettings settings = {mRenderer.GetProjection() * camera->GetView() * model, textureClip};
+		const SpriteSettings settings = {mRenderer.GetPerspectiveProjection() * camera->GetView() * model, textureClip};
 		commands.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
 	}
 }

@@ -4,8 +4,22 @@
 
 Texture::Texture(LLGL::RenderSystem& renderer, const std::string& path)
 {
-	LoadFromFile(renderer, path);
-	CreateSampler(renderer);
+	_LoadFromFile(renderer, path);
+	_CreateSampler(renderer);
+}
+
+Texture::Texture(LLGL::RenderSystem& renderer, const unsigned char* imageData, int width, int height,
+                 bool singleChannel)
+{
+	if (singleChannel)
+	{
+		_CreateSingleChannelTextureFromData(renderer, imageData, width, height);
+	}
+	else
+	{
+		_CreateRGBAFromData(renderer, imageData, width, height);
+	}
+	_CreateSampler(renderer);
 }
 
 Texture::~Texture()
@@ -28,7 +42,7 @@ glm::vec2 Texture::GetTextureSize() const
 	return glm::vec2(mTextureWidth, mTextureHeight);
 }
 
-bool Texture::LoadFromFile(LLGL::RenderSystem& renderer, const std::string& path)
+bool Texture::_LoadFromFile(LLGL::RenderSystem& renderer, const std::string& path)
 {
 	// uncompressed texture
 	int texComponents = 0;
@@ -76,7 +90,87 @@ bool Texture::LoadFromFile(LLGL::RenderSystem& renderer, const std::string& path
 	return true;
 }
 
-void Texture::CreateSampler(LLGL::RenderSystem& renderer)
+bool Texture::_CreateRGBAFromData(LLGL::RenderSystem& renderer, const unsigned char* imageData, int width, int height)
+{
+	mTextureWidth = width;
+	mTextureHeight = height;
+
+	// Initialize source image descriptor to upload image data onto GPU
+	LLGL::SrcImageDescriptor imageDesc;
+	{
+		// Set color format depending on alpha channel
+		imageDesc.format = LLGL::ImageFormat::RGB; // ImageFormat::RGB
+
+		// Set image data type (unsigned char = 8 bit unsigned int)
+		imageDesc.dataType = LLGL::DataType::UInt8;
+
+		imageDesc.data = imageData;
+
+		// TODO: * 4 for alpha channel as well? 
+		imageDesc.dataSize = mTextureWidth * mTextureHeight * 3;
+	}
+
+	{
+		LLGL::TextureDescriptor texDesc;
+		{
+			texDesc.type = LLGL::TextureType::Texture2D;
+
+			// texture hardware format: RGBA with normalize 8-bit unsigned char
+			texDesc.format = LLGL::Format::RGBA8UNorm;
+
+			texDesc.extent = {static_cast<uint32_t>(mTextureWidth), static_cast<uint32_t>(mTextureHeight), 1u};
+
+			// Generate all Mip map levels for texture (creates multiple sizes to be used for lower res)
+			texDesc.miscFlags = LLGL::MiscFlags::GenerateMips;
+		}
+
+		mTexture = renderer.CreateTexture(texDesc, &imageDesc);
+	}
+
+
+	return true;
+}
+
+bool Texture::_CreateSingleChannelTextureFromData(LLGL::RenderSystem& renderer, const unsigned char* imageData,
+                                                  int width, int height)
+{
+	mTextureWidth = width;
+	mTextureHeight = height;
+
+
+	// Initialize source image descriptor to upload image data onto GPU
+	LLGL::SrcImageDescriptor imageDesc;
+	{
+		// Set color format depending on alpha channel
+		imageDesc.format = LLGL::ImageFormat::R;
+
+		// Set image data type (unsigned char = 8 bit unsigned int)
+		imageDesc.dataType = LLGL::DataType::UInt8;
+
+		imageDesc.data = imageData;
+
+		imageDesc.dataSize = mTextureWidth * mTextureHeight;
+	}
+
+	{
+		LLGL::TextureDescriptor texDesc;
+		{
+			texDesc.type = LLGL::TextureType::Texture2D;
+
+			// texture hardware format: R with normalize 8-bit unsigned char
+			texDesc.format = LLGL::Format::R8UNorm;
+
+			texDesc.extent = {static_cast<uint32_t>(mTextureWidth), static_cast<uint32_t>(mTextureHeight), 1u};
+		}
+
+		mTexture = renderer.CreateTexture(texDesc, &imageDesc);
+	}
+
+
+	return true;
+}
+
+void Texture::_CreateSampler(LLGL::RenderSystem& renderer)
 {
 	// 1st sampler state with default settings
 	// Create nearest sampler
