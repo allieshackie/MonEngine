@@ -138,7 +138,7 @@ void Renderer::UpdateProjection()
 	                                          static_cast<float>(res.width) / static_cast<float>(res.height),
 	                                          0.1f, 100.0f);
 
-	mOrthoProjection = glm::ortho(0.0f, static_cast<float>(res.width), 0.0f, static_cast<float>(res.height), 0.1f,
+	mOrthoProjection = glm::ortho(0.0f, static_cast<float>(res.width), static_cast<float>(res.height), 0.0f, 0.1f,
 	                              100.0f);
 }
 

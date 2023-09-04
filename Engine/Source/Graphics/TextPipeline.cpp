@@ -124,31 +124,36 @@ std::vector<uint8_t> TextPipeline::_ReadFontFromFileTTF(const char* fontPath) co
 
 void TextPipeline::CreateTextMesh(const std::string& text, glm::vec2 pos, glm::vec2 size)
 {
-	const auto textMesh = std::make_unique<TextMesh>();
+	auto textMesh = std::make_unique<TextMesh>();
 	textMesh->mPosition = {pos, 1.0f};
 	textMesh->mSize = {size, 1.0f};
 
 	std::vector<TextVertex> vertices;
-	std::vector<uint16_t> indices;
+	std::vector<uint32_t> indices;
 
 	if (_font.mCharInfo)
 	{
-		uint16_t lastIndex = 0;
+		uint32_t lastIndex = 0;
 		float offsetX = 0, offsetY = 0;
 		for (const char c : text)
 		{
 			const auto glyphInfo = _GenerateGlyphInfo(c, offsetX, offsetY);
 			offsetX = glyphInfo.mOffsetX;
 			offsetY = glyphInfo.mOffsetY;
-			vertices.emplace_back(glyphInfo.mPositions[0], glyphInfo.mUVs[0]);
-			vertices.emplace_back(glyphInfo.mPositions[1], glyphInfo.mUVs[1]);
-			vertices.emplace_back(glyphInfo.mPositions[2], glyphInfo.mUVs[2]);
-			vertices.emplace_back(glyphInfo.mPositions[3], glyphInfo.mUVs[3]);
+			TextVertex vertex1 = {glyphInfo.mPositions[0], glyphInfo.mUVs[0]};
+			TextVertex vertex2 = {glyphInfo.mPositions[1], glyphInfo.mUVs[1]};
+			TextVertex vertex3 = {glyphInfo.mPositions[2], glyphInfo.mUVs[2]};
+			TextVertex vertex4 = {glyphInfo.mPositions[3], glyphInfo.mUVs[3]};
+			vertices.emplace_back(vertex1);
+			vertices.emplace_back(vertex2);
+			vertices.emplace_back(vertex3);
+			vertices.emplace_back(vertex4);
 
 			indices.push_back(lastIndex);
 			indices.push_back(lastIndex + 1);
 			indices.push_back(lastIndex + 2);
-			indices.push_back(lastIndex);
+
+			indices.push_back(lastIndex + 1);
 			indices.push_back(lastIndex + 2);
 			indices.push_back(lastIndex + 3);
 
@@ -164,9 +169,11 @@ void TextPipeline::CreateTextMesh(const std::string& text, glm::vec2 pos, glm::v
 
 	textMesh->mIndexCount = static_cast<std::uint32_t>(indices.size());
 	textMesh->mIndexBuffer = mRenderer.GetRendererSystem()->CreateBuffer(
-		LLGL::IndexBufferDesc(static_cast<std::uint32_t>(vertices.size() * sizeof(uint16_t)), LLGL::Format::R32UInt),
+		LLGL::IndexBufferDesc(static_cast<std::uint32_t>(indices.size() * sizeof(uint32_t)), LLGL::Format::R32UInt),
 		indices.data()
 	);
+
+	mTextMeshes.push_back(std::move(textMesh));
 }
 
 GlyphInfo TextPipeline::_GenerateGlyphInfo(uint32_t character, float offsetX, float offsetY)
@@ -177,8 +184,8 @@ GlyphInfo TextPipeline::_GenerateGlyphInfo(uint32_t character, float offsetX, fl
 	                    character - _font.mFirstChar, &offsetX, &offsetY, &quad, 1);
 	const auto xMin = quad.x0;
 	const auto xMax = quad.x1;
-	const auto yMin = -quad.y1;
-	const auto yMax = -quad.y0;
+	const auto yMin = quad.y1;
+	const auto yMax = quad.y0;
 
 	GlyphInfo info{};
 	info.mOffsetX = offsetX;
@@ -189,10 +196,10 @@ GlyphInfo TextPipeline::_GenerateGlyphInfo(uint32_t character, float offsetX, fl
 	info.mPositions[2] = {xMax, yMin};
 	info.mPositions[3] = {xMax, yMax};
 
-	info.mUVs[1] = {quad.s0, quad.t0};
 	info.mUVs[0] = {quad.s0, quad.t1};
-	info.mUVs[3] = {quad.s1, quad.t0};
+	info.mUVs[1] = {quad.s0, quad.t0};
 	info.mUVs[2] = {quad.s1, quad.t1};
+	info.mUVs[3] = {quad.s1, quad.t0};
 
 	return info;
 }
@@ -226,7 +233,7 @@ void TextPipeline::_InitPipeline()
 		pipelineDesc.vertexShader = &mShader->GetVertexShader();
 		pipelineDesc.fragmentShader = &mShader->GetFragmentShader();
 		pipelineDesc.pipelineLayout = mPipelineLayout;
-		pipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::TriangleStrip;
+		pipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::TriangleList;
 	}
 	mPipeline = mRenderer.GetRendererSystem()->CreatePipelineState(pipelineDesc);
 }

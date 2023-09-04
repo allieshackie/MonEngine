@@ -11,12 +11,6 @@ class Texture;
 
 struct TextVertex
 {
-	TextVertex() = default;
-
-	TextVertex(glm::vec2 pos, glm::vec2 uv) : position(pos), texCoord(uv)
-	{
-	}
-
 	glm::vec2 position = {0, 0};
 	glm::vec2 texCoord = {0, 0};
 };

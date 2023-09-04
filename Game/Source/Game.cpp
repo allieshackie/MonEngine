@@ -80,7 +80,7 @@ void Game::_ConfigureGame()
 	mUISystem = std::make_unique<UISystem>(*mRenderer->GetTextPipeline());
 
 	mRenderer->LoadFont("PixelLettersFull.ttf");
-	mUISystem->AddText("BA", {0, 100}, {10, 10});
+	mUISystem->AddText("Allie", {0, 100}, {10, 10});
 }
 
 void Game::_RegisterDescriptions() const
