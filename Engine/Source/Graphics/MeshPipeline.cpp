@@ -1,16 +1,8 @@
 #include "LLGL/Misc/Utility.h"
 
-#include "Core/Renderer.h"
-#include "Core/ResourceManager.h"
 #include "Core/Shader.h"
 
 #include "MeshPipeline.h"
-
-MeshPipeline::MeshPipeline(Renderer& renderer, ResourceManager& resourceManager, std::string shadersFolderPath)
-	: mRenderer(renderer), mResourceManager(resourceManager), mShadersFolderPath(std::move(shadersFolderPath))
-{
-	_InitPipeline();
-}
 
 void MeshPipeline::Render(LLGL::CommandBuffer& commands) const
 {
@@ -25,10 +17,10 @@ void MeshPipeline::Render(LLGL::CommandBuffer& commands) const
 	}
 }
 
-void MeshPipeline::_InitPipeline()
+void MeshPipeline::Init(std::unique_ptr<LLGL::RenderSystem>& renderSystem, const std::string& shaderPath)
 {
-	mConstantBuffer = mRenderer.GetRendererSystem()->CreateBuffer(LLGL::ConstantBufferDesc(sizeof(VolumeSettings)),
-	                                                              &volumeSettings);
+	mConstantBuffer = renderSystem->CreateBuffer(LLGL::ConstantBufferDesc(sizeof(VolumeSettings)),
+	                                             &volumeSettings);
 
 	LLGL::VertexFormat vertexFormat;
 	vertexFormat.AppendAttribute({"position", LLGL::Format::RGB32Float});
@@ -36,13 +28,13 @@ void MeshPipeline::_InitPipeline()
 	vertexFormat.AppendAttribute({"texCoord", LLGL::Format::RG32Float});
 	vertexFormat.SetStride(sizeof(TexturedVertex));
 
-	std::string vertPath = mShadersFolderPath;
+	std::string vertPath = shaderPath;
 	vertPath.append("volume.vert");
 
-	std::string fragPath = mShadersFolderPath;
+	std::string fragPath = shaderPath;
 	fragPath.append("volume.frag");
 
-	mShader = std::make_unique<Shader>(*mRenderer.GetRendererSystem(), vertexFormat, vertPath.c_str(),
+	mShader = std::make_unique<Shader>(*renderSystem, vertexFormat, vertPath.c_str(),
 	                                   fragPath.c_str());
 
 	// All layout bindings that will be used by graphics and compute pipelines
@@ -56,7 +48,7 @@ void MeshPipeline::_InitPipeline()
 		};
 	}
 	// Create pipeline layout
-	const auto pipelineLayout = mRenderer.GetRendererSystem()->CreatePipelineLayout(layoutDesc);
+	const auto pipelineLayout = renderSystem->CreatePipelineLayout(layoutDesc);
 
 	// Create graphics pipeline
 	LLGL::GraphicsPipelineDescriptor pipelineDesc;
@@ -66,7 +58,7 @@ void MeshPipeline::_InitPipeline()
 		pipelineDesc.pipelineLayout = pipelineLayout;
 		pipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::TriangleStrip;
 	}
-	mPipeline = mRenderer.GetRendererSystem()->CreatePipelineState(pipelineDesc);
+	mPipeline = renderSystem->CreatePipelineState(pipelineDesc);
 
 	// Create resource heap for constant buffer
 	LLGL::ResourceHeapDescriptor heapDesc;
@@ -74,7 +66,7 @@ void MeshPipeline::_InitPipeline()
 		heapDesc.pipelineLayout = pipelineLayout;
 		heapDesc.resourceViews = {mConstantBuffer};
 	}
-	mVolumeResourceHeap = mRenderer.GetRendererSystem()->CreateResourceHeap(heapDesc);
+	mVolumeResourceHeap = renderSystem->CreateResourceHeap(heapDesc);
 }
 
 void MeshPipeline::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& commands, glm::mat4 model,
@@ -87,15 +79,16 @@ void MeshPipeline::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& command
 }
 
 // TODO: Implement actual model class as RenderObject
-void MeshPipeline::AddRenderObjectVBuffer(RenderObject& obj)
+void MeshPipeline::AddRenderObjectVBuffer(const std::unique_ptr<LLGL::RenderSystem>& renderSystem, RenderObject& obj)
 {
 	// TODO: Hardcoded volume test
 	std::vector<TexturedVertex> vertices;
-	mResourceManager.LoadObjModel(vertices, "../Data/Models/Pyramid.obj");
+	// TODO:
+	//mResourceManager.LoadObjModel(vertices, "../Data/Models/Pyramid.obj");
 	model = std::make_unique<Model>();
 	model->numVertices = static_cast<std::uint32_t>(vertices.size());
 
-	mVertexBuffer = mRenderer.GetRendererSystem()->CreateBuffer(
+	mVertexBuffer = renderSystem->CreateBuffer(
 		VertexBufferDesc(static_cast<std::uint32_t>(vertices.size() * sizeof(Vertex)), mShader->GetVertexFormat()),
 		vertices.data()
 	);

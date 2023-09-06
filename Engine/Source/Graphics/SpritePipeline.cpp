@@ -3,7 +3,6 @@
 
 #include "Core/Camera.h"
 #include "Core/LevelManager.h"
-#include "Core/Renderer.h"
 #include "Core/ResourceManager.h"
 #include "Entity/EntityRegistry.h"
 #include "Entity/Components/MapComponent.h"
@@ -13,54 +12,36 @@
 
 #include "SpritePipeline.h"
 
-SpritePipeline::SpritePipeline(EntityRegistry& entityRegistry, LevelManager& levelManager, Renderer& renderer,
-                               ResourceManager& resourceManager, std::string shadersFolderPath)
-	: mEntityRegistry(entityRegistry), mLevelManager(levelManager), mRenderer(renderer),
-	  mResourceManager(resourceManager), mShadersFolderPath(std::move(shadersFolderPath))
+void SpritePipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat,
+                            EntityRegistry& entityRegistry) const
 {
-	_InitPipeline();
-
-	mVertexBuffer = mRenderer.GetRendererSystem()->CreateBuffer(
-		VertexBufferDesc(static_cast<std::uint32_t>(mVertices.size() * sizeof(Vertex)),
-		                 mShader->GetVertexFormat()),
-		mVertices.data()
-	);
-}
-
-void SpritePipeline::Tick() const
-{
-	auto& commands = mRenderer.GetCommandBuffer();
-
 	// set graphics pipeline
-	commands.SetPipelineState(*mPipeline);
-	commands.SetVertexBuffer(*mVertexBuffer);
+	commandBuffer.SetPipelineState(*mPipeline);
+	commandBuffer.SetVertexBuffer(*mVertexBuffer);
 
-	const auto spriteView = mEntityRegistry.GetEnttRegistry().view<const TransformComponent, const SpriteComponent>(
+	const auto spriteView = entityRegistry.GetEnttRegistry().view<const TransformComponent, const SpriteComponent>(
 		entt::exclude<MapComponent>);
-	spriteView.each([=](const TransformComponent& transform, const SpriteComponent& sprite)
+	spriteView.each([this, &commandBuffer, &pvMat](const TransformComponent& transform, const SpriteComponent& sprite)
 	{
-		Render(transform, sprite);
+		_Render(commandBuffer, pvMat, transform, sprite);
 	});
 }
 
-void SpritePipeline::Render(const TransformComponent& transform, const SpriteComponent& sprite) const
+void SpritePipeline::_Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat,
+                             const TransformComponent& transform, const SpriteComponent& sprite) const
 {
-	auto& commands = mRenderer.GetCommandBuffer();
-	const auto textureId = mResourceManager.GetTextureId(sprite.mTexturePath);
+	//const auto textureId = mResourceManager.GetTextureId(sprite.mTexturePath);
 
-	// If this assert is hit, need to add a case for commands.SetResourceHeap(*mResourceHeap);
-	assert(textureId != -1);
+	commandBuffer.SetResourceHeap(*mResourceHeap, sprite.mTextureId);
 
-	commands.SetResourceHeap(*mResourceHeap, textureId);
+	_UpdateUniforms(commandBuffer, pvMat, transform);
 
-	_UpdateUniforms(transform);
-
-	commands.Draw(4, 0);
+	commandBuffer.Draw(4, 0);
 }
 
-void SpritePipeline::_UpdateUniforms(const TransformComponent& transform) const
+void SpritePipeline::_UpdateUniforms(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat,
+                                     const TransformComponent& transform) const
 {
-	auto& commands = mRenderer.GetCommandBuffer();
 	// Update
 	auto model = glm::mat4(1.0f);
 	model = translate(model, transform.mPosition);
@@ -75,36 +56,33 @@ void SpritePipeline::_UpdateUniforms(const TransformComponent& transform) const
 
 	const auto textureClip = glm::mat4(1.0f);
 
-	if (const auto& level = mLevelManager.GetCurrentLevel())
-	{
-		const auto& camera = level->GetCamera();
-		const SpriteSettings settings = {mRenderer.GetPerspectiveProjection() * camera->GetView() * model, textureClip};
-		commands.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
-	}
+	const SpriteSettings settings = {pvMat * model, textureClip};
+	commandBuffer.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
 }
 
-void SpritePipeline::_InitPipeline()
+void SpritePipeline::Init(std::unique_ptr<LLGL::RenderSystem>& renderSystem, const std::string& shaderPath,
+                          const TextureMap& textures)
 {
-	mConstantBuffer = mRenderer.GetRendererSystem()->CreateBuffer(LLGL::ConstantBufferDesc(sizeof(SpriteSettings)),
-	                                                              &spriteSettings);
+	mConstantBuffer = renderSystem->CreateBuffer(LLGL::ConstantBufferDesc(sizeof(SpriteSettings)),
+	                                             &spriteSettings);
 
 	LLGL::VertexFormat vertexFormat;
 	vertexFormat.AppendAttribute({"position", LLGL::Format::RGB32Float});
 	vertexFormat.AppendAttribute({"color", LLGL::Format::RGB32Float});
 	vertexFormat.AppendAttribute({"texCoord", LLGL::Format::RG32Float});
 
-	std::string vertPath = mShadersFolderPath;
+	std::string vertPath = shaderPath;
 	vertPath.append("sprite.vert");
 
-	std::string fragPath = mShadersFolderPath;
+	std::string fragPath = shaderPath;
 	fragPath.append("sprite.frag");
 
-	mShader = std::make_unique<Shader>(*mRenderer.GetRendererSystem(), vertexFormat, vertPath.c_str(),
+	mShader = std::make_unique<Shader>(*renderSystem, vertexFormat, vertPath.c_str(),
 	                                   fragPath.c_str());
 
 	// All layout bindings that will be used by graphics and compute pipelines
 	// Create pipeline layout
-	mPipelineLayout = mRenderer.GetRendererSystem()->CreatePipelineLayout(LLGL::PipelineLayoutDesc(
+	mPipelineLayout = renderSystem->CreatePipelineLayout(LLGL::PipelineLayoutDesc(
 		"cbuffer(0):vert:frag, texture(0):frag, sampler(0):frag"));
 
 	// Create graphics pipeline
@@ -119,16 +97,21 @@ void SpritePipeline::_InitPipeline()
 		//pipelineDesc.depth.testEnabled = true;
 		//pipelineDesc.depth.writeEnabled = true;
 	}
-	mPipeline = mRenderer.GetRendererSystem()->CreatePipelineState(pipelineDesc);
+	mPipeline = renderSystem->CreatePipelineState(pipelineDesc);
 
-	_CreateResourceHeap();
+	_CreateResourceHeap(renderSystem, textures);
+
+	mVertexBuffer = renderSystem->CreateBuffer(
+		VertexBufferDesc(static_cast<std::uint32_t>(mVertices.size() * sizeof(Vertex)),
+		                 mShader->GetVertexFormat()),
+		mVertices.data()
+	);
 }
 
-void SpritePipeline::_CreateResourceHeap()
+void SpritePipeline::_CreateResourceHeap(const std::unique_ptr<LLGL::RenderSystem>& renderSystem,
+                                         const TextureMap& textures)
 {
 	// Resource Heap
-	const auto& textures = mResourceManager.getTextures();
-
 	LLGL::ResourceHeapDescriptor resourceHeapDesc;
 	{
 		resourceHeapDesc.pipelineLayout = mPipelineLayout;
@@ -141,5 +124,5 @@ void SpritePipeline::_CreateResourceHeap()
 			resourceHeapDesc.resourceViews.emplace_back(&texture.second->GetSamplerData());
 		}
 	}
-	mResourceHeap = mRenderer.GetRendererSystem()->CreateResourceHeap(resourceHeapDesc);
+	mResourceHeap = renderSystem->CreateResourceHeap(resourceHeapDesc);
 }

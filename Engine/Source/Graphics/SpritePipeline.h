@@ -1,6 +1,8 @@
 #pragma once
 #include <LLGL/LLGL.h>
 #include <glm/mat4x4.hpp>
+
+#include "Core/ResourceManager.h"
 #include "Core/Vertex.h"
 #include "Core/Shader.h"
 
@@ -8,30 +10,28 @@ struct SpriteComponent;
 struct TransformComponent;
 
 class EntityRegistry;
-class LevelManager;
-class Renderer;
-class ResourceManager;
-class RenderObject;
 
 class SpritePipeline
 {
 public:
-	SpritePipeline(EntityRegistry& entityRegistry, LevelManager& levelManager, Renderer& renderer,
-	               ResourceManager& resourceManager, std::string shadersFolderPath);
+	SpritePipeline() = default;
 
 	~SpritePipeline()
 	{
 		std::cout << "Delete SpritePipeline" << std::endl;
 	}
 
-	void Tick() const;
-	void Render(const TransformComponent& transform, const SpriteComponent& sprite) const;
+	void Init(std::unique_ptr<LLGL::RenderSystem>& renderSystem, const std::string& shaderPath,
+	          const TextureMap& textures);
+	void Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat, EntityRegistry& entityRegistry) const;
 
 private:
-	void _InitPipeline();
-	void _CreateResourceHeap();
+	void _CreateResourceHeap(const std::unique_ptr<LLGL::RenderSystem>& renderSystem, const TextureMap& textures);
 
-	void _UpdateUniforms(const TransformComponent& transform) const;
+	void _Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat, const TransformComponent& transform,
+	             const SpriteComponent& sprite) const;
+	void _UpdateUniforms(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat,
+	                     const TransformComponent& transform) const;
 
 	LLGL::PipelineLayout* mPipelineLayout = nullptr;
 	LLGL::PipelineState* mPipeline = nullptr;
@@ -55,11 +55,4 @@ private:
 		{{0.5, -0.5, 1}, {1, 1, 1}, {1, 1}}, // top right
 		{{0.5, 0.5, 1}, {1, 1, 1}, {1, 0}}, // bottom right
 	};
-
-	EntityRegistry& mEntityRegistry;
-	LevelManager& mLevelManager;
-	Renderer& mRenderer;
-	ResourceManager& mResourceManager;
-
-	std::string mShadersFolderPath;
 };

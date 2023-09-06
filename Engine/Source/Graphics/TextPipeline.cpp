@@ -4,11 +4,13 @@
 #include "Util/stb_image_write.h"
 
 #include <iomanip>
+#include <LLGL/LLGL.h>
 #include "LLGL/Misc/Utility.h"
 
 #include "Core/Camera.h"
+#include "Core/ResourceManager.h"
 #include "Core/LevelManager.h"
-#include "Graphics/Core/Renderer.h"
+#include "Graphics/Core/Shader.h"
 #include "Texture.h"
 
 #include "TextPipeline.h"
@@ -25,52 +27,41 @@ struct FontData
 	std::unique_ptr<stbtt_packedchar[]> mCharInfo;
 } _font;
 
-TextPipeline::TextPipeline(Renderer& renderer, LevelManager& levelManager, std::string shadersFolderPath,
-                           std::string fontFolderPath)
-	: mRenderer(renderer), mLevelManager(levelManager), mShadersFolderPath(std::move(shadersFolderPath)),
-	  mFontFolderPath(std::move(fontFolderPath))
+void TextPipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat) const
 {
-	_InitPipeline();
-}
-
-void TextPipeline::Render() const
-{
-	auto& commands = mRenderer.GetCommandBuffer();
 	for (const auto& mesh : mTextMeshes)
 	{
 		// set graphics pipeline
-		commands.SetPipelineState(*mPipeline);
-		commands.SetVertexBuffer(*mesh->mVertexBuffer);
-		commands.SetIndexBuffer(*mesh->mIndexBuffer);
+		commandBuffer.SetPipelineState(*mPipeline);
+		commandBuffer.SetVertexBuffer(*mesh->mVertexBuffer);
+		commandBuffer.SetIndexBuffer(*mesh->mIndexBuffer);
 
-		commands.SetResourceHeap(*mResourceHeap, 0);
+		commandBuffer.SetResourceHeap(*mResourceHeap, 0);
 
-		_UpdateUniforms(mesh->mPosition, mesh->mSize);
+		_UpdateUniforms(commandBuffer, pvMat, mesh->mPosition, mesh->mSize);
 
-		commands.DrawIndexed(mesh->mIndexCount, 0);
+		commandBuffer.DrawIndexed(mesh->mIndexCount, 0);
 	}
 }
 
-void TextPipeline::_UpdateUniforms(glm::vec3 pos, glm::vec3 size) const
+// Orthographic Projection
+void TextPipeline::_UpdateUniforms(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat, glm::vec3 pos,
+                                   glm::vec3 size) const
 {
-	auto& commands = mRenderer.GetCommandBuffer();
 	// Update
 	auto model = glm::mat4(1.0f);
 	model = translate(model, pos);
 	model = translate(model, glm::vec3(0.5f * size.x, 0.5f * size.y, 0.0f));
 	model = scale(model, size);
 
-	if (const auto& level = mLevelManager.GetCurrentLevel())
-	{
-		const auto& camera = level->GetCamera();
-		const GUISettings settings = {mRenderer.GetOrthoProjection() * camera->GetView() * model};
-		commands.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
-	}
+	const GUISettings settings = {pvMat * model};
+	commandBuffer.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
 }
 
-void TextPipeline::LoadFont(const char* fontPath)
+void TextPipeline::LoadFont(const std::unique_ptr<LLGL::RenderSystem>& renderSystem, const std::string& fontPath,
+                            const char* fontFile)
 {
-	auto fontData = _ReadFontFromFileTTF(fontPath);
+	auto fontData = _ReadFontFromFileTTF(fontPath, fontFile);
 	std::vector<uint8_t> atlasData(_font.mAtlasWidth * _font.mAtlasHeight);
 
 	_font.mCharInfo = std::make_unique<stbtt_packedchar[]>(_font.mCharCount);
@@ -94,17 +85,17 @@ void TextPipeline::LoadFont(const char* fontPath)
 
 	stbtt_PackEnd(&context);
 
-	mTextureAtlas = std::make_unique<Texture>(*mRenderer.GetRendererSystem(), atlasData.data(), _font.mAtlasWidth,
+	mTextureAtlas = std::make_unique<Texture>(*renderSystem, atlasData.data(), _font.mAtlasWidth,
 	                                          _font.mAtlasHeight, true);
 
-	_CreateResourceHeap();
+	_CreateResourceHeap(renderSystem);
 }
 
-std::vector<uint8_t> TextPipeline::_ReadFontFromFileTTF(const char* fontPath) const
+std::vector<uint8_t> TextPipeline::_ReadFontFromFileTTF(const std::string& fontPath, const char* fontFile) const
 {
 	/* load font file */
-	std::string fullPath = mFontFolderPath;
-	fullPath.append(fontPath);
+	std::string fullPath = fontPath;
+	fullPath.append(fontFile);
 
 	std::ifstream file(fullPath.c_str(), std::ios::binary | std::ios::ate);
 	if (!file.is_open())
@@ -122,7 +113,8 @@ std::vector<uint8_t> TextPipeline::_ReadFontFromFileTTF(const char* fontPath) co
 	return bytes;
 }
 
-void TextPipeline::CreateTextMesh(const std::string& text, glm::vec2 pos, glm::vec2 size)
+void TextPipeline::CreateTextMesh(std::unique_ptr<LLGL::RenderSystem>& renderSystem, const std::string& text,
+                                  glm::vec2 pos, glm::vec2 size)
 {
 	auto textMesh = std::make_unique<TextMesh>();
 	textMesh->mPosition = {pos, 1.0f};
@@ -161,14 +153,14 @@ void TextPipeline::CreateTextMesh(const std::string& text, glm::vec2 pos, glm::v
 		}
 	}
 
-	textMesh->mVertexBuffer = mRenderer.GetRendererSystem()->CreateBuffer(
-		VertexBufferDesc(static_cast<std::uint32_t>(vertices.size() * sizeof(TextVertex)),
-		                 mShader->GetVertexFormat()),
+	textMesh->mVertexBuffer = renderSystem->CreateBuffer(
+		LLGL::VertexBufferDesc(static_cast<std::uint32_t>(vertices.size() * sizeof(TextVertex)),
+		                       mShader->GetVertexFormat()),
 		vertices.data()
 	);
 
 	textMesh->mIndexCount = static_cast<std::uint32_t>(indices.size());
-	textMesh->mIndexBuffer = mRenderer.GetRendererSystem()->CreateBuffer(
+	textMesh->mIndexBuffer = renderSystem->CreateBuffer(
 		LLGL::IndexBufferDesc(static_cast<std::uint32_t>(indices.size() * sizeof(uint32_t)), LLGL::Format::R32UInt),
 		indices.data()
 	);
@@ -204,27 +196,28 @@ GlyphInfo TextPipeline::_GenerateGlyphInfo(uint32_t character, float offsetX, fl
 	return info;
 }
 
-void TextPipeline::_InitPipeline()
+void TextPipeline::Init(std::unique_ptr<LLGL::RenderSystem>& renderSystem, const std::string& shaderPath,
+                        const TextureMap& textures)
 {
-	mConstantBuffer = mRenderer.GetRendererSystem()->CreateBuffer(LLGL::ConstantBufferDesc(sizeof(GUISettings)),
-	                                                              &guiSettings);
+	mConstantBuffer = renderSystem->CreateBuffer(LLGL::ConstantBufferDesc(sizeof(GUISettings)),
+	                                             &guiSettings);
 
 	LLGL::VertexFormat vertexFormat;
 	vertexFormat.AppendAttribute({"guiPosition", LLGL::Format::RG32Float});
 	vertexFormat.AppendAttribute({"guiTexCoord", LLGL::Format::RG32Float});
 
-	std::string vertPath = mShadersFolderPath;
+	std::string vertPath = shaderPath;
 	vertPath.append("gui.vert");
 
-	std::string fragPath = mShadersFolderPath;
+	std::string fragPath = shaderPath;
 	fragPath.append("gui.frag");
 
-	mShader = std::make_unique<Shader>(*mRenderer.GetRendererSystem(), vertexFormat, vertPath.c_str(),
+	mShader = std::make_unique<Shader>(*renderSystem, vertexFormat, vertPath.c_str(),
 	                                   fragPath.c_str());
 
 	// All layout bindings that will be used by graphics and compute pipelines
 	// Create pipeline layout
-	mPipelineLayout = mRenderer.GetRendererSystem()->CreatePipelineLayout(
+	mPipelineLayout = renderSystem->CreatePipelineLayout(
 		LLGL::PipelineLayoutDesc("cbuffer(0):vert:frag,texture(0):frag, sampler(0):frag"));
 
 	// Create graphics pipeline
@@ -235,10 +228,10 @@ void TextPipeline::_InitPipeline()
 		pipelineDesc.pipelineLayout = mPipelineLayout;
 		pipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::TriangleList;
 	}
-	mPipeline = mRenderer.GetRendererSystem()->CreatePipelineState(pipelineDesc);
+	mPipeline = renderSystem->CreatePipelineState(pipelineDesc);
 }
 
-void TextPipeline::_CreateResourceHeap()
+void TextPipeline::_CreateResourceHeap(const std::unique_ptr<LLGL::RenderSystem>& renderSystem)
 {
 	LLGL::ResourceHeapDescriptor resourceHeapDesc;
 	{
@@ -249,5 +242,5 @@ void TextPipeline::_CreateResourceHeap()
 		resourceHeapDesc.resourceViews.emplace_back(&mTextureAtlas->GetTextureData());
 		resourceHeapDesc.resourceViews.emplace_back(&mTextureAtlas->GetSamplerData());
 	}
-	mResourceHeap = mRenderer.GetRendererSystem()->CreateResourceHeap(resourceHeapDesc);
+	mResourceHeap = renderSystem->CreateResourceHeap(resourceHeapDesc);
 }

@@ -4,7 +4,6 @@
 #include <sstream>
 #include "Graphics/Util/stb_image.h"
 #include "Graphics/Texture.h"
-#include "Graphics/Core/Renderer.h"
 
 #include "ResourceManager.h"
 
@@ -68,7 +67,7 @@ std::shared_ptr<Texture> ResourceManager::GetTextureFromName(const std::string& 
 	return textureIt->second;
 }
 
-const std::unordered_map<int, std::shared_ptr<Texture>>& ResourceManager::getTextures()
+const TextureMap& ResourceManager::GetTextures()
 {
 	return mTextures;
 }

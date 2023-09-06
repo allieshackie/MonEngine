@@ -10,6 +10,7 @@ class Renderer;
 class Texture;
 
 using GLuint = unsigned int;
+using TextureMap = std::unordered_map<int, std::shared_ptr<Texture>>;
 
 class ResourceManager
 {
@@ -24,16 +25,15 @@ public:
 	int GetTextureId(const std::string& filePath);
 	glm::vec2 GetTextureSize(int textureId);
 
+	const TextureMap& GetTextures();
 	std::shared_ptr<Texture> GetTextureFromName(const std::string& filePath);
 
-	const std::unordered_map<int, std::shared_ptr<Texture>>& getTextures();
 
 	TriangleMesh LoadObjModel(std::vector<TexturedVertex>& vertices, const std::string& filename) const;
 
 	bool CreateSimpleOpenGLTexture(std::string& filename, GLuint* out_texture, int* out_width, int* out_height) const;
-
 private:
-	std::unordered_map<int, std::shared_ptr<Texture>> mTextures;
+	TextureMap mTextures;
 	std::unordered_map<std::string, int> mTextureIds;
 
 	std::string mTextureFolder;

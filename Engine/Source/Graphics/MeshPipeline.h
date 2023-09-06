@@ -6,25 +6,22 @@
 
 class RenderObject;
 class Shader;
-class Renderer;
-class ResourceManager;
 
 class MeshPipeline
 {
 public:
-	MeshPipeline(Renderer& renderer, ResourceManager& resourceManager, std::string shadersFolderPath);
+	MeshPipeline() = default;
 	~MeshPipeline() = default;
 
+	void Init(std::unique_ptr<LLGL::RenderSystem>& renderSystem, const std::string& shaderPath);
 	void Render(LLGL::CommandBuffer& commands) const;
 
 	void UpdateProjectionViewModelUniform(LLGL::CommandBuffer& commands, glm::mat4 model, glm::mat4 projection,
 	                                      glm::mat4 view);
 
-	void AddRenderObjectVBuffer(RenderObject& obj);
+	void AddRenderObjectVBuffer(const std::unique_ptr<LLGL::RenderSystem>& renderSystem, RenderObject& obj);
 
 private:
-	void _InitPipeline();
-
 	LLGL::PipelineState* mPipeline = nullptr;
 	std::unique_ptr<Shader> mShader = nullptr;
 	LLGL::Buffer* mConstantBuffer = nullptr;
@@ -39,9 +36,4 @@ private:
 	volumeSettings = {};
 
 	std::unique_ptr<Model> model = nullptr;
-
-	Renderer& mRenderer;
-	ResourceManager& mResourceManager;
-
-	std::string mShadersFolderPath;
 };
