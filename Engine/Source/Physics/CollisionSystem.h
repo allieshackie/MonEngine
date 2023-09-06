@@ -11,10 +11,10 @@ struct TransformComponent;
 class CollisionSystem
 {
 public:
-	CollisionSystem(EntityRegistry& entityRegistry, EventPublisher& eventPublisher);
+	CollisionSystem(EventPublisher& eventPublisher);
 	~CollisionSystem();
 
-	void Update();
+	void Update(EntityRegistry& entityRegistry) const;
 
 private:
 	void _CheckForCollisions(const CollisionComponent& collider, TransformComponent& transform);
@@ -28,7 +28,6 @@ private:
 
 	std::vector<int> mEntitiesWithColliders;
 
-	EntityRegistry& mEntityRegistry;
 	EventPublisher& mEventPublisher;
 
 	std::shared_ptr<EventSubscription> mAddComponentSubscription;

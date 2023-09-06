@@ -1,8 +1,6 @@
 #pragma once
 
-#include "LLGL/Platform/Win32/Win32NativeHandle.h"
-
-class Renderer;
+class RenderContext;
 
 struct InputEvent;
 struct ImVec4;
@@ -10,23 +8,20 @@ struct ImVec4;
 class GUISystem
 {
 public:
-	GUISystem(const Renderer& renderer);
-	~GUISystem();
+	GUISystem() = default;
+	~GUISystem() = default;
 
-	void initGUI(const Renderer& renderer);
-	void closeGUI() const;
+	static void InitGUI(const RenderContext& renderContext);
+	static void CloseGUI();
 
-	bool isGUIContext();
+	static bool IsGUIContext();
 
-	void RenderGuiElements();
+	static void RenderGuiElements();
 
-	void GUIStartFrame();
-	void GUIEndFrame();
+	static void GUIStartFrame();
+	static void GUIEndFrame();
 
 private:
-	const char* GLSL_VERSION = "#version 460";
-	HWND mNativeWindow = nullptr;
-
 	// example
-	bool show_demo_window = true;
+	static bool show_demo_window;
 };

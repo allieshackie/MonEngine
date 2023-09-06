@@ -4,7 +4,7 @@
 #include "Core/Camera.h"
 #include "Core/Level.h"
 #include "Core/LevelManager.h"
-#include "Graphics/Core/Renderer.h"
+#include "Graphics/Core/RenderContext.h"
 #include "Graphics/Core/ResourceManager.h"
 #include "Graphics/Debug/DebugDraw.h"
 #include "Input/InputManager.h"
@@ -14,13 +14,16 @@
 
 #include "MapEditor.h"
 
-MapEditor::MapEditor(InputManager& inputManager, LevelManager& levelManager, MapSystem& mapSystem, Renderer& renderer,
-                     ResourceManager& resourceManager, std::string mapsFolderPath, std::string texturesFolderPath)
-	: mInputManager(inputManager), mMapSystem(mapSystem), mRenderer(renderer), mResourceManager(resourceManager),
-	  mMapsFolderPath(std::move(mapsFolderPath)), mTexturesFolderPath(std::move(texturesFolderPath))
+MapEditor::MapEditor(InputManager& inputManager, LevelManager& levelManager, MapSystem& mapSystem,
+                     RenderContext& renderContext, ResourceManager& resourceManager, std::string mapsFolderPath,
+                     std::string texturesFolderPath)
+	: mInputManager(inputManager), mMapSystem(mapSystem), mRenderContext(renderContext),
+	  mResourceManager(resourceManager), mMapsFolderPath(std::move(mapsFolderPath)),
+	  mTexturesFolderPath(std::move(texturesFolderPath))
 {
 	levelManager.LoadLevel("editor.json");
-	mEditorCamera = levelManager.GetLevel("editor.json")->GetCamera();
+	// TODO: Get Camera from level for editor
+	//mEditorCamera = levelManager.GetLevel("editor.json")->GetCamera();
 	_GetAllMapFileNames();
 }
 
@@ -192,7 +195,8 @@ void MapEditor::_LoadMapMenu(bool* p_open)
 void MapEditor::_LoadMap(const char* mapName)
 {
 	mMapSystem.CreateMapEditMode(mapName);
-	mMapInteractionSystem = std::make_unique<MapInteractionSystem>(mEditorCamera, mInputManager, mMapSystem, mRenderer);
+	mMapInteractionSystem = std::make_unique<MapInteractionSystem>(mEditorCamera, mInputManager, mMapSystem,
+	                                                               mRenderContext);
 
 	auto mapTexture = mMapSystem.GetCurrentMap()->GetMapDescription()->GetTexturePath();
 	if (mResourceManager.CreateSimpleOpenGLTexture(

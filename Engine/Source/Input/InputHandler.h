@@ -3,7 +3,6 @@
 #include <queue>
 #include "LLGL/Window.h"
 
-class GUISystem;
 class Window;
 
 enum class KeyStates
@@ -35,8 +34,6 @@ struct InputEvent
 class InputHandler : public LLGL::Window::EventListener
 {
 public:
-	InputHandler(GUISystem& guiSystem);
-
 	friend class InputManager;
 
 protected:
@@ -63,6 +60,4 @@ private:
 	std::function<void()> mZoomOutCallback;
 
 	LLGL::Offset2D mCurrentMousePos = {0, 0};
-
-	GUISystem& mGUISystem;
 };

@@ -11,10 +11,6 @@ static float DEFAULT_GRAVITY = 9.8f;
 static float DEFAULT_FRICTION = 0.2f;
 static float MIN_VELOCITY = 0.1f;
 
-PhysicsSystem::PhysicsSystem(EntityRegistry& entityRegistry) : mEntityRegistry(entityRegistry)
-{
-}
-
 static void _ApplyForce(PhysicsComponent& physics, glm::vec3 direction)
 {
 	physics.mAcceleration = direction / physics.mMass;
@@ -83,12 +79,12 @@ static void _TickMovement(float deltaTime, const PhysicsComponent& physics, Tran
 	transform.mPosition.z += physics.mVelocity.z * deltaTime;
 }
 
-void PhysicsSystem::Update(float deltaTime)
+void PhysicsSystem::Update(float deltaTime, EntityRegistry& entityRegistry) const
 {
-	const auto playerView = mEntityRegistry.GetEnttRegistry().view<PhysicsComponent, PlayerComponent>();
+	const auto playerView = entityRegistry.GetEnttRegistry().view<PhysicsComponent, PlayerComponent>();
 	playerView.each(_ProcessPlayerInput);
 
-	const auto view = mEntityRegistry.GetEnttRegistry().view<PhysicsComponent, TransformComponent>();
+	const auto view = entityRegistry.GetEnttRegistry().view<PhysicsComponent, TransformComponent>();
 	view.each([=](auto& physics, auto& transform)
 	{
 		// Apply forces and move the entity

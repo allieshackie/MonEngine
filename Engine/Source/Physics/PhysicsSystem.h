@@ -5,11 +5,8 @@ class EntityRegistry;
 class PhysicsSystem
 {
 public:
-	PhysicsSystem(EntityRegistry& entityRegistry);
+	PhysicsSystem() = default;
 	~PhysicsSystem() = default;
 
-	void Update(float deltaTime);
-
-private:
-	EntityRegistry& mEntityRegistry;
+	void Update(float deltaTime, EntityRegistry& entityRegistry) const;
 };

@@ -1,4 +1,5 @@
 #pragma once
+#include <imgui.h>
 #include "Map/MapInteractionSystem.h"
 
 class Camera;
@@ -6,7 +7,7 @@ class InputManager;
 class LevelManager;
 class MapSystem;
 class Map;
-class Renderer;
+class RenderContext;
 class ResourceManager;
 
 using GLuint = unsigned int;
@@ -14,8 +15,9 @@ using GLuint = unsigned int;
 class MapEditor
 {
 public:
-	MapEditor(InputManager& inputManager, LevelManager& levelManager, MapSystem& mapSystem, Renderer& renderer,
-	          ResourceManager& resourceManager, std::string mapsFolderPath, std::string texturesFolderPath);
+	MapEditor(InputManager& inputManager, LevelManager& levelManager, MapSystem& mapSystem,
+	          RenderContext& renderContext, ResourceManager& resourceManager, std::string mapsFolderPath,
+	          std::string texturesFolderPath);
 	~MapEditor() = default;
 
 	void InitCameraInputs() const;
@@ -67,7 +69,7 @@ private:
 
 	InputManager& mInputManager;
 	MapSystem& mMapSystem;
-	Renderer& mRenderer;
+	RenderContext& mRenderContext;
 	ResourceManager& mResourceManager;
 
 	std::shared_ptr<Camera> mEditorCamera;

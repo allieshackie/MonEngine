@@ -3,13 +3,9 @@
 
 #include "InputHandler.h"
 
-InputHandler::InputHandler(GUISystem& guiSystem) : mGUISystem(guiSystem)
-{
-}
-
 void InputHandler::OnKeyDown(LLGL::Window& sender, LLGL::Key keyCode)
 {
-	if (mGUISystem.isGUIContext())
+	if (GUISystem::IsGUIContext())
 	{
 		_handleKeyDownGUI(keyCode);
 	}
@@ -21,7 +17,7 @@ void InputHandler::OnKeyDown(LLGL::Window& sender, LLGL::Key keyCode)
 
 void InputHandler::OnKeyUp(LLGL::Window& sender, LLGL::Key keyCode)
 {
-	if (mGUISystem.isGUIContext())
+	if (GUISystem::IsGUIContext())
 	{
 		_handleKeyUpGUI(keyCode);
 	}
@@ -33,7 +29,7 @@ void InputHandler::OnKeyUp(LLGL::Window& sender, LLGL::Key keyCode)
 
 void InputHandler::OnWheelMotion(LLGL::Window& sender, int motion)
 {
-	if (mGUISystem.isGUIContext())
+	if (GUISystem::IsGUIContext())
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		if (motion > 0)
@@ -75,7 +71,7 @@ void InputHandler::OnLocalMotion(LLGL::Window& sender, const LLGL::Offset2D& pos
 
 void InputHandler::OnChar(LLGL::Window& sender, wchar_t chr)
 {
-	if (mGUISystem.isGUIContext())
+	if (GUISystem::IsGUIContext())
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		io.AddInputCharacterUTF16(chr);

@@ -4,7 +4,7 @@
 #include "Core/Defines.h"
 #include "Input/InputManager.h"
 #include "Graphics/Debug/DebugDraw.h"
-#include "Graphics/Core/Renderer.h"
+#include "Graphics/Core/RenderContext.h"
 #include "Graphics/Core/ResourceManager.h"
 #include "Map.h"
 #include "MapDescription.h"
@@ -13,8 +13,8 @@
 #include "MapInteractionSystem.h"
 
 MapInteractionSystem::MapInteractionSystem(std::shared_ptr<Camera> camera, const InputManager& inputManager,
-                                           MapSystem& mapSystem, Renderer& renderer)
-	: mRenderer(renderer), mMapSystem(mapSystem), mCamera(std::move(camera))
+                                           MapSystem& mapSystem, RenderContext& renderContext)
+	: mRenderContext(renderContext), mMapSystem(mapSystem), mCamera(std::move(camera))
 {
 	inputManager.registerMouseMoveHandler([this](LLGL::Offset2D mousePos) { _HandleMouseMove(mousePos); });
 	inputManager.registerButtonDownHandler(LLGL::Key::LButton, [this]() { _OnClick(); });
@@ -79,9 +79,9 @@ void MapInteractionSystem::_OnClick()
 
 glm::vec3 MapInteractionSystem::_CalculateMouseRay(glm::vec2 mousePos) const
 {
-	const auto normalizeCoords = mRenderer.NormalizedDeviceCoords({mousePos.x, mousePos.y, 1.0});
+	const auto normalizeCoords = mRenderContext.NormalizedDeviceCoords({mousePos.x, mousePos.y, 1.0});
 	const glm::vec4 homogenousClip = {normalizeCoords.x, normalizeCoords.y, -1.0f, 1.0f};
-	glm::vec4 eyeRay = glm::inverse(mRenderer.GetPerspectiveProjection()) * homogenousClip;
+	glm::vec4 eyeRay = glm::inverse(mRenderContext.GetPerspectiveProjection()) * homogenousClip;
 	eyeRay = glm::vec4(eyeRay.x, eyeRay.y, -1.0f, 0.0f);
 	const auto ray = glm::normalize(glm::inverse(mCamera->GetView()) * eyeRay);
 	return ray;

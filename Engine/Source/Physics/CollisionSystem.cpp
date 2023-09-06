@@ -8,8 +8,8 @@
 
 // TODO: Potential collision detection methods to explore: AABB, OBB, Sweep and Prune, Hierarchical Grids, Spatial Partitioning
 
-CollisionSystem::CollisionSystem(EntityRegistry& entityRegistry, EventPublisher& eventPublisher)
-	: mEntityRegistry(entityRegistry), mEventPublisher(eventPublisher)
+CollisionSystem::CollisionSystem(EventPublisher& eventPublisher)
+	: mEventPublisher(eventPublisher)
 {
 	EventFunc addedFunc = [this](int entityId, const std::type_info& typeInfo)
 	{
@@ -32,9 +32,9 @@ CollisionSystem::~CollisionSystem()
 	mEventPublisher.RemoveListener(mRemoveComponentSubscription);
 }
 
-void CollisionSystem::Update()
+void CollisionSystem::Update(EntityRegistry& entityRegistry) const
 {
-	const auto view = mEntityRegistry.GetEnttRegistry().view<
+	const auto view = entityRegistry.GetEnttRegistry().view<
 		CollisionComponent, TransformComponent>();
 	view.each([=](const auto& collider, auto& transform)
 	{

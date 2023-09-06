@@ -1,16 +1,15 @@
 #include "imgui.h"
 #include <filesystem>
+#include "Core/ConfigManager.h"
 #include "Core/Defines.h"
 #include "Core/LevelManager.h"
 
 #include "EditorGUI.h"
 
-#include "Core/ConfigManager.h"
-
 EditorGUI::EditorGUI(InputManager& inputManager, LevelManager& levelManager, MapSystem& mapSystem,
-                     Renderer& renderer, ResourceManager& resourceManager, const ConfigManager& configManager)
+                     RenderContext& renderContext, ResourceManager& resourceManager, const ConfigManager& configManager)
 {
-	mMapEditor = std::make_unique<MapEditor>(inputManager, levelManager, mapSystem, renderer,
+	mMapEditor = std::make_unique<MapEditor>(inputManager, levelManager, mapSystem, renderContext,
 	                                         resourceManager, configManager.GetMapsFolderPath(),
 	                                         configManager.GetTexturesFolderPath());
 }

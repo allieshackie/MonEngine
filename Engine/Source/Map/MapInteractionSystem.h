@@ -8,13 +8,13 @@ class DrawData;
 class InputManager;
 class Map;
 class MapSystem;
-class Renderer;
+class RenderContext;
 
 class MapInteractionSystem
 {
 public:
 	MapInteractionSystem(std::shared_ptr<Camera> camera, const InputManager& inputManager, MapSystem& mapSystem,
-	                     Renderer& renderer);
+	                     RenderContext& renderContext);
 	~MapInteractionSystem() = default;
 
 	void Tick() const;
@@ -33,7 +33,7 @@ private:
 	glm::vec2 mMousePos = {0, 0};
 	glm::vec3 mIntersectionPoint = {0, 0, 0};
 
-	Renderer& mRenderer;
+	RenderContext& mRenderContext;
 	MapSystem& mMapSystem;
 
 	std::shared_ptr<DrawData> mDebugBox;

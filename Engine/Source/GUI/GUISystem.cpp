@@ -2,22 +2,18 @@
 #include "imgui.h"
 #include "backends/imgui_impl_opengl3.h"
 #include "backends/imgui_impl_win32.h"
-#include "Graphics/Core/Renderer.h"
+#include "LLGL/Key.h"
+#include "LLGL/Platform/Win32/Win32NativeHandle.h"
+
+#include "Graphics/Core/RenderContext.h"
 
 #include "GUISystem.h"
 
-GUISystem::GUISystem(const Renderer& renderer)
-{
-	initGUI(renderer);
-}
+constexpr const char* GLSL_VERSION = "#version 460";
 
-GUISystem::~GUISystem()
-{
-	closeGUI();
-	//delete GLSL_VERSION;
-}
+bool GUISystem::show_demo_window = true;
 
-void GUISystem::initGUI(const Renderer& renderer)
+void GUISystem::InitGUI(const RenderContext& renderContext)
 {
 	//Initialize Glad
 	if (gladLoadGL() == 0)
@@ -52,14 +48,13 @@ void GUISystem::initGUI(const Renderer& renderer)
 
 	// Setup Renderer backend
 	LLGL::NativeHandle mainWindowHandle;
-	renderer.GetSwapChain().GetSurface().GetNativeHandle(&mainWindowHandle, sizeof(mainWindowHandle));
-	mNativeWindow = mainWindowHandle.window;
+	renderContext.GetNativeHandle(&mainWindowHandle, sizeof(mainWindowHandle));
 
 	ImGui_ImplWin32_Init(mainWindowHandle.window);
 	ImGui_ImplOpenGL3_Init(GLSL_VERSION);
 }
 
-void GUISystem::closeGUI() const
+void GUISystem::CloseGUI()
 {
 	// Cleanup
 	ImGui_ImplOpenGL3_Shutdown();
@@ -68,7 +63,7 @@ void GUISystem::closeGUI() const
 	ImGui::DestroyContext();
 }
 
-bool GUISystem::isGUIContext()
+bool GUISystem::IsGUIContext()
 {
 	const ImGuiIO& io = ImGui::GetIO();
 	return io.WantCaptureKeyboard || io.WantCaptureMouse;
