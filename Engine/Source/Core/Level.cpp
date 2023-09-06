@@ -1,26 +1,13 @@
-#include "Camera.h"
 #include "Defines.h"
-#include "Map/MapSystem.h"
 
 #include "Level.h"
 
-Level::Level(const std::string& levelName, MapSystem& mapSystem, InputManager& inputManager)
-	: mMapSystem(mapSystem), mInputManager(inputManager)
+Level::Level(const std::string& levelName)
 {
 	std::ifstream ifs(levelName.c_str());
 
 	const auto json = nlohmann::json::parse(ifs, nullptr, false, true);
 	_ParseJson(json);
-}
-
-std::shared_ptr<Camera>& Level::GetCamera()
-{
-	return mCamera;
-}
-
-glm::vec3 Level::GetPlayerSpawn() const
-{
-	return mPlayerSpawn;
 }
 
 void Level::_ParseJson(const nlohmann::json& json)
@@ -39,14 +26,7 @@ void Level::_ParseJson(const nlohmann::json& json)
 	assert(up.size() == 3);
 	auto upVec = glm::vec3(up[0], up[1], up[2]);
 
-	mCamera = std::make_shared<Camera>(positionVec, frontVec, upVec);
-
-	if (json.contains(PLAYER_SPAWN_STRING))
-	{
-		const auto playerSpawn = json[PLAYER_SPAWN_STRING];
-		assert(playerSpawn.size() == 3);
-		mPlayerSpawn = {playerSpawn[0], playerSpawn[1], playerSpawn[2]};
-	}
+	mCamera = std::make_unique<Camera>(positionVec, frontVec, upVec);
 
 	if (json.contains(MAPS_STRING))
 	{
@@ -63,8 +43,16 @@ void Level::_ParseJson(const nlohmann::json& json)
 			auto mapRotationVec = glm::vec3(mapRotation[0], mapRotation[1], mapRotation[2]);
 
 			float mapTileSize = mapData[TILE_SIZE_STRING];
+			mMapData = std::make_unique<MapData>(mapName, mapPosVec, mapRotationVec, mapTileSize);
+		}
+	}
 
-			mMapSystem.CreateMap(mapName, mapPosVec, mapRotationVec, mapTileSize);
+	if (json.contains(ENTITIES_STRING))
+	{
+		for (auto& entityData : json[ENTITIES_STRING])
+		{
+			// Keep entity definitions for later so they can be parsed and instantiated
+			mEntityDefinitions.push_back(entityData);
 		}
 	}
 }

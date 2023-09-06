@@ -50,7 +50,8 @@ void GameGUI::_SelectLevelMenu(bool* p_open)
 		if (ImGui::Button("Open"))
 		{
 			mLevelManager.LoadLevel(levelFileNames[current_level_selected]);
-			mPlayerSystem.SpawnPlayer(mLevelManager.GetCurrentLevel()->GetPlayerSpawn());
+			// TODO: Don't spawn player like this, separation!
+			//mPlayerSystem.SpawnPlayer(mLevelManager.GetCurrentLevel()->GetPlayerSpawn());
 			show_select_level_menu = false;
 			show_main_menu = false;
 		}

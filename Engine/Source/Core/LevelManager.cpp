@@ -1,7 +1,10 @@
+#include "Core/Camera.h"
+#include "Map/MapSystem.h"
+
 #include "LevelManager.h"
 
-LevelManager::LevelManager(std::string levelsFolderPath, InputManager& inputManager, MapSystem& mapSystem)
-	: mInputManager(inputManager), mLevelsFolderPath(std::move(levelsFolderPath)), mMapSystem(mapSystem)
+LevelManager::LevelManager(std::string levelsFolderPath, MapSystem& mapSystem)
+	: mLevelsFolderPath(std::move(levelsFolderPath)), mMapSystem(mapSystem)
 {
 }
 
@@ -28,6 +31,15 @@ void LevelManager::LoadLevel(const std::string& levelName)
 	std::string fullFileName = mLevelsFolderPath;
 	fullFileName.append(levelName);
 
-	auto level = std::make_unique<Level>(fullFileName, mMapSystem, mInputManager);
+	auto level = std::make_unique<Level>(fullFileName);
+
+	// Create Map
+	if (const auto& mapData = level->GetMapData())
+	{
+		mMapSystem.CreateMap(mapData->name, mapData->position, mapData->rotation, mapData->tileSize);
+	}
+
+	// TODO: Create GameObjects
+
 	mLevels.insert(std::make_pair(levelName, std::move(level)));
 }

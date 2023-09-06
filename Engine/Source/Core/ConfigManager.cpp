@@ -2,11 +2,11 @@
 
 #include "ConfigManager.h"
 
-void ConfigManager::LoadConfigFile(const std::string& projectDataPath, const std::string& configFile)
+void ConfigManager::LoadConfigFile(const std::string& projectDataPath)
 {
 	// parse and serialize JSON
 	std::string fullFileName = projectDataPath;
-	fullFileName += configFile;
+	fullFileName += CONFIG_FILE;
 
 	std::ifstream ifs(fullFileName.c_str());
 

@@ -22,11 +22,12 @@ public:
 
 	void DebugUpdatePosition(glm::vec3 position);
 
-	glm::vec3 GetFront() const;
-	void SetFront(glm::vec3 front);
-
 	glm::vec3 GetPosition() const;
-	void SetPosition(glm::vec3 pos);
+	glm::vec3 GetFront() const;
+
+	void SetPosition(const glm::vec3 pos);
+	void SetFront(const glm::vec3 front);
+	void SetUp(const glm::vec3 up);
 
 	void UpdateView();
 

@@ -53,25 +53,31 @@ void Camera::DebugUpdatePosition(glm::vec3 position)
 	UpdateView();
 }
 
-glm::vec3 Camera::GetFront() const
-{
-	return mCameraFront;
-}
-
-void Camera::SetFront(glm::vec3 front)
-{
-	mCameraFront = front;
-	UpdateView();
-}
-
 glm::vec3 Camera::GetPosition() const
 {
 	return mCameraPos;
 }
 
-void Camera::SetPosition(glm::vec3 pos)
+glm::vec3 Camera::GetFront() const
+{
+	return mCameraFront;
+}
+
+void Camera::SetPosition(const glm::vec3 pos)
 {
 	mCameraPos = pos;
+	UpdateView();
+}
+
+void Camera::SetFront(const glm::vec3 front)
+{
+	mCameraFront = front;
+	UpdateView();
+}
+
+void Camera::SetUp(const glm::vec3 up)
+{
+	mCameraUp = up;
 	UpdateView();
 }
 

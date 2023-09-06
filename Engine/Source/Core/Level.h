@@ -2,18 +2,33 @@
 #include <nlohmann/json.hpp>
 #include <glm/vec3.hpp>
 
-class Camera;
-class InputManager;
-class MapSystem;
+#include "Camera.h"
+#include "Entity/GameObject.h"
 
+struct MapData
+{
+	MapData(std::string _name, glm::vec3 _position, glm::vec3 _rotation, float _tileSize)
+		: name(std::move(_name)), position(_position), rotation(_rotation), tileSize(_tileSize)
+	{
+	}
+
+	std::string name;
+	glm::vec3 position;
+	glm::vec3 rotation;
+	float tileSize = 0.0f;
+};
+
+// TODO: Level definition, we'll need to save out level later
 class Level
 {
 public:
-	Level(const std::string& levelName, MapSystem& mapSystem, InputManager& inputManager);
+	Level(const std::string& levelName);
 	~Level() = default;
 
-	std::shared_ptr<Camera>& GetCamera();
-	glm::vec3 GetPlayerSpawn() const;
+	const std::unique_ptr<Camera>& GetCamera() const { return mCamera; }
+
+	const std::unique_ptr<MapData>& GetMapData() const { return mMapData; }
+	const std::vector<nlohmann::json>& GetEntityDefinitions() const { return mEntityDefinitions; }
 
 private:
 	void _ParseJson(const nlohmann::json& json);
@@ -23,16 +38,18 @@ private:
 	static constexpr char FRONT_STRING[] = "front";
 	static constexpr char UP_STRING[] = "up";
 
-	static constexpr char PLAYER_SPAWN_STRING[] = "player_spawn";
-
 	static constexpr char MAPS_STRING[] = "maps";
 	static constexpr char NAME_STRING[] = "name";
 	static constexpr char ROTATION_STRING[] = "rotation";
 	static constexpr char TILE_SIZE_STRING[] = "tile_size";
 
-	glm::vec3 mPlayerSpawn = {0, 0, 0};
+	static constexpr char ENTITIES_STRING[] = "entities";
 
-	std::shared_ptr<Camera> mCamera;
-	MapSystem& mMapSystem;
-	InputManager& mInputManager;
+	// runtime data
+	std::unique_ptr<Camera> mCamera;
+	std::vector<std::unique_ptr<GameObject>> mGameObjects;
+
+	// initialization data
+	std::unique_ptr<MapData> mMapData;
+	std::vector<nlohmann::json> mEntityDefinitions;
 };

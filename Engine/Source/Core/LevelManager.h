@@ -1,13 +1,12 @@
 #pragma once
 #include "Level.h"
 
-class InputManager;
 class MapSystem;
 
 class LevelManager
 {
 public:
-	LevelManager(std::string levelsFolderPath, InputManager& inputManager, MapSystem& mapSystem);
+	LevelManager(std::string levelsFolderPath, MapSystem& mapSystem);
 	~LevelManager() = default;
 
 	std::unique_ptr<Level>& GetLevel(const std::string& levelName);
@@ -17,9 +16,9 @@ public:
 
 private:
 	std::map<std::string, std::unique_ptr<Level>> mLevels;
-
 	std::unique_ptr<Level> mEmptyLevel{nullptr};
-	InputManager& mInputManager;
+
 	std::string mLevelsFolderPath;
+
 	MapSystem& mMapSystem;
 };

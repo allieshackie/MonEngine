@@ -7,7 +7,7 @@ public:
 	ConfigManager() = default;
 	~ConfigManager() = default;
 
-	void LoadConfigFile(const std::string& projectDataPath, const std::string& configFile);
+	void LoadConfigFile(const std::string& projectDataPath);
 
 	const std::string& GetMapsFolderPath() const;
 	const std::string& GetLevelsFolderPath() const;
@@ -20,6 +20,7 @@ public:
 	const std::string& GetFontFolderPath() const;
 
 private:
+	static constexpr char CONFIG_FILE[] = "config.json";
 	static constexpr char MAPS_PATH_STRING[] = "maps_path";
 	static constexpr char LEVELS_PATH_STRING[] = "levels_path";
 	static constexpr char ENTITIES_PATH_STRING[] = "entities_path";
