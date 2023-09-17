@@ -4,13 +4,22 @@
         "front": [0,0,-1],
         "up": [0,1,0]
     },
-    "player_spawn": [0,0,0],
     "maps": [
         {
             "name": "ground_map.json",
             "position": [0,-2,0],
             "rotation": [-68,0,0],
             "tile_size": 1
+        }
+    ],
+    "entities": [
+        {
+            "name": "player",
+            "position": [0,0,0]
+        },
+        {
+            "name": "test",
+            "position": [1,1,1]
         }
     ]
 }
