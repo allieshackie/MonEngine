@@ -1,17 +1,16 @@
 #define STB_TRUETYPE_IMPLEMENTATION
-#include "Util/stb_truetype.h"
+#include "Graphics/Util/stb_truetype.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "Util/stb_image_write.h"
+#include "Graphics/Util/stb_image_write.h"
 
 #include <iomanip>
 #include <LLGL/LLGL.h>
 #include "LLGL/Misc/Utility.h"
 
 #include "Core/Camera.h"
-#include "Core/ResourceManager.h"
 #include "Core/LevelManager.h"
 #include "Graphics/Core/Shader.h"
-#include "Texture.h"
+#include "Graphics/Core/Texture.h"
 
 #include "TextPipeline.h"
 
@@ -36,7 +35,13 @@ void TextPipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pv
 		commandBuffer.SetVertexBuffer(*mesh->mVertexBuffer);
 		commandBuffer.SetIndexBuffer(*mesh->mIndexBuffer);
 
-		commandBuffer.SetResourceHeap(*mResourceHeap, 0);
+		// TODO: Do we need a resource heap for this to work?
+		//commandBuffer.SetResourceHeap(*mResourceHeap, 0);
+		commandBuffer.SetResource(*mConstantBuffer, 0, LLGL::BindFlags::ConstantBuffer, LLGL::StageFlags::VertexStage);
+		commandBuffer.SetResource(mTextureAtlas->GetTextureData(), 1, LLGL::BindFlags::Sampled,
+		                          LLGL::StageFlags::FragmentStage);
+		commandBuffer.SetResource(mTextureAtlas->GetSamplerData(), 1, 0,
+		                          LLGL::StageFlags::FragmentStage);
 
 		_UpdateUniforms(commandBuffer, pvMat, mesh->mPosition, mesh->mSize);
 
@@ -58,10 +63,9 @@ void TextPipeline::_UpdateUniforms(LLGL::CommandBuffer& commandBuffer, const glm
 	commandBuffer.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
 }
 
-void TextPipeline::LoadFont(const std::unique_ptr<LLGL::RenderSystem>& renderSystem, const std::string& fontPath,
-                            const char* fontFile)
+void TextPipeline::LoadFont(const std::shared_ptr<LLGL::RenderSystem>& renderSystem, const char* fontFile)
 {
-	auto fontData = _ReadFontFromFileTTF(fontPath, fontFile);
+	auto fontData = _ReadFontFromFileTTF(fontFile);
 	std::vector<uint8_t> atlasData(_font.mAtlasWidth * _font.mAtlasHeight);
 
 	_font.mCharInfo = std::make_unique<stbtt_packedchar[]>(_font.mCharCount);
@@ -85,16 +89,14 @@ void TextPipeline::LoadFont(const std::unique_ptr<LLGL::RenderSystem>& renderSys
 
 	stbtt_PackEnd(&context);
 
-	mTextureAtlas = std::make_unique<Texture>(*renderSystem, atlasData.data(), _font.mAtlasWidth,
+	mTextureAtlas = std::make_unique<Texture>(renderSystem, atlasData.data(), _font.mAtlasWidth,
 	                                          _font.mAtlasHeight, true);
-
-	_CreateResourceHeap(renderSystem);
 }
 
-std::vector<uint8_t> TextPipeline::_ReadFontFromFileTTF(const std::string& fontPath, const char* fontFile) const
+std::vector<uint8_t> TextPipeline::_ReadFontFromFileTTF(const char* fontFile) const
 {
 	/* load font file */
-	std::string fullPath = fontPath;
+	std::string fullPath = FONTS_FOLDER;
 	fullPath.append(fontFile);
 
 	std::ifstream file(fullPath.c_str(), std::ios::binary | std::ios::ate);
@@ -113,7 +115,7 @@ std::vector<uint8_t> TextPipeline::_ReadFontFromFileTTF(const std::string& fontP
 	return bytes;
 }
 
-void TextPipeline::CreateTextMesh(std::unique_ptr<LLGL::RenderSystem>& renderSystem, const std::string& text,
+void TextPipeline::CreateTextMesh(std::shared_ptr<LLGL::RenderSystem>& renderSystem, const std::string& text,
                                   glm::vec2 pos, glm::vec2 size)
 {
 	auto textMesh = std::make_unique<TextMesh>();
@@ -196,8 +198,7 @@ GlyphInfo TextPipeline::_GenerateGlyphInfo(uint32_t character, float offsetX, fl
 	return info;
 }
 
-void TextPipeline::Init(std::unique_ptr<LLGL::RenderSystem>& renderSystem, const std::string& shaderPath,
-                        const TextureMap& textures)
+void TextPipeline::Init(std::shared_ptr<LLGL::RenderSystem>& renderSystem)
 {
 	mConstantBuffer = renderSystem->CreateBuffer(LLGL::ConstantBufferDesc(sizeof(GUISettings)),
 	                                             &guiSettings);
@@ -206,10 +207,10 @@ void TextPipeline::Init(std::unique_ptr<LLGL::RenderSystem>& renderSystem, const
 	vertexFormat.AppendAttribute({"guiPosition", LLGL::Format::RG32Float});
 	vertexFormat.AppendAttribute({"guiTexCoord", LLGL::Format::RG32Float});
 
-	std::string vertPath = shaderPath;
+	std::string vertPath = SHADERS_FOLDER;
 	vertPath.append("gui.vert");
 
-	std::string fragPath = shaderPath;
+	std::string fragPath = SHADERS_FOLDER;
 	fragPath.append("gui.frag");
 
 	mShader = std::make_unique<Shader>(*renderSystem, vertexFormat, vertPath.c_str(),
@@ -217,7 +218,7 @@ void TextPipeline::Init(std::unique_ptr<LLGL::RenderSystem>& renderSystem, const
 
 	// All layout bindings that will be used by graphics and compute pipelines
 	// Create pipeline layout
-	mPipelineLayout = renderSystem->CreatePipelineLayout(
+	auto pipelineLayout = renderSystem->CreatePipelineLayout(
 		LLGL::PipelineLayoutDesc("cbuffer(0):vert:frag,texture(0):frag, sampler(0):frag"));
 
 	// Create graphics pipeline
@@ -225,22 +226,8 @@ void TextPipeline::Init(std::unique_ptr<LLGL::RenderSystem>& renderSystem, const
 	{
 		pipelineDesc.vertexShader = &mShader->GetVertexShader();
 		pipelineDesc.fragmentShader = &mShader->GetFragmentShader();
-		pipelineDesc.pipelineLayout = mPipelineLayout;
+		pipelineDesc.pipelineLayout = pipelineLayout;
 		pipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::TriangleList;
 	}
 	mPipeline = renderSystem->CreatePipelineState(pipelineDesc);
-}
-
-void TextPipeline::_CreateResourceHeap(const std::unique_ptr<LLGL::RenderSystem>& renderSystem)
-{
-	LLGL::ResourceHeapDescriptor resourceHeapDesc;
-	{
-		resourceHeapDesc.pipelineLayout = mPipelineLayout;
-		resourceHeapDesc.resourceViews.reserve(3);
-
-		resourceHeapDesc.resourceViews.emplace_back(mConstantBuffer);
-		resourceHeapDesc.resourceViews.emplace_back(&mTextureAtlas->GetTextureData());
-		resourceHeapDesc.resourceViews.emplace_back(&mTextureAtlas->GetSamplerData());
-	}
-	mResourceHeap = renderSystem->CreateResourceHeap(resourceHeapDesc);
 }

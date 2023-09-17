@@ -1,7 +1,6 @@
 #include "LLGL/Misc/TypeNames.h"
 #include <glm/ext/matrix_clip_space.hpp>
 
-#include "ResourceManager.h"
 #include "Core/Camera.h"
 #include "Graphics/Debug/DebugDraw.h"
 #include "Input/InputHandler.h"
@@ -11,8 +10,7 @@
 static constexpr int SCREEN_WIDTH = 800;
 static constexpr int SCREEN_HEIGHT = 600;
 
-void RenderContext::Init(const std::string& shaderPath, ResourceManager& resourceManager,
-                         std::shared_ptr<InputHandler>& inputHandler)
+void RenderContext::Init(std::shared_ptr<InputHandler>& inputHandler)
 {
 	try
 	{
@@ -64,7 +62,6 @@ void RenderContext::Init(const std::string& shaderPath, ResourceManager& resourc
 		std::cerr << e.what() << std::endl;
 	}
 
-	resourceManager.LoadAllTexturesFromFolder(*mRenderSystem);
 	// NOTE: Projection update must occur after debug shader is initialized
 	UpdateProjection();
 
@@ -75,18 +72,18 @@ void RenderContext::Init(const std::string& shaderPath, ResourceManager& resourc
 	// TODO: Enable for 3D
 	//mPipeline3D = std::make_unique<Pipeline3D>(*this, mResourceManager);
 
-	mSpritePipeline->Init(mRenderSystem, shaderPath, resourceManager.getTextures());
-	mMapPipeline->Init(mRenderSystem, shaderPath, resourceManager.getTextures());
-	mDebugPipeline->Init(mRenderSystem, shaderPath);
-	mTextPipeline->Init(mRenderSystem, shaderPath, resourceManager.getTextures());
-	//mPipeline3D->Init(mRenderSystem, shaderPath, resourceManager.getTextures());
+	mSpritePipeline->Init(mRenderSystem);
+	mMapPipeline->Init(mRenderSystem);
+	mDebugPipeline->Init(mRenderSystem);
+	mTextPipeline->Init(mRenderSystem);
+	//mPipeline3D->Init(mRenderSystem, shaderPath);
 
 	_InitWindow(inputHandler);
 }
 
-void RenderContext::LoadFont(const std::string& fontPath, const char* fontFileName) const
+void RenderContext::LoadFont(const char* fontFileName) const
 {
-	mTextPipeline->LoadFont(mRenderSystem, fontPath, fontFileName);
+	mTextPipeline->LoadFont(mRenderSystem, fontFileName);
 }
 
 bool RenderContext::GetNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const

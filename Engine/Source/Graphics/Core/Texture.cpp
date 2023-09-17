@@ -1,15 +1,15 @@
-#include "Util/stb_image.h"
+#include "Graphics/Util/stb_image.h"
 
 #include "Texture.h"
 
-Texture::Texture(LLGL::RenderSystem& renderer, const std::string& path)
+Texture::Texture(const std::shared_ptr<LLGL::RenderSystem>& renderer, const std::string& path)
 {
 	_LoadFromFile(renderer, path);
 	_CreateSampler(renderer);
 }
 
-Texture::Texture(LLGL::RenderSystem& renderer, const unsigned char* imageData, int width, int height,
-                 bool singleChannel)
+Texture::Texture(const std::shared_ptr<LLGL::RenderSystem>& renderer, const unsigned char* imageData, int width,
+                 int height, bool singleChannel)
 {
 	if (singleChannel)
 	{
@@ -39,10 +39,10 @@ LLGL::Sampler& Texture::GetSamplerData() const
 
 glm::vec2 Texture::GetTextureSize() const
 {
-	return glm::vec2(mTextureWidth, mTextureHeight);
+	return {mTextureWidth, mTextureHeight};
 }
 
-bool Texture::_LoadFromFile(LLGL::RenderSystem& renderer, const std::string& path)
+bool Texture::_LoadFromFile(const std::shared_ptr<LLGL::RenderSystem>& renderer, const std::string& path)
 {
 	// uncompressed texture
 	int texComponents = 0;
@@ -82,7 +82,7 @@ bool Texture::_LoadFromFile(LLGL::RenderSystem& renderer, const std::string& pat
 			texDesc.miscFlags = LLGL::MiscFlags::GenerateMips;
 		}
 
-		mTexture = renderer.CreateTexture(texDesc, &imageDesc);
+		mTexture = renderer->CreateTexture(texDesc, &imageDesc);
 	}
 
 	stbi_image_free(imageBuffer);
@@ -90,7 +90,8 @@ bool Texture::_LoadFromFile(LLGL::RenderSystem& renderer, const std::string& pat
 	return true;
 }
 
-bool Texture::_CreateRGBAFromData(LLGL::RenderSystem& renderer, const unsigned char* imageData, int width, int height)
+bool Texture::_CreateRGBAFromData(const std::shared_ptr<LLGL::RenderSystem>& renderer, const unsigned char* imageData,
+                                  int width, int height)
 {
 	mTextureWidth = width;
 	mTextureHeight = height;
@@ -124,15 +125,15 @@ bool Texture::_CreateRGBAFromData(LLGL::RenderSystem& renderer, const unsigned c
 			texDesc.miscFlags = LLGL::MiscFlags::GenerateMips;
 		}
 
-		mTexture = renderer.CreateTexture(texDesc, &imageDesc);
+		mTexture = renderer->CreateTexture(texDesc, &imageDesc);
 	}
 
 
 	return true;
 }
 
-bool Texture::_CreateSingleChannelTextureFromData(LLGL::RenderSystem& renderer, const unsigned char* imageData,
-                                                  int width, int height)
+bool Texture::_CreateSingleChannelTextureFromData(const std::shared_ptr<LLGL::RenderSystem>& renderer,
+                                                  const unsigned char* imageData, int width, int height)
 {
 	mTextureWidth = width;
 	mTextureHeight = height;
@@ -163,14 +164,14 @@ bool Texture::_CreateSingleChannelTextureFromData(LLGL::RenderSystem& renderer, 
 			texDesc.extent = {static_cast<uint32_t>(mTextureWidth), static_cast<uint32_t>(mTextureHeight), 1u};
 		}
 
-		mTexture = renderer.CreateTexture(texDesc, &imageDesc);
+		mTexture = renderer->CreateTexture(texDesc, &imageDesc);
 	}
 
 
 	return true;
 }
 
-void Texture::_CreateSampler(LLGL::RenderSystem& renderer)
+void Texture::_CreateSampler(const std::shared_ptr<LLGL::RenderSystem>& renderer)
 {
 	// 1st sampler state with default settings
 	// Create nearest sampler
@@ -180,5 +181,5 @@ void Texture::_CreateSampler(LLGL::RenderSystem& renderer)
 		samplerDesc.magFilter = LLGL::SamplerFilter::Nearest;
 		samplerDesc.mipMapFilter = LLGL::SamplerFilter::Nearest;
 	}
-	mSampler = renderer.CreateSampler(samplerDesc);
+	mSampler = renderer->CreateSampler(samplerDesc);
 }

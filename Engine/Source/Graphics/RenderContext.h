@@ -3,11 +3,11 @@
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp> //translate, rotate, scale, perspective
 
-#include "Graphics/SpritePipeline.h"
-#include "Graphics/MapPipeline.h"
-#include "Graphics/MeshPipeline.h"
-#include "Graphics/TextPipeline.h"
-#include "Graphics/Debug/DebugPipeline.h"
+#include "Graphics/Pipelines/DebugPipeline.h"
+#include "Graphics/Pipelines/MapPipeline.h"
+#include "Graphics/Pipelines/MeshPipeline.h"
+#include "Graphics/Pipelines/SpritePipeline.h"
+#include "Graphics/Pipelines/TextPipeline.h"
 
 class Camera;
 class EntityRegistry;
@@ -17,7 +17,6 @@ class InputHandler;
 class LevelManager;
 class MapEditor;
 class MapSystem;
-class ResourceManager;
 
 struct State;
 
@@ -29,8 +28,7 @@ public:
 		std::cout << "Delete Renderer" << std::endl;
 	}
 
-	void Init(const std::string& shaderPath, ResourceManager& resourceManager,
-	          std::shared_ptr<InputHandler>& inputHandler);
+	void Init(std::shared_ptr<InputHandler>& inputHandler);
 
 	void BeginFrame() const;
 	void Render(const std::unique_ptr<Camera>& camera, EntityRegistry& entityRegistry) const;
@@ -39,7 +37,7 @@ public:
 
 	void DrawText(const char* text, glm::vec2 position, glm::vec2 size);
 
-	void LoadFont(const std::string& fontPath, const char* fontFileName) const;
+	void LoadFont(const char* fontFileName) const;
 	bool GetNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const;
 
 	void UpdateProjection();
@@ -48,7 +46,7 @@ public:
 private:
 	void _InitWindow(std::shared_ptr<InputHandler>& inputHandler) const;
 
-	std::unique_ptr<LLGL::RenderSystem> mRenderSystem; // Render system
+	std::shared_ptr<LLGL::RenderSystem> mRenderSystem; // Render system
 	LLGL::SwapChain* mSwapChain = nullptr; // Main render context
 	LLGL::CommandBuffer* mCommands = nullptr; // Main command buffer
 	LLGL::CommandQueue* mCommandQueue = nullptr; // Command queue

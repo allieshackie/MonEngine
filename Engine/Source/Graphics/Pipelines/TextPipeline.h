@@ -40,28 +40,23 @@ public:
 	TextPipeline() = default;
 	~TextPipeline() = default;
 
-	void Init(std::unique_ptr<LLGL::RenderSystem>& renderSystem, const std::string& shaderPath,
-	          const TextureMap& textures);
+	void Init(std::shared_ptr<LLGL::RenderSystem>& renderSystem);
 	void Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat) const;
 
-	void LoadFont(const std::unique_ptr<LLGL::RenderSystem>& renderSystem, const std::string& fontPath,
-	              const char* fontFile);
-	void CreateTextMesh(std::unique_ptr<LLGL::RenderSystem>& renderSystem, const std::string& text, glm::vec2 pos,
+	void LoadFont(const std::shared_ptr<LLGL::RenderSystem>& renderSystem, const char* fontFile);
+	void CreateTextMesh(std::shared_ptr<LLGL::RenderSystem>& renderSystem, const std::string& text, glm::vec2 pos,
 	                    glm::vec2 size);
 
 private:
-	void _CreateResourceHeap(const std::unique_ptr<LLGL::RenderSystem>& renderSystem);
 	void _UpdateUniforms(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat, glm::vec3 pos,
 	                     glm::vec3 size) const;
 
 	GlyphInfo _GenerateGlyphInfo(uint32_t character, float offsetX, float offsetY);
-	std::vector<uint8_t> _ReadFontFromFileTTF(const std::string& fontPath, const char* fontFile) const;
+	std::vector<uint8_t> _ReadFontFromFileTTF(const char* fontFile) const;
 
 	std::shared_ptr<Texture> mTextureAtlas;
 
-	LLGL::PipelineLayout* mPipelineLayout = nullptr;
 	LLGL::PipelineState* mPipeline = nullptr;
-	LLGL::ResourceHeap* mResourceHeap = nullptr;
 	std::unique_ptr<Shader> mShader = nullptr;
 
 	struct GUISettings

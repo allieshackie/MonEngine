@@ -1,8 +1,8 @@
 #pragma once
 #include <LLGL/LLGL.h>
 #include <glm/mat4x4.hpp>
-#include "Core/Vertex.h"
-#include "Core/Shader.h"
+#include "Graphics/Core/Shader.h"
+#include "Graphics/Core/Vertex.h"
 
 class Map;
 
@@ -16,19 +16,17 @@ public:
 		std::cout << "Delete MapPipeline" << std::endl;
 	}
 
-	void Init(std::unique_ptr<LLGL::RenderSystem>& renderSystem, const std::string& shaderPath,
-	          const TextureMap& textures);
+	void Init(std::shared_ptr<LLGL::RenderSystem>& renderSystem);
 	void Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat, const std::shared_ptr<Map>& map) const;
 
 	void RenderMapTexture(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat,
 	                      const std::shared_ptr<Map>& map) const;
 	void QueueWriteMapTexture(const std::shared_ptr<Map>& map);
-	void WriteQueuedMapTextures(const std::unique_ptr<LLGL::RenderSystem>& renderSystem,
-	                            LLGL::CommandBuffer& commandBuffer, const TextureMap& textures);
+	void WriteQueuedMapTextures(const std::shared_ptr<LLGL::RenderSystem>& renderSystem,
+	                            LLGL::CommandBuffer& commandBuffer);
 
 private:
-	void _CreateResourceHeap(const std::unique_ptr<LLGL::RenderSystem>& renderSystem, const TextureMap& textures,
-	                         const std::shared_ptr<Map>& map);
+	void _CreateResourceHeap(const std::shared_ptr<LLGL::RenderSystem>& renderSystem);
 
 	void _Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat, const std::shared_ptr<Map>& map) const;
 	void _UpdateUniforms(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat, glm::vec3 pos, glm::vec3 size,
@@ -36,9 +34,12 @@ private:
 	void _UpdateUniformsModel(LLGL::CommandBuffer& commandBuffer, glm::vec3 pos, glm::vec3 size, glm::vec3 rot,
 	                          glm::vec4 texClip) const;
 
-	void _InitMapTexturePipeline(const std::unique_ptr<LLGL::RenderSystem>& renderSystem, const TextureMap& textures,
+	void _InitMapTexturePipeline(LLGL::CommandBuffer& commandBuffer,
+	                             const std::shared_ptr<LLGL::RenderSystem>& renderSystem,
 	                             std::shared_ptr<Map>& map);
-	void _WriteMapTexture(LLGL::CommandBuffer& commandBuffer, const std::shared_ptr<Map>& map) const;
+	void _WriteMapTexture(LLGL::CommandBuffer& commandBuffer, const std::shared_ptr<Map>& map,
+	                      LLGL::PipelineState* writePipeline, LLGL::RenderTarget* writeTarget,
+	                      LLGL::Texture* writeableTexture) const;
 
 	LLGL::PipelineLayout* mPipelineLayout = nullptr;
 	LLGL::PipelineState* mPipeline = nullptr;
@@ -63,5 +64,10 @@ private:
 		{{0.5, 0.5, 1}, {1, 1, 1}, {1, 0}}, // bottom right
 	};
 
+
+	// Write Map Textures
 	std::vector<std::shared_ptr<Map>> mQueuedMaps = {};
+
+	std::unordered_map<int, LLGL::Texture*> mMapTextures;
+	const LLGL::Extent2D mTextureSize = {512, 512};
 };

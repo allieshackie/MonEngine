@@ -2,7 +2,6 @@
 #include <LLGL/LLGL.h>
 #include <glm/gtc/matrix_transform.hpp> //translate, rotate, scale, perspective
 #include <glm/mat4x4.hpp>
-#include "Core/Vertex.h"
 
 class RenderObject;
 class Shader;
@@ -13,13 +12,13 @@ public:
 	MeshPipeline() = default;
 	~MeshPipeline() = default;
 
-	void Init(std::unique_ptr<LLGL::RenderSystem>& renderSystem, const std::string& shaderPath);
+	void Init(std::shared_ptr<LLGL::RenderSystem>& renderSystem, const std::string& shaderPath);
 	void Render(LLGL::CommandBuffer& commands) const;
 
 	void UpdateProjectionViewModelUniform(LLGL::CommandBuffer& commands, glm::mat4 model, glm::mat4 projection,
 	                                      glm::mat4 view);
 
-	void AddRenderObjectVBuffer(const std::unique_ptr<LLGL::RenderSystem>& renderSystem, RenderObject& obj);
+	void AddRenderObjectVBuffer(const std::shared_ptr<LLGL::RenderSystem>& renderSystem, RenderObject& obj);
 
 private:
 	LLGL::PipelineState* mPipeline = nullptr;

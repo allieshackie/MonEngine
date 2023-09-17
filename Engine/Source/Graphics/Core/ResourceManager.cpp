@@ -2,74 +2,36 @@
 #include <glad/glad.h>
 #include <filesystem>
 #include <sstream>
+
 #include "Graphics/Util/stb_image.h"
-#include "Graphics/Texture.h"
+#include "Texture.h"
 
 #include "ResourceManager.h"
 
-ResourceManager::ResourceManager(std::string texturesFolderPath) : mTextureFolder(std::move(texturesFolderPath))
+std::vector<std::unique_ptr<Texture>> ResourceManager::LoadAllTexturesFromFolder(
+	const std::shared_ptr<LLGL::RenderSystem>& renderSystem,
+	const std::string& texturesFolder)
 {
-}
-
-ResourceManager::~ResourceManager()
-{
-	mTextures.clear();
-}
-
-void ResourceManager::LoadAllTexturesFromFolder(LLGL::RenderSystem& renderer)
-{
+	std::vector<std::unique_ptr<Texture>> textures;
 	int textureId = 0;
-	for (const auto& entry : std::filesystem::directory_iterator(mTextureFolder))
+	for (const auto& entry : std::filesystem::directory_iterator(texturesFolder))
 	{
-		LoadTexture(renderer, entry.path().string(), entry.path().filename().string(), textureId);
-		textureId++;
-	}
-}
-
-void ResourceManager::LoadTexture(LLGL::RenderSystem& renderer, const std::string& filePath,
-                                  const std::string& textureName, int textureId)
-{
-	if (mTextures.find(textureId) == mTextures.end())
-	{
-		auto texture = std::make_shared<Texture>(renderer, filePath);
-		mTextures[textureId] = std::move(texture);
-		mTextureIds[textureName] = textureId;
-	}
-}
-
-int ResourceManager::GetTextureId(const std::string& filePath)
-{
-	if (const auto& it = mTextureIds.find(filePath); it != mTextureIds.end())
-	{
-		return it->second;
+		textures.push_back(_LoadTexture(renderSystem, entry.path().string()));
+		mTextureIds[entry.path().string()] = textureId++;
 	}
 
-	return 0;
+	return textures;
 }
 
-glm::vec2 ResourceManager::GetTextureSize(int textureId)
+int ResourceManager::GetTextureId(const std::string& textureName)
 {
-	if (const auto textureIt = mTextures.find(textureId); textureIt != mTextures.end())
-	{
-		return textureIt->second->GetTextureSize();
-	}
-
-	return {0, 0};
+	return static_cast<int>(std::hash<std::string>{}(textureName));
 }
 
-std::shared_ptr<Texture> ResourceManager::GetTextureFromName(const std::string& filePath)
+std::unique_ptr<Texture> ResourceManager::_LoadTexture(const std::shared_ptr<LLGL::RenderSystem>& renderSystem,
+                                                       const std::string& filePath)
 {
-	const auto textureId = GetTextureId(filePath);
-	const auto textureIt = mTextures.find(textureId);
-
-	assert(textureIt != mTextures.end());
-
-	return textureIt->second;
-}
-
-const TextureMap& ResourceManager::GetTextures()
-{
-	return mTextures;
+	return std::make_unique<Texture>(renderSystem, filePath);
 }
 
 TriangleMesh ResourceManager::LoadObjModel(std::vector<TexturedVertex>& vertices, const std::string& filename) const
@@ -155,18 +117,19 @@ TriangleMesh ResourceManager::LoadObjModel(std::vector<TexturedVertex>& vertices
 		}
 	}
 
+	file.close();
+
 	return mesh;
 }
 
 // Simple helper function to load an image into a OpenGL texture with common settings
-bool ResourceManager::CreateSimpleOpenGLTexture(std::string& filename, GLuint* out_texture, int* out_width,
-                                                int* out_height) const
+bool ResourceManager::CreateSimpleOpenGLTexture(const std::string& filename, GLuint* out_texture, int* out_width,
+                                                int* out_height)
 {
 	// Load from file
 	int image_width = 0;
 	int image_height = 0;
-	filename.insert(0, "/");
-	const std::string fullPath = mTextureFolder + filename;
+	const std::string fullPath = TEXTURES_FOLDER + filename;
 	unsigned char* image_data = stbi_load(fullPath.c_str(), &image_width, &image_height, nullptr, 4);
 	if (image_data == nullptr)
 		return false;

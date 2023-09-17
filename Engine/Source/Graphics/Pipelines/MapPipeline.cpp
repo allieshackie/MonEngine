@@ -2,14 +2,15 @@
 #include "LLGL/Misc/Utility.h"
 
 #include "Core/Camera.h"
-#include "Core/ResourceManager.h"
+#include "Graphics/Core/ResourceManager.h"
+#include "Graphics/Core/Texture.h"
 #include "Entity/EntityRegistry.h"
 #include "Map/Map.h"
-#include "Map/MapDescription.h"
-#include "Texture.h"
 
 #include "MapPipeline.h"
 
+// TODO: Should we be rendering more than 1 map at a time?  Sublevels/chunks?
+// Could call this in a loop in Game
 void MapPipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat,
                          const std::shared_ptr<Map>& map) const
 {
@@ -17,22 +18,13 @@ void MapPipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvM
 	commandBuffer.SetPipelineState(*mPipeline);
 	commandBuffer.SetVertexBuffer(*mVertexBuffer);
 
-	// TODO: Should we be rendering more than 1 map at a time?  Sublevels/chunks?
-	if (map->GetRenderDebug())
-	{
-		RenderMapTexture(commandBuffer, pvMat, map);
-	}
-	else
-	{
-		_Render(commandBuffer, pvMat, map);
-	}
+	_Render(commandBuffer, pvMat, map);
 }
 
 void MapPipeline::_Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat,
                           const std::shared_ptr<Map>& map) const
 {
-	// TODO: Is this the correct texture ID? (Map Texture vs the texture used to create the map)
-	//commandBuffer.SetResourceHeap(*mResourceHeap, map->GetMapTextureId());
+	commandBuffer.SetResourceHeap(*mResourceHeap, map->GetMapTextureId());
 	_UpdateUniforms(commandBuffer, pvMat, map->GetPosition(), map->GetMapSize(),
 	                map->GetRotation());
 	commandBuffer.Draw(4, 0);
@@ -43,9 +35,7 @@ void MapPipeline::RenderMapTexture(LLGL::CommandBuffer& commandBuffer, const glm
 {
 	// TODO: Is this the correct texture ID? (Map Texture vs the texture used to create the map)
 	//commandBuffer.SetResourceHeap(*mResourceHeap, map->GetMapTextureId());
-	const auto pos = map->GetPosition();
-	const auto mapSize = map->GetMapSize();
-	_UpdateUniforms(commandBuffer, pvMat, pos, mapSize, map->GetRotation());
+	_UpdateUniforms(commandBuffer, pvMat, map->GetPosition(), map->GetMapSize(), map->GetRotation());
 	commandBuffer.Draw(4, 0);
 }
 
@@ -93,8 +83,7 @@ void MapPipeline::_UpdateUniformsModel(LLGL::CommandBuffer& commandBuffer, glm::
 	commandBuffer.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
 }
 
-void MapPipeline::Init(std::unique_ptr<LLGL::RenderSystem>& renderSystem, const std::string& shaderPath,
-                       const TextureMap& textures)
+void MapPipeline::Init(std::shared_ptr<LLGL::RenderSystem>& renderSystem)
 {
 	mConstantBuffer = renderSystem->CreateBuffer(LLGL::ConstantBufferDesc(sizeof(SpriteSettings)),
 	                                             &spriteSettings);
@@ -104,10 +93,10 @@ void MapPipeline::Init(std::unique_ptr<LLGL::RenderSystem>& renderSystem, const 
 	vertexFormat.AppendAttribute({"color", LLGL::Format::RGB32Float});
 	vertexFormat.AppendAttribute({"texCoord", LLGL::Format::RG32Float});
 
-	std::string vertPath = shaderPath;
+	std::string vertPath = SHADERS_FOLDER;
 	vertPath.append("sprite.vert");
 
-	std::string fragPath = shaderPath;
+	std::string fragPath = SHADERS_FOLDER;
 	fragPath.append("sprite.frag");
 
 	mShader = std::make_unique<Shader>(*renderSystem, vertexFormat, vertPath.c_str(),
@@ -149,8 +138,7 @@ void MapPipeline::Init(std::unique_ptr<LLGL::RenderSystem>& renderSystem, const 
 	//mMapSystem.RegisterOnUpdateCallback([=]() { QueueWriteMapTexture(mMapSystem.GetCurrentMap()); });
 }
 
-void MapPipeline::_CreateResourceHeap(const std::unique_ptr<LLGL::RenderSystem>& renderSystem,
-                                      const TextureMap& textures, const std::shared_ptr<Map>& map)
+void MapPipeline::_CreateResourceHeap(const std::shared_ptr<LLGL::RenderSystem>& renderSystem)
 {
 	// Resource Heap
 
@@ -164,26 +152,28 @@ void MapPipeline::_CreateResourceHeap(const std::unique_ptr<LLGL::RenderSystem>&
 	}
 	const auto sampler = renderSystem->CreateSampler(samplerDesc);
 
+	const auto textures = ResourceManager::LoadAllTexturesFromFolder(renderSystem, TEXTURES_FOLDER);
+
 	LLGL::ResourceHeapDescriptor resourceHeapDesc;
 	{
 		resourceHeapDesc.pipelineLayout = mPipelineLayout;
-		resourceHeapDesc.resourceViews.reserve((textures.size() + 1) * 3);
+		resourceHeapDesc.resourceViews.reserve((textures.size() + mMapTextures.size()) * 3);
 
 		for (const auto& texture : textures)
 		{
 			resourceHeapDesc.resourceViews.emplace_back(mConstantBuffer);
-			resourceHeapDesc.resourceViews.emplace_back(&texture.second->GetTextureData());
-			resourceHeapDesc.resourceViews.emplace_back(&texture.second->GetSamplerData());
+			resourceHeapDesc.resourceViews.emplace_back(&texture->GetTextureData());
+			resourceHeapDesc.resourceViews.emplace_back(&texture->GetSamplerData());
 		}
 
 
-		// TODO: This used to handle multiple maps, what should we do now?
 		const int i = static_cast<int>(textures.size());
-
-		map->SetMapTextureId(i);
-		resourceHeapDesc.resourceViews.emplace_back(mConstantBuffer);
-		resourceHeapDesc.resourceViews.emplace_back(&map->GetMapTexture());
-		resourceHeapDesc.resourceViews.emplace_back(sampler);
+		for (const auto& mapTexture : mMapTextures)
+		{
+			resourceHeapDesc.resourceViews.emplace_back(mConstantBuffer);
+			resourceHeapDesc.resourceViews.emplace_back(mapTexture.second);
+			resourceHeapDesc.resourceViews.emplace_back(sampler);
+		}
 	}
 	mResourceHeap = renderSystem->CreateResourceHeap(resourceHeapDesc);
 }
@@ -193,36 +183,35 @@ void MapPipeline::QueueWriteMapTexture(const std::shared_ptr<Map>& map)
 	mQueuedMaps.emplace_back(map);
 }
 
-void MapPipeline::WriteQueuedMapTextures(const std::unique_ptr<LLGL::RenderSystem>& renderSystem,
-                                         LLGL::CommandBuffer& commandBuffer,
-                                         const TextureMap& textures)
+void MapPipeline::WriteQueuedMapTextures(const std::shared_ptr<LLGL::RenderSystem>& renderSystem,
+                                         LLGL::CommandBuffer& commandBuffer)
 {
 	if (mQueuedMaps.empty()) return;
 
 	for (auto& map : mQueuedMaps)
 	{
-		_InitMapTexturePipeline(renderSystem, textures, map);
-		_WriteMapTexture(commandBuffer, map);
+		_InitMapTexturePipeline(commandBuffer, renderSystem, map);
 	}
 
 	mQueuedMaps.clear();
 }
 
-void MapPipeline::_InitMapTexturePipeline(const std::unique_ptr<LLGL::RenderSystem>& renderSystem,
-                                          const TextureMap& textures, std::shared_ptr<Map>& map)
-{
-	const auto& renderTargetSize = map->GetMapTextureSize();
 
+// TODO: Where should this be?  Writing map texture to render
+
+void MapPipeline::_InitMapTexturePipeline(LLGL::CommandBuffer& commandBuffer,
+                                          const std::shared_ptr<LLGL::RenderSystem>& renderSystem,
+                                          std::shared_ptr<Map>& map)
+{
 	// Create Render Target
 	const auto renderTargetTex = renderSystem->CreateTexture(
-		LLGL::Texture2DDesc(LLGL::Format::RGBA8UNorm, renderTargetSize.width, renderTargetSize.height)
+		LLGL::Texture2DDesc(LLGL::Format::RGBA8UNorm, mTextureSize.width, mTextureSize.height)
 	);
-	map->SetMapTexture(renderTargetTex);
 
 	// Create render-target with multi-sampling
 	LLGL::RenderTargetDescriptor renderTargetDesc;
 	{
-		renderTargetDesc.resolution = renderTargetSize;
+		renderTargetDesc.resolution = mTextureSize;
 
 		renderTargetDesc.attachments =
 		{
@@ -231,7 +220,6 @@ void MapPipeline::_InitMapTexturePipeline(const std::unique_ptr<LLGL::RenderSyst
 		};
 	}
 	const auto renderTarget = renderSystem->CreateRenderTarget(renderTargetDesc);
-	map->SetMapRenderTarget(renderTarget);
 
 	// Render Target Pipeline
 	LLGL::GraphicsPipelineDescriptor pipelineDesc;
@@ -249,27 +237,29 @@ void MapPipeline::_InitMapTexturePipeline(const std::unique_ptr<LLGL::RenderSyst
 	}
 
 	const auto pipeline = renderSystem->CreatePipelineState(pipelineDesc);
-	map->SetMapTexturePipeline(pipeline);
-	_CreateResourceHeap(renderSystem, textures, map);
+	_CreateResourceHeap(renderSystem);
+
+	_WriteMapTexture(commandBuffer, map, pipeline, renderTarget, renderTargetTex);
 }
 
-void MapPipeline::_WriteMapTexture(LLGL::CommandBuffer& commandBuffer, const std::shared_ptr<Map>& map) const
+void MapPipeline::_WriteMapTexture(LLGL::CommandBuffer& commandBuffer, const std::shared_ptr<Map>& map,
+                                   LLGL::PipelineState* writePipeline, LLGL::RenderTarget* writeTarget,
+                                   LLGL::Texture* writeableTexture) const
 {
 	// Set the render target and clear the color buffer
-	commandBuffer.BeginRenderPass(map->GetMapRenderTarget());
+	commandBuffer.BeginRenderPass(*writeTarget);
 	{
 		// Clear color and depth buffers of active framebuffer (i.e. the render target)
 		commandBuffer.Clear(LLGL::ClearFlags::ColorDepth, {LLGL::ColorRGBAf{0.2f, 0.7f, 0.1f}});
 
 		// Bind graphics pipeline for render target
-		commandBuffer.SetPipelineState(map->GetMapTexturePipeline());
+		commandBuffer.SetPipelineState(*writePipeline);
 		commandBuffer.SetVertexBuffer(*mVertexBuffer);
 
-		// TODO: Is this the right textureId? 
-		//const auto textureId = mResourceManager.GetTextureId(map->GetMapDescription()->GetTexturePath());
-		commandBuffer.SetResourceHeap(*mResourceHeap, map->GetMapTextureId());
+		const auto textureId = ResourceManager::GetTextureId(map->GetTexturePath());
+		commandBuffer.SetResourceHeap(*mResourceHeap, textureId);
 
-		const auto mapData = map->GetMapDescription()->GetMapData();
+		const auto mapData = map->GetData();
 		for (int i = 0; i < mapData.size(); i++)
 		{
 			glm::vec3 tilePos;
@@ -283,5 +273,5 @@ void MapPipeline::_WriteMapTexture(LLGL::CommandBuffer& commandBuffer, const std
 	}
 	commandBuffer.EndRenderPass();
 
-	commandBuffer.GenerateMips(map->GetMapTexture());
+	commandBuffer.GenerateMips(*writeableTexture);
 }

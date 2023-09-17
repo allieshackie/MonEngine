@@ -2,9 +2,8 @@
 #include <LLGL/LLGL.h>
 #include <glm/mat4x4.hpp>
 
-#include "Core/ResourceManager.h"
-#include "Core/Vertex.h"
-#include "Core/Shader.h"
+#include "Graphics/Core/Vertex.h"
+#include "Graphics/Core/Shader.h"
 
 struct SpriteComponent;
 struct TransformComponent;
@@ -21,12 +20,11 @@ public:
 		std::cout << "Delete SpritePipeline" << std::endl;
 	}
 
-	void Init(std::unique_ptr<LLGL::RenderSystem>& renderSystem, const std::string& shaderPath,
-	          const TextureMap& textures);
+	void Init(std::shared_ptr<LLGL::RenderSystem>& renderSystem);
 	void Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat, EntityRegistry& entityRegistry) const;
 
 private:
-	void _CreateResourceHeap(const std::unique_ptr<LLGL::RenderSystem>& renderSystem, const TextureMap& textures);
+	void _CreateResourceHeap(const std::shared_ptr<LLGL::RenderSystem>& renderSystem);
 
 	void _Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat, const TransformComponent& transform,
 	             const SpriteComponent& sprite) const;

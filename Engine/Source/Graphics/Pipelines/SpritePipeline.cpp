@@ -3,12 +3,13 @@
 
 #include "Core/Camera.h"
 #include "Core/LevelManager.h"
-#include "Core/ResourceManager.h"
+#include "Graphics/Core/ResourceManager.h"
+#include "Graphics/Core/Shader.h"
+#include "Graphics/Core/Texture.h"
 #include "Entity/EntityRegistry.h"
 #include "Entity/Components/MapComponent.h"
-#include "Entity/Components/TransformComponent.h"
 #include "Entity/Components/SpriteComponent.h"
-#include "Texture.h"
+#include "Entity/Components/TransformComponent.h"
 
 #include "SpritePipeline.h"
 
@@ -30,9 +31,8 @@ void SpritePipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 
 void SpritePipeline::_Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat,
                              const TransformComponent& transform, const SpriteComponent& sprite) const
 {
-	//const auto textureId = mResourceManager.GetTextureId(sprite.mTexturePath);
-
-	commandBuffer.SetResourceHeap(*mResourceHeap, sprite.mTextureId);
+	const auto textureId = ResourceManager::GetTextureId(sprite.mTexturePath);
+	commandBuffer.SetResourceHeap(*mResourceHeap, textureId);
 
 	_UpdateUniforms(commandBuffer, pvMat, transform);
 
@@ -60,8 +60,7 @@ void SpritePipeline::_UpdateUniforms(LLGL::CommandBuffer& commandBuffer, const g
 	commandBuffer.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
 }
 
-void SpritePipeline::Init(std::unique_ptr<LLGL::RenderSystem>& renderSystem, const std::string& shaderPath,
-                          const TextureMap& textures)
+void SpritePipeline::Init(std::shared_ptr<LLGL::RenderSystem>& renderSystem)
 {
 	mConstantBuffer = renderSystem->CreateBuffer(LLGL::ConstantBufferDesc(sizeof(SpriteSettings)),
 	                                             &spriteSettings);
@@ -71,10 +70,10 @@ void SpritePipeline::Init(std::unique_ptr<LLGL::RenderSystem>& renderSystem, con
 	vertexFormat.AppendAttribute({"color", LLGL::Format::RGB32Float});
 	vertexFormat.AppendAttribute({"texCoord", LLGL::Format::RG32Float});
 
-	std::string vertPath = shaderPath;
+	std::string vertPath = SHADERS_FOLDER;
 	vertPath.append("sprite.vert");
 
-	std::string fragPath = shaderPath;
+	std::string fragPath = SHADERS_FOLDER;
 	fragPath.append("sprite.frag");
 
 	mShader = std::make_unique<Shader>(*renderSystem, vertexFormat, vertPath.c_str(),
@@ -99,7 +98,7 @@ void SpritePipeline::Init(std::unique_ptr<LLGL::RenderSystem>& renderSystem, con
 	}
 	mPipeline = renderSystem->CreatePipelineState(pipelineDesc);
 
-	_CreateResourceHeap(renderSystem, textures);
+	_CreateResourceHeap(renderSystem);
 
 	mVertexBuffer = renderSystem->CreateBuffer(
 		VertexBufferDesc(static_cast<std::uint32_t>(mVertices.size() * sizeof(Vertex)),
@@ -108,10 +107,11 @@ void SpritePipeline::Init(std::unique_ptr<LLGL::RenderSystem>& renderSystem, con
 	);
 }
 
-void SpritePipeline::_CreateResourceHeap(const std::unique_ptr<LLGL::RenderSystem>& renderSystem,
-                                         const TextureMap& textures)
+void SpritePipeline::_CreateResourceHeap(const std::shared_ptr<LLGL::RenderSystem>& renderSystem)
 {
 	// Resource Heap
+	const auto textures = ResourceManager::LoadAllTexturesFromFolder(renderSystem, TEXTURES_FOLDER);
+
 	LLGL::ResourceHeapDescriptor resourceHeapDesc;
 	{
 		resourceHeapDesc.pipelineLayout = mPipelineLayout;
@@ -120,8 +120,8 @@ void SpritePipeline::_CreateResourceHeap(const std::unique_ptr<LLGL::RenderSyste
 		for (const auto& texture : textures)
 		{
 			resourceHeapDesc.resourceViews.emplace_back(mConstantBuffer);
-			resourceHeapDesc.resourceViews.emplace_back(&texture.second->GetTextureData());
-			resourceHeapDesc.resourceViews.emplace_back(&texture.second->GetSamplerData());
+			resourceHeapDesc.resourceViews.emplace_back(&texture->GetTextureData());
+			resourceHeapDesc.resourceViews.emplace_back(&texture->GetSamplerData());
 		}
 	}
 	mResourceHeap = renderSystem->CreateResourceHeap(resourceHeapDesc);
