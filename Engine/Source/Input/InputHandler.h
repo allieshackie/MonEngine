@@ -3,6 +3,7 @@
 #include <queue>
 #include "LLGL/Window.h"
 
+class Camera;
 class Window;
 
 enum class KeyStates
@@ -34,7 +35,14 @@ struct InputEvent
 class InputHandler : public LLGL::Window::EventListener
 {
 public:
-	friend class InputManager;
+	void RegisterButtonUpHandler(LLGL::Key keyCode, const std::function<void()>& callback);
+	void RegisterButtonDownHandler(LLGL::Key keyCode, const std::function<void()>& callback);
+
+	void RegisterMouseMoveHandler(const std::function<void(LLGL::Offset2D)>& callback);
+	void RegisterZoomInHandler(const std::function<void()>& callback);
+	void RegisterZoomOutHandler(const std::function<void()>& callback);
+
+	void AddEditorInputs(Camera& camera);
 
 protected:
 	void OnKeyDown(LLGL::Window& sender, LLGL::Key keyCode) override;

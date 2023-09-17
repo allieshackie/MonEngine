@@ -1,7 +1,65 @@
 #include "imgui.h"
+#include "Core/Camera.h"
 #include "GUI/GUISystem.h"
 
 #include "InputHandler.h"
+
+void InputHandler::RegisterButtonUpHandler(LLGL::Key keyCode, const std::function<void()>& callback)
+{
+	const auto& handler = mButtonUpHandlers.find(keyCode);
+	if (handler != mButtonUpHandlers.end())
+	{
+		handler->second.push_back({callback});
+	}
+	else
+	{
+		mButtonUpHandlers.insert({keyCode, {callback}});
+	}
+}
+
+void InputHandler::RegisterButtonDownHandler(LLGL::Key keyCode, const std::function<void()>& callback)
+{
+	const auto& handler = mButtonDownHandlers.find(keyCode);
+	if (handler != mButtonDownHandlers.end())
+	{
+		handler->second.push_back({callback});
+	}
+	else
+	{
+		mButtonDownHandlers.insert({keyCode, {callback}});
+	}
+}
+
+void InputHandler::RegisterMouseMoveHandler(const std::function<void(LLGL::Offset2D)>& callback)
+{
+	mMouseMoveCallbacks.push_back(callback);
+}
+
+void InputHandler::RegisterZoomInHandler(const std::function<void()>& callback)
+{
+	mZoomInCallback = callback;
+}
+
+void InputHandler::RegisterZoomOutHandler(const std::function<void()>& callback)
+{
+	mZoomOutCallback = callback;
+}
+
+void InputHandler::AddEditorInputs(Camera& camera)
+{
+	// Register camera handlers for moving the camera position
+	// If the mCameraFront remains the same, this will result in the
+	// camera view angling.  We can adjust the mCameraFront.xy to match the
+	// camera position so that the view will not angle
+	RegisterButtonUpHandler(LLGL::Key::Up, [&camera]() { camera.MoveUp(); });
+	RegisterButtonUpHandler(LLGL::Key::Down, [&camera]() { camera.MoveDown(); });
+	RegisterButtonUpHandler(LLGL::Key::Left, [&camera]() { camera.MoveLeft(); });
+	RegisterButtonUpHandler(LLGL::Key::Right, [&camera]() { camera.MoveRight(); });
+
+	// Handlers for handling the camera zoom
+	RegisterZoomInHandler([&camera]() { camera.ZoomIn(); });
+	RegisterZoomOutHandler([&camera]() { camera.ZoomOut(); });
+}
 
 void InputHandler::OnKeyDown(LLGL::Window& sender, LLGL::Key keyCode)
 {
