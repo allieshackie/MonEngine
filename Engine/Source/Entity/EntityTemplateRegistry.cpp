@@ -1,15 +1,16 @@
 #include <filesystem>
 #include <nlohmann/json.hpp>
+
+#include "Core/FileSystem.h"
 #include "Descriptions/DescriptionFactory.h"
 
 #include "EntityTemplateRegistry.h"
 
 namespace fs = std::filesystem;
 
-EntityTemplateRegistry::EntityTemplateRegistry(DescriptionFactory& descriptionFactory, const std::string& path)
-	: mDescriptionFactory(descriptionFactory)
+EntityTemplateRegistry::EntityTemplateRegistry(const DescriptionFactory& descriptionFactory)
 {
-	RegisterEntityTemplates(path);
+	RegisterEntityTemplates(descriptionFactory);
 }
 
 std::vector<std::shared_ptr<DescriptionBase>>& EntityTemplateRegistry::GetEntityTemplateDescriptions(
@@ -19,10 +20,10 @@ std::vector<std::shared_ptr<DescriptionBase>>& EntityTemplateRegistry::GetEntity
 	return it->second;
 }
 
-void EntityTemplateRegistry::RegisterEntityTemplates(const std::string& path)
+void EntityTemplateRegistry::RegisterEntityTemplates(const DescriptionFactory& descriptionFactory)
 {
 	std::vector<char*> fileNames;
-	for (const auto& entry : fs::directory_iterator(path))
+	for (const auto& entry : fs::directory_iterator(ENTITIES_FOLDER))
 	{
 		fileNames.push_back(_strdup(entry.path().filename().string().c_str()));
 	}
@@ -30,22 +31,18 @@ void EntityTemplateRegistry::RegisterEntityTemplates(const std::string& path)
 	for (const auto fileName : fileNames)
 	{
 		// parse and serialize JSON
-		std::string fullFileName = path;
+		std::string fullFileName = ENTITIES_FOLDER;
 		fullFileName += fileName;
 
-		std::ifstream ifs(fullFileName.c_str());
-
-		auto json = nlohmann::json::parse(ifs, nullptr, false, true);
+		auto json = FileSystem::ReadJson(fullFileName);
 
 		std::string templateName = json[TEMPLATE_NAME_STRING];
 		std::vector<std::shared_ptr<DescriptionBase>> descriptions;
 		for (auto& [key, value] : json[COMPONENTS_STRING].items())
 		{
-			descriptions.push_back(mDescriptionFactory.CreateDescription(key, value));
+			descriptions.push_back(descriptionFactory.CreateDescription(key, value));
 		}
 
 		mEntityTemplates.insert({templateName, descriptions});
-
-		ifs.close();
 	}
 }
