@@ -8,16 +8,27 @@
 
 #include "ResourceManager.h"
 
+std::unordered_map<std::string, int> ResourceManager::mTextureIds;
+
 std::vector<std::unique_ptr<Texture>> ResourceManager::LoadAllTexturesFromFolder(
-	const std::shared_ptr<LLGL::RenderSystem>& renderSystem,
-	const std::string& texturesFolder)
+	const std::shared_ptr<LLGL::RenderSystem>& renderSystem)
 {
 	std::vector<std::unique_ptr<Texture>> textures;
 	int textureId = 0;
-	for (const auto& entry : std::filesystem::directory_iterator(texturesFolder))
+	for (const auto& entry : std::filesystem::directory_iterator(TEXTURES_FOLDER))
 	{
-		textures.push_back(_LoadTexture(renderSystem, entry.path().string()));
-		mTextureIds[entry.path().string()] = textureId++;
+		auto fullPath = entry.path().string();
+		textures.push_back(_LoadTexture(renderSystem, fullPath));
+
+		const size_t pos = fullPath.find(TEXTURES_FOLDER);
+
+		// Check if the substring was found
+		if (pos != std::string::npos)
+		{
+			// Erase the substring from the original string
+			fullPath.erase(pos, std::strlen(TEXTURES_FOLDER));
+		}
+		mTextureIds[fullPath] = textureId++;
 	}
 
 	return textures;
@@ -25,7 +36,13 @@ std::vector<std::unique_ptr<Texture>> ResourceManager::LoadAllTexturesFromFolder
 
 int ResourceManager::GetTextureId(const std::string& textureName)
 {
-	return static_cast<int>(std::hash<std::string>{}(textureName));
+	const auto it = mTextureIds.find(textureName);
+	if (it != mTextureIds.end())
+	{
+		return it->second;
+	}
+
+	return -1;
 }
 
 std::unique_ptr<Texture> ResourceManager::_LoadTexture(const std::shared_ptr<LLGL::RenderSystem>& renderSystem,
