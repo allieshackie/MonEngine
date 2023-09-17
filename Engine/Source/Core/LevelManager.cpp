@@ -1,10 +1,12 @@
 #include "Core/Camera.h"
-#include "Map/MapSystem.h"
+#include "Core/EngineContext.h"
+#include "Entity/Components/TransformComponent.h"
+#include "Map/MapRegistry.h"
 
 #include "LevelManager.h"
 
-LevelManager::LevelManager(std::string levelsFolderPath, MapSystem& mapSystem)
-	: mLevelsFolderPath(std::move(levelsFolderPath)), mMapSystem(mapSystem)
+LevelManager::LevelManager(MapRegistry& mapRegistry)
+	: mMapRegistry(mapRegistry)
 {
 }
 
@@ -25,10 +27,10 @@ std::unique_ptr<Level>& LevelManager::GetCurrentLevel()
 	return std::prev(mLevels.end())->second;
 }
 
-void LevelManager::LoadLevel(const std::string& levelName)
+void LevelManager::LoadLevel(const std::string& levelName, const EngineContext& context)
 {
 	// parse and serialize JSON
-	std::string fullFileName = mLevelsFolderPath;
+	std::string fullFileName = LEVELS_FOLDER;
 	fullFileName.append(levelName);
 
 	auto level = std::make_unique<Level>(fullFileName);
@@ -36,10 +38,15 @@ void LevelManager::LoadLevel(const std::string& levelName)
 	// Create Map
 	if (const auto& mapData = level->GetMapData())
 	{
-		mMapSystem.CreateMap(mapData->name, mapData->position, mapData->rotation, mapData->tileSize);
+		mMapRegistry.OpenMap(mapData->name, mapData->position, mapData->rotation, mapData->tileSize);
 	}
 
-	// TODO: Create GameObjects
+	for (const auto& entity : level->GetEntityDefinitions())
+	{
+		const auto entityId = context.CreateGameObject(entity.name);
+		auto& transformComponent = context.GetComponent<TransformComponent>(entityId);
+		transformComponent.mPosition = entity.position;
+	}
 
 	mLevels.insert(std::make_pair(levelName, std::move(level)));
 }

@@ -2,11 +2,10 @@
 
 #include "EntityRegistry.h"
 
-EntityRegistry::EntityRegistry(DescriptionFactory& descriptionFactory, const std::string& entitiesFolderPath,
-                               EventPublisher& eventPublisher)
+EntityRegistry::EntityRegistry(DescriptionFactory& descriptionFactory, EventPublisher& eventPublisher)
 	: mEventPublisher(eventPublisher)
 {
-	mEntityTemplateRegistry = std::make_unique<EntityTemplateRegistry>(descriptionFactory, entitiesFolderPath);
+	mEntityTemplateRegistry = std::make_unique<EntityTemplateRegistry>(descriptionFactory);
 }
 
 EnTTRegistry& EntityRegistry::GetEnttRegistry()

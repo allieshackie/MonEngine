@@ -1,5 +1,8 @@
 #pragma once
 
+class Camera;
+class InputHandler;
+
 class GUIBase
 {
 public:
@@ -7,4 +10,8 @@ public:
 	virtual ~GUIBase() = default;
 
 	virtual void RenderGUI() = 0;
+
+	virtual void InitGUIInputs(InputHandler& inputHandler)
+	{
+	}
 };

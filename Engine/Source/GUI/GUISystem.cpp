@@ -5,7 +5,7 @@
 #include "LLGL/Key.h"
 #include "LLGL/Platform/Win32/Win32NativeHandle.h"
 
-#include "Graphics/Core/RenderContext.h"
+#include "Graphics/RenderContext.h"
 
 #include "GUISystem.h"
 

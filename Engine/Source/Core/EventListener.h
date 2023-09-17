@@ -29,11 +29,16 @@ public:
 	{
 	}
 
+	const EventFunc& GetHandlerFunc() const;
+	const std::string& GetEventType() const;
+	const PublishList::iterator& GetPublishListIterator() const;
+
+	void SetEventType(const std::string& event);
+	void SetPublishListIterator(const PublishList::iterator it);
+
 private:
 	EventFunc mHandlerFunc;
 
 	std::string mEventType;
 	PublishList::iterator mIterator;
-
-	friend class EventPublisher;
 };

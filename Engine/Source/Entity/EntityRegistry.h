@@ -34,8 +34,7 @@ class DescriptionFactory;
 class EntityRegistry
 {
 public:
-	EntityRegistry(DescriptionFactory& descriptionFactory, const std::string& entitiesFolderPath,
-	               EventPublisher& eventPublisher);
+	EntityRegistry(DescriptionFactory& descriptionFactory, EventPublisher& eventPublisher);
 	~EntityRegistry() = default;
 	EntityRegistry(const EntityRegistry& other) = delete;
 	void operator=(const EntityRegistry&) = delete;

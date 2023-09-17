@@ -7,15 +7,16 @@
 
 struct MapData
 {
-	MapData(std::string _name, glm::vec3 _position, glm::vec3 _rotation, float _tileSize)
-		: name(std::move(_name)), position(_position), rotation(_rotation), tileSize(_tileSize)
-	{
-	}
-
 	std::string name;
 	glm::vec3 position;
 	glm::vec3 rotation;
 	float tileSize = 0.0f;
+};
+
+struct EntityData
+{
+	std::string name;
+	glm::vec3 position;
 };
 
 // TODO: Level definition, we'll need to save out level later
@@ -28,7 +29,7 @@ public:
 	const std::unique_ptr<Camera>& GetCamera() const { return mCamera; }
 
 	const std::unique_ptr<MapData>& GetMapData() const { return mMapData; }
-	const std::vector<nlohmann::json>& GetEntityDefinitions() const { return mEntityDefinitions; }
+	const std::vector<EntityData>& GetEntityDefinitions() const { return mEntityDefinitions; }
 
 private:
 	void _ParseJson(const nlohmann::json& json);
@@ -46,10 +47,10 @@ private:
 	static constexpr char ENTITIES_STRING[] = "entities";
 
 	// runtime data
-	std::unique_ptr<Camera> mCamera;
+	std::unique_ptr<Camera> mCamera = nullptr;
 	std::vector<std::unique_ptr<GameObject>> mGameObjects;
 
 	// initialization data
-	std::unique_ptr<MapData> mMapData;
-	std::vector<nlohmann::json> mEntityDefinitions;
+	std::unique_ptr<MapData> mMapData = nullptr;
+	std::vector<EntityData> mEntityDefinitions;
 };
