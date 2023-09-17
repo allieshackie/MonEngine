@@ -9,4 +9,6 @@ public:
 
 	void Update(float dt) const override;
 	void RegisterEntityDescriptions() const override;
+private:
+	void _Init();
 };

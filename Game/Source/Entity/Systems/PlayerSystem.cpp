@@ -1,14 +1,11 @@
-#include "LLGL/Key.h"
 #include "Entity/EntityRegistry.h"
-#include "Input/InputManager.h"
 #include "Entity/Components/PlayerComponent.h"
 #include "Entity/Components/TransformComponent.h"
 
 #include "PlayerSystem.h"
 
-
-PlayerSystem::PlayerSystem(EntityRegistry& entityRegistry, InputManager& inputManager)
-	: mEntityRegistry(entityRegistry), mInputManager(inputManager)
+PlayerSystem::PlayerSystem(EntityRegistry& entityRegistry)
+	: mEntityRegistry(entityRegistry)
 {
 }
 
@@ -23,41 +20,44 @@ void PlayerSystem::SpawnPlayer(glm::vec3 spawnPoint)
 		transform.mPosition = spawnPoint;
 	}
 
-	mInputManager.registerButtonDownHandler(LLGL::Key::Up, [=]()
+	/*
+	 *
+	mInputHandler.RegisterButtonDownHandler(LLGL::Key::Up, [=]()
 	{
 		_MoveForward(true);
 	});
-	mInputManager.registerButtonUpHandler(LLGL::Key::Up, [=]()
+	mInputHandler.RegisterButtonUpHandler(LLGL::Key::Up, [=]()
 	{
 		_MoveForward(false);
 	});
 
-	mInputManager.registerButtonDownHandler(LLGL::Key::Down, [=]()
+	mInputHandler.RegisterButtonDownHandler(LLGL::Key::Down, [=]()
 	{
 		_MoveBackward(true);
 	});
-	mInputManager.registerButtonUpHandler(LLGL::Key::Down, [=]()
+	mInputHandler.RegisterButtonUpHandler(LLGL::Key::Down, [=]()
 	{
 		_MoveBackward(false);
 	});
 
-	mInputManager.registerButtonDownHandler(LLGL::Key::Left, [=]()
+	mInputHandler.RegisterButtonDownHandler(LLGL::Key::Left, [=]()
 	{
 		_MoveLeft(true);
 	});
-	mInputManager.registerButtonUpHandler(LLGL::Key::Left, [=]()
+	mInputHandler.RegisterButtonUpHandler(LLGL::Key::Left, [=]()
 	{
 		_MoveLeft(false);
 	});
 
-	mInputManager.registerButtonDownHandler(LLGL::Key::Right, [=]()
+	mInputHandler.RegisterButtonDownHandler(LLGL::Key::Right, [=]()
 	{
 		_MoveRight(true);
 	});
-	mInputManager.registerButtonUpHandler(LLGL::Key::Right, [=]()
+	mInputHandler.RegisterButtonUpHandler(LLGL::Key::Right, [=]()
 	{
 		_MoveRight(false);
 	});
+	 */
 }
 
 glm::vec3 PlayerSystem::GetPlayerPosition() const

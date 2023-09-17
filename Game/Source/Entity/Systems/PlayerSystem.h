@@ -2,12 +2,10 @@
 #include <glm/vec3.hpp>
 #include "Entity/EntityRegistry.h"
 
-class InputManager;
-
 class PlayerSystem
 {
 public:
-	PlayerSystem(EntityRegistry& entityRegistry, InputManager& inputManager);
+	PlayerSystem(EntityRegistry& entityRegistry);
 	~PlayerSystem() = default;
 
 	void SpawnPlayer(glm::vec3 spawnPoint);
@@ -24,5 +22,4 @@ private:
 	EntityId mPlayerEntity;
 
 	EntityRegistry& mEntityRegistry;
-	InputManager& mInputManager;
 };
