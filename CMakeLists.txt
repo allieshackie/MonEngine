@@ -80,17 +80,6 @@ target_include_directories(imgui PUBLIC
     ${THIRD_PARTY_DIR}/imgui
 )
 
-set(GLAD_SRC 
-  ${THIRD_PARTY_DIR}/glad/src/glad.c
-)
-add_library(glad ${GLAD_SRC})
-
-set_property(TARGET glad PROPERTY FOLDER "ThirdParty")
-
-target_include_directories(glad PUBLIC 
-  ${THIRD_PARTY_DIR}/glad/include
-)
-
 # SDL + SDL Image 
 # find_package(SDL2 REQUIRED)
 # find_package(SDL2_image REQUIRED)

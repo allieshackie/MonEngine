@@ -13,6 +13,17 @@ add_library(MonEngine ${SOURCES})
 
 set_property(TARGET MonEngine PROPERTY VS_FOLDER "")
 
+set(GLAD_SRC 
+    ${PROJECT_SOURCE_DIR}/Engine/Lib/glad/src/glad.c
+)
+add_library(glad ${GLAD_SRC})
+
+set_property(TARGET glad PROPERTY FOLDER "ThirdParty")
+
+target_include_directories(glad PUBLIC 
+    ${PROJECT_SOURCE_DIR}/Engine/Lib/glad/include
+)
+
 target_precompile_headers(
     MonEngine 
     PRIVATE
