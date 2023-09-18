@@ -1,12 +1,12 @@
 # Generate Solution -> cmake -B ./Build
-# cmake -B ./Build -DBUILD_GAME=ON
+# cmake -B ./Build -DMON_DEV_BUILD_GAME=ON
 
 cmake_minimum_required(VERSION 3.18.2)
 
 #  ============== PROJECT ================
 project(MonDev)
 
-option(BUILD_GAME "Build the game" ON)
+option(MON_DEV_BUILD_GAME "Build the game" ON)
 
 # ============== CONFIG ================
 
@@ -29,7 +29,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 
 # ============== MACROS ==============
-# TODO: Could add a check for BUILD_GAME that allows these macros to be defined in Game cmake
+# TODO: Could add a check for MON_DEV_BUILD_GAME that allows these macros to be defined in Game cmake
 # else default to macros defined by engine for testing
 add_compile_definitions(ENTITIES_FOLDER="D:/dev/MonDev/Game/Data/Entities/")
 add_compile_definitions(FONTS_FOLDER="D:/dev/MonDev/Game/Data/Fonts/")
@@ -43,7 +43,7 @@ add_compile_definitions(TEXTURES_FOLDER="D:/dev/MonDev/Game/Data/Textures/")
 add_subdirectory(${PROJECT_SOURCE_DIR}/Engine)
 
 # ============== GAME ================
-if(${BUILD_GAME})
+if(${MON_DEV_BUILD_GAME})
   add_compile_definitions(BUILD_GAME)
   add_subdirectory(${PROJECT_SOURCE_DIR}/Game)
 endif()
