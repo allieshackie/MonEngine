@@ -10,7 +10,7 @@ option(BUILD_GAME "Build the game" ON)
 
 # ============== CONFIG ================
 
-set(THIRD_PARTY_DIR ${CMAKE_SOURCE_DIR}/ThirdParty)
+set(THIRD_PARTY_DIR ${PROJECT_SOURCE_DIR}/ThirdParty)
 
 macro(ADD_DEFINE IDENT)
     add_definitions("-D${IDENT}")
