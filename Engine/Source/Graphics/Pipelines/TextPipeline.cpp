@@ -14,9 +14,11 @@
 
 #include "TextPipeline.h"
 
+#include "Core/FileSystem.h"
+
 struct FontData
 {
-	const uint32_t mSize = 20;
+	const uint32_t mSize = 40;
 	const uint32_t mAtlasWidth = 1024;
 	const uint32_t mAtlasHeight = 1024;
 	const uint32_t mFontOverSampleX = 2;
@@ -34,19 +36,26 @@ void TextPipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pv
 		commandBuffer.SetPipelineState(*mPipeline);
 		commandBuffer.SetVertexBuffer(*mesh->mVertexBuffer);
 		commandBuffer.SetIndexBuffer(*mesh->mIndexBuffer);
-
-		// TODO: Do we need a resource heap for this to work?
-		//commandBuffer.SetResourceHeap(*mResourceHeap, 0);
-		commandBuffer.SetResource(*mConstantBuffer, 0, LLGL::BindFlags::ConstantBuffer, LLGL::StageFlags::VertexStage);
-		commandBuffer.SetResource(mTextureAtlas->GetTextureData(), 1, LLGL::BindFlags::Sampled,
-		                          LLGL::StageFlags::FragmentStage);
-		commandBuffer.SetResource(mTextureAtlas->GetSamplerData(), 1, 0,
-		                          LLGL::StageFlags::FragmentStage);
+		commandBuffer.SetResourceHeap(*mResourceHeap, 0);
 
 		_UpdateUniforms(commandBuffer, pvMat, mesh->mPosition, mesh->mSize);
 
 		commandBuffer.DrawIndexed(mesh->mIndexCount, 0);
 	}
+}
+
+void TextPipeline::_CreateResourceHeap(const std::shared_ptr<LLGL::RenderSystem>& renderSystem)
+{
+	LLGL::ResourceHeapDescriptor resourceHeapDesc;
+	{
+		resourceHeapDesc.pipelineLayout = mPipelineLayout;
+		resourceHeapDesc.resourceViews.reserve(3);
+
+		resourceHeapDesc.resourceViews.emplace_back(mConstantBuffer);
+		resourceHeapDesc.resourceViews.emplace_back(&mTextureAtlas->GetTextureData());
+		resourceHeapDesc.resourceViews.emplace_back(&mTextureAtlas->GetSamplerData());
+	}
+	mResourceHeap = renderSystem->CreateResourceHeap(resourceHeapDesc);
 }
 
 // Orthographic Projection
@@ -65,7 +74,9 @@ void TextPipeline::_UpdateUniforms(LLGL::CommandBuffer& commandBuffer, const glm
 
 void TextPipeline::LoadFont(const std::shared_ptr<LLGL::RenderSystem>& renderSystem, const char* fontFile)
 {
-	auto fontData = _ReadFontFromFileTTF(fontFile);
+	std::string fullPath = FONTS_FOLDER;
+	fullPath.append(fontFile);
+	auto fontData = FileSystem::ReadBytes(fullPath);
 	std::vector<uint8_t> atlasData(_font.mAtlasWidth * _font.mAtlasHeight);
 
 	_font.mCharInfo = std::make_unique<stbtt_packedchar[]>(_font.mCharCount);
@@ -91,28 +102,8 @@ void TextPipeline::LoadFont(const std::shared_ptr<LLGL::RenderSystem>& renderSys
 
 	mTextureAtlas = std::make_unique<Texture>(renderSystem, atlasData.data(), _font.mAtlasWidth,
 	                                          _font.mAtlasHeight, true);
-}
 
-std::vector<uint8_t> TextPipeline::_ReadFontFromFileTTF(const char* fontFile) const
-{
-	/* load font file */
-	std::string fullPath = FONTS_FOLDER;
-	fullPath.append(fontFile);
-
-	std::ifstream file(fullPath.c_str(), std::ios::binary | std::ios::ate);
-	if (!file.is_open())
-	{
-		assert(false);
-		return {};
-	}
-
-	const auto size = file.tellg();
-	file.seekg(0, std::ios::beg);
-	auto bytes = std::vector<uint8_t>(size);
-	file.read(reinterpret_cast<char*>(&bytes[0]), size);
-	file.close();
-
-	return bytes;
+	_CreateResourceHeap(renderSystem);
 }
 
 void TextPipeline::CreateTextMesh(std::shared_ptr<LLGL::RenderSystem>& renderSystem, const std::string& text,
@@ -128,7 +119,7 @@ void TextPipeline::CreateTextMesh(std::shared_ptr<LLGL::RenderSystem>& renderSys
 	if (_font.mCharInfo)
 	{
 		uint32_t lastIndex = 0;
-		float offsetX = 0, offsetY = 0;
+		float offsetX = 0, offsetY = static_cast<float>(_font.mSize) / 2.0f;
 		for (const char c : text)
 		{
 			const auto glyphInfo = _GenerateGlyphInfo(c, offsetX, offsetY);
@@ -218,7 +209,7 @@ void TextPipeline::Init(std::shared_ptr<LLGL::RenderSystem>& renderSystem)
 
 	// All layout bindings that will be used by graphics and compute pipelines
 	// Create pipeline layout
-	auto pipelineLayout = renderSystem->CreatePipelineLayout(
+	mPipelineLayout = renderSystem->CreatePipelineLayout(
 		LLGL::PipelineLayoutDesc("cbuffer(0):vert:frag,texture(0):frag, sampler(0):frag"));
 
 	// Create graphics pipeline
@@ -226,7 +217,7 @@ void TextPipeline::Init(std::shared_ptr<LLGL::RenderSystem>& renderSystem)
 	{
 		pipelineDesc.vertexShader = &mShader->GetVertexShader();
 		pipelineDesc.fragmentShader = &mShader->GetFragmentShader();
-		pipelineDesc.pipelineLayout = pipelineLayout;
+		pipelineDesc.pipelineLayout = mPipelineLayout;
 		pipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::TriangleList;
 	}
 	mPipeline = renderSystem->CreatePipelineState(pipelineDesc);

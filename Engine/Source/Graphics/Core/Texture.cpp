@@ -173,13 +173,6 @@ bool Texture::_CreateSingleChannelTextureFromData(const std::shared_ptr<LLGL::Re
 
 void Texture::_CreateSampler(const std::shared_ptr<LLGL::RenderSystem>& renderer)
 {
-	// 1st sampler state with default settings
-	// Create nearest sampler
-	LLGL::SamplerDescriptor samplerDesc;
-	{
-		samplerDesc.minFilter = LLGL::SamplerFilter::Nearest;
-		samplerDesc.magFilter = LLGL::SamplerFilter::Nearest;
-		samplerDesc.mipMapFilter = LLGL::SamplerFilter::Nearest;
-	}
-	mSampler = renderer->CreateSampler(samplerDesc);
+	// Set sampler filters to have different effects
+	mSampler = renderer->CreateSampler(LLGL::SamplerDescriptor{});
 }

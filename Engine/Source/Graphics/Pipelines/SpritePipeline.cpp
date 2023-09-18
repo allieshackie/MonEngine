@@ -110,7 +110,7 @@ void SpritePipeline::Init(std::shared_ptr<LLGL::RenderSystem>& renderSystem)
 void SpritePipeline::_CreateResourceHeap(const std::shared_ptr<LLGL::RenderSystem>& renderSystem)
 {
 	// Resource Heap
-	const auto textures = ResourceManager::LoadAllTexturesFromFolder(renderSystem, TEXTURES_FOLDER);
+	const auto textures = ResourceManager::LoadAllTexturesFromFolder(renderSystem);
 
 	LLGL::ResourceHeapDescriptor resourceHeapDesc;
 	{

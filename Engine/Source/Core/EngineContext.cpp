@@ -27,14 +27,10 @@ void EngineContext::Init()
 	mMapRegistry = std::make_unique<MapRegistry>();
 	mTimer = std::make_unique<Timer>();
 
-	// Register exit button
-
 	mLevelManager = std::make_unique<LevelManager>(*mMapRegistry);
 
-	// systems
 	mCollisionSystem = std::make_unique<CollisionSystem>(*mEventPublisher);
 	mPhysicsSystem = std::make_unique<PhysicsSystem>();
-
 
 	// TODO: Example
 	mRenderContext->LoadFont("PixelLettersFull.ttf");

@@ -109,9 +109,8 @@ void RenderContext::BeginFrame() const
 void RenderContext::Render(const std::unique_ptr<Camera>& camera, EntityRegistry& entityRegistry) const
 {
 	const auto perspectiveViewMat = mPerspectiveProjection * camera->GetView();
-	const auto orthoViewMat = mPerspectiveProjection * camera->GetView();
+	const auto orthoViewMat = mOrthoProjection * camera->GetView();
 
-	// TODO: Pass EntityRegistry
 	// TODO: Call GUI draw manually in EngineContext!
 
 	//mMapPipeline->Render(*mCommands, perspectiveViewMat);
@@ -167,7 +166,12 @@ glm::mat4 RenderContext::GetPerspectiveProjection() const
 	return mPerspectiveProjection;
 }
 
-void RenderContext::_InitWindow(std::shared_ptr<InputHandler>& inputHandler) const
+void RenderContext::ResizeBuffers(const LLGL::Extent2D& size) const
+{
+	mSwapChain->ResizeBuffers(size);
+}
+
+void RenderContext::_InitWindow(const std::shared_ptr<InputHandler>& inputHandler)
 {
 	// get window from context surface
 	auto& window = LLGL::CastTo<LLGL::Window>(mSwapChain->GetSurface());
@@ -181,11 +185,10 @@ void RenderContext::_InitWindow(std::shared_ptr<InputHandler>& inputHandler) con
 	window.SetDesc(wndDesc);
 
 	// Change window behavior
-	const LLGL::WindowBehavior newBehavior = {true, 1};
-	window.SetBehavior(newBehavior);
+	window.SetBehavior({true, 1});
 
 	// Add window resize listener
-	//window.AddEventListener(std::make_shared<ResizeEventHandler>(mRenderer, *this, &mRenderer.GetSwapChain()));
+	window.AddEventListener(std::make_shared<ResizeEventHandler>(*this));
 
 	window.Show();
 

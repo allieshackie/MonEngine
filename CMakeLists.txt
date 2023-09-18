@@ -58,6 +58,10 @@ add_subdirectory(${THIRD_PARTY_DIR}/glm)
 set_property(TARGET uninstall PROPERTY FOLDER "ThirdParty")
 
 add_subdirectory(${THIRD_PARTY_DIR}/LLGL)
+set_target_properties(LLGL PROPERTIES FOLDER LLGL)
+set_target_properties(LLGL_Direct3D11 PROPERTIES FOLDER LLGL)
+set_target_properties(LLGL_Null PROPERTIES FOLDER LLGL)
+set_target_properties(LLGL_OpenGL PROPERTIES FOLDER LLGL)
 
 set(IMGUI_SRC 
   ${THIRD_PARTY_DIR}/imgui/imgui.cpp

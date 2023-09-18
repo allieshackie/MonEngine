@@ -48,14 +48,16 @@ public:
 	                    glm::vec2 size);
 
 private:
+	void _CreateResourceHeap(const std::shared_ptr<LLGL::RenderSystem>& renderSystem);
 	void _UpdateUniforms(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat, glm::vec3 pos,
 	                     glm::vec3 size) const;
 
 	GlyphInfo _GenerateGlyphInfo(uint32_t character, float offsetX, float offsetY);
-	std::vector<uint8_t> _ReadFontFromFileTTF(const char* fontFile) const;
 
 	std::shared_ptr<Texture> mTextureAtlas;
 
+	LLGL::ResourceHeap* mResourceHeap = nullptr;
+	LLGL::PipelineLayout* mPipelineLayout = nullptr;
 	LLGL::PipelineState* mPipeline = nullptr;
 	std::unique_ptr<Shader> mShader = nullptr;
 

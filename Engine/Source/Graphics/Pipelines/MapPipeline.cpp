@@ -152,7 +152,7 @@ void MapPipeline::_CreateResourceHeap(const std::shared_ptr<LLGL::RenderSystem>&
 	}
 	const auto sampler = renderSystem->CreateSampler(samplerDesc);
 
-	const auto textures = ResourceManager::LoadAllTexturesFromFolder(renderSystem, TEXTURES_FOLDER);
+	const auto textures = ResourceManager::LoadAllTexturesFromFolder(renderSystem);
 
 	LLGL::ResourceHeapDescriptor resourceHeapDesc;
 	{

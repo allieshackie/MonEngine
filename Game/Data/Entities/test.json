@@ -7,7 +7,7 @@
             "rotation": [0,0,0]
         },
         "sprite": {
-            "resource_path": "awesomeface.png"
+            "resource_path": "tiles.jpg"
         }
     }
 }

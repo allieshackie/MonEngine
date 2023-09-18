@@ -13,9 +13,8 @@ class ResourceManager
 public:
 	ResourceManager() = default;
 
-	std::vector<std::unique_ptr<Texture>> LoadAllTexturesFromFolder(
-		const std::shared_ptr<LLGL::RenderSystem>& renderSystem,
-		const std::string& texturesFolder);
+	static std::vector<std::unique_ptr<Texture>> LoadAllTexturesFromFolder(
+		const std::shared_ptr<LLGL::RenderSystem>& renderSystem);
 
 	static int GetTextureId(const std::string& textureName);
 
@@ -27,5 +26,5 @@ private:
 	static std::unique_ptr<Texture> _LoadTexture(const std::shared_ptr<LLGL::RenderSystem>& renderSystem,
 	                                             const std::string& filePath);
 
-	std::unordered_map<std::string, int> mTextureIds;
+	static std::unordered_map<std::string, int> mTextureIds;
 };

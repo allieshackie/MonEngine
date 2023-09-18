@@ -43,8 +43,10 @@ public:
 	void UpdateProjection();
 	glm::vec3 NormalizedDeviceCoords(glm::vec3 vec) const;
 	glm::mat4 GetPerspectiveProjection() const;
+
+	void ResizeBuffers(const LLGL::Extent2D& size) const;
 private:
-	void _InitWindow(std::shared_ptr<InputHandler>& inputHandler) const;
+	void _InitWindow(const std::shared_ptr<InputHandler>& inputHandler);
 
 	std::shared_ptr<LLGL::RenderSystem> mRenderSystem; // Render system
 	LLGL::SwapChain* mSwapChain = nullptr; // Main render context
@@ -61,8 +63,6 @@ private:
 	std::unique_ptr<TextPipeline> mTextPipeline;
 };
 
-/* TODO: Re-implement resize
- *
 class ResizeEventHandler : public LLGL::Window::EventListener
 {
 public:
@@ -75,25 +75,32 @@ public:
 		if (clientAreaSize.width >= 4 && clientAreaSize.height >= 4)
 		{
 			// Update swap buffers
-			mSwapChain->ResizeBuffers(clientAreaSize);
+			mRenderContext.ResizeBuffers(clientAreaSize);
+			mRenderContext.UpdateProjection();
 
 			// Re-draw frame
-			if (mWindow.isLoadingDone())
+			/*
+			 *
+			if (sender.isLoadingDone())
 			{
-				mRenderer.UpdateProjection();
-				mRenderer.Render();
+				//mRenderer.Render();
 			}
+			 */
 		}
 	}
 
 	void OnTimer(LLGL::Window& sender, std::uint32_t timerID) override
 	{
 		// Re-draw frame
+		/*
+		 *
 		if (mWindow.isLoadingDone())
-			mRenderer.Render();
+		{
+			//mRenderer.Render();
+		}
+		 */
 	}
 
 private:
 	RenderContext& mRenderContext;
 };
- */
