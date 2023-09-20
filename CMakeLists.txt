@@ -11,6 +11,7 @@ option(MON_DEV_BUILD_GAME "Build the game" ON)
 # ============== CONFIG ================
 
 set(THIRD_PARTY_DIR ${PROJECT_SOURCE_DIR}/ThirdParty)
+set(CMAKE_UTILS "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 macro(ADD_DEFINE IDENT)
     add_definitions("-D${IDENT}")
@@ -28,24 +29,54 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 
-# ============== MACROS ==============
-# TODO: Could add a check for MON_DEV_BUILD_GAME that allows these macros to be defined in Game cmake
-# else default to macros defined by engine for testing
-add_compile_definitions(ENTITIES_FOLDER="D:/dev/MonDev/Game/Data/Entities/")
-add_compile_definitions(FONTS_FOLDER="D:/dev/MonDev/Game/Data/Fonts/")
-add_compile_definitions(LEVELS_FOLDER="D:/dev/MonDev/Game/Data/Levels/")
-add_compile_definitions(MAPS_FOLDER="D:/dev/MonDev/Game/Data/Maps/")
-add_compile_definitions(MODELS_FOLDER="D:/dev/MonDev/Game/Data/Models/")
-add_compile_definitions(SHADERS_FOLDER="D:/dev/MonDev/Game/Data/Shaders/")
-add_compile_definitions(TEXTURES_FOLDER="D:/dev/MonDev/Game/Data/Textures/")
+# Macros must be defined before subdirectories are added
+# ============== MACROS ===============
+add_compile_definitions(ENTITIES_FOLDER="${CMAKE_BINARY_DIR}/Data/Entities/")
+add_compile_definitions(FONTS_FOLDER="${CMAKE_BINARY_DIR}/Data/Fonts/")
+add_compile_definitions(LEVELS_FOLDER="${CMAKE_BINARY_DIR}/Data/Levels/")
+add_compile_definitions(MAPS_FOLDER="${CMAKE_BINARY_DIR}/Data/Maps/")
+add_compile_definitions(MODELS_FOLDER="${CMAKE_BINARY_DIR}/Data/Models/")
+add_compile_definitions(SHADERS_FOLDER="${CMAKE_BINARY_DIR}/Data/Shaders/")
+add_compile_definitions(TEXTURES_FOLDER="${CMAKE_BINARY_DIR}/Data/Textures/")
+
+if(${MON_DEV_BUILD_GAME})
+  add_compile_definitions(BUILD_GAME)
+endif()
 
 # ============== ENGINE ==============
 add_subdirectory(${PROJECT_SOURCE_DIR}/Engine)
 
 # ============== GAME ================
 if(${MON_DEV_BUILD_GAME})
-  add_compile_definitions(BUILD_GAME)
   add_subdirectory(${PROJECT_SOURCE_DIR}/Game)
+endif()
+
+if (NOT EXISTS ${CMAKE_BINARY_DIR}/Data/Entities) 
+  message("MONDEV ERROR: Data/Entities folder isn't located in /Build")
+endif()
+
+if (NOT EXISTS ${CMAKE_BINARY_DIR}/Data/Fonts)
+  message("MONDEV ERROR: Data/Fonts folder isn't located in /Build")
+endif()
+
+if (NOT EXISTS ${CMAKE_BINARY_DIR}/Data/Levels)
+  message("MONDEV ERROR: Data/Levels folder isn't located in /Build")
+endif()
+
+if (NOT EXISTS ${CMAKE_BINARY_DIR}/Data/Maps)
+  message("MONDEV ERROR: Data/Maps folder isn't located in /Build")
+endif()
+
+if (NOT EXISTS ${CMAKE_BINARY_DIR}/Data/Models)
+  message("MONDEV ERROR: Data/Models folder isn't located in /Build")
+endif()
+
+if (NOT EXISTS ${CMAKE_BINARY_DIR}/Data/Shaders)
+  message("MONDEV ERROR: Data/Shaders folder isn't located in /Build")
+endif()
+
+if (NOT EXISTS ${CMAKE_BINARY_DIR}/Data/Textures)
+  message("MONDEV ERROR: Data/Textures folder isn't located in /Build")
 endif()
 
 # ============== THIRD PARTY ================

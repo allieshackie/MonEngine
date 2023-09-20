@@ -1,3 +1,4 @@
+#include "Editor/EditorGUI.h"
 #include "Entity/Descriptions/CollisionDescription.h"
 #include "Entity/Descriptions/PhysicsDescription.h"
 #include "Entity/Descriptions/PlayerDescription.h"
@@ -8,6 +9,7 @@
 #include "GUI/GUISystem.h"
 
 #include "EngineContext.h"
+
 
 void EngineContext::Init()
 {
@@ -36,9 +38,8 @@ void EngineContext::Init()
 	mRenderContext->LoadFont("PixelLettersFull.ttf");
 	mRenderContext->DrawText("Allie", {0, 0}, {1, 1});
 
-#ifdef BUILD_GAME
-	mGUIMenu = std::make_unique<EditorGUI>(*this, *mInputManager, *mLevelManager, *mMapSystem, *mRenderContext,
-		*mResourceManager);
+#ifndef BUILD_GAME
+	mGUIMenu = std::make_unique<EditorGUI>(*this, *mInputHandler, *mLevelManager, *mMapRegistry, *mRenderContext);
 #endif
 }
 
