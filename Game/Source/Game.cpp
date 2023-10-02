@@ -7,22 +7,19 @@
 
 int main()
 {
-	const auto app = std::make_unique<Game>();
-	app->Run();
+	const auto engine = std::make_unique<EngineContext>();
+	const auto game = new Game();
+
+	engine->Run(game);
 
 	return 0;
 }
 
-Game::Game()
+void Game::Init(EngineContext* engine)
 {
-	Init();
-	_Init();
-}
-
-void Game::_Init()
-{
-	auto gameGUI = std::make_unique<GameGUI>(*this);
-	SetGUIMenu(std::move(gameGUI));
+	mEngine = engine;
+	auto gameGUI = std::make_unique<GameGUI>(*mEngine);
+	mEngine->SetGUIMenu(std::move(gameGUI));
 }
 
 void Game::Update(float dt) const
@@ -32,5 +29,5 @@ void Game::Update(float dt) const
 
 void Game::RegisterEntityDescriptions() const
 {
-	RegisterDescription<InteractiveDescription>(InteractiveDescription::JsonName);
+	mEngine->RegisterDescription<InteractiveDescription>(InteractiveDescription::JsonName);
 }

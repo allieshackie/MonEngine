@@ -4,12 +4,11 @@
 #include "Entity/Descriptions/PlayerDescription.h"
 #include "Entity/Descriptions/SpriteDescription.h"
 #include "Entity/Descriptions/TransformDescription.h"
+#include "GameInterface.h"
 #include "Graphics/Debug/DebugDraw.h"
-#include "GUI/GUIBase.h"
 #include "GUI/GUISystem.h"
 
 #include "EngineContext.h"
-
 
 void EngineContext::Init()
 {
@@ -36,7 +35,7 @@ void EngineContext::Init()
 
 	// TODO: Example
 	mRenderContext->LoadFont("PixelLettersFull.ttf");
-	mRenderContext->DrawText("Allie", {0, 0}, {1, 1});
+	//mRenderContext->DrawText("Allie", {0, 0}, {1, 1});
 
 #ifndef BUILD_GAME
 	mGUIMenu = std::make_unique<EditorGUI>(*this, *mInputHandler, *mLevelManager, *mMapRegistry, *mRenderContext);
@@ -50,7 +49,7 @@ void EngineContext::SetGUIMenu(std::unique_ptr<GUIBase> gui)
 
 /*  
  * Draw the XYZ axis at 0,0,0
- * Note: Not ideal for debugging since the axises are drawn in world
+ * Note: Not ideal for debugging since the axises are drawn in world 
  * space and don't follow the camera
  * Ideally, this could be draw directly to screen space and remain in the view
  * like UI
@@ -68,8 +67,12 @@ void EngineContext::_DrawAxis() const
 	}
 }
 
-void EngineContext::Run() const
+void EngineContext::Run(GameInterface* game)
 {
+	Init();
+	game->Init(this);
+	game->RegisterEntityDescriptions();
+
 	// Init current time
 	mTimer->mCurrentTime = Clock::now();
 
@@ -92,7 +95,7 @@ void EngineContext::Run() const
 		while (mTimer->mAccumulator >= deltaTime)
 		{
 			_FixedUpdate(mTimer->mDT);
-			Update(mTimer->mDT);
+			game->Update(mTimer->mDT);
 			mTimer->mAccumulator -= deltaTime;
 		}
 
@@ -108,7 +111,7 @@ void EngineContext::Run() const
 
 		if (const auto& level = mLevelManager->GetCurrentLevel())
 		{
-			mRenderContext->Render(level->GetCamera(), *mEntityRegistry);
+			mRenderContext->Render(level->GetCamera(), *mEntityRegistry, *mMapRegistry);
 		}
 
 		mRenderContext->EndFrame();
@@ -124,9 +127,6 @@ void EngineContext::_InitDescriptions() const
 	mDescriptionFactory->RegisterDescription<PlayerDescription>(PlayerDescription::JsonName);
 	mDescriptionFactory->RegisterDescription<SpriteDescription>(SpriteDescription::JsonName);
 	mDescriptionFactory->RegisterDescription<TransformDescription>(TransformDescription::JsonName);
-
-	// Defined by Game 
-	RegisterEntityDescriptions();
 }
 
 void EngineContext::_FixedUpdate(float dt) const

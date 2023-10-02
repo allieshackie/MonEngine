@@ -7,10 +7,13 @@
 #include "Entity/Descriptions/DescriptionFactory.h"
 #include "Graphics/RenderContext.h"
 #include "Graphics/Core/ResourceManager.h"
+#include "GUI/GUIBase.h"
 #include "Input/InputHandler.h"
 #include "Map/MapRegistry.h"
 #include "Physics/CollisionSystem.h"
 #include "Physics/PhysicsSystem.h"
+
+class GameInterface;
 
 class EngineContext
 {
@@ -28,10 +31,8 @@ public:
 
 	void SetGUIMenu(std::unique_ptr<GUIBase> gui);
 
-	void Run() const;
-
-	virtual void Update(float dt) const = 0;
-	virtual void RegisterEntityDescriptions() const = 0;
+	void Init();
+	void Run(GameInterface* game);
 
 	void LoadFont(const char* fontFileName) const;
 
@@ -51,9 +52,6 @@ public:
 	static void DrawGrid(glm::vec3 position, glm::vec3 size, int rows, int columns);
 	void DrawText2D(const char* text, glm::vec2 position, glm::vec2 size);
 	void DrawText3D(const char* text, glm::vec3 position, glm::vec3 size);
-
-protected:
-	void Init();
 
 	template <typename T>
 	void RegisterDescription(const std::string& descriptionName) const
@@ -76,7 +74,7 @@ private:
 	std::unique_ptr<ResourceManager> mResourceManager = nullptr;
 
 	std::unique_ptr<LevelManager> mLevelManager = nullptr;
-	std::unique_ptr<GUIBase> mGUIMenu = nullptr;
+	std::unique_ptr<GUIBase> mGUIMenu;
 
 	std::unique_ptr<EntityRegistry> mEntityRegistry = nullptr;
 	std::unique_ptr<EventPublisher> mEventPublisher = nullptr;
