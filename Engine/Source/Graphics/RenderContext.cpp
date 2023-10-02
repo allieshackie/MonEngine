@@ -7,6 +7,8 @@
 
 #include "RenderContext.h"
 
+#include "Map/MapRegistry.h"
+
 static constexpr int SCREEN_WIDTH = 800;
 static constexpr int SCREEN_HEIGHT = 600;
 
@@ -101,19 +103,21 @@ void RenderContext::BeginFrame() const
 	mCommands->SetViewport(mSwapChain->GetResolution());
 
 	// TODO: Can we generate and save map textures?
-	//mMapPipeline->WriteQueuedMapTextures();
+	mMapPipeline->WriteQueuedMapTextures(mRenderSystem, *mCommands);
 
 	mCommands->BeginRenderPass(*mSwapChain);
 }
 
-void RenderContext::Render(const std::unique_ptr<Camera>& camera, EntityRegistry& entityRegistry) const
+void RenderContext::Render(const std::unique_ptr<Camera>& camera, EntityRegistry& entityRegistry,
+                           MapRegistry& mapRegistry) const
 {
 	const auto perspectiveViewMat = mPerspectiveProjection * camera->GetView();
 	const auto orthoViewMat = mOrthoProjection * camera->GetView();
 
-	// TODO: Call GUI draw manually in EngineContext!
-
-	//mMapPipeline->Render(*mCommands, perspectiveViewMat);
+	for (const auto& map : mapRegistry.GetAllMaps())
+	{
+		mMapPipeline->Render(*mCommands, perspectiveViewMat, map);
+	}
 	mTextPipeline->Render(*mCommands, orthoViewMat);
 	mSpritePipeline->Render(*mCommands, perspectiveViewMat, entityRegistry);
 	mDebugPipeline->Render(*mCommands, perspectiveViewMat);

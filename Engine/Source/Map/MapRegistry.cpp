@@ -8,8 +8,7 @@ void MapRegistry::OpenMap(const std::string& mapPath, glm::vec3 pos, glm::vec3 r
 	std::string fullMapPath = MAPS_FOLDER;
 	fullMapPath.append(mapPath);
 
-	auto map = std::make_shared<Map>(fullMapPath, pos, rotation, tileSize);
-	mMaps.push_back(std::move(map));
+	mMaps.emplace_back(std::make_unique<Map>(fullMapPath, pos, rotation, tileSize));
 }
 
 void MapRegistry::OpenMap(const std::string& mapPath)
@@ -17,8 +16,7 @@ void MapRegistry::OpenMap(const std::string& mapPath)
 	std::string fullMapPath = MAPS_FOLDER;
 	fullMapPath.append(mapPath);
 
-	auto map = std::make_shared<Map>(fullMapPath);
-	mMaps.push_back(std::move(map));
+	mMaps.push_back(std::make_unique<Map>(fullMapPath));
 	mCurrentFocusedMapIndex = static_cast<int>(mMaps.size()) - 1;
 }
 
@@ -27,9 +25,9 @@ const std::vector<std::shared_ptr<Map>>& MapRegistry::GetAllMaps()
 	return mMaps;
 }
 
-std::shared_ptr<Map> MapRegistry::GetCurrentMap()
+const std::shared_ptr<Map>& MapRegistry::GetCurrentMap()
 {
-	if (mCurrentFocusedMapIndex == -1) return nullptr;
+	if (mCurrentFocusedMapIndex == -1) return mEmptyMap;
 	return mMaps[mCurrentFocusedMapIndex];
 }
 

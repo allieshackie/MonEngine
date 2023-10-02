@@ -9,11 +9,8 @@ using PublishMap = std::unordered_map<std::string, PublishList>;
 class EventPublisher
 {
 public:
-	EventPublisher() = default;
-	~EventPublisher() = default;
-
-	std::shared_ptr<EventSubscription> AddListener(const std::string& eventType, EventFunc& callback);
-	void RemoveListener(const std::shared_ptr<EventSubscription>& sub);
+	void AddListener(const std::string& eventType, EventFunc& callback);
+	//void RemoveListener(const std::unique_ptr<EventSubscription>& sub);
 
 	void Notify(const std::string& eventType, int entityId, const std::type_info& typeInfo);
 
@@ -25,7 +22,12 @@ private:
 class EventSubscription
 {
 public:
-	EventSubscription(EventFunc& handlerFunc) : mHandlerFunc(std::move(handlerFunc))
+	EventSubscription(EventFunc handlerFunc) : mHandlerFunc(std::move(handlerFunc))
+	{
+	}
+
+	EventSubscription(EventFunc handlerFunc, std::string eventType, PublishList::iterator it) : mHandlerFunc(
+		std::move(handlerFunc)), mEventType(std::move(eventType)), mIterator(it)
 	{
 	}
 

@@ -11,14 +11,8 @@
 
 class Camera;
 class EntityRegistry;
-class GUIBase;
-class GUISystem;
 class InputHandler;
-class LevelManager;
-class MapEditor;
-class MapSystem;
-
-struct State;
+class MapRegistry;
 
 class RenderContext
 {
@@ -31,7 +25,8 @@ public:
 	void Init(std::shared_ptr<InputHandler>& inputHandler);
 
 	void BeginFrame() const;
-	void Render(const std::unique_ptr<Camera>& camera, EntityRegistry& entityRegistry) const;
+	void Render(const std::unique_ptr<Camera>& camera, EntityRegistry& entityRegistry,
+	            MapRegistry& mapRegistry) const;
 	void EndFrame() const;
 	bool ProcessEvents() const;
 

@@ -14,10 +14,12 @@ public:
 	void CloseMap(const std::string& mapId);
 
 	const std::vector<std::shared_ptr<Map>>& GetAllMaps();
-	std::shared_ptr<Map> GetCurrentMap();
+	const std::shared_ptr<Map>& GetCurrentMap();
 
 private:
 	std::vector<std::shared_ptr<Map>> mMaps;
+
+	std::shared_ptr<Map> mEmptyMap = nullptr;
 
 	int mCurrentFocusedMapIndex = -1;
 };

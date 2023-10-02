@@ -8,7 +8,6 @@ public:
 	Texture(const std::shared_ptr<LLGL::RenderSystem>& renderer, const std::string& path);
 	Texture(const std::shared_ptr<LLGL::RenderSystem>& renderer, const unsigned char* imageData, int width, int height,
 	        bool singleChannel = false);
-	~Texture();
 
 	LLGL::Texture& GetTextureData() const;
 	LLGL::Sampler& GetSamplerData() const;

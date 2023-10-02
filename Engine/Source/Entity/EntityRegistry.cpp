@@ -15,7 +15,7 @@ EnTTRegistry& EntityRegistry::GetEnttRegistry()
 
 EntityId EntityRegistry::CreateEntityFromTemplate(const char* templateName)
 {
-	const auto descriptions = mEntityTemplateRegistry->GetEntityTemplateDescriptions(templateName);
+	const auto& descriptions = mEntityTemplateRegistry->GetEntityTemplateDescriptions(templateName);
 	const auto entity = CreateEntity();
 
 	for (const auto& description : descriptions)

@@ -13,7 +13,7 @@ EntityTemplateRegistry::EntityTemplateRegistry(const DescriptionFactory& descrip
 	RegisterEntityTemplates(descriptionFactory);
 }
 
-std::vector<std::shared_ptr<DescriptionBase>>& EntityTemplateRegistry::GetEntityTemplateDescriptions(
+const std::vector<std::shared_ptr<DescriptionBase>>& EntityTemplateRegistry::GetEntityTemplateDescriptions(
 	const std::string& templateName)
 {
 	const auto it = mEntityTemplates.find(templateName);

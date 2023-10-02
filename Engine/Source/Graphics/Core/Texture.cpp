@@ -22,11 +22,6 @@ Texture::Texture(const std::shared_ptr<LLGL::RenderSystem>& renderer, const unsi
 	_CreateSampler(renderer);
 }
 
-Texture::~Texture()
-{
-	std::cout << "Delete Texture" << std::endl;
-}
-
 LLGL::Texture& Texture::GetTextureData() const
 {
 	return *mTexture;

@@ -1,10 +1,10 @@
 #pragma once
 #include <LLGL/LLGL.h>
+#include "Texture.h"
 #include "Vertex.h"
 
 class Map;
 class Renderer;
-class Texture;
 
 using GLuint = unsigned int;
 

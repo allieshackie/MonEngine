@@ -1,17 +1,16 @@
 #include "EventListener.h"
 
-std::shared_ptr<EventSubscription> EventPublisher::AddListener(const std::string& eventType,
-                                                               EventFunc& callback)
+void EventPublisher::AddListener(const std::string& eventType, EventFunc& callback)
 {
 	auto sub = std::make_shared<EventSubscription>(callback);
 	mList[eventType].push_back(sub);
 
 	sub->SetEventType(eventType);
 	sub->SetPublishListIterator(std::prev(mList[eventType].end()));
-
-	return sub;
 }
 
+/*
+ *
 void EventPublisher::RemoveListener(const std::shared_ptr<EventSubscription>& sub)
 {
 	const auto it = mList.find(sub->GetEventType());
@@ -21,6 +20,7 @@ void EventPublisher::RemoveListener(const std::shared_ptr<EventSubscription>& su
 		eventListeners.erase(sub->GetPublishListIterator());
 	}
 }
+ */
 
 void EventPublisher::Notify(const std::string& eventType, int entityId, const std::type_info& typeInfo)
 {

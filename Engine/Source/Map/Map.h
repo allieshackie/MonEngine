@@ -1,8 +1,7 @@
 #pragma once
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
-
-struct MapAttributes;
+#include "MapAttributes.h"
 
 class Map
 {
@@ -42,7 +41,7 @@ public:
 private:
 	const std::string& mMapId;
 
-	std::shared_ptr<MapAttributes> mMapAttributes;
+	std::unique_ptr<MapAttributes> mMapAttributes;
 
 	int mMapTextureId = 0;
 

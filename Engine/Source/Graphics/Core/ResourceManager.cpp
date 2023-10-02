@@ -4,10 +4,8 @@
 #include <sstream>
 
 #include "Graphics/Util/stb_image.h"
-#include "Texture.h"
 
 #include "ResourceManager.h"
-
 
 std::unordered_map<std::string, int> ResourceManager::mTextureIds;
 
