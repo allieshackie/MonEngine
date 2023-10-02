@@ -3,9 +3,9 @@
 #include <glm/mat4x4.hpp>
 #include "glm/vec2.hpp"
 #include "glm/vec3.hpp"
+#include "Graphics/Core/Texture.h"
 
 class Shader;
-class Texture;
 
 struct TextVertex
 {
@@ -54,7 +54,7 @@ private:
 
 	GlyphInfo _GenerateGlyphInfo(uint32_t character, float offsetX, float offsetY);
 
-	std::shared_ptr<Texture> mTextureAtlas;
+	std::unique_ptr<Texture> mTextureAtlas;
 
 	LLGL::ResourceHeap* mResourceHeap = nullptr;
 	LLGL::PipelineLayout* mPipelineLayout = nullptr;

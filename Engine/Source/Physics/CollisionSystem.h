@@ -30,6 +30,6 @@ private:
 
 	EventPublisher& mEventPublisher;
 
-	std::shared_ptr<EventSubscription> mAddComponentSubscription;
-	std::shared_ptr<EventSubscription> mRemoveComponentSubscription;
+	std::unique_ptr<EventSubscription> mAddComponentSubscription;
+	std::unique_ptr<EventSubscription> mRemoveComponentSubscription;
 };

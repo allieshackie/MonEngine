@@ -10,7 +10,6 @@
 #include "MapPipeline.h"
 
 // TODO: Should we be rendering more than 1 map at a time?  Sublevels/chunks?
-// Could call this in a loop in Game
 void MapPipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat,
                          const std::shared_ptr<Map>& map) const
 {
@@ -121,8 +120,7 @@ void MapPipeline::Init(std::shared_ptr<LLGL::RenderSystem>& renderSystem)
 	}
 	mPipeline = renderSystem->CreatePipelineState(pipelineDesc);
 
-	// TODO: How can this work? 
-	//_CreateResourceHeap(renderSystem, textures);
+	_CreateResourceHeap(renderSystem);
 
 	mVertexBuffer = renderSystem->CreateBuffer(
 		VertexBufferDesc(static_cast<std::uint32_t>(mVertices.size() * sizeof(Vertex)),
@@ -196,9 +194,7 @@ void MapPipeline::WriteQueuedMapTextures(const std::shared_ptr<LLGL::RenderSyste
 	mQueuedMaps.clear();
 }
 
-
 // TODO: Where should this be?  Writing map texture to render
-
 void MapPipeline::_InitMapTexturePipeline(LLGL::CommandBuffer& commandBuffer,
                                           const std::shared_ptr<LLGL::RenderSystem>& renderSystem,
                                           std::shared_ptr<Map>& map)

@@ -9,6 +9,14 @@
 
 struct MapAttributes
 {
+	MapAttributes(std::string id, int rows, int columns, std::array<uint32_t, 2> textureSize, std::string texturePath,
+	              int textureRows, int textureColumns, std::string dataPath, std::vector<int> data)
+		: mId(std::move(id)), mRows(rows), mColumns(columns), mTextureSize(textureSize),
+		  mTexturePath(std::move(texturePath)), mTextureMapRows(textureRows), mTextureMapColumns(textureColumns),
+		  mDataPath(std::move(dataPath)), mData(std::move(data))
+	{
+	}
+
 	std::string mId;
 
 	int mRows = 0;
@@ -26,7 +34,7 @@ struct MapAttributes
 
 namespace MapHelpers
 {
-	std::shared_ptr<MapAttributes> CreateAttributes(const std::string& fileName);
+	std::unique_ptr<MapAttributes> CreateAttributes(const std::string& fileName);
 
 	static constexpr char ID_STRING[] = "id";
 

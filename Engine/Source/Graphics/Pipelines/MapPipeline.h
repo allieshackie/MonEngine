@@ -64,7 +64,6 @@ private:
 		{{0.5, 0.5, 1}, {1, 1, 1}, {1, 0}}, // bottom right
 	};
 
-
 	// Write Map Textures
 	std::vector<std::shared_ptr<Map>> mQueuedMaps = {};
 

@@ -5,8 +5,6 @@
 class DescriptionFactory
 {
 public:
-	DescriptionFactory() = default;
-	~DescriptionFactory() = default;
 	using DescriptionCreationFunction = std::function<std::shared_ptr<DescriptionBase>()>;
 
 	template <typename T>

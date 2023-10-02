@@ -15,21 +15,20 @@ CollisionSystem::CollisionSystem(EventPublisher& eventPublisher)
 	{
 		_OnColliderAdded(entityId, typeInfo);
 	};
-
-	mAddComponentSubscription = mEventPublisher.AddListener("component_added", addedFunc);
+	mEventPublisher.AddListener("component_added", addedFunc);
 
 	EventFunc removedFunc = [this](int entityId, const std::type_info& typeInfo)
 	{
 		_OnColliderAdded(entityId, typeInfo);
 	};
 
-	mRemoveComponentSubscription = mEventPublisher.AddListener("component_removed", removedFunc);
+	mEventPublisher.AddListener("component_removed", removedFunc);
 }
 
 CollisionSystem::~CollisionSystem()
 {
-	mEventPublisher.RemoveListener(mAddComponentSubscription);
-	mEventPublisher.RemoveListener(mRemoveComponentSubscription);
+	//mEventPublisher.RemoveListener(mAddComponentSubscription);
+	//mEventPublisher.RemoveListener(mRemoveComponentSubscription);
 }
 
 void CollisionSystem::Update(EntityRegistry& entityRegistry) const
