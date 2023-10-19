@@ -1,15 +1,15 @@
 #pragma once
 #include <glm/vec3.hpp>
 
-enum ColliderShapes
+enum class ColliderShapes : int
 {
-	Box,
+	Box = 0,
 	Sphere,
 	Capsule,
 };
 
 struct CollisionComponent
 {
-	int mColliderShape = ColliderShapes::Box;
+	ColliderShapes mColliderShape = ColliderShapes::Box;
 	glm::vec3 mSize = {0, 0, 0};
 };

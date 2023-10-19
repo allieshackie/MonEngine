@@ -29,11 +29,9 @@ public:
 	EngineContext(EngineContext&& other) = delete;
 	EngineContext& operator=(EngineContext&& other) = delete;
 
-	void SetGUIMenu(std::unique_ptr<GUIBase> gui);
-
-	void Init();
 	void Run(GameInterface* game);
 
+	void SetGUIMenu(std::unique_ptr<GUIBase> gui);
 	void LoadFont(const char* fontFileName) const;
 
 	EntityId CreateGameObject(const std::string& entityTemplateName) const;
@@ -60,32 +58,32 @@ public:
 	}
 
 private:
+	void _Init();
 	void _InitDescriptions() const;
 	void _FixedUpdate(float dt) const;
 
 	void _DrawAxis() const;
 
-	std::unique_ptr<DescriptionFactory> mDescriptionFactory = nullptr;
-	std::unique_ptr<RenderContext> mRenderContext = nullptr;
-	std::unique_ptr<Timer> mTimer = nullptr;
+	std::unique_ptr<DescriptionFactory> mDescriptionFactory;
+	std::unique_ptr<RenderContext> mRenderContext;
+	std::unique_ptr<Timer> mTimer;
 
-	std::shared_ptr<InputHandler> mInputHandler = nullptr;
+	std::shared_ptr<InputHandler> mInputHandler;
 
-	std::unique_ptr<ResourceManager> mResourceManager = nullptr;
+	std::unique_ptr<ResourceManager> mResourceManager;
 
-	std::unique_ptr<LevelManager> mLevelManager = nullptr;
+	std::unique_ptr<LevelManager> mLevelManager;
 	std::unique_ptr<GUIBase> mGUIMenu;
 
-	std::unique_ptr<EntityRegistry> mEntityRegistry = nullptr;
-	std::unique_ptr<EventPublisher> mEventPublisher = nullptr;
+	std::unique_ptr<EntityRegistry> mEntityRegistry;
+	std::unique_ptr<EventPublisher> mEventPublisher;
 
 	// systems
-	std::unique_ptr<CollisionSystem> mCollisionSystem = nullptr;
-	std::unique_ptr<MapRegistry> mMapRegistry = nullptr;
-	std::unique_ptr<PhysicsSystem> mPhysicsSystem = nullptr;
+	std::unique_ptr<CollisionSystem> mCollisionSystem;
+	std::unique_ptr<MapRegistry> mMapRegistry;
+	std::unique_ptr<PhysicsSystem> mPhysicsSystem;
 
 	bool mRunning = true;
-
 	bool mDebugDraw = false;
 };
 

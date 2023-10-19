@@ -2,6 +2,8 @@
 #include <glm/vec3.hpp>
 
 #include "Entity/EntityRegistry.h"
+#include "Entity/Components/CollisionComponent.h"
+
 #include "Entity/Descriptions/DescriptionBase.h"
 
 class CollisionDescription : public DescriptionBase
@@ -26,6 +28,6 @@ private:
 	static constexpr char COLLIDER_SHAPE_STRING[] = "collider_shape";
 	static constexpr char SIZE_STRING[] = "size";
 
-	int mColliderShape = 0;
+	ColliderShapes mColliderShape = ColliderShapes::Box;
 	glm::vec3 mSize = {0, 0, 0};
 };

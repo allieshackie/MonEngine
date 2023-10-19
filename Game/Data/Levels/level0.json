@@ -16,10 +16,6 @@
         {
             "name": "player",
             "position": [0,0,0]
-        },
-        {
-            "name": "test",
-            "position": [1,1,1]
         }
     ]
 }

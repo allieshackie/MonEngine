@@ -1,6 +1,8 @@
 #pragma once
 #include <nlohmann/json.hpp>
+#include <iostream>
 #include <fstream>
+#include <ios>
 
 namespace FileSystem
 {
@@ -12,7 +14,7 @@ namespace FileSystem
 
 	static std::vector<uint8_t> ReadBytes(const std::string& filePath)
 	{
-		std::ifstream file(filePath.c_str(), std::ios::binary | std::ios::ate);
+		std::ifstream file(filePath.c_str(), std::ios_base::binary | std::ios_base::ate);
 		if (!file.is_open())
 		{
 			assert(false);
@@ -20,7 +22,7 @@ namespace FileSystem
 		}
 
 		const auto size = file.tellg();
-		file.seekg(0, std::ios::beg);
+		file.seekg(0, std::ios_base::beg);
 		auto bytes = std::vector<uint8_t>(size);
 		file.read(reinterpret_cast<char*>(&bytes[0]), size);
 		file.close();

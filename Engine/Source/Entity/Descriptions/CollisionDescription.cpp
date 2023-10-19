@@ -1,5 +1,4 @@
-#include "Entity/Components/CollisionComponent.h"
-#include "Entity/Descriptions/CollisionDescription.h"
+#include "CollisionDescription.h"
 
 void CollisionDescription::ApplyToEntity(EntityId entity, EntityRegistry& entityRegistry)
 {

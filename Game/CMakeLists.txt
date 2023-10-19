@@ -13,7 +13,7 @@ add_executable(Game ${SOURCES})
 set_target_properties(Game PROPERTIES LINKER_LANGUAGE CXX)
 
 # Call the function to copy the Data folder contents to the Build folder
-copy_data_contents(${CMAKE_CURRENT_SOURCE_DIR}/Data)
+copy_data_contents(${CMAKE_CURRENT_SOURCE_DIR}/Data/ ${CMAKE_BINARY_DIR}/Data)
 
 target_precompile_headers(
     Game 
