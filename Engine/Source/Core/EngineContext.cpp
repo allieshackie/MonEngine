@@ -10,7 +10,7 @@
 
 #include "EngineContext.h"
 
-void EngineContext::Init()
+void EngineContext::_Init()
 {
 	mInputHandler = std::make_shared<InputHandler>();
 	mInputHandler->RegisterButtonUpHandler(LLGL::Key::Escape, [=]() { mRunning = false; });
@@ -67,9 +67,23 @@ void EngineContext::_DrawAxis() const
 	}
 }
 
+void EngineContext::_InitDescriptions() const
+{
+	mDescriptionFactory->RegisterDescription<CollisionDescription>(CollisionDescription::JsonName);
+	mDescriptionFactory->RegisterDescription<PhysicsDescription>(PhysicsDescription::JsonName);
+	mDescriptionFactory->RegisterDescription<PlayerDescription>(PlayerDescription::JsonName);
+	mDescriptionFactory->RegisterDescription<SpriteDescription>(SpriteDescription::JsonName);
+	mDescriptionFactory->RegisterDescription<TransformDescription>(TransformDescription::JsonName);
+}
+
+void EngineContext::_FixedUpdate(float dt) const
+{
+	mPhysicsSystem->Update(dt, *mEntityRegistry);
+}
+
 void EngineContext::Run(GameInterface* game)
 {
-	Init();
+	_Init();
 	game->Init(this);
 	game->RegisterEntityDescriptions();
 
@@ -120,18 +134,9 @@ void EngineContext::Run(GameInterface* game)
 	GUISystem::CloseGUI();
 }
 
-void EngineContext::_InitDescriptions() const
+void EngineContext::SetGUIMenu(std::unique_ptr<GUIBase> gui)
 {
-	mDescriptionFactory->RegisterDescription<CollisionDescription>(CollisionDescription::JsonName);
-	mDescriptionFactory->RegisterDescription<PhysicsDescription>(PhysicsDescription::JsonName);
-	mDescriptionFactory->RegisterDescription<PlayerDescription>(PlayerDescription::JsonName);
-	mDescriptionFactory->RegisterDescription<SpriteDescription>(SpriteDescription::JsonName);
-	mDescriptionFactory->RegisterDescription<TransformDescription>(TransformDescription::JsonName);
-}
-
-void EngineContext::_FixedUpdate(float dt) const
-{
-	mPhysicsSystem->Update(dt, *mEntityRegistry);
+	mGUIMenu = std::move(gui);
 }
 
 void EngineContext::LoadFont(const char* fontFileName) const
