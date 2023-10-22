@@ -134,11 +134,6 @@ void EngineContext::Run(GameInterface* game)
 	GUISystem::CloseGUI();
 }
 
-void EngineContext::SetGUIMenu(std::unique_ptr<GUIBase> gui)
-{
-	mGUIMenu = std::move(gui);
-}
-
 void EngineContext::LoadFont(const char* fontFileName) const
 {
 	mRenderContext->LoadFont(fontFileName);
