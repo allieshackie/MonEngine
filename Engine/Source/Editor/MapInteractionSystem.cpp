@@ -1,7 +1,6 @@
 #include "LLGL/Key.h"
 
 #include "Core/Camera.h"
-#include "Graphics/Debug/DebugDraw.h"
 #include "Graphics/RenderContext.h"
 #include "Input/InputHandler.h"
 #include "Map/MapRegistry.h"
@@ -17,13 +16,9 @@ MapInteractionSystem::MapInteractionSystem(const std::unique_ptr<Camera>& camera
 	inputHandler.RegisterButtonDownHandler(LLGL::Key::LButton, [this]() { _OnClick(); });
 }
 
-void MapInteractionSystem::Tick(bool debugDraw) const
-{
-	if (debugDraw)
-	{
-		DebugDrawManager::GetInstance()->DrawBox(mIntersectionPoint, {.05, .05, .05}, {100, 50, 20});
-	}
-}
+// Debug draw intersection point
+//DebugDrawManager::GetInstance()->DrawBox(mIntersectionPoint, {.05, .05, .05}, {100, 50, 20});
+
 
 void MapInteractionSystem::SetPaletteBrush(int brushIndex)
 {

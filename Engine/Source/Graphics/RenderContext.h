@@ -3,7 +3,7 @@
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp> //translate, rotate, scale, perspective
 
-#include "Graphics/Pipelines/DebugPipeline.h"
+#include "Graphics/Pipelines/ImmediatePipeline.h"
 #include "Graphics/Pipelines/MapPipeline.h"
 #include "Graphics/Pipelines/MeshPipeline.h"
 #include "Graphics/Pipelines/SpritePipeline.h"
@@ -17,12 +17,7 @@ class MapRegistry;
 class RenderContext
 {
 public:
-	virtual ~RenderContext()
-	{
-		std::cout << "Delete Renderer" << std::endl;
-	}
-
-	void Init(std::shared_ptr<InputHandler>& inputHandler);
+	void Init(const std::shared_ptr<InputHandler>& inputHandler);
 
 	void BeginFrame() const;
 	void Render(const std::unique_ptr<Camera>& camera, EntityRegistry& entityRegistry,
@@ -31,6 +26,10 @@ public:
 	bool ProcessEvents() const;
 
 	void DrawText(const char* text, glm::vec2 position, glm::vec2 size);
+	void DrawPoint(glm::vec3 pos, glm::vec3 color, float size) const;
+	void DrawLine(glm::vec3 from, glm::vec3 to, glm::vec3 color) const;
+	void DrawBox(glm::vec3 pos, glm::vec3 size, glm::vec3 color) const;
+	void DrawGrid(glm::vec3 pos, glm::vec3 size, glm::vec3 color, int rows, int columns) const;
 
 	void LoadFont(const char* fontFileName) const;
 	bool GetNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const;
@@ -54,7 +53,7 @@ private:
 	std::unique_ptr<SpritePipeline> mSpritePipeline;
 	std::unique_ptr<MeshPipeline> mMeshPipeline;
 	std::unique_ptr<MapPipeline> mMapPipeline;
-	std::unique_ptr<DebugPipeline> mDebugPipeline;
+	std::unique_ptr<ImmediatePipeline> mImmediatePipeline;
 	std::unique_ptr<TextPipeline> mTextPipeline;
 };
 

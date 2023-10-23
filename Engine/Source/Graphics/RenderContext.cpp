@@ -2,17 +2,15 @@
 #include <glm/ext/matrix_clip_space.hpp>
 
 #include "Core/Camera.h"
-#include "Graphics/Debug/DebugDraw.h"
 #include "Input/InputHandler.h"
+#include "Map/MapRegistry.h"
 
 #include "RenderContext.h"
-
-#include "Map/MapRegistry.h"
 
 static constexpr int SCREEN_WIDTH = 800;
 static constexpr int SCREEN_HEIGHT = 600;
 
-void RenderContext::Init(std::shared_ptr<InputHandler>& inputHandler)
+void RenderContext::Init(const std::shared_ptr<InputHandler>& inputHandler)
 {
 	try
 	{
@@ -69,14 +67,14 @@ void RenderContext::Init(std::shared_ptr<InputHandler>& inputHandler)
 
 	mSpritePipeline = std::make_unique<SpritePipeline>();
 	mMapPipeline = std::make_unique<MapPipeline>();
-	mDebugPipeline = std::make_unique<DebugPipeline>();
+	mImmediatePipeline = std::make_unique<ImmediatePipeline>();
 	mTextPipeline = std::make_unique<TextPipeline>();
 	// TODO: Enable for 3D
 	//mPipeline3D = std::make_unique<Pipeline3D>(*this, mResourceManager);
 
 	mSpritePipeline->Init(mRenderSystem);
 	mMapPipeline->Init(mRenderSystem);
-	mDebugPipeline->Init(mRenderSystem);
+	mImmediatePipeline->Init(mRenderSystem);
 	mTextPipeline->Init(mRenderSystem);
 	//mPipeline3D->Init(mRenderSystem, shaderPath);
 
@@ -120,7 +118,7 @@ void RenderContext::Render(const std::unique_ptr<Camera>& camera, EntityRegistry
 	}
 	mTextPipeline->Render(*mCommands, orthoViewMat);
 	mSpritePipeline->Render(*mCommands, perspectiveViewMat, entityRegistry);
-	mDebugPipeline->Render(*mCommands, perspectiveViewMat);
+	mImmediatePipeline->Render(*mCommands, perspectiveViewMat);
 }
 
 void RenderContext::EndFrame() const
@@ -142,6 +140,26 @@ bool RenderContext::ProcessEvents() const
 void RenderContext::DrawText(const char* text, glm::vec2 position, glm::vec2 size)
 {
 	mTextPipeline->CreateTextMesh(mRenderSystem, text, position, size);
+}
+
+void RenderContext::DrawPoint(glm::vec3 pos, glm::vec3 color, float size) const
+{
+	mImmediatePipeline->DrawPoint(pos, color, size);
+}
+
+void RenderContext::DrawLine(glm::vec3 from, glm::vec3 to, glm::vec3 color) const
+{
+	mImmediatePipeline->DrawLine(from, to, color);
+}
+
+void RenderContext::DrawBox(glm::vec3 pos, glm::vec3 size, glm::vec3 color) const
+{
+	mImmediatePipeline->DrawBox(pos, size, color);
+}
+
+void RenderContext::DrawGrid(glm::vec3 pos, glm::vec3 size, glm::vec3 color, int rows, int columns) const
+{
+	mImmediatePipeline->DrawGrid(pos, size, color, rows, columns);
 }
 
 // Called on window resize

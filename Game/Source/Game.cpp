@@ -1,6 +1,5 @@
 #include "Core/EngineContext.h"
 #include "Entity/Descriptions/InteractiveDescription.h"
-#include "Graphics/Debug/DebugDraw.h"
 #include "GUI/GameGUI.h"
 
 #include "Game.h"

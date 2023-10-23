@@ -16,7 +16,6 @@ public:
 	MapInteractionSystem(const std::unique_ptr<Camera>& camera, InputHandler& inputHandler, MapRegistry& mapRegistry,
 	                     RenderContext& renderContext);
 
-	void Tick(bool debugDraw) const;
 	void SetPaletteBrush(int brushIndex);
 
 private:

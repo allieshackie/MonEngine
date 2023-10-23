@@ -5,7 +5,6 @@
 #include "Entity/Descriptions/SpriteDescription.h"
 #include "Entity/Descriptions/TransformDescription.h"
 #include "GameInterface.h"
-#include "Graphics/Debug/DebugDraw.h"
 #include "GUI/GUISystem.h"
 
 #include "EngineContext.h"
@@ -56,15 +55,12 @@ void EngineContext::SetGUIMenu(std::unique_ptr<GUIBase> gui)
  */
 void EngineContext::_DrawAxis() const
 {
-	if (mDebugDraw)
-	{
-		DebugDrawManager::GetInstance()->DrawLine({-1, 0, 0}, {1, 0, 0}, {255, 0, 0});
-		DebugDrawManager::GetInstance()->DrawBox({1, 0, 0}, {0.1f, 0.1f, 1.0f}, {255, 0, 0});
-		DebugDrawManager::GetInstance()->DrawLine({0, -1, 0}, {0, 1, 0}, {0, 255, 0});
-		DebugDrawManager::GetInstance()->DrawBox({0, 1, 0}, {0.1f, 0.1f, 1.0f}, {0, 255, 0});
-		DebugDrawManager::GetInstance()->DrawLine({0, 0, -1}, {0, 0, 1}, {0, 0, 255});
-		DebugDrawManager::GetInstance()->DrawBox({0, 0, 1}, {0.1f, 0.1f, 1.0f}, {0, 0, 255});
-	}
+	DrawLine({-1, 0, 0}, {1, 0, 0}, {255, 0, 0});
+	DrawBox({1, 0, 0}, {0.1f, 0.1f, 1.0f}, {255, 0, 0});
+	DrawLine({0, -1, 0}, {0, 1, 0}, {0, 255, 0});
+	DrawBox({0, 1, 0}, {0.1f, 0.1f, 1.0f}, {0, 255, 0});
+	DrawLine({0, 0, -1}, {0, 0, 1}, {0, 0, 255});
+	DrawBox({0, 0, 1}, {0.1f, 0.1f, 1.0f}, {0, 0, 255});
 }
 
 void EngineContext::_InitDescriptions() const
@@ -113,7 +109,8 @@ void EngineContext::Run(GameInterface* game)
 			mTimer->mAccumulator -= deltaTime;
 		}
 
-		_DrawAxis();
+		// TODO: Debug draw axis
+		//_DrawAxis();
 
 		// TODO: Editor GUI requires camera to render...how can we fix that?
 		mRenderContext->BeginFrame();
@@ -164,19 +161,24 @@ void EngineContext::OpenMap(const char* mapName, glm::vec3 position, glm::vec3 r
 	mMapRegistry->OpenMap(mapName, position, rotation, tileSize);
 }
 
-void EngineContext::DrawPoint(glm::vec3 position, float size)
+void EngineContext::DrawPoint(glm::vec3 position, float size, glm::vec3 color) const
 {
-	DebugDrawManager::GetInstance()->DrawPoint(position, {1, 0, 0}, size);
+	mRenderContext->DrawPoint(position, color, size);
 }
 
-void EngineContext::DrawBox(glm::vec3 position, glm::vec3 size)
+void EngineContext::DrawLine(glm::vec3 from, glm::vec3 to, glm::vec3 color) const
 {
-	DebugDrawManager::GetInstance()->DrawBox(position, {1, 0, 0}, size);
+	mRenderContext->DrawLine(from, to, color);
 }
 
-void EngineContext::DrawGrid(glm::vec3 position, glm::vec3 size, int rows, int columns)
+void EngineContext::DrawBox(glm::vec3 position, glm::vec3 size, glm::vec3 color) const
 {
-	DebugDrawManager::GetInstance()->DrawGrid(position, size, {1, 0, 0}, rows, columns);
+	mRenderContext->DrawBox(position, size, color);
+}
+
+void EngineContext::DrawGrid(glm::vec3 position, glm::vec3 size, int rows, int columns, glm::vec3 color) const
+{
+	mRenderContext->DrawGrid(position, size, color, rows, columns);
 }
 
 void EngineContext::DrawText2D(const char* text, glm::vec2 position, glm::vec2 size)

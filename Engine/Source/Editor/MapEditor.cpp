@@ -6,7 +6,6 @@
 #include "Core/LevelManager.h"
 #include "Graphics/RenderContext.h"
 #include "Graphics/Core/ResourceManager.h"
-#include "Graphics/Debug/DebugDraw.h"
 #include "Map/Map.h"
 #include "Map/MapAttributes.h"
 #include "Map/MapRegistry.h"
@@ -349,18 +348,19 @@ void MapEditor::_CenterWindow(float width, float height)
 	ImGui::SetNextWindowSize(ImVec2(width, height));
 }
 
+// TODO: Re-add Debug draw
 void MapEditor::_DrawTextureDebugGrid() const
 {
 	const auto& map = mMapRegistry.GetCurrentMap();
-	DebugDrawManager::GetInstance()->DrawGrid(map->GetPosition(), map->GetMapSize(), {255, 0, 0},
-	                                          map->GetMapTextureRows(), map->GetMapTextureColumns());
+	//DebugDrawManager::GetInstance()->DrawGrid(map->GetPosition(), map->GetMapSize(), {255, 0, 0},
+	//            map->GetMapTextureRows(), map->GetMapTextureColumns());
 }
 
 void MapEditor::_DrawMapDebugGrid() const
 {
 	const auto& map = mMapRegistry.GetCurrentMap();
-	DebugDrawManager::GetInstance()->DrawGrid(map->GetPosition(), map->GetMapSize(), {255, 0, 0},
-	                                          map->GetRows(), map->GetColumns());
+	//DebugDrawManager::GetInstance()->DrawGrid(map->GetPosition(), map->GetMapSize(), {255, 0, 0},
+	//                                          map->GetRows(), map->GetColumns());
 }
 
 
