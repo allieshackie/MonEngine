@@ -8,11 +8,6 @@ Shader::Shader(LLGL::RenderSystem& renderer, LLGL::VertexFormat vertexFormat, co
 	LoadShaderProgram(renderer, vertexFilePath, fragmentFilePath);
 }
 
-Shader::~Shader()
-{
-	std::cout << "Delete Shader" << std::endl;
-}
-
 LLGL::Shader& Shader::GetVertexShader() const
 {
 	return *mVertexShader;

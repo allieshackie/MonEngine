@@ -13,13 +13,6 @@ class EntityRegistry;
 class SpritePipeline
 {
 public:
-	SpritePipeline() = default;
-
-	~SpritePipeline()
-	{
-		std::cout << "Delete SpritePipeline" << std::endl;
-	}
-
 	void Init(std::shared_ptr<LLGL::RenderSystem>& renderSystem);
 	void Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat, EntityRegistry& entityRegistry) const;
 

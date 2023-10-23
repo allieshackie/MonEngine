@@ -6,9 +6,6 @@ class Map;
 class MapRegistry
 {
 public:
-	MapRegistry() = default;
-	~MapRegistry() = default;
-
 	void OpenMap(const std::string& mapPath, glm::vec3 pos, glm::vec3 rotation, float tileSize);
 	void OpenMap(const std::string& mapPath);
 	void CloseMap(const std::string& mapId);

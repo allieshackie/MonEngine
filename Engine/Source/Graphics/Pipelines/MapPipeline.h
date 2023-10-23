@@ -9,13 +9,6 @@ class Map;
 class MapPipeline
 {
 public:
-	MapPipeline() = default;
-
-	~MapPipeline()
-	{
-		std::cout << "Delete MapPipeline" << std::endl;
-	}
-
 	void Init(std::shared_ptr<LLGL::RenderSystem>& renderSystem);
 	void Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat, const std::shared_ptr<Map>& map) const;
 

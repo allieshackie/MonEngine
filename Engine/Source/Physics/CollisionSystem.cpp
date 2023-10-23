@@ -25,12 +25,6 @@ CollisionSystem::CollisionSystem(EventPublisher& eventPublisher)
 	mEventPublisher.AddListener("component_removed", removedFunc);
 }
 
-CollisionSystem::~CollisionSystem()
-{
-	//mEventPublisher.RemoveListener(mAddComponentSubscription);
-	//mEventPublisher.RemoveListener(mRemoveComponentSubscription);
-}
-
 void CollisionSystem::Update(EntityRegistry& entityRegistry) const
 {
 	const auto view = entityRegistry.GetEnttRegistry().view<

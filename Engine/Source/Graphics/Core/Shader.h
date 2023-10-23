@@ -10,8 +10,6 @@ public:
 	Shader(LLGL::RenderSystem& renderer, LLGL::VertexFormat vertexFormat, const char* vertexFilePath,
 	       const char* fragmentFilePath);
 
-	~Shader();
-
 	LLGL::Shader& GetVertexShader() const;
 	LLGL::Shader& GetFragmentShader() const;
 

@@ -8,9 +8,6 @@ struct ImVec4;
 class GUISystem
 {
 public:
-	GUISystem() = default;
-	~GUISystem() = default;
-
 	static void InitGUI(const RenderContext& renderContext);
 	static void CloseGUI();
 

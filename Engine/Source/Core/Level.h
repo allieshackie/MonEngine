@@ -24,7 +24,6 @@ class Level
 {
 public:
 	Level(const std::string& levelName);
-	~Level() = default;
 
 	const std::unique_ptr<Camera>& GetCamera() const { return mCamera; }
 

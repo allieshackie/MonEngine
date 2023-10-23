@@ -12,7 +12,7 @@
 
 #include "MapEditor.h"
 
-MapEditor::MapEditor(EngineContext& engineContext, InputHandler& inputHandler, LevelManager& levelManager,
+MapEditor::MapEditor(const EngineContext& engineContext, InputHandler& inputHandler, LevelManager& levelManager,
                      MapRegistry& mapRegistry, RenderContext& renderContext)
 	: mInputHandler(inputHandler), mMapRegistry(mapRegistry), mRenderContext(renderContext)
 {
@@ -133,7 +133,7 @@ void MapEditor::_NewMapMenu(bool* p_open, const std::unique_ptr<Camera>& camera)
 				dataWrite << tilesStr;
 				if (i != rows - 1)
 				{
-					dataWrite << "\n";
+					dataWrite << std::string("\n");
 				}
 				tilesStr.clear();
 			}

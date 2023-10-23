@@ -12,7 +12,6 @@ class CollisionSystem
 {
 public:
 	CollisionSystem(EventPublisher& eventPublisher);
-	~CollisionSystem();
 
 	void Update(EntityRegistry& entityRegistry) const;
 

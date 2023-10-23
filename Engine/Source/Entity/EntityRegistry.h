@@ -38,6 +38,8 @@ public:
 	~EntityRegistry() = default;
 	EntityRegistry(const EntityRegistry& other) = delete;
 	void operator=(const EntityRegistry&) = delete;
+	EntityRegistry(EntityRegistry&& other) = delete;
+	EntityRegistry& operator=(EntityRegistry&& other) = delete;
 
 	EnTTRegistry& GetEnttRegistry();
 

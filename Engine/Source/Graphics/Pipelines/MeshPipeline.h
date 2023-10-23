@@ -9,9 +9,6 @@ class Shader;
 class MeshPipeline
 {
 public:
-	MeshPipeline() = default;
-	~MeshPipeline() = default;
-
 	void Init(std::shared_ptr<LLGL::RenderSystem>& renderSystem, const std::string& shaderPath);
 	void Render(LLGL::CommandBuffer& commands) const;
 

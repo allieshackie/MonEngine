@@ -15,7 +15,7 @@ using GLuint = unsigned int;
 class MapEditor
 {
 public:
-	MapEditor(EngineContext& engineContext, InputHandler& inputHandler, LevelManager& levelManager,
+	MapEditor(const EngineContext& engineContext, InputHandler& inputHandler, LevelManager& levelManager,
 	          MapRegistry& mapRegistry, RenderContext& renderContext);
 
 	void RenderGUI(const std::unique_ptr<Camera>& camera);
