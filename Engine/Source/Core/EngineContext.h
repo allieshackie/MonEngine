@@ -35,6 +35,7 @@ public:
 	void LoadFont(const char* fontFileName) const;
 
 	EntityId CreateGameObject(const std::string& entityTemplateName) const;
+	EntityRegistry& GetEntityRegistry() const;
 
 	template <typename Component>
 	Component& GetComponent(EntityId id) const;

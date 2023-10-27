@@ -3,7 +3,6 @@
 #include <glm/vec3.hpp>
 
 #include "Camera.h"
-#include "Entity/GameObject.h"
 
 struct MapData
 {
@@ -47,7 +46,6 @@ private:
 
 	// runtime data
 	std::unique_ptr<Camera> mCamera = nullptr;
-	std::vector<std::unique_ptr<GameObject>> mGameObjects;
 
 	// initialization data
 	std::unique_ptr<MapData> mMapData = nullptr;

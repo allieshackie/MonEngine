@@ -141,6 +141,11 @@ EntityId EngineContext::CreateGameObject(const std::string& entityTemplateName) 
 	return mEntityRegistry->CreateEntityFromTemplate(entityTemplateName.c_str());
 }
 
+EntityRegistry& EngineContext::GetEntityRegistry() const
+{
+	return *mEntityRegistry;
+}
+
 void EngineContext::LoadLevel(const char* levelName) const
 {
 	mLevelManager->LoadLevel(levelName, *this);
