@@ -29,6 +29,7 @@ public:
 	void DrawPoint(glm::vec3 pos, glm::vec3 color, float size) const;
 	void DrawLine(glm::vec3 from, glm::vec3 to, glm::vec3 color) const;
 	void DrawBox(glm::vec3 pos, glm::vec3 size, glm::vec3 color) const;
+	void DrawCircle(glm::vec3 position, float radius, glm::vec3 color) const;
 	void DrawGrid(glm::vec3 pos, glm::vec3 size, glm::vec3 color, int rows, int columns) const;
 
 	void LoadFont(const char* fontFileName) const;

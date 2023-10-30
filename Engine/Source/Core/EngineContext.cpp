@@ -32,9 +32,7 @@ void EngineContext::_Init()
 	mCollisionSystem = std::make_unique<CollisionSystem>(*mEventPublisher);
 	mPhysicsSystem = std::make_unique<PhysicsSystem>();
 
-	// TODO: Example
 	mRenderContext->LoadFont("PixelLettersFull.ttf");
-	//mRenderContext->DrawText("Allie", {0, 0}, {1, 1});
 
 #ifndef BUILD_GAME
 	mGUIMenu = std::make_unique<EditorGUI>(*this, *mInputHandler, *mLevelManager, *mMapRegistry, *mRenderContext);
@@ -181,15 +179,21 @@ void EngineContext::DrawBox(glm::vec3 position, glm::vec3 size, glm::vec3 color)
 	mRenderContext->DrawBox(position, size, color);
 }
 
+void EngineContext::DrawCircle(glm::vec3 position, float radius, glm::vec3 color) const
+{
+	mRenderContext->DrawCircle(position, radius, color);
+}
+
 void EngineContext::DrawGrid(glm::vec3 position, glm::vec3 size, int rows, int columns, glm::vec3 color) const
 {
 	mRenderContext->DrawGrid(position, size, color, rows, columns);
 }
 
-void EngineContext::DrawText2D(const char* text, glm::vec2 position, glm::vec2 size)
+void EngineContext::DrawText2D(const char* text, glm::vec2 position, glm::vec2 size) const
 {
+	mRenderContext->DrawText(text, position, size);
 }
 
-void EngineContext::DrawText3D(const char* text, glm::vec3 position, glm::vec3 size)
+void EngineContext::DrawText3D(const char* text, glm::vec3 position, glm::vec3 size) const
 {
 }

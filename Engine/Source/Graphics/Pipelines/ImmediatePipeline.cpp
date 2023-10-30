@@ -104,6 +104,20 @@ void ImmediatePipeline::DrawBox(glm::vec3 pos, glm::vec3 size, glm::vec3 color)
 	mFrameVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[0]), color});
 }
 
+void ImmediatePipeline::DrawCircle(glm::vec3 position, float radius, glm::vec3 color)
+{
+	for (float x = -radius; x <= radius; x++)
+	{
+		const float y = sqrt(radius * radius - x * x);
+		mFrameVertices.push_back({
+			_CalculateModelPoint({position.x + x, position.y + y, position.z}, {1.0f, 1.0f, 1.0f}), color
+		});
+		mFrameVertices.push_back({
+			_CalculateModelPoint({position.x + x, position.y - y, position.z}, {1.0f, 1.0f, 1.0f}), color
+		});
+	}
+}
+
 void ImmediatePipeline::DrawGrid(glm::vec3 pos, glm::vec3 size, glm::vec3 color, int rows, int columns)
 {
 	const auto& p0 = mBoxVertices[0]; //a

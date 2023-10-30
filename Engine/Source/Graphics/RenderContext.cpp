@@ -157,6 +157,11 @@ void RenderContext::DrawBox(glm::vec3 pos, glm::vec3 size, glm::vec3 color) cons
 	mImmediatePipeline->DrawBox(pos, size, color);
 }
 
+void RenderContext::DrawCircle(glm::vec3 position, float radius, glm::vec3 color) const
+{
+	mImmediatePipeline->DrawCircle(position, radius, color);
+}
+
 void RenderContext::DrawGrid(glm::vec3 pos, glm::vec3 size, glm::vec3 color, int rows, int columns) const
 {
 	mImmediatePipeline->DrawGrid(pos, size, color, rows, columns);

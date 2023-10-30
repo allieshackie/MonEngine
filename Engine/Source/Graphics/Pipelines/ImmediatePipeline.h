@@ -18,6 +18,7 @@ public:
 	void DrawPoint(glm::vec3 pos, glm::vec3 color, float size);
 	void DrawLine(glm::vec3 from, glm::vec3 to, glm::vec3 color);
 	void DrawBox(glm::vec3 pos, glm::vec3 size, glm::vec3 color);
+	void DrawCircle(glm::vec3 position, float radius, glm::vec3 color);
 	void DrawGrid(glm::vec3 pos, glm::vec3 size, glm::vec3 color, int rows, int columns);
 
 private:
