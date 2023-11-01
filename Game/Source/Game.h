@@ -17,6 +17,7 @@ public:
 
 	void Init(EngineContext* engine) override;
 	void Update(float dt) const override;
+	void Render() override;
 	void RegisterEntityDescriptions() const override;
 
 private:

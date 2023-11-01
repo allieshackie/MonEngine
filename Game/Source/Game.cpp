@@ -29,6 +29,10 @@ void Game::Update(float dt) const
 	//mPhysicsSystem->Update(mTimer->mDT);
 }
 
+void Game::Render()
+{
+}
+
 void Game::RegisterEntityDescriptions() const
 {
 	mEngine->RegisterDescription<InteractiveDescription>(InteractiveDescription::JsonName);

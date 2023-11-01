@@ -21,6 +21,7 @@ public:
 
 	// run the simulation
 	virtual void Update(float dt) const = 0;
+	virtual void Render() = 0;
 
 	virtual void RegisterEntityDescriptions() const = 0;
 };
