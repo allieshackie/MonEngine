@@ -152,6 +152,11 @@ EntityRegistry& EngineContext::GetEntityRegistry() const
 	return *mEntityRegistry;
 }
 
+InputHandler& EngineContext::GetInputHandler() const
+{
+	return *mInputHandler;
+}
+
 void EngineContext::LoadLevel(const char* levelName) const
 {
 	mLevelManager->LoadLevel(levelName, *this);

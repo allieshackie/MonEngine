@@ -37,6 +37,7 @@ public:
 
 	EntityId CreateGameObject(const std::string& entityTemplateName) const;
 	EntityRegistry& GetEntityRegistry() const;
+	InputHandler& GetInputHandler() const;
 
 	template <typename Component>
 	Component& GetComponent(EntityId id) const;
