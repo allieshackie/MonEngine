@@ -41,7 +41,7 @@ add_compile_definitions(SHADERS_FOLDER="${CMAKE_BINARY_DIR}/Data/Shaders/")
 add_compile_definitions(TEXTURES_FOLDER="${CMAKE_BINARY_DIR}/Data/Textures/")
 add_compile_definitions(UI_FOLDER="${CMAKE_BINARY_DIR}/Data/UI/")
 
-if(${MON_DEV_BUILD_SANDBOX} or ${MON_DEV_BUILD_GAME})
+if(${MON_DEV_BUILD_SANDBOX} OR ${MON_DEV_BUILD_GAME})
   add_compile_definitions(BUILD_GAME)
 endif()
 
