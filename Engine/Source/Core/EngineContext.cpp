@@ -134,7 +134,7 @@ void EngineContext::Run(GameInterface* game)
 		mRenderContext->EndFrame();
 	}
 
-	GUISystem::CloseGUI();
+	if (mUseGUIModule) GUISystem::CloseGUI();
 }
 
 void EngineContext::LoadFont(const char* fontFileName) const
