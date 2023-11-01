@@ -17,7 +17,7 @@ void EngineContext::_Init()
 	mResourceManager = std::make_unique<ResourceManager>();
 	mRenderContext = std::make_unique<RenderContext>();
 	mRenderContext->Init(mInputHandler);
-
+	GUISystem::InitGUI(*mRenderContext);
 
 	mDescriptionFactory = std::make_unique<DescriptionFactory>();
 	_InitDescriptions();
@@ -42,7 +42,6 @@ void EngineContext::_Init()
 
 void EngineContext::UseGUIModule()
 {
-	GUISystem::InitGUI(*mRenderContext);
 	mUseGUIModule = true;
 }
 
@@ -134,7 +133,7 @@ void EngineContext::Run(GameInterface* game)
 		mRenderContext->EndFrame();
 	}
 
-	if (mUseGUIModule) GUISystem::CloseGUI();
+	GUISystem::CloseGUI();
 }
 
 void EngineContext::LoadFont(const char* fontFileName) const
