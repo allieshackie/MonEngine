@@ -17,7 +17,7 @@ void EngineContext::_Init()
 	mResourceManager = std::make_unique<ResourceManager>();
 	mRenderContext = std::make_unique<RenderContext>();
 	mRenderContext->Init(mInputHandler);
-	GUISystem::InitGUI(*mRenderContext);
+
 
 	mDescriptionFactory = std::make_unique<DescriptionFactory>();
 	_InitDescriptions();
@@ -38,6 +38,12 @@ void EngineContext::_Init()
 #ifndef BUILD_GAME
 	mGUIMenu = std::make_unique<EditorGUI>(*this, *mInputHandler, *mLevelManager, *mMapRegistry, *mRenderContext);
 #endif
+}
+
+void EngineContext::UseGUIModule()
+{
+	GUISystem::InitGUI(*mRenderContext);
+	mUseGUIModule = true;
 }
 
 void EngineContext::SetGUIMenu(std::unique_ptr<GUIBase> gui)
@@ -113,6 +119,7 @@ void EngineContext::Run(GameInterface* game)
 
 		// TODO: Editor GUI requires camera to render...how can we fix that?
 		mRenderContext->BeginFrame();
+		if (mUseGUIModule)
 		{
 			GUISystem::GUIStartFrame();
 			mGUIMenu->RenderGUI();

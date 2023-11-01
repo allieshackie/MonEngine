@@ -17,6 +17,9 @@ int main()
 void Game::Init(EngineContext* engine)
 {
 	mEngine = engine;
+
+	mEngine->UseGUIModule();
+
 	auto gameGUI = std::make_unique<GameGUI>(*mEngine);
 	mEngine->SetGUIMenu(std::move(gameGUI));
 }

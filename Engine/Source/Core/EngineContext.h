@@ -31,6 +31,7 @@ public:
 
 	void Run(GameInterface* game);
 
+	void UseGUIModule();
 	void SetGUIMenu(std::unique_ptr<GUIBase> gui);
 	void LoadFont(const char* fontFileName) const;
 
@@ -88,6 +89,8 @@ private:
 
 	bool mRunning = true;
 	bool mDebugDraw = false;
+
+	bool mUseGUIModule = false;
 };
 
 template <typename Component>
