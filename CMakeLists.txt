@@ -1,11 +1,12 @@
 # Generate Solution -> cmake -B ./Build
-# cmake -B ./Build -DMON_DEV_BUILD_GAME=ON
+# cmake -B ./Build -DMON_DEV_BUILD_SANDBOX=ON
 
 cmake_minimum_required(VERSION 3.18.2)
 
 #  ============== PROJECT ================
 project(MonDev)
 
+option(MON_DEV_BUILD_SANDBOX "Build the sandbox game" ON)
 option(MON_DEV_BUILD_GAME "Build the game" ON)
 
 # ============== CONFIG ================
@@ -40,7 +41,7 @@ add_compile_definitions(SHADERS_FOLDER="${CMAKE_BINARY_DIR}/Data/Shaders/")
 add_compile_definitions(TEXTURES_FOLDER="${CMAKE_BINARY_DIR}/Data/Textures/")
 add_compile_definitions(UI_FOLDER="${CMAKE_BINARY_DIR}/Data/UI/")
 
-if(${MON_DEV_BUILD_GAME})
+if(${MON_DEV_BUILD_SANDBOX} or ${MON_DEV_BUILD_GAME})
   add_compile_definitions(BUILD_GAME)
 endif()
 
@@ -48,7 +49,7 @@ endif()
 add_subdirectory(${PROJECT_SOURCE_DIR}/Engine)
 
 # ============== GAME ================
-if(${MON_DEV_BUILD_GAME})
+if(${MON_DEV_BUILD_SANDBOX})
   add_subdirectory(${PROJECT_SOURCE_DIR}/Game)
 endif()
 
