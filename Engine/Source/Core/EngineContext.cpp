@@ -32,7 +32,8 @@ void EngineContext::_Init()
 	mCollisionSystem = std::make_unique<CollisionSystem>(*mEventPublisher);
 	mPhysicsSystem = std::make_unique<PhysicsSystem>();
 
-	mRenderContext->LoadFont("PixelLettersFull.ttf");
+	// TODO: Have game load font, should have a fallback if no font provided
+	//mRenderContext->LoadFont("PixelLettersFull.ttf");
 
 #ifndef BUILD_GAME
 	mGUIMenu = std::make_unique<EditorGUI>(*this, *mInputHandler, *mLevelManager, *mMapRegistry, *mRenderContext);
