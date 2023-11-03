@@ -5,24 +5,11 @@
 
 void ImmediatePipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat)
 {
-	// If point size change is needed, confirm works  
-	// glPointSize(5.0);
-	commandBuffer.UpdateBuffer(*mVertexBuffer, 0, mFrameVertices.data(),
-	                           static_cast<std::uint16_t>(mFrameVertices.size() * sizeof(
-		                           DebugVertex)));
+	_RenderPoints(commandBuffer, pvMat);
+	_RenderLines(commandBuffer, pvMat);
+	_RenderCircles(commandBuffer, pvMat);
 
-
-	// set graphics pipeline
-	commandBuffer.SetPipelineState(*mPipeline);
-	// TODO: Do we need a Resource heap to use constant buffer? Don't think so
-	//commandBuffer.SetResourceHeap(*mResourceHeap);
-	commandBuffer.SetResource(*mConstantBuffer, 0, LLGL::BindFlags::ConstantBuffer,
-	                          LLGL::StageFlags::VertexStage | LLGL::StageFlags::FragmentStage);
-	commandBuffer.SetVertexBuffer(*mVertexBuffer);
-
-	UpdateProjectionViewUniform(commandBuffer, pvMat);
-
-	commandBuffer.Draw(mFrameVertices.size(), 0);
+	_ClearVertices();
 }
 
 void ImmediatePipeline::UpdateProjectionViewUniform(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat)
@@ -53,19 +40,106 @@ void ImmediatePipeline::Init(std::shared_ptr<LLGL::RenderSystem>& renderSystem)
 	auto pipelineLayout = renderSystem->CreatePipelineLayout(
 		LLGL::PipelineLayoutDesc("cbuffer(0):vert"));
 	// Create graphics pipeline
-	LLGL::GraphicsPipelineDescriptor pipelineDesc;
+	LLGL::GraphicsPipelineDescriptor pointPipelineDesc;
 	{
-		pipelineDesc.vertexShader = &mShader->GetVertexShader();
-		pipelineDesc.fragmentShader = &mShader->GetFragmentShader();
-		pipelineDesc.pipelineLayout = pipelineLayout;
-		pipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::LineList;
+		pointPipelineDesc.vertexShader = &mShader->GetVertexShader();
+		pointPipelineDesc.fragmentShader = &mShader->GetFragmentShader();
+		pointPipelineDesc.pipelineLayout = pipelineLayout;
+		pointPipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::PointList;
 	}
-	mPipeline = renderSystem->CreatePipelineState(pipelineDesc);
-
+	mPointPipeline = renderSystem->CreatePipelineState(pointPipelineDesc);
 	// pre-allocate the buffer with 500 vertices 
-	mVertexBuffer = renderSystem->CreateBuffer(
-		VertexBufferDesc(static_cast<std::uint32_t>(500 * sizeof(DebugVertex)),
+	mPointVertexBuffer = renderSystem->CreateBuffer(
+		VertexBufferDesc(static_cast<std::uint32_t>(200 * sizeof(DebugVertex)),
 		                 mShader->GetVertexFormat()));
+
+
+	// Create graphics pipeline
+	LLGL::GraphicsPipelineDescriptor linePipelineDesc;
+	{
+		linePipelineDesc.vertexShader = &mShader->GetVertexShader();
+		linePipelineDesc.fragmentShader = &mShader->GetFragmentShader();
+		linePipelineDesc.pipelineLayout = pipelineLayout;
+		linePipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::LineList;
+	}
+	mLinePipeline = renderSystem->CreatePipelineState(linePipelineDesc);
+	// pre-allocate the buffer with 500 vertices 
+	mLineVertexBuffer = renderSystem->CreateBuffer(
+		VertexBufferDesc(static_cast<std::uint32_t>(200 * sizeof(DebugVertex)),
+		                 mShader->GetVertexFormat()));
+
+
+	// Create graphics pipeline
+	LLGL::GraphicsPipelineDescriptor circlePipelineDesc;
+	{
+		linePipelineDesc.vertexShader = &mShader->GetVertexShader();
+		linePipelineDesc.fragmentShader = &mShader->GetFragmentShader();
+		linePipelineDesc.pipelineLayout = pipelineLayout;
+		linePipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::TriangleStrip;
+	}
+	mCirclePipeline = renderSystem->CreatePipelineState(linePipelineDesc);
+	// pre-allocate the buffer with 500 vertices 
+	mCircleVertexBuffer = renderSystem->CreateBuffer(
+		VertexBufferDesc(static_cast<std::uint32_t>(200 * sizeof(DebugVertex)),
+		                 mShader->GetVertexFormat()));
+}
+
+void ImmediatePipeline::_RenderPoints(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat)
+{
+	// If point size change is needed, confirm works  
+	// glPointSize(5.0);
+	commandBuffer.UpdateBuffer(*mPointVertexBuffer, 0, mFramePointVertices.data(),
+	                           static_cast<std::uint16_t>(mFramePointVertices.size() * sizeof(
+		                           DebugVertex)));
+
+	// set graphics pipeline
+	commandBuffer.SetPipelineState(*mPointPipeline);
+	commandBuffer.SetResource(*mConstantBuffer, 0, LLGL::BindFlags::ConstantBuffer,
+	                          LLGL::StageFlags::VertexStage | LLGL::StageFlags::FragmentStage);
+	commandBuffer.SetVertexBuffer(*mPointVertexBuffer);
+	UpdateProjectionViewUniform(commandBuffer, pvMat);
+	commandBuffer.Draw(mFramePointVertices.size(), 0);
+}
+
+void ImmediatePipeline::_RenderLines(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat)
+{
+	// If point size change is needed, confirm works  
+	// glPointSize(5.0);
+	commandBuffer.UpdateBuffer(*mLineVertexBuffer, 0, mFrameLineVertices.data(),
+	                           static_cast<std::uint16_t>(mFrameLineVertices.size() * sizeof(
+		                           DebugVertex)));
+
+	// set graphics pipeline
+	commandBuffer.SetPipelineState(*mLinePipeline);
+	commandBuffer.SetResource(*mConstantBuffer, 0, LLGL::BindFlags::ConstantBuffer,
+	                          LLGL::StageFlags::VertexStage | LLGL::StageFlags::FragmentStage);
+	commandBuffer.SetVertexBuffer(*mLineVertexBuffer);
+	UpdateProjectionViewUniform(commandBuffer, pvMat);
+	commandBuffer.Draw(mFrameLineVertices.size(), 0);
+}
+
+void ImmediatePipeline::_RenderCircles(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat)
+{
+	// If point size change is needed, confirm works  
+	// glPointSize(5.0);
+	commandBuffer.UpdateBuffer(*mCircleVertexBuffer, 0, mFrameCircleVertices.data(),
+	                           static_cast<std::uint16_t>(mFrameCircleVertices.size() * sizeof(
+		                           DebugVertex)));
+
+	// set graphics pipeline
+	commandBuffer.SetPipelineState(*mCirclePipeline);
+	commandBuffer.SetResource(*mConstantBuffer, 0, LLGL::BindFlags::ConstantBuffer,
+	                          LLGL::StageFlags::VertexStage | LLGL::StageFlags::FragmentStage);
+	commandBuffer.SetVertexBuffer(*mCircleVertexBuffer);
+	UpdateProjectionViewUniform(commandBuffer, pvMat);
+	commandBuffer.Draw(mFrameCircleVertices.size(), 0);
+}
+
+void ImmediatePipeline::_ClearVertices()
+{
+	mFramePointVertices.clear();
+	mFrameLineVertices.clear();
+	mFrameCircleVertices.clear();
 }
 
 glm::vec3 ImmediatePipeline::_CalculateModelPoint(glm::vec3 pos, glm::vec3 size, glm::vec3 basePoint)
@@ -80,39 +154,42 @@ glm::vec3 ImmediatePipeline::_CalculateModelPoint(glm::vec3 pos, glm::vec3 size,
 
 void ImmediatePipeline::DrawPoint(glm::vec3 pos, glm::vec3 color, float size)
 {
-	mFrameVertices.push_back({_CalculateModelPoint(pos, {size, size, 1}), color});
+	mFramePointVertices.push_back({_CalculateModelPoint(pos, {size, size, 1}), color});
 }
 
 void ImmediatePipeline::DrawLine(glm::vec3 from, glm::vec3 to, glm::vec3 color)
 {
-	mFrameVertices.push_back({_CalculateModelPoint(from, {1.0f, 1.0f, 1.0f}), color});
-	mFrameVertices.push_back({_CalculateModelPoint(to, {1.0f, 1.0f, 1.0f}), color});
+	mFrameLineVertices.push_back({_CalculateModelPoint(from, {1.0f, 1.0f, 1.0f}), color});
+	mFrameLineVertices.push_back({_CalculateModelPoint(to, {1.0f, 1.0f, 1.0f}), color});
 }
 
 void ImmediatePipeline::DrawBox(glm::vec3 pos, glm::vec3 size, glm::vec3 color)
 {
-	mFrameVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[0]), color});
-	mFrameVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[1]), color});
+	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[0]), color});
+	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[1]), color});
 
-	mFrameVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[1]), color});
-	mFrameVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[3]), color});
+	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[1]), color});
+	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[3]), color});
 
-	mFrameVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[2]), color});
-	mFrameVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[3]), color});
+	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[2]), color});
+	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[3]), color});
 
-	mFrameVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[2]), color});
-	mFrameVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[0]), color});
+	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[2]), color});
+	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[0]), color});
 }
 
 void ImmediatePipeline::DrawCircle(glm::vec3 position, float radius, glm::vec3 color)
 {
-	for (float x = -radius; x <= radius; x++)
+	for (int i = 0; i < 20; ++i)
 	{
-		const float y = sqrt(radius * radius - x * x);
-		mFrameVertices.push_back({
+		const float angle = 6.28f * i / 20;
+		const float x = position.x + radius * cos(angle);
+		const float y = position.y + radius * sin(angle);
+
+		mFrameCircleVertices.push_back({
 			_CalculateModelPoint({position.x + x, position.y + y, position.z}, {1.0f, 1.0f, 1.0f}), color
 		});
-		mFrameVertices.push_back({
+		mFrameCircleVertices.push_back({
 			_CalculateModelPoint({position.x + x, position.y - y, position.z}, {1.0f, 1.0f, 1.0f}), color
 		});
 	}
@@ -125,27 +202,27 @@ void ImmediatePipeline::DrawGrid(glm::vec3 pos, glm::vec3 size, glm::vec3 color,
 	const auto& p2 = mBoxVertices[2]; //c
 	const auto& p3 = mBoxVertices[3]; //d
 
-	mFrameVertices.push_back({_CalculateModelPoint(pos, size, p0), color});
-	mFrameVertices.push_back({_CalculateModelPoint(pos, size, p1), color});
+	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, p0), color});
+	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, p1), color});
 
-	mFrameVertices.push_back({_CalculateModelPoint(pos, size, p1), color});
-	mFrameVertices.push_back({_CalculateModelPoint(pos, size, p3), color});
+	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, p1), color});
+	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, p3), color});
 
-	mFrameVertices.push_back({_CalculateModelPoint(pos, size, p2), color});
-	mFrameVertices.push_back({_CalculateModelPoint(pos, size, p3), color});
+	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, p2), color});
+	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, p3), color});
 
-	mFrameVertices.push_back({_CalculateModelPoint(pos, size, p2), color});
-	mFrameVertices.push_back({_CalculateModelPoint(pos, size, p0), color});
+	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, p2), color});
+	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, p0), color});
 
 	const float totalYDist = abs(p1.y - p0.y);
 	const float yAmountToJump = totalYDist / rows;
 	for (int i = 1; i < rows; i++)
 	{
-		mFrameVertices.push_back({
+		mFrameLineVertices.push_back({
 			_CalculateModelPoint(pos, size, glm::vec3{p0.x, p0.y - (i * yAmountToJump), p0.z}),
 			color
 		});
-		mFrameVertices.push_back({
+		mFrameLineVertices.push_back({
 			_CalculateModelPoint(pos, size, glm::vec3{p2.x, p2.y - (i * yAmountToJump), p2.z}),
 			color
 		});
@@ -155,11 +232,11 @@ void ImmediatePipeline::DrawGrid(glm::vec3 pos, glm::vec3 size, glm::vec3 color,
 	const float xAmountToJump = totalXDist / columns;
 	for (int i = 1; i < columns; i++)
 	{
-		mFrameVertices.push_back({
+		mFrameLineVertices.push_back({
 			_CalculateModelPoint(pos, size, glm::vec3{p0.x + (i * xAmountToJump), p0.y, p0.z}),
 			color
 		});
-		mFrameVertices.push_back({
+		mFrameLineVertices.push_back({
 			_CalculateModelPoint(pos, size, glm::vec3{p1.x + (i * xAmountToJump), p1.y, p1.z}),
 			color
 		});

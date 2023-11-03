@@ -24,6 +24,12 @@ public:
 private:
 	static glm::vec3 _CalculateModelPoint(glm::vec3 pos, glm::vec3 size, glm::vec3 basePoint = {0, 0, 0});
 
+	void _RenderPoints(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat);
+	void _RenderLines(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat);
+	void _RenderCircles(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat);
+
+	void _ClearVertices();
+
 	struct Settings
 	{
 		glm::mat4 pvMat;
@@ -32,11 +38,19 @@ private:
 
 	const std::array<glm::vec3, 4> mBoxVertices{{{-0.5, 0.5, 1}, {-0.5, -0.5, 1}, {0.5, 0.5, 1}, {0.5, -0.5, 1}}};
 
-	LLGL::PipelineState* mPipeline = nullptr;
+	LLGL::PipelineState* mPointPipeline = nullptr;
+	LLGL::PipelineState* mLinePipeline = nullptr;
+	LLGL::PipelineState* mCirclePipeline = nullptr;
 
 	LLGL::Buffer* mConstantBuffer = nullptr;
-	LLGL::Buffer* mVertexBuffer = nullptr;
+
+	LLGL::Buffer* mPointVertexBuffer = nullptr;
+	LLGL::Buffer* mLineVertexBuffer = nullptr;
+	LLGL::Buffer* mCircleVertexBuffer = nullptr;
 
 	std::unique_ptr<Shader> mShader;
-	std::vector<DebugVertex> mFrameVertices;
+
+	std::vector<DebugVertex> mFramePointVertices;
+	std::vector<DebugVertex> mFrameLineVertices;
+	std::vector<DebugVertex> mFrameCircleVertices;
 };
