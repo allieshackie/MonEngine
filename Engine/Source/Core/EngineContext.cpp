@@ -125,10 +125,10 @@ void EngineContext::Run(GameInterface* game)
 			GUISystem::GUIEndFrame();
 		}
 
-		game->Render();
 
 		if (const auto& level = mLevelManager->GetCurrentLevel())
 		{
+			game->Render();
 			mRenderContext->Render(level->GetCamera(), *mEntityRegistry, *mMapRegistry);
 		}
 
