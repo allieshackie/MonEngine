@@ -34,6 +34,8 @@ public:
 
 	void LoadFont(const char* fontFileName) const;
 	bool GetNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const;
+	// Color range from 0.0f - 1.0f
+	void SetBackgroundClearColor(const LLGL::ColorRGBAf color);
 
 	void UpdateProjection();
 	glm::vec3 NormalizedDeviceCoords(glm::vec3 vec) const;
@@ -56,6 +58,8 @@ private:
 	std::unique_ptr<MapPipeline> mMapPipeline;
 	std::unique_ptr<ImmediatePipeline> mImmediatePipeline;
 	std::unique_ptr<TextPipeline> mTextPipeline;
+
+	LLGL::ColorRGBAf mBackgroundColor = {0.0f, 0.0f, 0.0f};
 };
 
 class ResizeEventHandler : public LLGL::Window::EventListener

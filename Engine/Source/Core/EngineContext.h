@@ -56,6 +56,8 @@ public:
 	void DrawText2D(const char* text, glm::vec2 position, glm::vec2 size) const;
 	void DrawText3D(const char* text, glm::vec3 position, glm::vec3 size) const;
 
+	void SetBackgroundClearColor(const LLGL::ColorRGBAf color) const;  
+
 	template <typename T>
 	void RegisterDescription(const std::string& descriptionName) const
 	{

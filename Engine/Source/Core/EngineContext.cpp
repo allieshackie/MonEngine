@@ -211,3 +211,8 @@ void EngineContext::DrawText2D(const char* text, glm::vec2 position, glm::vec2 s
 void EngineContext::DrawText3D(const char* text, glm::vec3 position, glm::vec3 size) const
 {
 }
+
+void EngineContext::SetBackgroundClearColor(const LLGL::ColorRGBAf color) const
+{
+	mRenderContext->SetBackgroundClearColor(color);
+}

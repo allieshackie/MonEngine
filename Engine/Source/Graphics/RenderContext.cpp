@@ -91,12 +91,17 @@ bool RenderContext::GetNativeHandle(void* nativeHandle, std::size_t nativeHandle
 	return mSwapChain->GetSurface().GetNativeHandle(nativeHandle, nativeHandleSize);
 }
 
+void RenderContext::SetBackgroundClearColor(const LLGL::ColorRGBAf color)
+{
+	mBackgroundColor = color;
+}
+
 void RenderContext::BeginFrame() const
 {
 	// Render Commands to Queue
 	mCommands->Begin();
 
-	mCommands->Clear(LLGL::ClearFlags::Color);
+	mCommands->Clear(LLGL::ClearFlags::Color, mBackgroundColor);
 	// set viewport and scissor rectangle
 	mCommands->SetViewport(mSwapChain->GetResolution());
 
