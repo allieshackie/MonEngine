@@ -50,7 +50,7 @@ bool Texture::_LoadFromFile(const std::shared_ptr<LLGL::RenderSystem>& renderer,
 	}
 
 	// Initialize source image descriptor to upload image data onto GPU
-	LLGL::SrcImageDescriptor imageDesc;
+	LLGL::ImageView imageDesc;
 	{
 		// Set color format depending on alpha channel
 		imageDesc.format = (texComponents == 4 ? LLGL::ImageFormat::RGBA : LLGL::ImageFormat::RGB);
@@ -92,7 +92,7 @@ bool Texture::_CreateRGBAFromData(const std::shared_ptr<LLGL::RenderSystem>& ren
 	mTextureHeight = height;
 
 	// Initialize source image descriptor to upload image data onto GPU
-	LLGL::SrcImageDescriptor imageDesc;
+	LLGL::ImageView imageDesc;
 	{
 		// Set color format depending on alpha channel
 		imageDesc.format = LLGL::ImageFormat::RGB; // ImageFormat::RGB
@@ -135,10 +135,10 @@ bool Texture::_CreateSingleChannelTextureFromData(const std::shared_ptr<LLGL::Re
 
 
 	// Initialize source image descriptor to upload image data onto GPU
-	LLGL::SrcImageDescriptor imageDesc;
+	LLGL::ImageView imageDesc;
 	{
 		// Set color format depending on alpha channel
-		imageDesc.format = LLGL::ImageFormat::R;
+		imageDesc.format = LLGL::ImageFormat::Alpha;
 
 		// Set image data type (unsigned char = 8 bit unsigned int)
 		imageDesc.dataType = LLGL::DataType::UInt8;
@@ -154,7 +154,7 @@ bool Texture::_CreateSingleChannelTextureFromData(const std::shared_ptr<LLGL::Re
 			texDesc.type = LLGL::TextureType::Texture2D;
 
 			// texture hardware format: R with normalize 8-bit unsigned char
-			texDesc.format = LLGL::Format::R8UNorm;
+			texDesc.format = LLGL::Format::A8UNorm;
 
 			texDesc.extent = {static_cast<uint32_t>(mTextureWidth), static_cast<uint32_t>(mTextureHeight), 1u};
 		}

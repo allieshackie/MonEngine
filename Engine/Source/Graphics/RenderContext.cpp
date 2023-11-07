@@ -1,4 +1,4 @@
-#include "LLGL/Misc/TypeNames.h"
+#include "LLGL/Utils/TypeNames.h"
 #include <glm/ext/matrix_clip_space.hpp>
 
 #include "Core/Camera.h"
@@ -14,16 +14,22 @@ void RenderContext::Init(const std::shared_ptr<InputHandler>& inputHandler)
 {
 	try
 	{
+		LLGL::Report report;
 		// Load render system module (hard code to OpenGL for now)
-		mRenderSystem = LLGL::RenderSystem::Load("OpenGL");
+		mRenderSystem = LLGL::RenderSystem::Load("OpenGL", &report);
 
-		// Render context (window attributes)
+		if (!mRenderSystem)
+		{
+			LLGL::Log::Errorf("%s", report.GetText());
+			return;
+		}
+
+		// Create swap-chain
 		LLGL::SwapChainDescriptor swapChainDesc;
 		{
 			swapChainDesc.resolution = {SCREEN_WIDTH, SCREEN_HEIGHT};
-#ifdef ENABLE_MULTISAMPLING
-            contextDesc.samples = 8;
-#endif
+			swapChainDesc.depthBits = 0; // We don't need a depth buffer for this example
+			swapChainDesc.stencilBits = 0; // We don't need a stencil buffer for this example
 		}
 		mSwapChain = mRenderSystem->CreateSwapChain(swapChainDesc);
 		mSwapChain->SetVsyncInterval(1);
@@ -101,7 +107,9 @@ void RenderContext::BeginFrame() const
 	// Render Commands to Queue
 	mCommands->Begin();
 
-	mCommands->Clear(LLGL::ClearFlags::Color, mBackgroundColor);
+	mCommands->Clear(LLGL::ClearFlags::Color, {
+		                 mBackgroundColor.r, mBackgroundColor.g, mBackgroundColor.b, mBackgroundColor.a
+	                 });
 	// set viewport and scissor rectangle
 	mCommands->SetViewport(mSwapChain->GetResolution());
 
@@ -213,16 +221,12 @@ void RenderContext::_InitWindow(const std::shared_ptr<InputHandler>& inputHandle
 
 	// Change window descriptor to allow resizing
 	auto wndDesc = window.GetDesc();
-	wndDesc.resizable = true;
+	wndDesc.flags |= LLGL::WindowFlags::Resizable | LLGL::WindowFlags::DisableClearOnResize;
 	window.SetDesc(wndDesc);
-
-	// Change window behavior
-	window.SetBehavior({true, 1});
 
 	// Add window resize listener
 	window.AddEventListener(std::make_shared<ResizeEventHandler>(*this));
+	window.AddEventListener(inputHandler);
 
 	window.Show();
-
-	window.AddEventListener(inputHandler);
 }

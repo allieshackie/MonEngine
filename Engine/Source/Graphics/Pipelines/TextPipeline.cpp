@@ -5,16 +5,16 @@
 
 #include <iomanip>
 #include <LLGL/LLGL.h>
-#include "LLGL/Misc/Utility.h"
+#include "LLGL/Utils/Parse.h"
+#include "LLGL/Utils/Utility.h"
 
 #include "Core/Camera.h"
+#include "Core/FileSystem.h"
 #include "Core/LevelManager.h"
 #include "Graphics/Core/Shader.h"
 #include "Graphics/Core/Texture.h"
 
 #include "TextPipeline.h"
-
-#include "Core/FileSystem.h"
 
 struct FontData
 {
@@ -36,6 +36,8 @@ void TextPipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pv
 		commandBuffer.SetPipelineState(*mPipeline);
 		commandBuffer.SetVertexBuffer(*mesh->mVertexBuffer);
 		commandBuffer.SetIndexBuffer(*mesh->mIndexBuffer);
+
+		assert(mResourceHeap != nullptr && "No font has been loaded.  Call EngineContext::LoadFont in Game init");
 		commandBuffer.SetResourceHeap(*mResourceHeap, 0);
 
 		_UpdateUniforms(commandBuffer, pvMat, mesh->mPosition, mesh->mSize);
@@ -48,16 +50,14 @@ void TextPipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pv
 
 void TextPipeline::_CreateResourceHeap(const std::shared_ptr<LLGL::RenderSystem>& renderSystem)
 {
-	LLGL::ResourceHeapDescriptor resourceHeapDesc;
-	{
-		resourceHeapDesc.pipelineLayout = mPipelineLayout;
-		resourceHeapDesc.resourceViews.reserve(3);
+	std::vector<LLGL::ResourceViewDescriptor> resourceViews;
+	resourceViews.reserve(3);
 
-		resourceHeapDesc.resourceViews.emplace_back(mConstantBuffer);
-		resourceHeapDesc.resourceViews.emplace_back(&mTextureAtlas->GetTextureData());
-		resourceHeapDesc.resourceViews.emplace_back(&mTextureAtlas->GetSamplerData());
-	}
-	mResourceHeap = renderSystem->CreateResourceHeap(resourceHeapDesc);
+	resourceViews.emplace_back(mConstantBuffer);
+	resourceViews.emplace_back(&mTextureAtlas->GetTextureData());
+	resourceViews.emplace_back(&mTextureAtlas->GetSamplerData());
+
+	mResourceHeap = renderSystem->CreateResourceHeap(mPipelineLayout, resourceViews);
 }
 
 // Orthographic Projection
@@ -212,7 +212,7 @@ void TextPipeline::Init(std::shared_ptr<LLGL::RenderSystem>& renderSystem)
 	// All layout bindings that will be used by graphics and compute pipelines
 	// Create pipeline layout
 	mPipelineLayout = renderSystem->CreatePipelineLayout(
-		LLGL::PipelineLayoutDesc("cbuffer(0):vert:frag,texture(0):frag, sampler(0):frag"));
+		LLGL::Parse("heap{cbuffer(0):vert:frag, texture(0):frag, sampler(0):frag}"));
 
 	// Create graphics pipeline
 	LLGL::GraphicsPipelineDescriptor pipelineDesc;

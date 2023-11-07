@@ -1,5 +1,5 @@
 #pragma once
-#include "LLGL/Misc/VertexFormat.h"
+#include "LLGL/Utils/VertexFormat.h"
 #include <LLGL/LLGL.h>
 
 using GLuint = unsigned int;

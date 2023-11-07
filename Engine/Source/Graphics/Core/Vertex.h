@@ -1,6 +1,6 @@
 #pragma once
 #include <glm/mat4x4.hpp>
-#include <LLGL/ColorRGBA.h>
+#include <LLGL/Utils/ColorRGBA.h>
 
 struct Vertex
 {

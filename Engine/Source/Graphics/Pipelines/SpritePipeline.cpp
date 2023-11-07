@@ -1,5 +1,6 @@
-#include "LLGL/Misc/VertexFormat.h"
-#include "LLGL/Misc/Utility.h"
+#include "LLGL/Utils/Parse.h"
+#include "LLGL/Utils/VertexFormat.h"
+#include "LLGL/Utils/Utility.h"
 
 #include "Core/Camera.h"
 #include "Core/LevelManager.h"
@@ -81,8 +82,8 @@ void SpritePipeline::Init(std::shared_ptr<LLGL::RenderSystem>& renderSystem)
 
 	// All layout bindings that will be used by graphics and compute pipelines
 	// Create pipeline layout
-	mPipelineLayout = renderSystem->CreatePipelineLayout(LLGL::PipelineLayoutDesc(
-		"cbuffer(0):vert:frag, texture(0):frag, sampler(0):frag"));
+	mPipelineLayout = renderSystem->CreatePipelineLayout(
+		LLGL::Parse("heap{cbuffer(0):vert:frag, texture(0):frag, sampler(0):frag}"));
 
 	// Create graphics pipeline
 	LLGL::GraphicsPipelineDescriptor pipelineDesc;
@@ -112,17 +113,15 @@ void SpritePipeline::_CreateResourceHeap(const std::shared_ptr<LLGL::RenderSyste
 	// Resource Heap
 	const auto textures = ResourceManager::LoadAllTexturesFromFolder(renderSystem);
 
-	LLGL::ResourceHeapDescriptor resourceHeapDesc;
-	{
-		resourceHeapDesc.pipelineLayout = mPipelineLayout;
-		resourceHeapDesc.resourceViews.reserve(textures.size() * 3);
+	std::vector<LLGL::ResourceViewDescriptor> resourceViews;
+	resourceViews.reserve(textures.size() * 3);
 
-		for (const auto& texture : textures)
-		{
-			resourceHeapDesc.resourceViews.emplace_back(mConstantBuffer);
-			resourceHeapDesc.resourceViews.emplace_back(&texture->GetTextureData());
-			resourceHeapDesc.resourceViews.emplace_back(&texture->GetSamplerData());
-		}
+	for (const auto& texture : textures)
+	{
+		resourceViews.emplace_back(mConstantBuffer);
+		resourceViews.emplace_back(&texture->GetTextureData());
+		resourceViews.emplace_back(&texture->GetSamplerData());
 	}
-	mResourceHeap = renderSystem->CreateResourceHeap(resourceHeapDesc);
+
+	mResourceHeap = renderSystem->CreateResourceHeap(mPipelineLayout, resourceViews);
 }

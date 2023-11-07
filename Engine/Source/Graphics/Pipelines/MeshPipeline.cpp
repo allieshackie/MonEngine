@@ -1,4 +1,4 @@
-#include "LLGL/Misc/Utility.h"
+#include "LLGL/Utils/Utility.h"
 
 #include "Graphics/Core/Shader.h"
 #include "Graphics/Core/Vertex.h"
@@ -61,13 +61,8 @@ void MeshPipeline::Init(std::shared_ptr<LLGL::RenderSystem>& renderSystem, const
 	}
 	mPipeline = renderSystem->CreatePipelineState(pipelineDesc);
 
-	// Create resource heap for constant buffer
-	LLGL::ResourceHeapDescriptor heapDesc;
-	{
-		heapDesc.pipelineLayout = pipelineLayout;
-		heapDesc.resourceViews = {mConstantBuffer};
-	}
-	mVolumeResourceHeap = renderSystem->CreateResourceHeap(heapDesc);
+	std::vector<LLGL::ResourceViewDescriptor> resourceViews = {mConstantBuffer};
+	mVolumeResourceHeap = renderSystem->CreateResourceHeap(pipelineLayout, resourceViews);
 }
 
 void MeshPipeline::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& commands, glm::mat4 model,

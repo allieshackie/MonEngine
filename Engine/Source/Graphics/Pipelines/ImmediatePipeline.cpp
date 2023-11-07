@@ -1,7 +1,9 @@
 #include <glm/ext/matrix_transform.hpp>
-#include "LLGL/Misc/Utility.h"
+#include "LLGL/Utils/Utility.h"
 
 #include "ImmediatePipeline.h"
+
+#include "LLGL/Utils/Parse.h"
 
 void ImmediatePipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat)
 {
@@ -38,7 +40,7 @@ void ImmediatePipeline::Init(std::shared_ptr<LLGL::RenderSystem>& renderSystem)
 	// Create pipeline layout
 	// TODO: Does the pipeline layout need to be removed if we aren't using resource heap?
 	auto pipelineLayout = renderSystem->CreatePipelineLayout(
-		LLGL::PipelineLayoutDesc("cbuffer(0):vert"));
+		LLGL::Parse("heap{cbuffer(0):vert}"));
 	// Create graphics pipeline
 	LLGL::GraphicsPipelineDescriptor pointPipelineDesc;
 	{
@@ -94,8 +96,7 @@ void ImmediatePipeline::_RenderPoints(LLGL::CommandBuffer& commandBuffer, const 
 
 	// set graphics pipeline
 	commandBuffer.SetPipelineState(*mPointPipeline);
-	commandBuffer.SetResource(*mConstantBuffer, 0, LLGL::BindFlags::ConstantBuffer,
-	                          LLGL::StageFlags::VertexStage | LLGL::StageFlags::FragmentStage);
+	commandBuffer.SetResource(0, *mConstantBuffer);
 	commandBuffer.SetVertexBuffer(*mPointVertexBuffer);
 	UpdateProjectionViewUniform(commandBuffer, pvMat);
 	commandBuffer.Draw(mFramePointVertices.size(), 0);
@@ -111,8 +112,7 @@ void ImmediatePipeline::_RenderLines(LLGL::CommandBuffer& commandBuffer, const g
 
 	// set graphics pipeline
 	commandBuffer.SetPipelineState(*mLinePipeline);
-	commandBuffer.SetResource(*mConstantBuffer, 0, LLGL::BindFlags::ConstantBuffer,
-	                          LLGL::StageFlags::VertexStage | LLGL::StageFlags::FragmentStage);
+	commandBuffer.SetResource(0, *mConstantBuffer);
 	commandBuffer.SetVertexBuffer(*mLineVertexBuffer);
 	UpdateProjectionViewUniform(commandBuffer, pvMat);
 	commandBuffer.Draw(mFrameLineVertices.size(), 0);
@@ -128,8 +128,7 @@ void ImmediatePipeline::_RenderCircles(LLGL::CommandBuffer& commandBuffer, const
 
 	// set graphics pipeline
 	commandBuffer.SetPipelineState(*mCirclePipeline);
-	commandBuffer.SetResource(*mConstantBuffer, 0, LLGL::BindFlags::ConstantBuffer,
-	                          LLGL::StageFlags::VertexStage | LLGL::StageFlags::FragmentStage);
+	commandBuffer.SetResource(0, *mConstantBuffer);
 	commandBuffer.SetVertexBuffer(*mCircleVertexBuffer);
 	UpdateProjectionViewUniform(commandBuffer, pvMat);
 	commandBuffer.Draw(mFrameCircleVertices.size(), 0);

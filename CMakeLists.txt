@@ -87,7 +87,7 @@ endif()
 
 # ============== THIRD PARTY ================
 add_subdirectory(${THIRD_PARTY_DIR}/entt)
-set_property(TARGET aob PROPERTY FOLDER "ThirdParty")
+#set_property(TARGET aob PROPERTY FOLDER "ThirdParty")
 
 add_subdirectory(${THIRD_PARTY_DIR}/json)
 

@@ -1,5 +1,6 @@
-#include "LLGL/Misc/VertexFormat.h"
-#include "LLGL/Misc/Utility.h"
+#include "LLGL/Utils/Parse.h"
+#include "LLGL/Utils/VertexFormat.h"
+#include "LLGL/Utils/Utility.h"
 
 #include "Core/Camera.h"
 #include "Graphics/Core/ResourceManager.h"
@@ -103,8 +104,8 @@ void MapPipeline::Init(std::shared_ptr<LLGL::RenderSystem>& renderSystem)
 
 	// All layout bindings that will be used by graphics and compute pipelines
 	// Create pipeline layout
-	mPipelineLayout = renderSystem->CreatePipelineLayout(LLGL::PipelineLayoutDesc(
-		"cbuffer(0):vert:frag, texture(0):frag, sampler(0):frag"));
+	mPipelineLayout = renderSystem->CreatePipelineLayout(
+		LLGL::Parse("heap{cbuffer(0):vert:frag, texture(0):frag, sampler(0):frag}"));
 
 	// Create graphics pipeline
 	LLGL::GraphicsPipelineDescriptor pipelineDesc;
@@ -152,28 +153,23 @@ void MapPipeline::_CreateResourceHeap(const std::shared_ptr<LLGL::RenderSystem>&
 
 	const auto textures = ResourceManager::LoadAllTexturesFromFolder(renderSystem);
 
-	LLGL::ResourceHeapDescriptor resourceHeapDesc;
+	std::vector<LLGL::ResourceViewDescriptor> resourceViews;
+	resourceViews.reserve((textures.size() + mMapTextures.size()) * 3);
+
+	for (const auto& texture : textures)
 	{
-		resourceHeapDesc.pipelineLayout = mPipelineLayout;
-		resourceHeapDesc.resourceViews.reserve((textures.size() + mMapTextures.size()) * 3);
-
-		for (const auto& texture : textures)
-		{
-			resourceHeapDesc.resourceViews.emplace_back(mConstantBuffer);
-			resourceHeapDesc.resourceViews.emplace_back(&texture->GetTextureData());
-			resourceHeapDesc.resourceViews.emplace_back(&texture->GetSamplerData());
-		}
-
-
-		const int i = static_cast<int>(textures.size());
-		for (const auto& mapTexture : mMapTextures)
-		{
-			resourceHeapDesc.resourceViews.emplace_back(mConstantBuffer);
-			resourceHeapDesc.resourceViews.emplace_back(mapTexture.second);
-			resourceHeapDesc.resourceViews.emplace_back(sampler);
-		}
+		resourceViews.emplace_back(mConstantBuffer);
+		resourceViews.emplace_back(&texture->GetTextureData());
+		resourceViews.emplace_back(&texture->GetSamplerData());
 	}
-	mResourceHeap = renderSystem->CreateResourceHeap(resourceHeapDesc);
+	for (const auto& mapTexture : mMapTextures)
+	{
+		resourceViews.emplace_back(mConstantBuffer);
+		resourceViews.emplace_back(mapTexture.second);
+		resourceViews.emplace_back(sampler);
+	}
+
+	mResourceHeap = renderSystem->CreateResourceHeap(mPipelineLayout, resourceViews);
 }
 
 void MapPipeline::QueueWriteMapTexture(const std::shared_ptr<Map>& map)
@@ -208,12 +204,7 @@ void MapPipeline::_InitMapTexturePipeline(LLGL::CommandBuffer& commandBuffer,
 	LLGL::RenderTargetDescriptor renderTargetDesc;
 	{
 		renderTargetDesc.resolution = mTextureSize;
-
-		renderTargetDesc.attachments =
-		{
-			LLGL::AttachmentDescriptor{LLGL::AttachmentType::Depth},
-			LLGL::AttachmentDescriptor{LLGL::AttachmentType::Color, renderTargetTex}
-		};
+		renderTargetDesc.colorAttachments[0] = renderTargetTex;
 	}
 	const auto renderTarget = renderSystem->CreateRenderTarget(renderTargetDesc);
 
@@ -246,7 +237,8 @@ void MapPipeline::_WriteMapTexture(LLGL::CommandBuffer& commandBuffer, const std
 	commandBuffer.BeginRenderPass(*writeTarget);
 	{
 		// Clear color and depth buffers of active framebuffer (i.e. the render target)
-		commandBuffer.Clear(LLGL::ClearFlags::ColorDepth, {LLGL::ColorRGBAf{0.2f, 0.7f, 0.1f}});
+		// TODO: {LLGL::ColorRGBAf{0.2f, 0.7f, 0.1f}} ? Clear with this color when drawing map?
+		commandBuffer.Clear(LLGL::ClearFlags::ColorDepth);
 
 		// Bind graphics pipeline for render target
 		commandBuffer.SetPipelineState(*writePipeline);

@@ -59,7 +59,7 @@ private:
 	std::unique_ptr<ImmediatePipeline> mImmediatePipeline;
 	std::unique_ptr<TextPipeline> mTextPipeline;
 
-	LLGL::ColorRGBAf mBackgroundColor = {0.0f, 0.0f, 0.0f};
+	LLGL::ColorRGBAf mBackgroundColor = {0.0f, 0.0f, 0.0f, 1.0f};
 };
 
 class ResizeEventHandler : public LLGL::Window::EventListener
@@ -86,18 +86,6 @@ public:
 			}
 			 */
 		}
-	}
-
-	void OnTimer(LLGL::Window& sender, std::uint32_t timerID) override
-	{
-		// Re-draw frame
-		/*
-		 *
-		if (mWindow.isLoadingDone())
-		{
-			//mRenderer.Render();
-		}
-		 */
 	}
 
 private:

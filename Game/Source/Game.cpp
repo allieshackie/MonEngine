@@ -17,8 +17,9 @@ int main()
 void Game::Init(EngineContext* engine)
 {
 	mEngine = engine;
-
 	mEngine->UseGUIModule();
+	mEngine->LoadFont("PixelLettersFull.ttf");
+	mEngine->SetBackgroundClearColor({0.1f, 0.1f, 0.1f});
 
 	auto gameGUI = std::make_unique<GameGUI>(*mEngine);
 	mEngine->SetGUIMenu(std::move(gameGUI));
