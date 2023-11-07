@@ -28,7 +28,7 @@ struct FontData
 	std::unique_ptr<stbtt_packedchar[]> mCharInfo;
 } _font;
 
-void TextPipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat) const
+void TextPipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat)
 {
 	for (const auto& mesh : mTextMeshes)
 	{
@@ -42,6 +42,8 @@ void TextPipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pv
 
 		commandBuffer.DrawIndexed(mesh->mIndexCount, 0);
 	}
+
+	mTextMeshes.clear();
 }
 
 void TextPipeline::_CreateResourceHeap(const std::shared_ptr<LLGL::RenderSystem>& renderSystem)

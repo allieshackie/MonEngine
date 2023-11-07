@@ -72,15 +72,15 @@ void ImmediatePipeline::Init(std::shared_ptr<LLGL::RenderSystem>& renderSystem)
 	// Create graphics pipeline
 	LLGL::GraphicsPipelineDescriptor circlePipelineDesc;
 	{
-		linePipelineDesc.vertexShader = &mShader->GetVertexShader();
-		linePipelineDesc.fragmentShader = &mShader->GetFragmentShader();
-		linePipelineDesc.pipelineLayout = pipelineLayout;
-		linePipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::TriangleStrip;
+		circlePipelineDesc.vertexShader = &mShader->GetVertexShader();
+		circlePipelineDesc.fragmentShader = &mShader->GetFragmentShader();
+		circlePipelineDesc.pipelineLayout = pipelineLayout;
+		circlePipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::TriangleList;
 	}
-	mCirclePipeline = renderSystem->CreatePipelineState(linePipelineDesc);
+	mCirclePipeline = renderSystem->CreatePipelineState(circlePipelineDesc);
 	// pre-allocate the buffer with 500 vertices 
 	mCircleVertexBuffer = renderSystem->CreateBuffer(
-		VertexBufferDesc(static_cast<std::uint32_t>(200 * sizeof(DebugVertex)),
+		VertexBufferDesc(static_cast<std::uint32_t>(1000 * sizeof(DebugVertex)),
 		                 mShader->GetVertexFormat()));
 }
 
@@ -180,6 +180,8 @@ void ImmediatePipeline::DrawBox(glm::vec3 pos, glm::vec3 size, glm::vec3 color)
 
 void ImmediatePipeline::DrawCircle(glm::vec3 position, float radius, glm::vec3 color)
 {
+	/* TODO: Hollowed circle
+	 *
 	for (int i = 0; i < 20; ++i)
 	{
 		const float angle = 6.28f * i / 20;
@@ -187,12 +189,58 @@ void ImmediatePipeline::DrawCircle(glm::vec3 position, float radius, glm::vec3 c
 		const float y = position.y + radius * sin(angle);
 
 		mFrameCircleVertices.push_back({
-			_CalculateModelPoint({position.x + x, position.y + y, position.z}, {1.0f, 1.0f, 1.0f}), color
-		});
-		mFrameCircleVertices.push_back({
 			_CalculateModelPoint({position.x + x, position.y - y, position.z}, {1.0f, 1.0f, 1.0f}), color
 		});
 	}
+	 */
+
+	for (int i = 0; i < 19; ++i)
+	{
+		const float angle1 = 6.28f * i / 19;
+		const float angle2 = 6.28f * (i + 1) / 19;
+		const float x1 = position.x + radius * cos(angle1);
+		const float y1 = position.y + radius * sin(angle1);
+		const float x2 = position.x + radius * cos(angle2);
+		const float y2 = position.y + radius * sin(angle2);
+
+		// Add the center vertex
+		mFrameCircleVertices.push_back({
+			_CalculateModelPoint(position, {1.0f, 1.0f, 1.0f}), color
+		});
+
+		// Add the first vertex on the edge of the circle
+		mFrameCircleVertices.push_back({
+			_CalculateModelPoint({x1, y1, position.z}, {1.0f, 1.0f, 1.0f}), color
+		});
+
+		// Add the second vertex on the edge of the circle
+		mFrameCircleVertices.push_back({
+			_CalculateModelPoint({x2, y2, position.z}, {1.0f, 1.0f, 1.0f}), color
+		});
+	}
+
+	// Add the final triangle to close the circle
+	const float angle1 = 0.0f;
+	const float angle2 = 6.28f;
+	const float x1 = position.x + radius * cos(angle1);
+	const float y1 = position.y + radius * sin(angle1);
+	const float x2 = position.x + radius * cos(angle2);
+	const float y2 = position.y + radius * sin(angle2);
+
+	// Add the center vertex
+	mFrameCircleVertices.push_back({
+		_CalculateModelPoint(position, {1.0f, 1.0f, 1.0f}), color
+	});
+
+	// Add the first vertex on the edge of the circle
+	mFrameCircleVertices.push_back({
+		_CalculateModelPoint({x1, y1, position.z}, {1.0f, 1.0f, 1.0f}), color
+	});
+
+	// Add the second vertex on the edge of the circle
+	mFrameCircleVertices.push_back({
+		_CalculateModelPoint({x2, y2, position.z}, {1.0f, 1.0f, 1.0f}), color
+	});
 }
 
 void ImmediatePipeline::DrawGrid(glm::vec3 pos, glm::vec3 size, glm::vec3 color, int rows, int columns)

@@ -38,7 +38,7 @@ class TextPipeline
 {
 public:
 	void Init(std::shared_ptr<LLGL::RenderSystem>& renderSystem);
-	void Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat) const;
+	void Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat);
 
 	void LoadFont(const std::shared_ptr<LLGL::RenderSystem>& renderSystem, const char* fontFile);
 	void CreateTextMesh(std::shared_ptr<LLGL::RenderSystem>& renderSystem, const std::string& text, glm::vec2 pos,
