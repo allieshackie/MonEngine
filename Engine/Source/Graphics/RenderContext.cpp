@@ -7,32 +7,33 @@
 
 #include "RenderContext.h"
 
-static constexpr int SCREEN_WIDTH = 800;
-static constexpr int SCREEN_HEIGHT = 600;
-
-void RenderContext::Init(const std::shared_ptr<InputHandler>& inputHandler)
+RenderContext::RenderContext(const LLGL::UTF8String& title, const LLGL::Extent2D screenSize,
+                             const LLGL::ColorRGBAf backgroundColor,
+                             const std::shared_ptr<InputHandler>& inputHandler)
+	: mBackgroundColor(backgroundColor)
 {
 	try
 	{
 		LLGL::Report report;
 		// Load render system module (hard code to OpenGL for now)
 		mRenderSystem = LLGL::RenderSystem::Load("OpenGL", &report);
+		// Set report callback to standard output
+		LLGL::Log::RegisterCallbackStd();
 
-		if (!mRenderSystem)
-		{
-			LLGL::Log::Errorf("%s", report.GetText());
-			return;
-		}
+		const auto display = LLGL::Display::GetPrimary();
 
 		// Create swap-chain
 		LLGL::SwapChainDescriptor swapChainDesc;
 		{
-			swapChainDesc.resolution = {SCREEN_WIDTH, SCREEN_HEIGHT};
-			swapChainDesc.depthBits = 0; // We don't need a depth buffer for this example
-			swapChainDesc.stencilBits = 0; // We don't need a stencil buffer for this example
+			swapChainDesc.resolution = display != nullptr
+				                           ? _ScaleResolution(screenSize, display->GetScale())
+				                           : screenSize;
+			swapChainDesc.samples = mSamplesCount;
 		}
 		mSwapChain = mRenderSystem->CreateSwapChain(swapChainDesc);
+
 		mSwapChain->SetVsyncInterval(1);
+		mSwapChain->SetName("SwapChain");
 
 		LLGL::CommandBufferDescriptor cmdBufferDesc;
 		{
@@ -44,7 +45,6 @@ void RenderContext::Init(const std::shared_ptr<InputHandler>& inputHandler)
 		// Get command queue to record and submit command buffers
 		mCommandQueue = mRenderSystem->GetCommandQueue();
 
-		// ==== TODO: Debug info ====
 		// Print renderer information
 		const auto& info = mRenderSystem->GetRendererInfo();
 		const auto swapChainRes = mSwapChain->GetResolution();
@@ -71,20 +71,8 @@ void RenderContext::Init(const std::shared_ptr<InputHandler>& inputHandler)
 	// NOTE: Projection update must occur after debug shader is initialized
 	UpdateProjection();
 
-	mSpritePipeline = std::make_unique<SpritePipeline>();
-	mMapPipeline = std::make_unique<MapPipeline>();
-	mImmediatePipeline = std::make_unique<ImmediatePipeline>();
-	mTextPipeline = std::make_unique<TextPipeline>();
-	// TODO: Enable for 3D
-	//mPipeline3D = std::make_unique<Pipeline3D>(*this, mResourceManager);
-
-	mSpritePipeline->Init(mRenderSystem);
-	mMapPipeline->Init(mRenderSystem);
-	mImmediatePipeline->Init(mRenderSystem);
-	mTextPipeline->Init(mRenderSystem);
-	//mPipeline3D->Init(mRenderSystem, shaderPath);
-
-	_InitWindow(inputHandler);
+	_CreatePipelines();
+	_CreateWindow(title, inputHandler);
 }
 
 void RenderContext::LoadFont(const char* fontFileName) const
@@ -92,9 +80,19 @@ void RenderContext::LoadFont(const char* fontFileName) const
 	mTextPipeline->LoadFont(mRenderSystem, fontFileName);
 }
 
-bool RenderContext::GetNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const
+bool RenderContext::GetSurfaceNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const
 {
 	return mSwapChain->GetSurface().GetNativeHandle(nativeHandle, nativeHandleSize);
+}
+
+bool RenderContext::GetBackendNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const
+{
+	return mRenderSystem->GetNativeHandle(nativeHandle, nativeHandleSize);
+}
+
+bool RenderContext::GetCommandBufferNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const
+{
+	return mCommands->GetNativeHandle(nativeHandle, nativeHandleSize);
 }
 
 void RenderContext::SetBackgroundClearColor(const LLGL::ColorRGBAf color)
@@ -211,13 +209,13 @@ void RenderContext::ResizeBuffers(const LLGL::Extent2D& size) const
 	mSwapChain->ResizeBuffers(size);
 }
 
-void RenderContext::_InitWindow(const std::shared_ptr<InputHandler>& inputHandler)
+void RenderContext::_CreateWindow(const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler)
 {
 	// get window from context surface
 	auto& window = LLGL::CastTo<LLGL::Window>(mSwapChain->GetSurface());
 
 	// Needs L outside of quotes?
-	window.SetTitle(L"Editor");
+	window.SetTitle(title);
 
 	// Change window descriptor to allow resizing
 	auto wndDesc = window.GetDesc();
@@ -229,4 +227,31 @@ void RenderContext::_InitWindow(const std::shared_ptr<InputHandler>& inputHandle
 	window.AddEventListener(inputHandler);
 
 	window.Show();
+}
+
+void RenderContext::_CreatePipelines()
+{
+	mSpritePipeline = std::make_unique<SpritePipeline>();
+	//mMapPipeline = std::make_unique<MapPipeline>();
+	//mImmediatePipeline = std::make_unique<ImmediatePipeline>();
+	//mTextPipeline = std::make_unique<TextPipeline>();
+	// TODO: Enable for 3D
+	//mPipeline3D = std::make_unique<Pipeline3D>(*this, mResourceManager);
+
+	mSpritePipeline->Init(mRenderSystem, *mSwapChain);
+	//mMapPipeline->Init(mRenderSystem);
+	//mImmediatePipeline->Init(mRenderSystem);
+	//mTextPipeline->Init(mRenderSystem);
+	//mPipeline3D->Init(mRenderSystem, shaderPath);
+}
+
+LLGL::Extent2D RenderContext::_ScaleResolution(const LLGL::Extent2D& res, float scale)
+{
+	const float wScaled = static_cast<float>(res.width) * scale;
+	const float hScaled = static_cast<float>(res.height) * scale;
+	return LLGL::Extent2D
+	{
+		static_cast<std::uint32_t>(wScaled + 0.5f),
+		static_cast<std::uint32_t>(hScaled + 0.5f)
+	};
 }

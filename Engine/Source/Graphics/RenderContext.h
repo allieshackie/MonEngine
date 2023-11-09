@@ -17,7 +17,9 @@ class MapRegistry;
 class RenderContext
 {
 public:
-	void Init(const std::shared_ptr<InputHandler>& inputHandler);
+	RenderContext(const LLGL::UTF8String& title, const LLGL::Extent2D screenSize,
+	              const LLGL::ColorRGBAf backgroundColor,
+	              const std::shared_ptr<InputHandler>& inputHandler);
 
 	void BeginFrame() const;
 	void Render(const std::unique_ptr<Camera>& camera, EntityRegistry& entityRegistry,
@@ -43,7 +45,10 @@ public:
 
 	void ResizeBuffers(const LLGL::Extent2D& size) const;
 private:
-	void _InitWindow(const std::shared_ptr<InputHandler>& inputHandler);
+	void _CreateWindow(const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler);
+	void _CreatePipelines();
+
+	static LLGL::Extent2D _ScaleResolution(const LLGL::Extent2D& res, float scale);
 
 	std::shared_ptr<LLGL::RenderSystem> mRenderSystem; // Render system
 	LLGL::SwapChain* mSwapChain = nullptr; // Main render context
@@ -60,6 +65,7 @@ private:
 	std::unique_ptr<TextPipeline> mTextPipeline;
 
 	LLGL::ColorRGBAf mBackgroundColor = {0.0f, 0.0f, 0.0f, 1.0f};
+	std::uint32_t mSamplesCount = 1;
 };
 
 class ResizeEventHandler : public LLGL::Window::EventListener

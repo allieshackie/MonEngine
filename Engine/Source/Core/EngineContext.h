@@ -18,7 +18,9 @@ class GameInterface;
 class EngineContext
 {
 public:
-	EngineContext() = default;
+	EngineContext(GameInterface* game, const LLGL::Extent2D screenSize = {800, 600},
+	              const LLGL::UTF8String& title = "MonDev",
+	              const LLGL::ColorRGBAf backgroundClearColor = {0.0f, 0.0f, 0.0f, 1.0f});
 	virtual ~EngineContext() = default;
 
 	// Since we define a destructor, rule of 5 states that we should define
@@ -29,7 +31,7 @@ public:
 	EngineContext(EngineContext&& other) = delete;
 	EngineContext& operator=(EngineContext&& other) = delete;
 
-	void Run(GameInterface* game);
+	void Run(GameInterface* game) const;
 
 	void UseGUIModule();
 	void SetGUIMenu(std::unique_ptr<GUIBase> gui);
@@ -56,7 +58,7 @@ public:
 	void DrawText2D(const char* text, glm::vec2 position, glm::vec2 size) const;
 	void DrawText3D(const char* text, glm::vec3 position, glm::vec3 size) const;
 
-	void SetBackgroundClearColor(const LLGL::ColorRGBAf color) const;  
+	void SetBackgroundClearColor(const LLGL::ColorRGBAf color) const;
 
 	template <typename T>
 	void RegisterDescription(const std::string& descriptionName) const
@@ -65,10 +67,11 @@ public:
 	}
 
 private:
-	void _Init();
+	void _Init(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
+	           const LLGL::ColorRGBAf backgroundClearColor);
 	void _InitDescriptions() const;
-	void _FixedUpdate(float dt) const;
 
+	void _FixedUpdate(float dt) const;
 	void _DrawAxis() const;
 
 	std::unique_ptr<DescriptionFactory> mDescriptionFactory;

@@ -9,15 +9,15 @@
 
 #include "EngineContext.h"
 
-void EngineContext::_Init()
+void EngineContext::_Init(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
+                          const LLGL::ColorRGBAf backgroundClearColor)
 {
 	mInputHandler = std::make_shared<InputHandler>();
 	mInputHandler->RegisterButtonUpHandler(LLGL::Key::Escape, [=]() { mRunning = false; });
 
 	mResourceManager = std::make_unique<ResourceManager>();
-	mRenderContext = std::make_unique<RenderContext>();
-	mRenderContext->Init(mInputHandler);
 	GUISystem::InitGUI(*mRenderContext);
+	mRenderContext = std::make_unique<RenderContext>(title, screenSize, backgroundClearColor, mInputHandler);
 
 	mDescriptionFactory = std::make_unique<DescriptionFactory>();
 	_InitDescriptions();
@@ -81,12 +81,16 @@ void EngineContext::_FixedUpdate(float dt) const
 	mPhysicsSystem->Update(dt, *mEntityRegistry);
 }
 
-void EngineContext::Run(GameInterface* game)
+EngineContext::EngineContext(GameInterface* game, const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
+                             const LLGL::ColorRGBAf backgroundClearColor)
 {
-	_Init();
+	_Init(screenSize, title, backgroundClearColor);
 	game->Init(this);
 	game->RegisterEntityDescriptions();
+}
 
+void EngineContext::Run(GameInterface* game) const
+{
 	// Init current time
 	mTimer->mCurrentTime = Clock::now();
 

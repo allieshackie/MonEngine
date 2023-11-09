@@ -6,8 +6,9 @@
 
 int main()
 {
-	const auto engine = std::make_unique<EngineContext>();
 	const auto game = new Game();
+	const auto engine = std::make_unique<EngineContext>(game, LLGL::Extent2D{800, 600}, "Sandbox Game",
+	                                                    LLGL::ColorRGBAf{1.0f, 0.5f, 1.0f});
 
 	engine->Run(game);
 
