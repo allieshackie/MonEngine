@@ -10,13 +10,14 @@
 #include "EngineContext.h"
 
 void EngineContext::_Init(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
-                          const LLGL::ColorRGBAf backgroundClearColor)
+                          const LLGL::ColorRGBAf backgroundClearColor, bool usePerspective)
 {
 	mInputHandler = std::make_shared<InputHandler>();
 	mInputHandler->RegisterButtonUpHandler(LLGL::Key::Escape, [=]() { mRunning = false; });
 
 	mResourceManager = std::make_unique<ResourceManager>();
-	mRenderContext = std::make_unique<RenderContext>(title, screenSize, backgroundClearColor, mInputHandler);
+	mRenderContext = std::make_unique<RenderContext>(title, screenSize, backgroundClearColor, mInputHandler,
+	                                                 usePerspective);
 	GUISystem::InitGUI(*mRenderContext);
 
 	mDescriptionFactory = std::make_unique<DescriptionFactory>();
@@ -82,9 +83,9 @@ void EngineContext::_FixedUpdate(float dt) const
 }
 
 EngineContext::EngineContext(GameInterface* game, const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
-                             const LLGL::ColorRGBAf backgroundClearColor)
+                             const LLGL::ColorRGBAf backgroundClearColor, bool usePerspective)
 {
-	_Init(screenSize, title, backgroundClearColor);
+	_Init(screenSize, title, backgroundClearColor, usePerspective);
 	game->Init(this);
 	game->RegisterEntityDescriptions();
 }

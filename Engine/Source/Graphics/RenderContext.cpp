@@ -9,8 +9,8 @@
 
 RenderContext::RenderContext(const LLGL::UTF8String& title, const LLGL::Extent2D screenSize,
                              const LLGL::ColorRGBAf backgroundColor,
-                             const std::shared_ptr<InputHandler>& inputHandler)
-	: mBackgroundColor(backgroundColor)
+                             const std::shared_ptr<InputHandler>& inputHandler, bool usePerspective)
+	: mBackgroundColor(backgroundColor), mUsePerspective(usePerspective)
 {
 	try
 	{
@@ -120,16 +120,15 @@ void RenderContext::BeginFrame() const
 void RenderContext::Render(const std::unique_ptr<Camera>& camera, EntityRegistry& entityRegistry,
                            MapRegistry& mapRegistry) const
 {
-	const auto perspectiveViewMat = mPerspectiveProjection * camera->GetView();
-	const auto orthoViewMat = mOrthoProjection * camera->GetView();
+	const auto projectionViewMat = mProjection * camera->GetView();
 
 	for (const auto& map : mapRegistry.GetAllMaps())
 	{
-		mMapPipeline->Render(*mCommands, perspectiveViewMat, map);
+		mMapPipeline->Render(*mCommands, projectionViewMat, map);
 	}
-	mTextPipeline->Render(*mCommands, orthoViewMat);
-	mSpritePipeline->Render(*mCommands, perspectiveViewMat, entityRegistry);
-	mImmediatePipeline->Render(*mCommands, perspectiveViewMat);
+	mTextPipeline->Render(*mCommands, projectionViewMat);
+	mSpritePipeline->Render(*mCommands, projectionViewMat, entityRegistry);
+	mImmediatePipeline->Render(*mCommands, projectionViewMat);
 }
 
 void RenderContext::EndFrame() const
@@ -145,7 +144,8 @@ void RenderContext::EndFrame() const
 
 bool RenderContext::ProcessEvents() const
 {
-	return mSwapChain->GetSurface().ProcessEvents();
+	const LLGL::Window& window = LLGL::CastTo<LLGL::Window>(mSwapChain->GetSurface());
+	return mSwapChain->GetSurface().ProcessEvents() && !window.HasQuit();
 }
 
 void RenderContext::DrawText(const char* text, glm::vec2 position, glm::vec2 size, glm::vec4 color)
@@ -182,12 +182,14 @@ void RenderContext::DrawGrid(glm::vec3 pos, glm::vec3 size, glm::vec3 color, int
 void RenderContext::UpdateProjection()
 {
 	const auto res = mSwapChain->GetResolution();
-	mPerspectiveProjection = glm::perspective(glm::radians(45.0f),
+	const auto perspective = glm::perspective(glm::radians(45.0f),
 	                                          static_cast<float>(res.width) / static_cast<float>(res.height),
 	                                          0.1f, 100.0f);
 
-	mOrthoProjection = glm::ortho(0.0f, static_cast<float>(res.width), static_cast<float>(res.height), 0.0f, 0.1f,
+	const auto ortho = glm::ortho(0.0f, static_cast<float>(res.width), static_cast<float>(res.height), 0.0f, 0.1f,
 	                              100.0f);
+
+	mProjection = mUsePerspective ? perspective : ortho;
 }
 
 glm::vec3 RenderContext::NormalizedDeviceCoords(glm::vec3 vec) const
@@ -199,9 +201,9 @@ glm::vec3 RenderContext::NormalizedDeviceCoords(glm::vec3 vec) const
 	};
 }
 
-glm::mat4 RenderContext::GetPerspectiveProjection() const
+glm::mat4 RenderContext::GetProjection() const
 {
-	return mPerspectiveProjection;
+	return mProjection;
 }
 
 void RenderContext::ResizeBuffers(const LLGL::Extent2D& size) const

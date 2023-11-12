@@ -20,7 +20,7 @@ class EngineContext
 public:
 	EngineContext(GameInterface* game, const LLGL::Extent2D screenSize = {800, 600},
 	              const LLGL::UTF8String& title = "MonDev",
-	              const LLGL::ColorRGBAf backgroundClearColor = {0.0f, 0.0f, 0.0f, 1.0f});
+	              const LLGL::ColorRGBAf backgroundClearColor = {0.0f, 0.0f, 0.0f, 1.0f}, bool usePerspective = true);
 	virtual ~EngineContext() = default;
 
 	// Since we define a destructor, rule of 5 states that we should define
@@ -69,7 +69,7 @@ public:
 
 private:
 	void _Init(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
-	           const LLGL::ColorRGBAf backgroundClearColor);
+	           const LLGL::ColorRGBAf backgroundClearColor, bool usePerspective);
 	void _InitDescriptions() const;
 
 	void _FixedUpdate(float dt) const;

@@ -19,7 +19,7 @@ class RenderContext
 public:
 	RenderContext(const LLGL::UTF8String& title, const LLGL::Extent2D screenSize,
 	              const LLGL::ColorRGBAf backgroundColor,
-	              const std::shared_ptr<InputHandler>& inputHandler);
+	              const std::shared_ptr<InputHandler>& inputHandler, bool usePerspective);
 
 	void BeginFrame() const;
 	void Render(const std::unique_ptr<Camera>& camera, EntityRegistry& entityRegistry,
@@ -43,7 +43,7 @@ public:
 
 	void UpdateProjection();
 	glm::vec3 NormalizedDeviceCoords(glm::vec3 vec) const;
-	glm::mat4 GetPerspectiveProjection() const;
+	glm::mat4 GetProjection() const;
 
 	void ResizeBuffers(const LLGL::Extent2D& size) const;
 private:
@@ -57,8 +57,7 @@ private:
 	LLGL::CommandBuffer* mCommands = nullptr; // Main command buffer
 	LLGL::CommandQueue* mCommandQueue = nullptr; // Command queue
 
-	glm::mat4 mPerspectiveProjection = glm::identity<glm::mat4>();
-	glm::mat4 mOrthoProjection = glm::identity<glm::mat4>();
+	glm::mat4 mProjection = glm::identity<glm::mat4>();
 
 	std::unique_ptr<SpritePipeline> mSpritePipeline;
 	std::unique_ptr<MeshPipeline> mMeshPipeline;
@@ -68,6 +67,8 @@ private:
 
 	LLGL::ColorRGBAf mBackgroundColor = {0.0f, 0.0f, 0.0f, 1.0f};
 	std::uint32_t mSamplesCount = 1;
+
+	bool mUsePerspective = true;
 };
 
 class ResizeEventHandler : public LLGL::Window::EventListener

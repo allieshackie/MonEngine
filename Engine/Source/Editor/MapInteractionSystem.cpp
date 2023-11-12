@@ -72,7 +72,7 @@ glm::vec3 MapInteractionSystem::_CalculateMouseRay(glm::vec2 mousePos) const
 {
 	const auto normalizeCoords = mRenderContext.NormalizedDeviceCoords({mousePos.x, mousePos.y, 1.0});
 	const glm::vec4 homogenousClip = {normalizeCoords.x, normalizeCoords.y, -1.0f, 1.0f};
-	glm::vec4 eyeRay = glm::inverse(mRenderContext.GetPerspectiveProjection()) * homogenousClip;
+	glm::vec4 eyeRay = glm::inverse(mRenderContext.GetProjection()) * homogenousClip;
 	eyeRay = glm::vec4(eyeRay.x, eyeRay.y, -1.0f, 0.0f);
 	const auto ray = glm::normalize(glm::inverse(mCamera.GetView()) * eyeRay);
 	return ray;

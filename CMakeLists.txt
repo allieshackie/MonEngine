@@ -39,7 +39,6 @@ add_compile_definitions(MAPS_FOLDER="${CMAKE_BINARY_DIR}/Data/Maps/")
 add_compile_definitions(MODELS_FOLDER="${CMAKE_BINARY_DIR}/Data/Models/")
 add_compile_definitions(SHADERS_FOLDER="${CMAKE_BINARY_DIR}/Data/Shaders/")
 add_compile_definitions(TEXTURES_FOLDER="${CMAKE_BINARY_DIR}/Data/Textures/")
-add_compile_definitions(UI_FOLDER="${CMAKE_BINARY_DIR}/Data/UI/")
 
 if(${MON_DEV_BUILD_SANDBOX} OR ${MON_DEV_BUILD_GAME})
   add_compile_definitions(BUILD_GAME)
@@ -79,10 +78,6 @@ endif()
 
 if (NOT EXISTS ${CMAKE_BINARY_DIR}/Data/Textures)
   message("MONDEV ERROR: Data/Textures folder isn't located in /Build")
-endif()
-
-if (NOT EXISTS ${CMAKE_BINARY_DIR}/Data/UI)
-  message("MONDEV ERROR: Data/UI folder isn't located in /Build")
 endif()
 
 # ============== THIRD PARTY ================
