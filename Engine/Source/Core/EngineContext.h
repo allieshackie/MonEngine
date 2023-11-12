@@ -55,7 +55,8 @@ public:
 	void DrawBox(glm::vec3 position, glm::vec3 size, glm::vec3 color) const;
 	void DrawCircle(glm::vec3 position, float radius, glm::vec3 color) const;
 	void DrawGrid(glm::vec3 position, glm::vec3 size, int rows, int columns, glm::vec3 color) const;
-	void DrawText2D(const char* text, glm::vec2 position, glm::vec2 size) const;
+	void DrawText2D(const char* text, glm::vec2 position, glm::vec2 size,
+	                glm::vec4 color = {1.0f, 1.0f, 1.0f, 1.0f}) const;
 	void DrawText3D(const char* text, glm::vec3 position, glm::vec3 size) const;
 
 	void SetBackgroundClearColor(const LLGL::ColorRGBAf color) const;

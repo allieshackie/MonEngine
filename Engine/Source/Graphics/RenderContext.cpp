@@ -148,9 +148,9 @@ bool RenderContext::ProcessEvents() const
 	return mSwapChain->GetSurface().ProcessEvents();
 }
 
-void RenderContext::DrawText(const char* text, glm::vec2 position, glm::vec2 size)
+void RenderContext::DrawText(const char* text, glm::vec2 position, glm::vec2 size, glm::vec4 color)
 {
-	mTextPipeline->CreateTextMesh(mRenderSystem, text, position, size);
+	mTextPipeline->CreateTextMesh(mRenderSystem, text, position, size, color);
 }
 
 void RenderContext::DrawPoint(glm::vec3 pos, glm::vec3 color, float size) const
@@ -232,16 +232,16 @@ void RenderContext::_CreateWindow(const LLGL::UTF8String& title, const std::shar
 void RenderContext::_CreatePipelines()
 {
 	mSpritePipeline = std::make_unique<SpritePipeline>();
-	//mMapPipeline = std::make_unique<MapPipeline>();
-	//mImmediatePipeline = std::make_unique<ImmediatePipeline>();
-	//mTextPipeline = std::make_unique<TextPipeline>();
+	mMapPipeline = std::make_unique<MapPipeline>();
+	mImmediatePipeline = std::make_unique<ImmediatePipeline>();
+	mTextPipeline = std::make_unique<TextPipeline>();
 	// TODO: Enable for 3D
 	//mPipeline3D = std::make_unique<Pipeline3D>(*this, mResourceManager);
 
-	mSpritePipeline->Init(mRenderSystem, *mSwapChain);
-	//mMapPipeline->Init(mRenderSystem);
-	//mImmediatePipeline->Init(mRenderSystem);
-	//mTextPipeline->Init(mRenderSystem);
+	mSpritePipeline->Init(mRenderSystem);
+	mMapPipeline->Init(mRenderSystem);
+	mImmediatePipeline->Init(mRenderSystem);
+	mTextPipeline->Init(mRenderSystem);
 	//mPipeline3D->Init(mRenderSystem, shaderPath);
 }
 

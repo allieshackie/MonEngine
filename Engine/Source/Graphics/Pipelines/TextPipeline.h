@@ -11,6 +11,7 @@ struct TextVertex
 {
 	glm::vec2 position = {0, 0};
 	glm::vec2 texCoord = {0, 0};
+	glm::vec4 color = {0, 0, 0, 0};
 };
 
 struct GlyphInfo
@@ -42,7 +43,7 @@ public:
 
 	void LoadFont(const std::shared_ptr<LLGL::RenderSystem>& renderSystem, const char* fontFile);
 	void CreateTextMesh(std::shared_ptr<LLGL::RenderSystem>& renderSystem, const std::string& text, glm::vec2 pos,
-	                    glm::vec2 size);
+	                    glm::vec2 size, glm::vec4 color);
 
 private:
 	void _CreateResourceHeap(const std::shared_ptr<LLGL::RenderSystem>& renderSystem);

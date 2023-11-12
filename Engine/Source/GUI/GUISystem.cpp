@@ -48,7 +48,7 @@ void GUISystem::InitGUI(const RenderContext& renderContext)
 
 	// Setup Renderer backend
 	LLGL::NativeHandle mainWindowHandle;
-	renderContext.GetNativeHandle(&mainWindowHandle, sizeof(mainWindowHandle));
+	renderContext.GetSurfaceNativeHandle(&mainWindowHandle, sizeof(mainWindowHandle));
 
 	ImGui_ImplWin32_Init(mainWindowHandle.window);
 	ImGui_ImplOpenGL3_Init(GLSL_VERSION);

@@ -109,7 +109,7 @@ void TextPipeline::LoadFont(const std::shared_ptr<LLGL::RenderSystem>& renderSys
 }
 
 void TextPipeline::CreateTextMesh(std::shared_ptr<LLGL::RenderSystem>& renderSystem, const std::string& text,
-                                  glm::vec2 pos, glm::vec2 size)
+                                  glm::vec2 pos, glm::vec2 size, glm::vec4 color)
 {
 	auto textMesh = std::make_unique<TextMesh>();
 	textMesh->mPosition = {pos, 1.0f};
@@ -127,10 +127,10 @@ void TextPipeline::CreateTextMesh(std::shared_ptr<LLGL::RenderSystem>& renderSys
 			const auto glyphInfo = _GenerateGlyphInfo(c, offsetX, offsetY);
 			offsetX = glyphInfo.mOffsetX;
 			offsetY = glyphInfo.mOffsetY;
-			TextVertex vertex1 = {glyphInfo.mPositions[0], glyphInfo.mUVs[0]};
-			TextVertex vertex2 = {glyphInfo.mPositions[1], glyphInfo.mUVs[1]};
-			TextVertex vertex3 = {glyphInfo.mPositions[2], glyphInfo.mUVs[2]};
-			TextVertex vertex4 = {glyphInfo.mPositions[3], glyphInfo.mUVs[3]};
+			TextVertex vertex1 = {glyphInfo.mPositions[0], glyphInfo.mUVs[0], color};
+			TextVertex vertex2 = {glyphInfo.mPositions[1], glyphInfo.mUVs[1], color};
+			TextVertex vertex3 = {glyphInfo.mPositions[2], glyphInfo.mUVs[2], color};
+			TextVertex vertex4 = {glyphInfo.mPositions[3], glyphInfo.mUVs[3], color};
 			vertices.emplace_back(vertex1);
 			vertices.emplace_back(vertex2);
 			vertices.emplace_back(vertex3);
@@ -199,6 +199,7 @@ void TextPipeline::Init(std::shared_ptr<LLGL::RenderSystem>& renderSystem)
 	LLGL::VertexFormat vertexFormat;
 	vertexFormat.AppendAttribute({"guiPosition", LLGL::Format::RG32Float});
 	vertexFormat.AppendAttribute({"guiTexCoord", LLGL::Format::RG32Float});
+	vertexFormat.AppendAttribute({"color", LLGL::Format::RGBA32Float});
 
 	std::string vertPath = SHADERS_FOLDER;
 	vertPath.append("gui.vert");
@@ -221,6 +222,7 @@ void TextPipeline::Init(std::shared_ptr<LLGL::RenderSystem>& renderSystem)
 		pipelineDesc.fragmentShader = &mShader->GetFragmentShader();
 		pipelineDesc.pipelineLayout = mPipelineLayout;
 		pipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::TriangleList;
+		pipelineDesc.blend.targets[0].blendEnabled = true;
 	}
 	mPipeline = renderSystem->CreatePipelineState(pipelineDesc);
 }

@@ -8,12 +8,15 @@ layout(std140) uniform GUISettings
 
 in vec2 guiPosition;
 in vec2 guiTexCoord;
+in vec4 color;
 
-out vec2 fragTexCoords;
+out vec2 vTexCoord;
+out vec4 vColor;
 
 void main() {
     // Pass the texture coordinates to the fragment shader
-    fragTexCoords = guiTexCoord;
+    vTexCoord = guiTexCoord;
+    vColor = color;
 
     // Transform the vertex position
     gl_Position = pvmMat * vec4(guiPosition.x, guiPosition.y, 0.0, 1.0);

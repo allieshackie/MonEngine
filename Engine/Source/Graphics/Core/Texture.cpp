@@ -133,19 +133,20 @@ bool Texture::_CreateSingleChannelTextureFromData(const std::shared_ptr<LLGL::Re
 	mTextureWidth = width;
 	mTextureHeight = height;
 
+	const auto formatAttribs = LLGL::GetFormatAttribs(LLGL::Format::A8UNorm);
 
 	// Initialize source image descriptor to upload image data onto GPU
 	LLGL::ImageView imageDesc;
 	{
 		// Set color format depending on alpha channel
-		imageDesc.format = LLGL::ImageFormat::Alpha;
+		imageDesc.format = formatAttribs.format;
 
 		// Set image data type (unsigned char = 8 bit unsigned int)
 		imageDesc.dataType = LLGL::DataType::UInt8;
 
 		imageDesc.data = imageData;
 
-		imageDesc.dataSize = mTextureWidth * mTextureHeight;
+		imageDesc.dataSize = static_cast<std::size_t>(mTextureWidth * mTextureHeight * 4);
 	}
 
 	{
@@ -157,6 +158,8 @@ bool Texture::_CreateSingleChannelTextureFromData(const std::shared_ptr<LLGL::Re
 			texDesc.format = LLGL::Format::A8UNorm;
 
 			texDesc.extent = {static_cast<uint32_t>(mTextureWidth), static_cast<uint32_t>(mTextureHeight), 1u};
+
+			texDesc.bindFlags = LLGL::BindFlags::Sampled | LLGL::BindFlags::ColorAttachment;
 		}
 
 		mTexture = renderer->CreateTexture(texDesc, &imageDesc);

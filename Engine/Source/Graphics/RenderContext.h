@@ -27,7 +27,7 @@ public:
 	void EndFrame() const;
 	bool ProcessEvents() const;
 
-	void DrawText(const char* text, glm::vec2 position, glm::vec2 size);
+	void DrawText(const char* text, glm::vec2 position, glm::vec2 size, glm::vec4 color);
 	void DrawPoint(glm::vec3 pos, glm::vec3 color, float size) const;
 	void DrawLine(glm::vec3 from, glm::vec3 to, glm::vec3 color) const;
 	void DrawBox(glm::vec3 pos, glm::vec3 size, glm::vec3 color) const;
@@ -35,7 +35,9 @@ public:
 	void DrawGrid(glm::vec3 pos, glm::vec3 size, glm::vec3 color, int rows, int columns) const;
 
 	void LoadFont(const char* fontFileName) const;
-	bool GetNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const;
+	bool GetSurfaceNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const;
+	bool GetBackendNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const;
+	bool GetCommandBufferNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const;
 	// Color range from 0.0f - 1.0f
 	void SetBackgroundClearColor(const LLGL::ColorRGBAf color);
 

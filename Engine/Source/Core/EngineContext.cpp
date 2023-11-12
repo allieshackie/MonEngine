@@ -16,8 +16,8 @@ void EngineContext::_Init(const LLGL::Extent2D screenSize, const LLGL::UTF8Strin
 	mInputHandler->RegisterButtonUpHandler(LLGL::Key::Escape, [=]() { mRunning = false; });
 
 	mResourceManager = std::make_unique<ResourceManager>();
-	GUISystem::InitGUI(*mRenderContext);
 	mRenderContext = std::make_unique<RenderContext>(title, screenSize, backgroundClearColor, mInputHandler);
+	GUISystem::InitGUI(*mRenderContext);
 
 	mDescriptionFactory = std::make_unique<DescriptionFactory>();
 	_InitDescriptions();
@@ -207,9 +207,9 @@ void EngineContext::DrawGrid(glm::vec3 position, glm::vec3 size, int rows, int c
 	mRenderContext->DrawGrid(position, size, color, rows, columns);
 }
 
-void EngineContext::DrawText2D(const char* text, glm::vec2 position, glm::vec2 size) const
+void EngineContext::DrawText2D(const char* text, glm::vec2 position, glm::vec2 size, glm::vec4 color) const
 {
-	mRenderContext->DrawText(text, position, size);
+	mRenderContext->DrawText(text, position, size, color);
 }
 
 void EngineContext::DrawText3D(const char* text, glm::vec3 position, glm::vec3 size) const
