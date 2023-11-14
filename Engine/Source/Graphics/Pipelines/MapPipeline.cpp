@@ -83,7 +83,7 @@ void MapPipeline::_UpdateUniformsModel(LLGL::CommandBuffer& commandBuffer, glm::
 	commandBuffer.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
 }
 
-void MapPipeline::Init(std::shared_ptr<LLGL::RenderSystem>& renderSystem)
+void MapPipeline::Init(LLGL::RenderSystemPtr& renderSystem)
 {
 	mConstantBuffer = renderSystem->CreateBuffer(LLGL::ConstantBufferDesc(sizeof(SpriteSettings)),
 	                                             &spriteSettings);
@@ -137,7 +137,7 @@ void MapPipeline::Init(std::shared_ptr<LLGL::RenderSystem>& renderSystem)
 	//mMapSystem.RegisterOnUpdateCallback([=]() { QueueWriteMapTexture(mMapSystem.GetCurrentMap()); });
 }
 
-void MapPipeline::_CreateResourceHeap(const std::shared_ptr<LLGL::RenderSystem>& renderSystem)
+void MapPipeline::_CreateResourceHeap(const LLGL::RenderSystemPtr& renderSystem)
 {
 	// Resource Heap
 
@@ -177,7 +177,7 @@ void MapPipeline::QueueWriteMapTexture(const std::shared_ptr<Map>& map)
 	mQueuedMaps.emplace_back(map);
 }
 
-void MapPipeline::WriteQueuedMapTextures(const std::shared_ptr<LLGL::RenderSystem>& renderSystem,
+void MapPipeline::WriteQueuedMapTextures(const LLGL::RenderSystemPtr& renderSystem,
                                          LLGL::CommandBuffer& commandBuffer)
 {
 	if (mQueuedMaps.empty()) return;
@@ -192,7 +192,7 @@ void MapPipeline::WriteQueuedMapTextures(const std::shared_ptr<LLGL::RenderSyste
 
 // TODO: Where should this be?  Writing map texture to render
 void MapPipeline::_InitMapTexturePipeline(LLGL::CommandBuffer& commandBuffer,
-                                          const std::shared_ptr<LLGL::RenderSystem>& renderSystem,
+                                          const LLGL::RenderSystemPtr& renderSystem,
                                           std::shared_ptr<Map>& map)
 {
 	// Create Render Target

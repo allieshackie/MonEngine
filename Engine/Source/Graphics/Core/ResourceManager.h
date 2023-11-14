@@ -14,7 +14,7 @@ public:
 	ResourceManager() = default;
 
 	static std::vector<std::unique_ptr<Texture>> LoadAllTexturesFromFolder(
-		const std::shared_ptr<LLGL::RenderSystem>& renderSystem);
+		const LLGL::RenderSystemPtr& renderSystem);
 
 	static int GetTextureId(const std::string& textureName);
 
@@ -23,7 +23,7 @@ public:
 	static bool CreateSimpleOpenGLTexture(const std::string& filename, GLuint* out_texture, int* out_width,
 	                                      int* out_height);
 private:
-	static std::unique_ptr<Texture> _LoadTexture(const std::shared_ptr<LLGL::RenderSystem>& renderSystem,
+	static std::unique_ptr<Texture> _LoadTexture(const LLGL::RenderSystemPtr& renderSystem,
 	                                             const std::string& filePath);
 
 	static std::unordered_map<std::string, int> mTextureIds;

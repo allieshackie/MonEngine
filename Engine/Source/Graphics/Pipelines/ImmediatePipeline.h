@@ -9,8 +9,10 @@
 class ImmediatePipeline
 {
 public:
-	void Init(std::shared_ptr<LLGL::RenderSystem>& renderSystem);
+	void Init(LLGL::RenderSystemPtr& renderSystem);
 	void Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat);
+
+	void Release(const LLGL::RenderSystemPtr& renderSystem);
 
 	void UpdateProjectionViewUniform(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat);
 

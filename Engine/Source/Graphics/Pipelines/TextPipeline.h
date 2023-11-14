@@ -38,15 +38,16 @@ struct TextMesh
 class TextPipeline
 {
 public:
-	void Init(std::shared_ptr<LLGL::RenderSystem>& renderSystem);
+	void Init(LLGL::RenderSystemPtr& renderSystem);
 	void Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat);
+	void Release(const LLGL::RenderSystemPtr& renderSystem);
 
-	void LoadFont(const std::shared_ptr<LLGL::RenderSystem>& renderSystem, const char* fontFile);
-	void CreateTextMesh(std::shared_ptr<LLGL::RenderSystem>& renderSystem, const std::string& text, glm::vec2 pos,
+	void LoadFont(const LLGL::RenderSystemPtr& renderSystem, const char* fontFile);
+	void CreateTextMesh(LLGL::RenderSystemPtr& renderSystem, const std::string& text, glm::vec2 pos,
 	                    glm::vec2 size, glm::vec4 color);
 
 private:
-	void _CreateResourceHeap(const std::shared_ptr<LLGL::RenderSystem>& renderSystem);
+	void _CreateResourceHeap(const LLGL::RenderSystemPtr& renderSystem);
 	void _UpdateUniforms(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat, glm::vec3 pos,
 	                     glm::vec3 size) const;
 

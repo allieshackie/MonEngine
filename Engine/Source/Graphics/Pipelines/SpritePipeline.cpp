@@ -61,7 +61,7 @@ void SpritePipeline::_UpdateUniforms(LLGL::CommandBuffer& commandBuffer, const g
 	commandBuffer.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
 }
 
-void SpritePipeline::Init(std::shared_ptr<LLGL::RenderSystem>& renderSystem)
+void SpritePipeline::Init(LLGL::RenderSystemPtr& renderSystem)
 {
 	mConstantBuffer = renderSystem->CreateBuffer(LLGL::ConstantBufferDesc(sizeof(SpriteSettings)),
 	                                             &spriteSettings);
@@ -108,7 +108,7 @@ void SpritePipeline::Init(std::shared_ptr<LLGL::RenderSystem>& renderSystem)
 	);
 }
 
-void SpritePipeline::_CreateResourceHeap(const std::shared_ptr<LLGL::RenderSystem>& renderSystem)
+void SpritePipeline::_CreateResourceHeap(const LLGL::RenderSystemPtr& renderSystem)
 {
 	// Resource Heap
 	const auto textures = ResourceManager::LoadAllTexturesFromFolder(renderSystem);

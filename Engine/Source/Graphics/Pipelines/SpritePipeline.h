@@ -13,11 +13,11 @@ class EntityRegistry;
 class SpritePipeline
 {
 public:
-	void Init(std::shared_ptr<LLGL::RenderSystem>& renderSystem);
+	void Init(LLGL::RenderSystemPtr& renderSystem);
 	void Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat, EntityRegistry& entityRegistry) const;
 
 private:
-	void _CreateResourceHeap(const std::shared_ptr<LLGL::RenderSystem>& renderSystem);
+	void _CreateResourceHeap(const LLGL::RenderSystemPtr& renderSystem);
 
 	void _Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat, const TransformComponent& transform,
 	             const SpriteComponent& sprite) const;

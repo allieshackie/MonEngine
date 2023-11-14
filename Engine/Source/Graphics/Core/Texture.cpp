@@ -2,13 +2,13 @@
 
 #include "Texture.h"
 
-Texture::Texture(const std::shared_ptr<LLGL::RenderSystem>& renderer, const std::string& path)
+Texture::Texture(const LLGL::RenderSystemPtr& renderer, const std::string& path)
 {
 	_LoadFromFile(renderer, path);
 	_CreateSampler(renderer);
 }
 
-Texture::Texture(const std::shared_ptr<LLGL::RenderSystem>& renderer, const unsigned char* imageData, int width,
+Texture::Texture(const LLGL::RenderSystemPtr& renderer, const unsigned char* imageData, int width,
                  int height, bool singleChannel)
 {
 	if (singleChannel)
@@ -37,7 +37,7 @@ glm::vec2 Texture::GetTextureSize() const
 	return {mTextureWidth, mTextureHeight};
 }
 
-bool Texture::_LoadFromFile(const std::shared_ptr<LLGL::RenderSystem>& renderer, const std::string& path)
+bool Texture::_LoadFromFile(const LLGL::RenderSystemPtr& renderer, const std::string& path)
 {
 	// uncompressed texture
 	int texComponents = 0;
@@ -85,7 +85,7 @@ bool Texture::_LoadFromFile(const std::shared_ptr<LLGL::RenderSystem>& renderer,
 	return true;
 }
 
-bool Texture::_CreateRGBAFromData(const std::shared_ptr<LLGL::RenderSystem>& renderer, const unsigned char* imageData,
+bool Texture::_CreateRGBAFromData(const LLGL::RenderSystemPtr& renderer, const unsigned char* imageData,
                                   int width, int height)
 {
 	mTextureWidth = width;
@@ -127,7 +127,7 @@ bool Texture::_CreateRGBAFromData(const std::shared_ptr<LLGL::RenderSystem>& ren
 	return true;
 }
 
-bool Texture::_CreateSingleChannelTextureFromData(const std::shared_ptr<LLGL::RenderSystem>& renderer,
+bool Texture::_CreateSingleChannelTextureFromData(const LLGL::RenderSystemPtr& renderer,
                                                   const unsigned char* imageData, int width, int height)
 {
 	mTextureWidth = width;
@@ -169,7 +169,7 @@ bool Texture::_CreateSingleChannelTextureFromData(const std::shared_ptr<LLGL::Re
 	return true;
 }
 
-void Texture::_CreateSampler(const std::shared_ptr<LLGL::RenderSystem>& renderer)
+void Texture::_CreateSampler(const LLGL::RenderSystemPtr& renderer)
 {
 	// Set sampler filters to have different effects
 	mSampler = renderer->CreateSampler(LLGL::SamplerDescriptor{});

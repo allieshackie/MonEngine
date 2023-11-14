@@ -5,8 +5,8 @@
 class Texture
 {
 public:
-	Texture(const std::shared_ptr<LLGL::RenderSystem>& renderer, const std::string& path);
-	Texture(const std::shared_ptr<LLGL::RenderSystem>& renderer, const unsigned char* imageData, int width, int height,
+	Texture(const LLGL::RenderSystemPtr& renderer, const std::string& path);
+	Texture(const LLGL::RenderSystemPtr& renderer, const unsigned char* imageData, int width, int height,
 	        bool singleChannel = false);
 
 	LLGL::Texture& GetTextureData() const;
@@ -15,12 +15,12 @@ public:
 	glm::vec2 GetTextureSize() const;
 
 private:
-	bool _LoadFromFile(const std::shared_ptr<LLGL::RenderSystem>& renderer, const std::string& path);
-	bool _CreateRGBAFromData(const std::shared_ptr<LLGL::RenderSystem>& renderer, const unsigned char* imageData,
+	bool _LoadFromFile(const LLGL::RenderSystemPtr& renderer, const std::string& path);
+	bool _CreateRGBAFromData(const LLGL::RenderSystemPtr& renderer, const unsigned char* imageData,
 	                         int width, int height);
-	bool _CreateSingleChannelTextureFromData(const std::shared_ptr<LLGL::RenderSystem>& renderer,
+	bool _CreateSingleChannelTextureFromData(const LLGL::RenderSystemPtr& renderer,
 	                                         const unsigned char* imageData, int width, int height);
-	void _CreateSampler(const std::shared_ptr<LLGL::RenderSystem>& renderer);
+	void _CreateSampler(const LLGL::RenderSystemPtr& renderer);
 
 	LLGL::Texture* mTexture = nullptr;
 	LLGL::Sampler* mSampler = nullptr;

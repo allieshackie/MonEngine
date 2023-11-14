@@ -14,13 +14,37 @@ void ImmediatePipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::ma
 	_ClearVertices();
 }
 
+void ImmediatePipeline::Release(const LLGL::RenderSystemPtr& renderSystem)
+{
+	renderSystem->Release(*mPointPipeline);
+	mPointPipeline = nullptr;
+
+	renderSystem->Release(*mLinePipeline);
+	mLinePipeline = nullptr;
+
+	renderSystem->Release(*mCirclePipeline);
+	mCirclePipeline = nullptr;
+
+	renderSystem->Release(*mConstantBuffer);
+	mConstantBuffer = nullptr;
+
+	renderSystem->Release(*mPointVertexBuffer);
+	mPointVertexBuffer = nullptr;
+
+	renderSystem->Release(*mLineVertexBuffer);
+	mLineVertexBuffer = nullptr;
+
+	renderSystem->Release(*mCircleVertexBuffer);
+	mCircleVertexBuffer = nullptr;
+}
+
 void ImmediatePipeline::UpdateProjectionViewUniform(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat)
 {
 	settings.pvMat = pvMat;
 	commandBuffer.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
 }
 
-void ImmediatePipeline::Init(std::shared_ptr<LLGL::RenderSystem>& renderSystem)
+void ImmediatePipeline::Init(LLGL::RenderSystemPtr& renderSystem)
 {
 	mConstantBuffer = renderSystem->CreateBuffer(LLGL::ConstantBufferDesc(sizeof(Settings)),
 	                                             &settings);

@@ -44,11 +44,19 @@ void TextPipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pv
 
 		commandBuffer.DrawIndexed(mesh->mIndexCount, 0);
 	}
+}
 
+void TextPipeline::Release(const LLGL::RenderSystemPtr& renderSystem)
+{
+	for (const auto& mesh : mTextMeshes)
+	{
+		renderSystem->Release(*mesh->mVertexBuffer);
+		renderSystem->Release(*mesh->mIndexBuffer);
+	}
 	mTextMeshes.clear();
 }
 
-void TextPipeline::_CreateResourceHeap(const std::shared_ptr<LLGL::RenderSystem>& renderSystem)
+void TextPipeline::_CreateResourceHeap(const LLGL::RenderSystemPtr& renderSystem)
 {
 	std::vector<LLGL::ResourceViewDescriptor> resourceViews;
 	resourceViews.reserve(3);
@@ -74,7 +82,7 @@ void TextPipeline::_UpdateUniforms(LLGL::CommandBuffer& commandBuffer, const glm
 	commandBuffer.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
 }
 
-void TextPipeline::LoadFont(const std::shared_ptr<LLGL::RenderSystem>& renderSystem, const char* fontFile)
+void TextPipeline::LoadFont(const LLGL::RenderSystemPtr& renderSystem, const char* fontFile)
 {
 	std::string fullPath = FONTS_FOLDER;
 	fullPath.append(fontFile);
@@ -108,7 +116,7 @@ void TextPipeline::LoadFont(const std::shared_ptr<LLGL::RenderSystem>& renderSys
 	_CreateResourceHeap(renderSystem);
 }
 
-void TextPipeline::CreateTextMesh(std::shared_ptr<LLGL::RenderSystem>& renderSystem, const std::string& text,
+void TextPipeline::CreateTextMesh(LLGL::RenderSystemPtr& renderSystem, const std::string& text,
                                   glm::vec2 pos, glm::vec2 size, glm::vec4 color)
 {
 	auto textMesh = std::make_unique<TextMesh>();
@@ -191,7 +199,7 @@ GlyphInfo TextPipeline::_GenerateGlyphInfo(uint32_t character, float offsetX, fl
 	return info;
 }
 
-void TextPipeline::Init(std::shared_ptr<LLGL::RenderSystem>& renderSystem)
+void TextPipeline::Init(LLGL::RenderSystemPtr& renderSystem)
 {
 	mConstantBuffer = renderSystem->CreateBuffer(LLGL::ConstantBufferDesc(sizeof(GUISettings)),
 	                                             &guiSettings);

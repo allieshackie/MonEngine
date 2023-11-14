@@ -10,7 +10,7 @@
 std::unordered_map<std::string, int> ResourceManager::mTextureIds;
 
 std::vector<std::unique_ptr<Texture>> ResourceManager::LoadAllTexturesFromFolder(
-	const std::shared_ptr<LLGL::RenderSystem>& renderSystem)
+	const LLGL::RenderSystemPtr& renderSystem)
 {
 	std::vector<std::unique_ptr<Texture>> textures;
 	int textureId = 0;
@@ -44,7 +44,7 @@ int ResourceManager::GetTextureId(const std::string& textureName)
 	return -1;
 }
 
-std::unique_ptr<Texture> ResourceManager::_LoadTexture(const std::shared_ptr<LLGL::RenderSystem>& renderSystem,
+std::unique_ptr<Texture> ResourceManager::_LoadTexture(const LLGL::RenderSystemPtr& renderSystem,
                                                        const std::string& filePath)
 {
 	return std::make_unique<Texture>(renderSystem, filePath);

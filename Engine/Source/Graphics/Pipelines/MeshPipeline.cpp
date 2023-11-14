@@ -18,7 +18,7 @@ void MeshPipeline::Render(LLGL::CommandBuffer& commands) const
 	}
 }
 
-void MeshPipeline::Init(std::shared_ptr<LLGL::RenderSystem>& renderSystem, const std::string& shaderPath)
+void MeshPipeline::Init(LLGL::RenderSystemPtr& renderSystem, const std::string& shaderPath)
 {
 	mConstantBuffer = renderSystem->CreateBuffer(LLGL::ConstantBufferDesc(sizeof(VolumeSettings)),
 	                                             &volumeSettings);
@@ -75,7 +75,7 @@ void MeshPipeline::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& command
 }
 
 // TODO: Implement actual model class as RenderObject
-void MeshPipeline::AddRenderObjectVBuffer(const std::shared_ptr<LLGL::RenderSystem>& renderSystem, RenderObject& obj)
+void MeshPipeline::AddRenderObjectVBuffer(const LLGL::RenderSystemPtr& renderSystem, RenderObject& obj)
 {
 	// TODO: Hardcoded volume test
 	std::vector<TexturedVertex> vertices;

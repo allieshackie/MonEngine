@@ -8,8 +8,8 @@
 #include "RenderContext.h"
 
 RenderContext::RenderContext(const LLGL::UTF8String& title, const LLGL::Extent2D screenSize,
-                             const LLGL::ColorRGBAf backgroundColor,
-                             const std::shared_ptr<InputHandler>& inputHandler, bool usePerspective)
+                             const LLGL::ColorRGBAf backgroundColor, const std::shared_ptr<InputHandler>& inputHandler,
+                             bool usePerspective)
 	: mBackgroundColor(backgroundColor), mUsePerspective(usePerspective)
 {
 	try
@@ -129,6 +129,8 @@ void RenderContext::Render(const std::unique_ptr<Camera>& camera, EntityRegistry
 	mTextPipeline->Render(*mCommands, projectionViewMat);
 	mSpritePipeline->Render(*mCommands, projectionViewMat, entityRegistry);
 	mImmediatePipeline->Render(*mCommands, projectionViewMat);
+
+	mTextPipeline->Release(mRenderSystem);
 }
 
 void RenderContext::EndFrame() const

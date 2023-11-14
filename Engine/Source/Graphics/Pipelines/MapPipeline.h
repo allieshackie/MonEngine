@@ -9,17 +9,17 @@ class Map;
 class MapPipeline
 {
 public:
-	void Init(std::shared_ptr<LLGL::RenderSystem>& renderSystem);
+	void Init(LLGL::RenderSystemPtr& renderSystem);
 	void Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat, const std::shared_ptr<Map>& map) const;
 
 	void RenderMapTexture(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat,
 	                      const std::shared_ptr<Map>& map) const;
 	void QueueWriteMapTexture(const std::shared_ptr<Map>& map);
-	void WriteQueuedMapTextures(const std::shared_ptr<LLGL::RenderSystem>& renderSystem,
+	void WriteQueuedMapTextures(const LLGL::RenderSystemPtr& renderSystem,
 	                            LLGL::CommandBuffer& commandBuffer);
 
 private:
-	void _CreateResourceHeap(const std::shared_ptr<LLGL::RenderSystem>& renderSystem);
+	void _CreateResourceHeap(const LLGL::RenderSystemPtr& renderSystem);
 
 	void _Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat, const std::shared_ptr<Map>& map) const;
 	void _UpdateUniforms(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat, glm::vec3 pos, glm::vec3 size,
@@ -28,7 +28,7 @@ private:
 	                          glm::vec4 texClip) const;
 
 	void _InitMapTexturePipeline(LLGL::CommandBuffer& commandBuffer,
-	                             const std::shared_ptr<LLGL::RenderSystem>& renderSystem,
+	                             const LLGL::RenderSystemPtr& renderSystem,
 	                             std::shared_ptr<Map>& map);
 	void _WriteMapTexture(LLGL::CommandBuffer& commandBuffer, const std::shared_ptr<Map>& map,
 	                      LLGL::PipelineState* writePipeline, LLGL::RenderTarget* writeTarget,

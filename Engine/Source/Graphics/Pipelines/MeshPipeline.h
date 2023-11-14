@@ -9,13 +9,13 @@ class Shader;
 class MeshPipeline
 {
 public:
-	void Init(std::shared_ptr<LLGL::RenderSystem>& renderSystem, const std::string& shaderPath);
+	void Init(LLGL::RenderSystemPtr& renderSystem, const std::string& shaderPath);
 	void Render(LLGL::CommandBuffer& commands) const;
 
 	void UpdateProjectionViewModelUniform(LLGL::CommandBuffer& commands, glm::mat4 model, glm::mat4 projection,
 	                                      glm::mat4 view);
 
-	void AddRenderObjectVBuffer(const std::shared_ptr<LLGL::RenderSystem>& renderSystem, RenderObject& obj);
+	void AddRenderObjectVBuffer(const LLGL::RenderSystemPtr& renderSystem, RenderObject& obj);
 
 private:
 	LLGL::PipelineState* mPipeline = nullptr;

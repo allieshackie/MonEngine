@@ -52,7 +52,7 @@ private:
 
 	static LLGL::Extent2D _ScaleResolution(const LLGL::Extent2D& res, float scale);
 
-	std::shared_ptr<LLGL::RenderSystem> mRenderSystem; // Render system
+	LLGL::RenderSystemPtr mRenderSystem; // Render system
 	LLGL::SwapChain* mSwapChain = nullptr; // Main render context
 	LLGL::CommandBuffer* mCommands = nullptr; // Main command buffer
 	LLGL::CommandQueue* mCommandQueue = nullptr; // Command queue
