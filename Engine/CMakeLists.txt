@@ -2,6 +2,7 @@
 
 # set cmake version
 cmake_minimum_required(VERSION 3.18.2)
+include(${CMAKE_UTILS}/CmakeUtils.cmake)
 
 ADD_DEFINE(LLGL_ENABLE_UTILITY)
 
@@ -23,6 +24,8 @@ set_property(TARGET glad PROPERTY FOLDER "ThirdParty")
 target_include_directories(glad PUBLIC 
     ${PROJECT_SOURCE_DIR}/Engine/Lib/glad/include
 )
+
+copy_data_contents(${CMAKE_CURRENT_SOURCE_DIR}/Data/ ${CMAKE_BINARY_DIR}/Data)
 
 target_precompile_headers(
     MonEngine 

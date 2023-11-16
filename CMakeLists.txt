@@ -6,8 +6,8 @@ cmake_minimum_required(VERSION 3.18.2)
 #  ============== PROJECT ================
 project(MonDev)
 
-option(MON_DEV_BUILD_SANDBOX "Build the sandbox game" ON)
-option(MON_DEV_BUILD_GAME "Build the game" ON)
+option(MON_DEV_BUILD_SANDBOX "Build the sandbox game" OFF)
+option(MON_DEV_BUILD_GAME "Build the game" OFF)
 
 # ============== CONFIG ================
 
