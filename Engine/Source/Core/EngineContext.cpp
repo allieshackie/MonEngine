@@ -60,12 +60,12 @@ void EngineContext::SetGUIMenu(std::unique_ptr<GUIBase> gui)
  */
 void EngineContext::_DrawAxis() const
 {
-	DrawLine({-1, 0, 0}, {1, 0, 0}, {255, 0, 0});
-	DrawBox({1, 0, 0}, {0.1f, 0.1f, 1.0f}, {255, 0, 0});
-	DrawLine({0, -1, 0}, {0, 1, 0}, {0, 255, 0});
-	DrawBox({0, 1, 0}, {0.1f, 0.1f, 1.0f}, {0, 255, 0});
-	DrawLine({0, 0, -1}, {0, 0, 1}, {0, 0, 255});
-	DrawBox({0, 0, 1}, {0.1f, 0.1f, 1.0f}, {0, 0, 255});
+	DrawLine({-1, 0, 0}, {1, 0, 0}, {255, 0, 0, 1});
+	DrawBox({1, 0, 0}, {0.1f, 0.1f, 1.0f}, {255, 0, 0, 1});
+	DrawLine({0, -1, 0}, {0, 1, 0}, {0, 255, 0, 1});
+	DrawBox({0, 1, 0}, {0.1f, 0.1f, 1.0f}, {0, 255, 0, 1});
+	DrawLine({0, 0, -1}, {0, 0, 1}, {0, 0, 255, 1});
+	DrawBox({0, 0, 1}, {0.1f, 0.1f, 1.0f}, {0, 0, 255, 1});
 }
 
 void EngineContext::_InitDescriptions() const
@@ -183,27 +183,27 @@ void EngineContext::OpenMap(const char* mapName, glm::vec3 position, glm::vec3 r
 	mMapRegistry->OpenMap(mapName, position, rotation, tileSize);
 }
 
-void EngineContext::DrawPoint(glm::vec3 position, float size, glm::vec3 color) const
+void EngineContext::DrawPoint(glm::vec3 position, float size, glm::vec4 color) const
 {
 	mRenderContext->DrawPoint(position, color, size);
 }
 
-void EngineContext::DrawLine(glm::vec3 from, glm::vec3 to, glm::vec3 color) const
+void EngineContext::DrawLine(glm::vec3 from, glm::vec3 to, glm::vec4 color) const
 {
 	mRenderContext->DrawLine(from, to, color);
 }
 
-void EngineContext::DrawBox(glm::vec3 position, glm::vec3 size, glm::vec3 color) const
+void EngineContext::DrawBox(glm::vec3 position, glm::vec3 size, glm::vec4 color, bool filled) const
 {
-	mRenderContext->DrawBox(position, size, color);
+	mRenderContext->DrawBox(position, size, color, filled);
 }
 
-void EngineContext::DrawCircle(glm::vec3 position, float radius, glm::vec3 color) const
+void EngineContext::DrawCircle(glm::vec3 position, float radius, glm::vec4 color) const
 {
 	mRenderContext->DrawCircle(position, radius, color);
 }
 
-void EngineContext::DrawGrid(glm::vec3 position, glm::vec3 size, int rows, int columns, glm::vec3 color) const
+void EngineContext::DrawGrid(glm::vec3 position, glm::vec3 size, int rows, int columns, glm::vec4 color) const
 {
 	mRenderContext->DrawGrid(position, size, color, rows, columns);
 }

@@ -18,8 +18,10 @@ class RenderContext
 {
 public:
 	RenderContext(const LLGL::UTF8String& title, const LLGL::Extent2D screenSize,
-	              const LLGL::ColorRGBAf backgroundColor,
-	              const std::shared_ptr<InputHandler>& inputHandler, bool usePerspective);
+	              const LLGL::ColorRGBAf backgroundColor, const std::shared_ptr<InputHandler>& inputHandler,
+	              bool usePerspective);
+
+	~RenderContext();
 
 	void BeginFrame() const;
 	void Render(const std::unique_ptr<Camera>& camera, EntityRegistry& entityRegistry,
@@ -28,11 +30,11 @@ public:
 	bool ProcessEvents() const;
 
 	void DrawText(const char* text, glm::vec2 position, glm::vec2 size, glm::vec4 color);
-	void DrawPoint(glm::vec3 pos, glm::vec3 color, float size) const;
-	void DrawLine(glm::vec3 from, glm::vec3 to, glm::vec3 color) const;
-	void DrawBox(glm::vec3 pos, glm::vec3 size, glm::vec3 color) const;
-	void DrawCircle(glm::vec3 position, float radius, glm::vec3 color) const;
-	void DrawGrid(glm::vec3 pos, glm::vec3 size, glm::vec3 color, int rows, int columns) const;
+	void DrawPoint(glm::vec3 pos, glm::vec4 color, float size) const;
+	void DrawLine(glm::vec3 from, glm::vec3 to, glm::vec4 color) const;
+	void DrawBox(glm::vec3 pos, glm::vec3 size, glm::vec4 color, bool filled) const;
+	void DrawCircle(glm::vec3 position, float radius, glm::vec4 color) const;
+	void DrawGrid(glm::vec3 pos, glm::vec3 size, glm::vec4 color, int rows, int columns) const;
 
 	void LoadFont(const char* fontFileName) const;
 	bool GetSurfaceNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const;

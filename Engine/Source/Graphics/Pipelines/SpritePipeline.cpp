@@ -68,7 +68,7 @@ void SpritePipeline::Init(LLGL::RenderSystemPtr& renderSystem)
 
 	LLGL::VertexFormat vertexFormat;
 	vertexFormat.AppendAttribute({"position", LLGL::Format::RGB32Float});
-	vertexFormat.AppendAttribute({"color", LLGL::Format::RGB32Float});
+	vertexFormat.AppendAttribute({"color", LLGL::Format::RGBA32Float});
 	vertexFormat.AppendAttribute({"texCoord", LLGL::Format::RG32Float});
 
 	std::string vertPath = SHADERS_FOLDER;
@@ -92,6 +92,7 @@ void SpritePipeline::Init(LLGL::RenderSystemPtr& renderSystem)
 		pipelineDesc.fragmentShader = &mShader->GetFragmentShader();
 		pipelineDesc.pipelineLayout = mPipelineLayout;
 		pipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::TriangleStrip;
+		pipelineDesc.blend.targets[0].blendEnabled = true;
 
 		// Enable depth test and writing
 		//pipelineDesc.depth.testEnabled = true;

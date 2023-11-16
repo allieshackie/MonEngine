@@ -50,7 +50,7 @@ void ImmediatePipeline::Init(LLGL::RenderSystemPtr& renderSystem)
 	                                             &settings);
 	LLGL::VertexFormat vertexFormat;
 	vertexFormat.AppendAttribute({"position", LLGL::Format::RGB32Float});
-	vertexFormat.AppendAttribute({"color", LLGL::Format::RGB32Float});
+	vertexFormat.AppendAttribute({"color", LLGL::Format::RGBA32Float});
 
 	std::string vertPath = SHADERS_FOLDER;
 	vertPath.append("debug.vert");
@@ -72,6 +72,7 @@ void ImmediatePipeline::Init(LLGL::RenderSystemPtr& renderSystem)
 		pointPipelineDesc.fragmentShader = &mShader->GetFragmentShader();
 		pointPipelineDesc.pipelineLayout = pipelineLayout;
 		pointPipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::PointList;
+		pointPipelineDesc.blend.targets[0].blendEnabled = true;
 	}
 	mPointPipeline = renderSystem->CreatePipelineState(pointPipelineDesc);
 	// pre-allocate the buffer with 500 vertices 
@@ -87,6 +88,7 @@ void ImmediatePipeline::Init(LLGL::RenderSystemPtr& renderSystem)
 		linePipelineDesc.fragmentShader = &mShader->GetFragmentShader();
 		linePipelineDesc.pipelineLayout = pipelineLayout;
 		linePipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::LineList;
+		linePipelineDesc.blend.targets[0].blendEnabled = true;
 	}
 	mLinePipeline = renderSystem->CreatePipelineState(linePipelineDesc);
 	// pre-allocate the buffer with 500 vertices 
@@ -102,6 +104,7 @@ void ImmediatePipeline::Init(LLGL::RenderSystemPtr& renderSystem)
 		circlePipelineDesc.fragmentShader = &mShader->GetFragmentShader();
 		circlePipelineDesc.pipelineLayout = pipelineLayout;
 		circlePipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::TriangleList;
+		circlePipelineDesc.blend.targets[0].blendEnabled = true;
 	}
 	mCirclePipeline = renderSystem->CreatePipelineState(circlePipelineDesc);
 	// pre-allocate the buffer with 500 vertices 
@@ -175,33 +178,30 @@ glm::vec3 ImmediatePipeline::_CalculateModelPoint(glm::vec3 pos, glm::vec3 size,
 	return model * glm::vec4(basePoint, 1.0);
 }
 
-void ImmediatePipeline::DrawPoint(glm::vec3 pos, glm::vec3 color, float size)
+void ImmediatePipeline::DrawPoint(glm::vec3 pos, glm::vec4 color, float size)
 {
 	mFramePointVertices.push_back({_CalculateModelPoint(pos, {size, size, 1}), color});
 }
 
-void ImmediatePipeline::DrawLine(glm::vec3 from, glm::vec3 to, glm::vec3 color)
+void ImmediatePipeline::DrawLine(glm::vec3 from, glm::vec3 to, glm::vec4 color)
 {
 	mFrameLineVertices.push_back({_CalculateModelPoint(from, {1.0f, 1.0f, 1.0f}), color});
 	mFrameLineVertices.push_back({_CalculateModelPoint(to, {1.0f, 1.0f, 1.0f}), color});
 }
 
-void ImmediatePipeline::DrawBox(glm::vec3 pos, glm::vec3 size, glm::vec3 color)
+void ImmediatePipeline::DrawBox(glm::vec3 pos, glm::vec3 size, glm::vec4 color, bool filled)
 {
-	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[0]), color});
-	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[1]), color});
-
-	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[1]), color});
-	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[3]), color});
-
-	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[2]), color});
-	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[3]), color});
-
-	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[2]), color});
-	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[0]), color});
+	if (filled)
+	{
+		_DrawFilledBox(pos, size, color);
+	}
+	else
+	{
+		_DrawOutlinedBox(pos, size, color);
+	}
 }
 
-void ImmediatePipeline::DrawCircle(glm::vec3 position, float radius, glm::vec3 color)
+void ImmediatePipeline::DrawCircle(glm::vec3 position, float radius, glm::vec4 color)
 {
 	/* TODO: Hollowed circle
 	 *
@@ -266,7 +266,7 @@ void ImmediatePipeline::DrawCircle(glm::vec3 position, float radius, glm::vec3 c
 	});
 }
 
-void ImmediatePipeline::DrawGrid(glm::vec3 pos, glm::vec3 size, glm::vec3 color, int rows, int columns)
+void ImmediatePipeline::DrawGrid(glm::vec3 pos, glm::vec3 size, glm::vec4 color, int rows, int columns)
 {
 	const auto& p0 = mBoxVertices[0]; //a
 	const auto& p1 = mBoxVertices[1]; //b
@@ -312,4 +312,30 @@ void ImmediatePipeline::DrawGrid(glm::vec3 pos, glm::vec3 size, glm::vec3 color,
 			color
 		});
 	}
+}
+
+void ImmediatePipeline::_DrawFilledBox(glm::vec3 pos, glm::vec3 size, glm::vec4 color)
+{
+	mFrameCircleVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[0]), color});
+	mFrameCircleVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[1]), color});
+	mFrameCircleVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[3]), color});
+
+	mFrameCircleVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[2]), color});
+	mFrameCircleVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[3]), color});
+	mFrameCircleVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[0]), color});
+}
+
+void ImmediatePipeline::_DrawOutlinedBox(glm::vec3 pos, glm::vec3 size, glm::vec4 color)
+{
+	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[0]), color});
+	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[1]), color});
+
+	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[1]), color});
+	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[3]), color});
+
+	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[2]), color});
+	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[3]), color});
+
+	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[2]), color});
+	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[0]), color});
 }

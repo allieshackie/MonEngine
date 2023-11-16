@@ -17,11 +17,11 @@ public:
 	void UpdateProjectionViewUniform(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat);
 
 	// Draw Helpers
-	void DrawPoint(glm::vec3 pos, glm::vec3 color, float size);
-	void DrawLine(glm::vec3 from, glm::vec3 to, glm::vec3 color);
-	void DrawBox(glm::vec3 pos, glm::vec3 size, glm::vec3 color);
-	void DrawCircle(glm::vec3 position, float radius, glm::vec3 color);
-	void DrawGrid(glm::vec3 pos, glm::vec3 size, glm::vec3 color, int rows, int columns);
+	void DrawPoint(glm::vec3 pos, glm::vec4 color, float size);
+	void DrawLine(glm::vec3 from, glm::vec3 to, glm::vec4 color);
+	void DrawBox(glm::vec3 pos, glm::vec3 size, glm::vec4 color, bool filled);
+	void DrawCircle(glm::vec3 position, float radius, glm::vec4 color);
+	void DrawGrid(glm::vec3 pos, glm::vec3 size, glm::vec4 color, int rows, int columns);
 
 private:
 	static glm::vec3 _CalculateModelPoint(glm::vec3 pos, glm::vec3 size, glm::vec3 basePoint = {0, 0, 0});
@@ -29,6 +29,9 @@ private:
 	void _RenderPoints(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat);
 	void _RenderLines(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat);
 	void _RenderCircles(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat);
+
+	void _DrawFilledBox(glm::vec3 pos, glm::vec3 size, glm::vec4 color);
+	void _DrawOutlinedBox(glm::vec3 pos, glm::vec3 size, glm::vec4 color);
 
 	void _ClearVertices();
 
@@ -38,7 +41,7 @@ private:
 	}
 	settings = {};
 
-	const std::array<glm::vec3, 4> mBoxVertices{{{-0.5, 0.5, 1}, {-0.5, -0.5, 1}, {0.5, 0.5, 1}, {0.5, -0.5, 1}}};
+	const std::array<glm::vec3, 4> mBoxVertices{{{0, 1.0, 1.0}, {0, 0, 1.0}, {1.0, 1.0, 1.0}, {1.0, 0, 1.0}}};
 
 	LLGL::PipelineState* mPointPipeline = nullptr;
 	LLGL::PipelineState* mLinePipeline = nullptr;

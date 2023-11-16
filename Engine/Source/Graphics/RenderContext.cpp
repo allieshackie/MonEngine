@@ -75,6 +75,17 @@ RenderContext::RenderContext(const LLGL::UTF8String& title, const LLGL::Extent2D
 	_CreateWindow(title, inputHandler);
 }
 
+RenderContext::~RenderContext()
+{
+	mRenderSystem->Release(*mSwapChain);
+	mSwapChain = nullptr;
+
+	mRenderSystem->Release(*mCommands);
+	mCommands = nullptr;
+
+	mImmediatePipeline->Release(mRenderSystem);
+}
+
 void RenderContext::LoadFont(const char* fontFileName) const
 {
 	mTextPipeline->LoadFont(mRenderSystem, fontFileName);
@@ -155,27 +166,27 @@ void RenderContext::DrawText(const char* text, glm::vec2 position, glm::vec2 siz
 	mTextPipeline->CreateTextMesh(mRenderSystem, text, position, size, color);
 }
 
-void RenderContext::DrawPoint(glm::vec3 pos, glm::vec3 color, float size) const
+void RenderContext::DrawPoint(glm::vec3 pos, glm::vec4 color, float size) const
 {
 	mImmediatePipeline->DrawPoint(pos, color, size);
 }
 
-void RenderContext::DrawLine(glm::vec3 from, glm::vec3 to, glm::vec3 color) const
+void RenderContext::DrawLine(glm::vec3 from, glm::vec3 to, glm::vec4 color) const
 {
 	mImmediatePipeline->DrawLine(from, to, color);
 }
 
-void RenderContext::DrawBox(glm::vec3 pos, glm::vec3 size, glm::vec3 color) const
+void RenderContext::DrawBox(glm::vec3 pos, glm::vec3 size, glm::vec4 color, bool filled) const
 {
-	mImmediatePipeline->DrawBox(pos, size, color);
+	mImmediatePipeline->DrawBox(pos, size, color, filled);
 }
 
-void RenderContext::DrawCircle(glm::vec3 position, float radius, glm::vec3 color) const
+void RenderContext::DrawCircle(glm::vec3 position, float radius, glm::vec4 color) const
 {
 	mImmediatePipeline->DrawCircle(position, radius, color);
 }
 
-void RenderContext::DrawGrid(glm::vec3 pos, glm::vec3 size, glm::vec3 color, int rows, int columns) const
+void RenderContext::DrawGrid(glm::vec3 pos, glm::vec3 size, glm::vec4 color, int rows, int columns) const
 {
 	mImmediatePipeline->DrawGrid(pos, size, color, rows, columns);
 }

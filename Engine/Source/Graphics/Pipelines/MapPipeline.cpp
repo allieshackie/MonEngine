@@ -90,7 +90,7 @@ void MapPipeline::Init(LLGL::RenderSystemPtr& renderSystem)
 
 	LLGL::VertexFormat vertexFormat;
 	vertexFormat.AppendAttribute({"position", LLGL::Format::RGB32Float});
-	vertexFormat.AppendAttribute({"color", LLGL::Format::RGB32Float});
+	vertexFormat.AppendAttribute({"color", LLGL::Format::RGBA32Float});
 	vertexFormat.AppendAttribute({"texCoord", LLGL::Format::RG32Float});
 
 	std::string vertPath = SHADERS_FOLDER;

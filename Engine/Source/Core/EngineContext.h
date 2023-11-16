@@ -50,11 +50,11 @@ public:
 	void OpenMap(const char* mapName) const;
 	void OpenMap(const char* mapName, glm::vec3 position, glm::vec3 rotation, float tileSize) const;
 
-	void DrawPoint(glm::vec3 position, float size, glm::vec3 color) const;
-	void DrawLine(glm::vec3 from, glm::vec3 to, glm::vec3 color) const;
-	void DrawBox(glm::vec3 position, glm::vec3 size, glm::vec3 color) const;
-	void DrawCircle(glm::vec3 position, float radius, glm::vec3 color) const;
-	void DrawGrid(glm::vec3 position, glm::vec3 size, int rows, int columns, glm::vec3 color) const;
+	void DrawPoint(glm::vec3 position, float size, glm::vec4 color) const;
+	void DrawLine(glm::vec3 from, glm::vec3 to, glm::vec4 color) const;
+	void DrawBox(glm::vec3 position, glm::vec3 size, glm::vec4 color, bool filled = true) const;
+	void DrawCircle(glm::vec3 position, float radius, glm::vec4 color) const;
+	void DrawGrid(glm::vec3 position, glm::vec3 size, int rows, int columns, glm::vec4 color) const;
 	void DrawText2D(const char* text, glm::vec2 position, glm::vec2 size,
 	                glm::vec4 color = {1.0f, 1.0f, 1.0f, 1.0f}) const;
 	void DrawText3D(const char* text, glm::vec3 position, glm::vec3 size) const;
