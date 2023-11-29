@@ -47,6 +47,7 @@ target_link_libraries(
     LLGL
     imgui
     glad
+    lua
 )
 
 message("CMAKE_CURRENT_SOURCE_DIR MonEngine: ${CMAKE_CURRENT_SOURCE_DIR}")

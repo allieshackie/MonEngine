@@ -19,6 +19,7 @@ void EngineContext::_Init(const LLGL::Extent2D screenSize, const LLGL::UTF8Strin
 	mRenderContext = std::make_unique<RenderContext>(title, screenSize, backgroundClearColor, mInputHandler,
 	                                                 usePerspective);
 	GUISystem::InitGUI(*mRenderContext);
+	mLuaSystem = std::make_unique<LuaSystem>();
 
 	mDescriptionFactory = std::make_unique<DescriptionFactory>();
 	_InitDescriptions();
@@ -35,6 +36,8 @@ void EngineContext::_Init(const LLGL::Extent2D screenSize, const LLGL::UTF8Strin
 
 	// TODO: Have game load font, should have a fallback if no font provided
 	//mRenderContext->LoadFont("PixelLettersFull.ttf");
+
+	mLuaSystem->LoadScript("script.lua");
 
 #ifndef BUILD_GAME
 	mGUIMenu = std::make_unique<EditorGUI>(*this, *mInputHandler, *mLevelManager, *mMapRegistry, *mRenderContext);
@@ -127,6 +130,7 @@ void EngineContext::Run(GameInterface* game) const
 		{
 			GUISystem::GUIStartFrame();
 			mGUIMenu->RenderGUI();
+			GUISystem::RenderMenus();
 			GUISystem::GUIEndFrame();
 		}
 

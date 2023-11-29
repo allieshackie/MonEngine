@@ -12,6 +12,7 @@
 #include "Map/MapRegistry.h"
 #include "Physics/CollisionSystem.h"
 #include "Physics/PhysicsSystem.h"
+#include "Scripting/LuaSystem.h"
 
 class GameInterface;
 
@@ -85,6 +86,7 @@ private:
 
 	std::unique_ptr<LevelManager> mLevelManager;
 	std::unique_ptr<GUIBase> mGUIMenu;
+	std::unique_ptr<LuaSystem> mLuaSystem;
 
 	std::unique_ptr<EntityRegistry> mEntityRegistry;
 	std::unique_ptr<EventPublisher> mEventPublisher;
