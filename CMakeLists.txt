@@ -30,18 +30,20 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 
-# Macros must be defined before subdirectories are added
-# ============== MACROS ===============
-add_compile_definitions(ENTITIES_FOLDER="${CMAKE_BINARY_DIR}/Data/Entities/")
-add_compile_definitions(FONTS_FOLDER="${CMAKE_BINARY_DIR}/Data/Fonts/")
-add_compile_definitions(LEVELS_FOLDER="${CMAKE_BINARY_DIR}/Data/Levels/")
-add_compile_definitions(MAPS_FOLDER="${CMAKE_BINARY_DIR}/Data/Maps/")
-add_compile_definitions(MODELS_FOLDER="${CMAKE_BINARY_DIR}/Data/Models/")
-add_compile_definitions(SHADERS_FOLDER="${CMAKE_BINARY_DIR}/Data/Shaders/")
-add_compile_definitions(TEXTURES_FOLDER="${CMAKE_BINARY_DIR}/Data/Textures/")
 
 if(${MON_DEV_BUILD_SANDBOX} OR ${MON_DEV_BUILD_GAME})
   add_compile_definitions(BUILD_GAME)
+  # Macros must be defined before subdirectories are added
+  # ============== MACROS ===============
+  add_compile_definitions(ENTITIES_FOLDER="${CMAKE_BINARY_DIR}/Data/Entities/")
+  add_compile_definitions(FONTS_FOLDER="${CMAKE_BINARY_DIR}/Data/Fonts/")
+  add_compile_definitions(LEVELS_FOLDER="${CMAKE_BINARY_DIR}/Data/Levels/")
+  add_compile_definitions(MAPS_FOLDER="${CMAKE_BINARY_DIR}/Data/Maps/")
+  add_compile_definitions(MODELS_FOLDER="${CMAKE_BINARY_DIR}/Data/Models/")
+  add_compile_definitions(SHADERS_FOLDER="${CMAKE_BINARY_DIR}/Data/Shaders/")
+  add_compile_definitions(SCRIPTS_FOLDER="${CMAKE_BINARY_DIR}/Data/Scripts/")
+  add_compile_definitions(LUA_MODULES_FOLDER="${CMAKE_BINARY_DIR}/Data/LuaModules/")
+  add_compile_definitions(TEXTURES_FOLDER="${CMAKE_BINARY_DIR}/Data/Textures/")
 endif()
 
 # ============== ENGINE ==============
@@ -52,49 +54,27 @@ if(${MON_DEV_BUILD_SANDBOX})
   add_subdirectory(${PROJECT_SOURCE_DIR}/Game)
 endif()
 
-if (NOT EXISTS ${CMAKE_BINARY_DIR}/Data/Entities) 
-  message("MONDEV ERROR: Data/Entities folder isn't located in /Build")
-endif()
-
-if (NOT EXISTS ${CMAKE_BINARY_DIR}/Data/Fonts)
-  message("MONDEV ERROR: Data/Fonts folder isn't located in /Build")
-endif()
-
-if (NOT EXISTS ${CMAKE_BINARY_DIR}/Data/Levels)
-  message("MONDEV ERROR: Data/Levels folder isn't located in /Build")
-endif()
-
-if (NOT EXISTS ${CMAKE_BINARY_DIR}/Data/Maps)
-  message("MONDEV ERROR: Data/Maps folder isn't located in /Build")
-endif()
-
-if (NOT EXISTS ${CMAKE_BINARY_DIR}/Data/Models)
-  message("MONDEV ERROR: Data/Models folder isn't located in /Build")
-endif()
-
-if (NOT EXISTS ${CMAKE_BINARY_DIR}/Data/Shaders)
-  message("MONDEV ERROR: Data/Shaders folder isn't located in /Build")
-endif()
-
-if (NOT EXISTS ${CMAKE_BINARY_DIR}/Data/Textures)
-  message("MONDEV ERROR: Data/Textures folder isn't located in /Build")
-endif()
-
 # ============== THIRD PARTY ================
+
+## ENTT
 add_subdirectory(${THIRD_PARTY_DIR}/entt)
 #set_property(TARGET aob PROPERTY FOLDER "ThirdParty")
 
+## JSON
 add_subdirectory(${THIRD_PARTY_DIR}/json)
 
+## GLM
 add_subdirectory(${THIRD_PARTY_DIR}/glm)
 set_property(TARGET uninstall PROPERTY FOLDER "ThirdParty")
 
+## LLGL
 add_subdirectory(${THIRD_PARTY_DIR}/LLGL)
 set_target_properties(LLGL PROPERTIES FOLDER LLGL)
 set_target_properties(LLGL_Direct3D11 PROPERTIES FOLDER LLGL)
 set_target_properties(LLGL_Null PROPERTIES FOLDER LLGL)
 set_target_properties(LLGL_OpenGL PROPERTIES FOLDER LLGL)
 
+## IMGUI
 set(IMGUI_SRC 
   ${THIRD_PARTY_DIR}/imgui/imgui.cpp
   ${THIRD_PARTY_DIR}/imgui/imgui_widgets.cpp
@@ -110,6 +90,18 @@ set_property(TARGET imgui PROPERTY FOLDER "ThirdParty")
 
 target_include_directories(imgui PUBLIC
     ${THIRD_PARTY_DIR}/imgui
+)
+
+## LUA
+file(GLOB_RECURSE LUA_SOURCES "${THIRD_PARTY_DIR}/Lua/src/*.c")
+source_group(TREE "${THIRD_PARTY_DIR}/Lua/src" FILES ${LUA_SOURCES})
+
+add_library(lua STATIC ${LUA_SOURCES})
+
+set_property(TARGET lua PROPERTY FOLDER "ThirdParty")
+
+target_include_directories(lua PUBLIC
+    ${THIRD_PARTY_DIR}/Lua/src
 )
 
 # SDL + SDL Image 
