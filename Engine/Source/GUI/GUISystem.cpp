@@ -12,7 +12,7 @@
 constexpr const char* GLSL_VERSION = "#version 460";
 
 bool GUISystem::show_demo_window = true;
-std::vector<std::unique_ptr<GUIMenu>> GUISystem::mMenus;
+std::vector<std::unique_ptr<GUIMenuBase>> GUISystem::mMenus;
 
 void GUISystem::InitGUI(const RenderContext& renderContext)
 {
@@ -97,7 +97,7 @@ void GUISystem::RenderMenus()
 	}
 }
 
-void GUISystem::AddMenu(std::unique_ptr<GUIMenu> element)
+void GUISystem::AddMenu(std::unique_ptr<GUIMenuBase> element)
 {
 	mMenus.push_back(std::move(element));
 }

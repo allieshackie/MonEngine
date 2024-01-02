@@ -9,24 +9,6 @@ LuaContext::LuaContext()
 {
 	mLuaState = luaL_newstate();
 	luaL_openlibs(mLuaState); // Open standard Lua libraries
-
-
-	/*
-	 *
-	if (lua_pcall(mLuaState, 0, 0, 0) != LUA_OK)
-	{
-		MON_WARN("Filed to compile lua script");
-		return;
-	}
-
-	// TODO: This is assuming that the script will always have a main method
-	// Call the Lua function "Main"
-	lua_getglobal(mLuaState, "Main");
-	if (lua_isfunction(mLuaState, -1))
-	{
-		lua_pcall(mLuaState, 0, 0, 0);
-	}
-	 */
 }
 
 LuaContext::~LuaContext()

@@ -10,19 +10,36 @@ namespace Mon
 {
 	namespace LuaHelper
 	{
-		static std::function<void()> GetFunctionFromLua(lua_State* L, int index);
+		void BindUIModule(lua_State* L);
+		std::function<void()> GetFunctionFromLua(lua_State* L, int index);
 	}
 
 	namespace UI
 	{
-		int Impl_CreateMenu(lua_State* L);
-		int Impl_AddButton(lua_State* L);
-		int Impl_Menu_GC(lua_State* L);
+		int Impl_CreateMenuPopup(lua_State* L);
+		int Impl_CreateMenuBar(lua_State* L);
 
-		constexpr luaL_Reg MenuTable[] = {
-			{"CreateMenu", Impl_CreateMenu},
+		inline const char* MenuPopupTableName = "MenuPopupTable";
+		int Impl_AddButton(lua_State* L);
+
+		inline const char* MenuBarTableName = "MenuBarTable";
+		int Impl_AddMenuBarItem(lua_State* L);
+
+		constexpr luaL_Reg MenuModuleTable[] = {
+			{"CreateMenuPopup", Impl_CreateMenuPopup},
+			{"CreateMenuBar", Impl_CreateMenuBar},
 			// TODO: Add more functions here as needed
 			{nullptr, nullptr} // Terminating element
+		};
+
+		constexpr luaL_Reg MenuPopupTable[] = {
+			{"AddButton", Impl_AddButton},
+			{nullptr, nullptr} // Sentinel to indicate the end of the array
+		};
+
+		constexpr luaL_Reg MenuBarTable[] = {
+			{"AddMenuBarItem", Impl_AddMenuBarItem},
+			{nullptr, nullptr} // Sentinel to indicate the end of the array
 		};
 	}
 }
@@ -30,18 +47,8 @@ namespace Mon
 class LuaSystem
 {
 public:
-	LuaSystem();
-
 	void LoadScript(const char* scriptFile);
-	void BindUIModule();
-
-
-	void BindClassToLuaTable(lua_State* state, const char* tableName);
-	// Any entries need to be added as soon as the table is added
-	void AddClassTableEntry();
 
 private:
 	std::vector<std::unique_ptr<LuaContext>> mContexts;
-
-	std::unique_ptr<LuaContext> mUIModule;
 };

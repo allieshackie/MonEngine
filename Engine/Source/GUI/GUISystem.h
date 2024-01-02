@@ -1,5 +1,5 @@
 #pragma once
-#include "GUIMenu.h"
+#include "GUIMenuBase.h"
 
 class RenderContext;
 
@@ -21,11 +21,11 @@ public:
 
 	static void RenderMenus();
 
-	static void AddMenu(std::unique_ptr<GUIMenu> element);
+	static void AddMenu(std::unique_ptr<GUIMenuBase> element);
 	static void FlushMenus();
 
 private:
 	// example
 	static bool show_demo_window;
-	static std::vector<std::unique_ptr<GUIMenu>> mMenus;
+	static std::vector<std::unique_ptr<GUIMenuBase>> mMenus;
 };
