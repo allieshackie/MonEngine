@@ -4,10 +4,7 @@
         "front": [0,0,-1],
         "up": [0,1,0]
     },
-    "ui_elements": [
-        {
-            "name": "play",
-            "position": [0,0,0]
-        }
+    "scripts": [
+        "mainMenu.lua"
     ]
 }

@@ -19,7 +19,7 @@ void EditorGUI::RenderGUI()
 	 *
 	if (!Defines::GetInstance()->GetEditMode())
 	{
-		_MainMenu();
+		_MainMenu(camera);
 	}
 	else
 	{
