@@ -6,7 +6,8 @@
 class GUIMenuBarItem : public GUIElement
 {
 public:
-	GUIMenuBarItem(const char* label, std::function<void()> clickCallback) : mLabel(label), mClickCallback(std::move(clickCallback))
+	GUIMenuBarItem(const char* label, std::function<void()> clickCallback)
+		: mLabel(label), mClickCallback(std::move(clickCallback))
 	{
 	}
 
@@ -14,10 +15,14 @@ public:
 	{
 		if (ImGui::MenuItem(mLabel))
 		{
+			if (mClickCallback)
+			{
+				mClickCallback();
+			}
 		}
 	}
 
 private:
 	const char* mLabel;
-    std::function<void()> mClickCallback;
+	std::function<void()> mClickCallback;
 };

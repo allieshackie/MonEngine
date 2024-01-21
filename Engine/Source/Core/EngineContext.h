@@ -34,7 +34,6 @@ public:
 
 	void Run(GameInterface* game) const;
 
-	void UseGUIModule();
 	void SetGUIMenu(std::unique_ptr<GUIBase> gui);
 	void LoadFont(const char* fontFileName) const;
 
@@ -45,6 +44,7 @@ public:
 	template <typename Component>
 	Component& GetComponent(EntityId id) const;
 
+	const std::vector<const char*>& GetLevelNames() const;
 	void LoadLevel(const char* levelName) const;
 	const std::unique_ptr<Level>& GetLevel() const;
 
@@ -98,8 +98,6 @@ private:
 
 	bool mRunning = true;
 	bool mDebugDraw = false;
-
-	bool mUseGUIModule = false;
 };
 
 template <typename Component>

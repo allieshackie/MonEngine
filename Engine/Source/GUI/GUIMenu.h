@@ -2,7 +2,7 @@
 #include <imgui.h>
 
 #include "GUIMenuBase.h"
-#include "GUIButton.h"
+#include "GUIMenuItems.h"
 
 class GUIMenu : public GUIMenuBase
 {
@@ -21,14 +21,6 @@ public:
 			Impl_Render();
 		}
 		ImGui::End();
-	}
-
-	void AddButton(const char* label, float posX, float posY, float sizeX, float sizeY,
-	               std::function<void()> clickCallback)
-	{
-		auto button = std::make_unique<GUIButton>(label, glm::vec2{posX, posY}, glm::vec2{sizeX, sizeY},
-		                                          std::move(clickCallback));
-		AddElement(std::move(button));
 	}
 
 	void SetNoMoveFlag(bool noMove)

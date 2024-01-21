@@ -29,7 +29,7 @@ void EngineContext::_Init(const LLGL::Extent2D screenSize, const LLGL::UTF8Strin
 	mMapRegistry = std::make_unique<MapRegistry>();
 	mTimer = std::make_unique<Timer>();
 
-	mLevelManager = std::make_unique<LevelManager>(*mMapRegistry);
+	mLevelManager = std::make_unique<LevelManager>(*mLuaSystem, *mMapRegistry);
 
 	mCollisionSystem = std::make_unique<CollisionSystem>(*mEventPublisher);
 	mPhysicsSystem = std::make_unique<PhysicsSystem>();
@@ -37,16 +37,9 @@ void EngineContext::_Init(const LLGL::Extent2D screenSize, const LLGL::UTF8Strin
 	// TODO: Have game load font, should have a fallback if no font provided
 	//mRenderContext->LoadFont("PixelLettersFull.ttf");
 
-	mLuaSystem->LoadScript("script.lua");
-
 #ifndef BUILD_GAME
 	mGUIMenu = std::make_unique<EditorGUI>(*this, *mInputHandler, *mLevelManager, *mMapRegistry, *mRenderContext);
 #endif
-}
-
-void EngineContext::UseGUIModule()
-{
-	mUseGUIModule = true;
 }
 
 void EngineContext::SetGUIMenu(std::unique_ptr<GUIBase> gui)
@@ -126,14 +119,11 @@ void EngineContext::Run(GameInterface* game) const
 
 		// TODO: Editor GUI requires camera to render...how can we fix that?
 		mRenderContext->BeginFrame();
-		if (mUseGUIModule)
-		{
-			GUISystem::GUIStartFrame();
-			mGUIMenu->RenderGUI();
-			GUISystem::RenderMenus();
-			GUISystem::GUIEndFrame();
-		}
 
+		GUISystem::GUIStartFrame();
+		// TODO: Remove?   mGUIMenu->RenderGUI();
+		GUISystem::RenderMenus();
+		GUISystem::GUIEndFrame();
 
 		if (const auto& level = mLevelManager->GetCurrentLevel())
 		{
@@ -165,6 +155,11 @@ EntityRegistry& EngineContext::GetEntityRegistry() const
 InputHandler& EngineContext::GetInputHandler() const
 {
 	return *mInputHandler;
+}
+
+const std::vector<const char*>& EngineContext::GetLevelNames() const
+{
+	return mLevelManager->GetLevelNames();
 }
 
 void EngineContext::LoadLevel(const char* levelName) const
