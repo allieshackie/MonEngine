@@ -10,14 +10,15 @@ class LevelManager
 public:
 	LevelManager(LuaSystem& luaSystem, MapRegistry& mapRegistry);
 
-	std::unique_ptr<Level>& GetLevel(const std::string& levelName);
 	std::unique_ptr<Level>& GetCurrentLevel();
 
 	void LoadLevel(const std::string& levelName, const EngineContext& context);
 	const std::vector<const char*>& GetLevelNames() const;
 
 private:
-	std::map<std::string, std::unique_ptr<Level>> mLevels;
+	void _UnloadLevel(const EngineContext& context) const;
+
+	std::unique_ptr<Level> mCurrentLevel;
 	std::vector<const char*> mLevelFileNames;
 	std::unique_ptr<Level> mEmptyLevel{nullptr};
 

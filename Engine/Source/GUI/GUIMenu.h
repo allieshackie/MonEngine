@@ -2,7 +2,6 @@
 #include <imgui.h>
 
 #include "GUIMenuBase.h"
-#include "GUIMenuItems.h"
 
 class GUIMenu : public GUIMenuBase
 {
@@ -12,9 +11,17 @@ public:
 	{
 	}
 
+	// TODO: Can't set position if we want the window to be movable
 	void Render() override
 	{
-		ImGui::SetNextWindowPos(mPosition);
+		if (mWindowFlags & ImGuiWindowFlags_NoMove)
+		{
+			const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
+			ImGui::SetNextWindowPos(ImVec2(main_viewport->Size.x / 2 - (mSize.x / 2),
+			                               main_viewport->Size.y / 2 - (mSize.y / 2)));
+			// TODO: If we want to center the window vs position manually, still want to handle window resize event
+			//ImGui::SetNextWindowPos(mPosition);
+		}
 		ImGui::SetNextWindowSize(mSize);
 		if (ImGui::Begin(mLabel, &mOpen, mWindowFlags))
 		{
@@ -73,5 +80,6 @@ private:
 	ImVec2 mPosition = {0, 0};
 	ImVec2 mSize = {0, 0};
 
-	ImGuiWindowFlags mWindowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+	ImGuiWindowFlags mWindowFlags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse;
 };

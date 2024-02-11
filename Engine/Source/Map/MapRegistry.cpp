@@ -5,18 +5,12 @@
 
 void MapRegistry::OpenMap(const std::string& mapPath, glm::vec3 pos, glm::vec3 rotation, float tileSize)
 {
-	std::string fullMapPath = MAPS_FOLDER;
-	fullMapPath.append(mapPath);
-
-	mMaps.emplace_back(std::make_unique<Map>(fullMapPath, pos, rotation, tileSize));
+	mMaps.emplace_back(std::make_unique<Map>(mapPath, pos, rotation, tileSize));
 }
 
 void MapRegistry::OpenMap(const std::string& mapPath)
 {
-	std::string fullMapPath = MAPS_FOLDER;
-	fullMapPath.append(mapPath);
-
-	mMaps.push_back(std::make_unique<Map>(fullMapPath));
+	mMaps.push_back(std::make_unique<Map>(mapPath));
 	mCurrentFocusedMapIndex = static_cast<int>(mMaps.size()) - 1;
 }
 

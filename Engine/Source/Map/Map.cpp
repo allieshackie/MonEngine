@@ -5,7 +5,9 @@
 
 Map::Map(const std::string& fileName) : mMapId(fileName)
 {
-	mMapAttributes = MapHelpers::CreateAttributes(fileName);
+	std::string fullMapPath = MAPS_FOLDER;
+	fullMapPath.append(fileName);
+	mMapAttributes = MapHelpers::CreateAttributes(fullMapPath);
 
 	mMapSize = {
 		static_cast<float>(mMapAttributes->mColumns) * mTileSize,
@@ -16,7 +18,9 @@ Map::Map(const std::string& fileName) : mMapId(fileName)
 Map::Map(const std::string& fileName, glm::vec3 position, glm::vec3 rotation, float tileSize) : mMapId(fileName),
 	mPosition(position), mRotation(rotation), mTileSize(tileSize)
 {
-	mMapAttributes = MapHelpers::CreateAttributes(fileName);
+	std::string fullMapPath = MAPS_FOLDER;
+	fullMapPath.append(fileName);
+	mMapAttributes = MapHelpers::CreateAttributes(fullMapPath);
 
 	mMapSize = {
 		static_cast<float>(mMapAttributes->mColumns) * mTileSize,

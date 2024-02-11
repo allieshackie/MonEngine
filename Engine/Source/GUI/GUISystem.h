@@ -11,6 +11,8 @@ class GUISystem
 public:
 	static void InitGUI(const RenderContext& renderContext);
 	static void CloseGUI();
+	// TODO: Create theme files to be parsed for imgui
+	static void LoadGUITheme();
 
 	static bool IsGUIContext();
 
