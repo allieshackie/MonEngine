@@ -27,6 +27,8 @@ namespace Mon
 		inline const char* MenuPopupTableName = "MenuPopupTable";
 		int Impl_AddButton(lua_State* L);
 		int Impl_AddCombo(lua_State* L);
+		int Impl_SetNoMoveFlag(lua_State* L);
+		int Impl_SetNoResizeFlag(lua_State* L);
 
 		inline const char* MenuBarTableName = "MenuBarTable";
 		int Impl_AddMenuBarItem(lua_State* L);
@@ -37,13 +39,14 @@ namespace Mon
 		constexpr luaL_Reg MenuModuleTable[] = {
 			{"CreateMenuPopup", Impl_CreateMenuPopup},
 			{"CreateMenuBar", Impl_CreateMenuBar},
-			// TODO: Add more functions here as needed
 			{nullptr, nullptr} // Terminating element
 		};
 
 		constexpr luaL_Reg MenuPopupTable[] = {
 			{"AddButton", Impl_AddButton},
 			{"AddCombo", Impl_AddCombo},
+			{"SetNoMoveFlag", Impl_SetNoMoveFlag},
+			{"SetNoResizeFlag", Impl_SetNoResizeFlag},
 			{nullptr, nullptr} // Sentinel to indicate the end of the array
 		};
 
@@ -71,6 +74,12 @@ class LuaSystem
 public:
 	void LoadScript(const char* scriptFile, const EngineContext& engine);
 
+	void QueueClose();
+	void CloseAllScripts();
+
+	bool QueueCloseScripts() const;
+
 private:
 	std::vector<std::unique_ptr<LuaContext>> mContexts;
+	bool mQueueClose = false;
 };

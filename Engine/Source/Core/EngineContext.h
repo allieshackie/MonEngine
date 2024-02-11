@@ -37,12 +37,13 @@ public:
 	void SetGUIMenu(std::unique_ptr<GUIBase> gui);
 	void LoadFont(const char* fontFileName) const;
 
-	EntityId CreateGameObject(const std::string& entityTemplateName) const;
 	EntityRegistry& GetEntityRegistry() const;
 	InputHandler& GetInputHandler() const;
 
+	EntityId CreateGameObject(const std::string& entityTemplateName) const;
 	template <typename Component>
 	Component& GetComponent(EntityId id) const;
+	void FlushEntities() const;
 
 	const std::vector<const char*>& GetLevelNames() const;
 	void LoadLevel(const char* levelName) const;
@@ -67,6 +68,8 @@ public:
 	{
 		mDescriptionFactory->RegisterDescription<T>(descriptionName);
 	}
+
+	void ToggleEditorMode(bool toggle) const;
 
 private:
 	void _Init(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,

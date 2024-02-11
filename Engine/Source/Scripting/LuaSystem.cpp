@@ -8,6 +8,7 @@
 
 //#define PROFILE_LUA
 
+// TODO: Create Initialize and Update methods for scripts
 void LuaSystem::LoadScript(const char* scriptFile, const EngineContext& engine)
 {
 	auto context = std::make_unique<LuaContext>();
@@ -19,6 +20,23 @@ void LuaSystem::LoadScript(const char* scriptFile, const EngineContext& engine)
 	context->Execute(scriptFile);
 
 	mContexts.push_back(std::move(context));
+}
+
+void LuaSystem::QueueClose()
+{
+	mQueueClose = true;
+}
+
+void LuaSystem::CloseAllScripts()
+{
+	mContexts.clear();
+	GUISystem::FlushMenus();
+	mQueueClose = false;
+}
+
+bool LuaSystem::QueueCloseScripts() const
+{
+	return mQueueClose;
 }
 
 void Mon::Lua::BindEngineContext(lua_State* state, const EngineContext& engine)
@@ -212,6 +230,36 @@ int Mon::UI::Impl_AddCombo(lua_State* L)
 		Lua::ProfileLuaState(L, false, "Impl_AddCombo");
 
 		return 1; // Return the userdata
+	}
+
+	// Assuming the function does not return anything to Lua
+	return 0;
+}
+
+int Mon::UI::Impl_SetNoMoveFlag(lua_State* L)
+{
+	if (const auto menuPtr = static_cast<GUIMenu**>(luaL_checkudata(L, 1, MenuPopupTableName)))
+	{
+		if (lua_isboolean(L, 2))
+		{
+			bool flag = lua_toboolean(L, 2);
+			(*menuPtr)->SetNoMoveFlag(flag);
+		}
+	}
+
+	// Assuming the function does not return anything to Lua
+	return 0;
+}
+
+int Mon::UI::Impl_SetNoResizeFlag(lua_State* L)
+{
+	if (const auto menuPtr = static_cast<GUIMenu**>(luaL_checkudata(L, 1, MenuPopupTableName)))
+	{
+		if (lua_isboolean(L, 2))
+		{
+			bool flag = lua_toboolean(L, 2);
+			(*menuPtr)->SetNoResizeFlag(flag);
+		}
 	}
 
 	// Assuming the function does not return anything to Lua

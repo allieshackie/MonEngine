@@ -1,26 +1,20 @@
-local mainMenuBar = MonUI.CreateMenuBar()
-local levelNames = gEngineContext:GetLevelNames()
-local currentLevel = 1
-local combo = nil
-
-local function UpdateCurrentLevel()
-    if combo then
-        -- Add 1 since Lua starts from index 1 instead of 0 like C++
-        currentLevel = combo:GetCurrentItem() + 1
-    end
+local function StartGame()
+    gEngineContext:LoadLevel("game.json")
+    print("Start Game")
 end
 
-local function OpenLevel()
-    print(levelNames[currentLevel])
-    --gEngineContext:LoadLevel(currentLevel)
+local function OpenOptions()
+    print("Open options")
 end
 
-local function OpenPlayMenu()
-    local levelsMenu = MonUI.CreateMenuPopup("Load Level", 100, 100, 300, 300)
-
-    combo = levelsMenu:AddCombo("Levels", levelNames, UpdateCurrentLevel)
-    -- Add buttons to the menu
-    levelsMenu:AddButton("Open", 10.0, 100.0, 100.0, 20.0, OpenLevel)
+local function ExitGame()
+    print("Exit Game")
 end
 
-mainMenuBar:AddMenuBarItem("Play", OpenPlayMenu)
+function Initialize()
+    local levelsMenu = MonUI.CreateMenuPopup("Main Menu", 100, 100, 250, 300)
+
+    levelsMenu:AddButton("Play", 50.0, 50.0, 125.0, 40.0, StartGame)
+    levelsMenu:AddButton("Options", 50.0, 100.0, 125.0, 40.0, OpenOptions)
+    levelsMenu:AddButton("Exit", 50.0, 150.0, 125.0, 40.0, ExitGame)
+end

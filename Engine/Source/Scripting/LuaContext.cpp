@@ -20,12 +20,32 @@ void LuaContext::Execute(const char* scriptFile, bool isModule) const
 {
 	std::string pathName = isModule ? LUA_MODULES_FOLDER : SCRIPTS_FOLDER;
 	pathName.append(scriptFile);
-	// Load the file, but don't run yet
-	if (luaL_dofile(mLuaState, pathName.c_str()) != LUA_OK)
+	// Load and execute Lua script
+	if (luaL_dofile(mLuaState, pathName.c_str()) != 0)
 	{
-		// Handle script loading or execution errors
-		const char* errorMessage = lua_tostring(mLuaState, -1);
-		fprintf(stderr, "Error executing Lua script: %s\n", errorMessage);
+		// Handle errors (e.g., print the error message)
+		fprintf(stderr, "Error: %s\n", lua_tostring(mLuaState, -1));
+		lua_pop(mLuaState, 1); // Pop the error message from the stack
+		lua_close(mLuaState);
+	}
+
+	// Call a specific Lua function
+	lua_getglobal(mLuaState, "Initialize");
+
+	// Check if the Lua function is callable
+	if (lua_isfunction(mLuaState, -1))
+	{
+		// Call the Lua function with arguments and expect one result
+		if (lua_pcall(mLuaState, 0, 0, 0) != 0)
+		{
+			// Handle errors (e.g., print the error message)
+			fprintf(stderr, "Error: %s\n", lua_tostring(mLuaState, -1));
+			lua_pop(mLuaState, 1); // Pop the error message from the stack
+		}
+	}
+	else
+	{
+		fprintf(stderr, "Error: Function not found\n");
 	}
 }
 

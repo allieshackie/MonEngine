@@ -1,4 +1,3 @@
-#include "Editor/EditorGUI.h"
 #include "Entity/Descriptions/CollisionDescription.h"
 #include "Entity/Descriptions/PhysicsDescription.h"
 #include "Entity/Descriptions/PlayerDescription.h"
@@ -33,13 +32,6 @@ void EngineContext::_Init(const LLGL::Extent2D screenSize, const LLGL::UTF8Strin
 
 	mCollisionSystem = std::make_unique<CollisionSystem>(*mEventPublisher);
 	mPhysicsSystem = std::make_unique<PhysicsSystem>();
-
-	// TODO: Have game load font, should have a fallback if no font provided
-	//mRenderContext->LoadFont("PixelLettersFull.ttf");
-
-#ifndef BUILD_GAME
-	mGUIMenu = std::make_unique<EditorGUI>(*this, *mInputHandler, *mLevelManager, *mMapRegistry, *mRenderContext);
-#endif
 }
 
 void EngineContext::SetGUIMenu(std::unique_ptr<GUIBase> gui)
@@ -117,13 +109,11 @@ void EngineContext::Run(GameInterface* game) const
 		// TODO: Debug draw axis
 		//_DrawAxis();
 
-		// TODO: Editor GUI requires camera to render...how can we fix that?
 		mRenderContext->BeginFrame();
 
-		GUISystem::GUIStartFrame();
-		// TODO: Remove?   mGUIMenu->RenderGUI();
-		GUISystem::RenderMenus();
-		GUISystem::GUIEndFrame();
+		//GUISystem::GUIStartFrame();
+		//GUISystem::RenderMenus();
+		//GUISystem::GUIEndFrame();
 
 		if (const auto& level = mLevelManager->GetCurrentLevel())
 		{
@@ -132,6 +122,11 @@ void EngineContext::Run(GameInterface* game) const
 		}
 
 		mRenderContext->EndFrame();
+
+		if (mLuaSystem->QueueCloseScripts())
+		{
+			mLuaSystem->CloseAllScripts();
+		}
 	}
 
 	GUISystem::CloseGUI();
@@ -155,6 +150,11 @@ EntityRegistry& EngineContext::GetEntityRegistry() const
 InputHandler& EngineContext::GetInputHandler() const
 {
 	return *mInputHandler;
+}
+
+void EngineContext::FlushEntities() const
+{
+	mEntityRegistry->FlushEntities();
 }
 
 const std::vector<const char*>& EngineContext::GetLevelNames() const
@@ -214,9 +214,22 @@ void EngineContext::DrawText2D(const char* text, glm::vec2 position, glm::vec2 s
 
 void EngineContext::DrawText3D(const char* text, glm::vec3 position, glm::vec3 size) const
 {
+	// TODO: This will just render 2D text for now
+	mRenderContext->DrawText(text, position, size, {1.0f, 1.0f, 1.0f, 1.0f});
 }
 
 void EngineContext::SetBackgroundClearColor(const LLGL::ColorRGBAf color) const
 {
 	mRenderContext->SetBackgroundClearColor(color);
+}
+
+void EngineContext::ToggleEditorMode(bool toggle) const
+{
+	if (toggle)
+	{
+		if (const auto& level = mLevelManager->GetCurrentLevel())
+		{
+			mInputHandler->AddEditorInputs(*level->GetCamera());
+		}
+	}
 }
