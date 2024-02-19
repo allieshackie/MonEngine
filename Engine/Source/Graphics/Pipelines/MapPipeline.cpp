@@ -154,12 +154,13 @@ void MapPipeline::_CreateResourceHeap(const LLGL::RenderSystemPtr& renderSystem)
 		resourceViews.emplace_back(&texture->GetSamplerData());
 	}
 
+	// TODO: If more than one map needs to be rendered, will need a system to keep these textures
 	if (mWrittenMapTexture)
 	{
 		resourceViews.emplace_back(mConstantBuffer);
 		resourceViews.emplace_back(mWrittenMapTexture);
 		resourceViews.emplace_back(sampler);
-		mWrittenTextureId = textures.size() + 1;
+		mWrittenTextureId = textures.size();
 	}
 
 	mResourceHeap = renderSystem->CreateResourceHeap(mPipelineLayout, resourceViews);
@@ -171,7 +172,7 @@ void MapPipeline::WriteQueuedMapTextures(const LLGL::RenderSystemPtr& renderSyst
 	_InitMapTexturePipeline(commandBuffer, renderSystem, map);
 }
 
-// TODO: Where should this be?  Writing map texture to render
+// TODO: Where should this be? Writing map texture to render
 void MapPipeline::_InitMapTexturePipeline(LLGL::CommandBuffer& commandBuffer,
                                           const LLGL::RenderSystemPtr& renderSystem,
                                           const Map& map)
