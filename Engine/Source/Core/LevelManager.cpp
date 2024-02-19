@@ -5,30 +5,30 @@
 
 #include "LevelManager.h"
 
-LevelManager::LevelManager(MapRegistry& mapRegistry)
-	: mMapRegistry(mapRegistry)
+LevelManager::LevelManager()
 {
-}
-
-std::unique_ptr<Level>& LevelManager::GetLevel(const std::string& levelName)
-{
-	const auto it = mLevels.find(levelName);
-	assert(it != mLevels.end());
-	return it->second;
-}
-
-std::unique_ptr<Level>& LevelManager::GetCurrentLevel()
-{
-	if (mLevels.empty())
+	mLevelFileNames.clear();
+	for (const auto& entry : std::filesystem::directory_iterator(LEVELS_FOLDER))
 	{
-		return mEmptyLevel;
+		const auto fileName = entry.path().filename().string();
+		if (fileName.find(EDITOR_LEVEL) != std::string::npos) continue;
+		mLevelFileNames.push_back(_strdup(fileName.c_str()));
 	}
-	// return last element 
-	return std::prev(mLevels.end())->second;
 }
 
-void LevelManager::LoadLevel(const std::string& levelName, const EngineContext& context)
+const Level* LevelManager::GetCurrentLevel() const
 {
+	return mCurrentLevel.get();
+}
+
+void LevelManager::LoadLevel(const std::string& levelName, const EngineContext& context, MapRegistry& mapRegistry,
+                             LuaSystem& luaSystem)
+{
+	if (mCurrentLevel != nullptr)
+	{
+		_UnloadLevel(context, mapRegistry, luaSystem);
+	}
+
 	// parse and serialize JSON
 	std::string fullFileName = LEVELS_FOLDER;
 	fullFileName.append(levelName);
@@ -36,10 +36,9 @@ void LevelManager::LoadLevel(const std::string& levelName, const EngineContext& 
 	auto level = std::make_unique<Level>(fullFileName);
 
 	// Create Map
-	if (const auto& mapData = level->GetMapData())
-	{
-		mMapRegistry.OpenMap(mapData->name, mapData->position, mapData->rotation, mapData->tileSize);
-	}
+	const auto& mapData = level->GetMapData();
+	mapRegistry.OpenMap(mapData.name, mapData.position, mapData.rotation, mapData.tileSize);
+	context.InitMapRendering(mapRegistry.GetCurrentMap());
 
 	for (const auto& entity : level->GetEntityDefinitions())
 	{
@@ -48,5 +47,24 @@ void LevelManager::LoadLevel(const std::string& levelName, const EngineContext& 
 		transformComponent.mPosition = entity.position;
 	}
 
-	mLevels.insert(std::make_pair(levelName, std::move(level)));
+	for (const auto& script : level->GetScripts())
+	{
+		luaSystem.LoadScript(script.c_str(), context);
+	}
+
+	mCurrentLevel = std::move(level);
+}
+
+const std::vector<const char*>& LevelManager::GetLevelNames() const
+{
+	return mLevelFileNames;
+}
+
+void LevelManager::_UnloadLevel(const EngineContext& context, MapRegistry& mapRegistry,
+                                LuaSystem& luaSystem) const
+{
+	luaSystem.QueueClose();
+	mapRegistry.CloseMap(mCurrentLevel->GetMapData().name);
+
+	context.FlushEntities();
 }

@@ -65,4 +65,12 @@ void Level::_ParseJson(const nlohmann::json& json)
 			mEntityDefinitions.push_back({std::move(entityName), entityPosVec});
 		}
 	}
+
+	if (json.contains(SCRIPTS_STRING))
+	{
+		for (auto& script : json[SCRIPTS_STRING])
+		{
+			mScripts.push_back(script);
+		}
+	}
 }

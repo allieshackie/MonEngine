@@ -16,6 +16,8 @@
 
 #include "TextPipeline.h"
 
+#include <imgui.h>
+
 struct FontData
 {
 	const uint32_t mSize = 40;
@@ -86,6 +88,10 @@ void TextPipeline::LoadFont(const LLGL::RenderSystemPtr& renderSystem, const cha
 {
 	std::string fullPath = FONTS_FOLDER;
 	fullPath.append(fontFile);
+
+	ImGuiIO& io = ImGui::GetIO();
+	io.Fonts->AddFontFromFileTTF(fullPath.c_str(), 25.0f);
+
 	auto fontData = FileSystem::ReadBytes(fullPath);
 	std::vector<uint8_t> atlasData(_font.mAtlasWidth * _font.mAtlasHeight);
 

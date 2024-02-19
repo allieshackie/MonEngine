@@ -1,50 +1,85 @@
 #pragma once
 #include <imgui.h>
 
-#include "GUIButton.h"
-#include "GUIElement.h"
+#include "GUIMenuBase.h"
 
-class GUIMenu
+class GUIMenu : public GUIMenuBase
 {
 public:
-	GUIMenu(const char* label, glm::vec2 pos = {0, 0},
-	        ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoResize |
-		        ImGuiWindowFlags_NoMove) : mLabel(label), mPosition(pos), mWindowFlags(windowFlags)
+	GUIMenu(const char* label, glm::vec2 pos, glm::vec2 size) : mLabel(label), mPosition(ImVec2(pos.x, pos.y)),
+	                                                            mSize(ImVec2(size.x, size.y))
 	{
 	}
 
-	void Render()
+	// TODO: Can't set position if we want the window to be movable
+	void Render() override
 	{
-		ImGui::SetNextWindowPos(ImVec2(mPosition.x, mPosition.y));
-		ImGui::SetNextWindowSize(ImVec2(200, 200));
+		if (mWindowFlags & ImGuiWindowFlags_NoMove)
+		{
+			const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
+			ImGui::SetNextWindowPos(ImVec2(main_viewport->Size.x / 2 - (mSize.x / 2),
+			                               main_viewport->Size.y / 2 - (mSize.y / 2)));
+			// TODO: If we want to center the window vs position manually, still want to handle window resize event
+			//ImGui::SetNextWindowPos(mPosition);
+		}
+		ImGui::SetNextWindowSize(mSize);
 		if (ImGui::Begin(mLabel, &mOpen, mWindowFlags))
 		{
-			for (const auto& element : mElements)
-			{
-				element->Render();
-			}
+			Impl_Render();
 		}
 		ImGui::End();
 	}
 
-	void AddButton(const char* label, float posX, float posY, float sizeX, float sizeY,
-	               std::function<void()> clickCallback)
+	void SetNoMoveFlag(bool noMove)
 	{
-		auto button = std::make_unique<GUIButton>(label, glm::vec2{posX, posY}, glm::vec2{sizeX, sizeY},
-		                                          std::move(clickCallback));
-		AddElement(std::move(button));
+		if (noMove)
+		{
+			// If ImGuiWindowFlags_NoMove is not set
+			if (!(mWindowFlags & ImGuiWindowFlags_NoMove))
+			{
+				// Set ImGuiWindowFlags_NoMove flag
+				mWindowFlags |= ImGuiWindowFlags_NoMove;
+			}
+		}
+		else
+		{
+			// if flag is set
+			if (mWindowFlags & ImGuiWindowFlags_NoMove)
+			{
+				// unset
+				mWindowFlags &= ~ImGuiWindowFlags_NoMove;
+			}
+		}
 	}
 
-	void AddElement(std::unique_ptr<GUIElement> element)
+	void SetNoResizeFlag(bool noResize)
 	{
-		mElements.push_back(std::move(element));
+		if (noResize)
+		{
+			// If ImGuiWindowFlags_NoResize is not set
+			if (!(mWindowFlags & ImGuiWindowFlags_NoResize))
+			{
+				// Set ImGuiWindowFlags_NoResize flag
+				mWindowFlags |= ImGuiWindowFlags_NoResize;
+			}
+		}
+		else
+		{
+			// if flag is set
+			if (mWindowFlags & ImGuiWindowFlags_NoResize)
+			{
+				// unset
+				mWindowFlags &= ~ImGuiWindowFlags_NoResize;
+			}
+		}
 	}
 
 private:
 	bool mOpen = true;
 	const char* mLabel;
-	glm::vec2 mPosition = {0, 0};
+	ImVec2 mPosition = {0, 0};
+	ImVec2 mSize = {0, 0};
 
-	ImGuiWindowFlags mWindowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-	std::vector<std::unique_ptr<GUIElement>> mElements;
+	ImGuiWindowFlags mWindowFlags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse;
 };

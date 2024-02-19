@@ -11,7 +11,7 @@ public:
 	void CloseMap(const std::string& mapId);
 
 	const std::vector<std::shared_ptr<Map>>& GetAllMaps();
-	const std::shared_ptr<Map>& GetCurrentMap();
+	Map& GetCurrentMap() const;
 
 private:
 	std::vector<std::shared_ptr<Map>> mMaps;

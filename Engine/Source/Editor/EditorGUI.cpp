@@ -19,7 +19,7 @@ void EditorGUI::RenderGUI()
 	 *
 	if (!Defines::GetInstance()->GetEditMode())
 	{
-		_MainMenu();
+		_MainMenu(camera);
 	}
 	else
 	{
@@ -28,14 +28,14 @@ void EditorGUI::RenderGUI()
 	 */
 }
 
-void EditorGUI::_MainMenu(const std::unique_ptr<Camera>& camera) const
+void EditorGUI::_MainMenu(Camera& camera) const
 {
 	if (ImGui::BeginMainMenuBar())
 	{
 		if (ImGui::MenuItem("Editor"))
 		{
 			// TODO: Set Edit mode?
-			mInputHandler.AddEditorInputs(*camera);
+			mInputHandler.AddEditorInputs(camera);
 		}
 		ImGui::EndMainMenuBar();
 	}

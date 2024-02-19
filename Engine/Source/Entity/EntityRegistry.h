@@ -80,6 +80,14 @@ public:
 		return mRegistry.all_of<Components>(id);
 	}
 
+	void FlushEntities()
+	{
+		for (const auto& entity : mRegistry.view<EntityId>())
+		{
+			mRegistry.destroy(entity);
+		}
+	}
+
 	//auto view = registry.view<const position, velocity>();
 
 	// use a callback

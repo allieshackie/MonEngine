@@ -34,22 +34,24 @@ public:
 
 	void Run(GameInterface* game) const;
 
-	void UseGUIModule();
 	void SetGUIMenu(std::unique_ptr<GUIBase> gui);
 	void LoadFont(const char* fontFileName) const;
 
-	EntityId CreateGameObject(const std::string& entityTemplateName) const;
 	EntityRegistry& GetEntityRegistry() const;
 	InputHandler& GetInputHandler() const;
 
+	EntityId CreateGameObject(const std::string& entityTemplateName) const;
 	template <typename Component>
 	Component& GetComponent(EntityId id) const;
+	void FlushEntities() const;
 
+	const std::vector<const char*>& GetLevelNames() const;
 	void LoadLevel(const char* levelName) const;
-	const std::unique_ptr<Level>& GetLevel() const;
+	const Level* GetLevel() const;
 
 	void OpenMap(const char* mapName) const;
 	void OpenMap(const char* mapName, glm::vec3 position, glm::vec3 rotation, float tileSize) const;
+	void InitMapRendering(Map& map) const;
 
 	void DrawPoint(glm::vec3 position, float size, glm::vec4 color) const;
 	void DrawLine(glm::vec3 from, glm::vec3 to, glm::vec4 color) const;
@@ -67,6 +69,8 @@ public:
 	{
 		mDescriptionFactory->RegisterDescription<T>(descriptionName);
 	}
+
+	void ToggleEditorMode(bool toggle) const;
 
 private:
 	void _Init(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
@@ -98,8 +102,6 @@ private:
 
 	bool mRunning = true;
 	bool mDebugDraw = false;
-
-	bool mUseGUIModule = false;
 };
 
 template <typename Component>

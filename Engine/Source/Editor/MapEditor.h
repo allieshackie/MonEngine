@@ -18,14 +18,14 @@ public:
 	MapEditor(const EngineContext& engineContext, InputHandler& inputHandler, LevelManager& levelManager,
 	          MapRegistry& mapRegistry, RenderContext& renderContext);
 
-	void RenderGUI(const std::unique_ptr<Camera>& camera);
+	void RenderGUI(Camera& camera);
 
 private:
 	// MAP
-	void _NewMapMenu(bool* p_open, const std::unique_ptr<Camera>& camera);
-	void _LoadMapMenu(bool* p_open, const std::unique_ptr<Camera>& camera);
+	void _NewMapMenu(bool* p_open, Camera& camera);
+	void _LoadMapMenu(bool* p_open, Camera& camera);
 
-	void _LoadMap(const char* mapName, const std::unique_ptr<Camera>& camera);
+	void _LoadMap(const char* mapName, Camera& camera);
 	void _MapMenu(bool* p_open) const;
 	void _PaletteMenu(bool* p_open);
 
@@ -35,7 +35,7 @@ private:
 	// File display helpers
 	void _GetAllMapFileNames();
 	void _CenterWindow(float width, float height);
-	void _CameraInfo(bool* p_open, const std::unique_ptr<Camera>& camera) const;
+	void _CameraInfo(bool* p_open, Camera& camera) const;
 
 	void _DrawTextureDebugGrid() const;
 	void _DrawMapDebugGrid() const;

@@ -7,8 +7,8 @@
 struct MapData
 {
 	std::string name;
-	glm::vec3 position;
-	glm::vec3 rotation;
+	glm::vec3 position = {0, 0, 0};
+	glm::vec3 rotation = {0, 0, 0};
 	float tileSize = 0.0f;
 };
 
@@ -24,10 +24,11 @@ class Level
 public:
 	Level(const std::string& levelName);
 
-	const std::unique_ptr<Camera>& GetCamera() const { return mCamera; }
+	Camera& GetCamera() const { return *mCamera; }
 
-	const std::unique_ptr<MapData>& GetMapData() const { return mMapData; }
+	const MapData& GetMapData() const { return *mMapData; }
 	const std::vector<EntityData>& GetEntityDefinitions() const { return mEntityDefinitions; }
+	const std::vector<std::string>& GetScripts() const { return mScripts; }
 
 private:
 	void _ParseJson(const nlohmann::json& json);
@@ -44,10 +45,13 @@ private:
 
 	static constexpr char ENTITIES_STRING[] = "entities";
 
+	static constexpr char SCRIPTS_STRING[] = "scripts";
+
 	// runtime data
 	std::unique_ptr<Camera> mCamera = nullptr;
 
 	// initialization data
 	std::unique_ptr<MapData> mMapData = nullptr;
 	std::vector<EntityData> mEntityDefinitions;
+	std::vector<std::string> mScripts;
 };

@@ -1,4 +1,3 @@
-#include "Editor/EditorGUI.h"
 #include "Entity/Descriptions/CollisionDescription.h"
 #include "Entity/Descriptions/PhysicsDescription.h"
 #include "Entity/Descriptions/PlayerDescription.h"
@@ -29,24 +28,10 @@ void EngineContext::_Init(const LLGL::Extent2D screenSize, const LLGL::UTF8Strin
 	mMapRegistry = std::make_unique<MapRegistry>();
 	mTimer = std::make_unique<Timer>();
 
-	mLevelManager = std::make_unique<LevelManager>(*mMapRegistry);
+	mLevelManager = std::make_unique<LevelManager>();
 
 	mCollisionSystem = std::make_unique<CollisionSystem>(*mEventPublisher);
 	mPhysicsSystem = std::make_unique<PhysicsSystem>();
-
-	// TODO: Have game load font, should have a fallback if no font provided
-	//mRenderContext->LoadFont("PixelLettersFull.ttf");
-
-	mLuaSystem->LoadScript("script.lua");
-
-#ifndef BUILD_GAME
-	mGUIMenu = std::make_unique<EditorGUI>(*this, *mInputHandler, *mLevelManager, *mMapRegistry, *mRenderContext);
-#endif
-}
-
-void EngineContext::UseGUIModule()
-{
-	mUseGUIModule = true;
 }
 
 void EngineContext::SetGUIMenu(std::unique_ptr<GUIBase> gui)
@@ -124,24 +109,24 @@ void EngineContext::Run(GameInterface* game) const
 		// TODO: Debug draw axis
 		//_DrawAxis();
 
-		// TODO: Editor GUI requires camera to render...how can we fix that?
 		mRenderContext->BeginFrame();
-		if (mUseGUIModule)
-		{
-			GUISystem::GUIStartFrame();
-			mGUIMenu->RenderGUI();
-			GUISystem::RenderMenus();
-			GUISystem::GUIEndFrame();
-		}
 
+		//GUISystem::GUIStartFrame();
+		//GUISystem::RenderMenus();
+		//GUISystem::GUIEndFrame();
 
-		if (const auto& level = mLevelManager->GetCurrentLevel())
+		game->Render();
+		if (const auto level = mLevelManager->GetCurrentLevel())
 		{
-			game->Render();
 			mRenderContext->Render(level->GetCamera(), *mEntityRegistry, *mMapRegistry);
 		}
 
 		mRenderContext->EndFrame();
+
+		if (mLuaSystem->QueueCloseScripts())
+		{
+			mLuaSystem->CloseAllScripts();
+		}
 	}
 
 	GUISystem::CloseGUI();
@@ -167,12 +152,22 @@ InputHandler& EngineContext::GetInputHandler() const
 	return *mInputHandler;
 }
 
-void EngineContext::LoadLevel(const char* levelName) const
+void EngineContext::FlushEntities() const
 {
-	mLevelManager->LoadLevel(levelName, *this);
+	mEntityRegistry->FlushEntities();
 }
 
-const std::unique_ptr<Level>& EngineContext::GetLevel() const
+const std::vector<const char*>& EngineContext::GetLevelNames() const
+{
+	return mLevelManager->GetLevelNames();
+}
+
+void EngineContext::LoadLevel(const char* levelName) const
+{
+	mLevelManager->LoadLevel(levelName, *this, *mMapRegistry, *mLuaSystem);
+}
+
+const Level* EngineContext::GetLevel() const
 {
 	return mLevelManager->GetCurrentLevel();
 }
@@ -185,6 +180,11 @@ void EngineContext::OpenMap(const char* mapName) const
 void EngineContext::OpenMap(const char* mapName, glm::vec3 position, glm::vec3 rotation, float tileSize) const
 {
 	mMapRegistry->OpenMap(mapName, position, rotation, tileSize);
+}
+
+void EngineContext::InitMapRendering(Map& map) const
+{
+	mRenderContext->InitMapRendering(map);
 }
 
 void EngineContext::DrawPoint(glm::vec3 position, float size, glm::vec4 color) const
@@ -219,9 +219,22 @@ void EngineContext::DrawText2D(const char* text, glm::vec2 position, glm::vec2 s
 
 void EngineContext::DrawText3D(const char* text, glm::vec3 position, glm::vec3 size) const
 {
+	// TODO: This will just render 2D text for now
+	mRenderContext->DrawText(text, position, size, {1.0f, 1.0f, 1.0f, 1.0f});
 }
 
 void EngineContext::SetBackgroundClearColor(const LLGL::ColorRGBAf color) const
 {
 	mRenderContext->SetBackgroundClearColor(color);
+}
+
+void EngineContext::ToggleEditorMode(bool toggle) const
+{
+	if (toggle)
+	{
+		if (const auto level = mLevelManager->GetCurrentLevel())
+		{
+			mInputHandler->AddEditorInputs(level->GetCamera());
+		}
+	}
 }
