@@ -17,7 +17,7 @@ public:
 	void RenderGUI() override;
 
 private:
-	void _MainMenu(const std::unique_ptr<Camera>& camera) const;
+	void _MainMenu(Camera& camera) const;
 
 	std::unique_ptr<MapEditor> mMapEditor;
 	InputHandler& mInputHandler;

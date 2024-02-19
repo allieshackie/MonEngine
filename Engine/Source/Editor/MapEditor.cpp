@@ -16,11 +16,12 @@ MapEditor::MapEditor(const EngineContext& engineContext, InputHandler& inputHand
                      MapRegistry& mapRegistry, RenderContext& renderContext)
 	: mInputHandler(inputHandler), mMapRegistry(mapRegistry), mRenderContext(renderContext)
 {
-	levelManager.LoadLevel("editor.json", engineContext);
+	// TODO: Pass map registry and lua system
+	//levelManager.LoadLevel("editor.json", engineContext);
 	_GetAllMapFileNames();
 }
 
-void MapEditor::RenderGUI(const std::unique_ptr<Camera>& camera)
+void MapEditor::RenderGUI(Camera& camera)
 {
 	if (show_new_map_menu) _NewMapMenu(&show_new_map_menu, camera);
 	if (show_load_map_menu) _LoadMapMenu(&show_load_map_menu, camera);
@@ -71,7 +72,7 @@ void MapEditor::_GetAllMapFileNames()
 }
 
 // ====  MAP ====
-void MapEditor::_NewMapMenu(bool* p_open, const std::unique_ptr<Camera>& camera)
+void MapEditor::_NewMapMenu(bool* p_open, Camera& camera)
 {
 	_CenterWindow(300, 300);
 	if (ImGui::Begin("New Map", p_open, ImGuiWindowFlags_MenuBar))
@@ -149,7 +150,7 @@ void MapEditor::_NewMapMenu(bool* p_open, const std::unique_ptr<Camera>& camera)
 	ImGui::End();
 }
 
-void MapEditor::_LoadMapMenu(bool* p_open, const std::unique_ptr<Camera>& camera)
+void MapEditor::_LoadMapMenu(bool* p_open, Camera& camera)
 {
 	_CenterWindow(300, 300);
 	if (ImGui::Begin("Load Map", p_open, ImGuiWindowFlags_MenuBar))
@@ -169,13 +170,13 @@ void MapEditor::_LoadMapMenu(bool* p_open, const std::unique_ptr<Camera>& camera
 	ImGui::End();
 }
 
-void MapEditor::_LoadMap(const char* mapName, const std::unique_ptr<Camera>& camera)
+void MapEditor::_LoadMap(const char* mapName, Camera& camera)
 {
 	mMapRegistry.OpenMap(mapName);
 	mMapInteractionSystem = std::make_unique<MapInteractionSystem>(camera, mInputHandler, mMapRegistry,
 	                                                               mRenderContext);
 
-	const auto& mapTexture = mMapRegistry.GetCurrentMap()->GetTexturePath();
+	const auto& mapTexture = mMapRegistry.GetCurrentMap().GetTexturePath();
 	if (ResourceManager::CreateSimpleOpenGLTexture(
 		mapTexture, &mPalletteTextureId, &mPalletteTextureWidth, &mPalletteTextureHeight))
 	{
@@ -189,44 +190,44 @@ void MapEditor::_LoadMap(const char* mapName, const std::unique_ptr<Camera>& cam
 
 void MapEditor::_MapMenu(bool* p_open) const
 {
-	const auto& map = mMapRegistry.GetCurrentMap();
+	auto& map = mMapRegistry.GetCurrentMap();
 	ImGui::SetNextWindowSize(ImVec2(200, 200));
 	ImGui::SetNextWindowPos(ImVec2(0, 20));
 	if (ImGui::Begin("Map", p_open, mWindowFlags))
 	{
-		const auto mapPos = map->GetPosition();
+		const auto mapPos = map.GetPosition();
 		static float mapPosition[3] = {mapPos.x, mapPos.y, mapPos.z};
 		if (ImGui::InputFloat3("Position", mapPosition))
 		{
-			map->SetPosition({mapPosition[0], mapPosition[1], mapPosition[2]});
+			map.SetPosition({mapPosition[0], mapPosition[1], mapPosition[2]});
 		}
 
 		ImGui::Separator();
 
-		const auto mapRot = map->GetRotation();
+		const auto mapRot = map.GetRotation();
 		static float mapRotation[3] = {mapRot.x, mapRot.y, mapRot.z};
 		if (ImGui::InputFloat3("Rotation", mapRotation))
 		{
-			map->SetRotation({mapRotation[0], mapRotation[1], mapRotation[2]});
+			map.SetRotation({mapRotation[0], mapRotation[1], mapRotation[2]});
 		}
 
 		ImGui::Separator();
 		ImGui::Spacing();
-		static int rows = map->GetRows();
+		static int rows = map.GetRows();
 		if (ImGui::InputInt("Rows", &rows))
 		{
-			map->SetTextureRows(rows);
+			map.SetTextureRows(rows);
 		}
 
-		static int columns = map->GetColumns();
+		static int columns = map.GetColumns();
 		if (ImGui::InputInt("Columns", &columns))
 		{
-			map->SetTextureRows(rows);
+			map.SetTextureRows(rows);
 		}
 
 		if (ImGui::Button("Save"))
 		{
-			mMapRegistry.GetCurrentMap()->SaveTilesToFile();
+			mMapRegistry.GetCurrentMap().SaveTilesToFile();
 		}
 	}
 	ImGui::End();
@@ -250,7 +251,7 @@ void MapEditor::_PaletteMenu(bool* p_open)
 
 		ImGui::Text("Brush Index: %d", current_brush_index);
 		ImGui::SameLine();
-		const static int totalTiles = map->GetMapTextureRows() * map->GetMapTextureColumns();
+		const static int totalTiles = map.GetMapTextureRows() * map.GetMapTextureColumns();
 		if (ImGui::ArrowButton("##up", ImGuiDir_Up))
 		{
 			if (current_brush_index < totalTiles - 1)
@@ -272,7 +273,7 @@ void MapEditor::_PaletteMenu(bool* p_open)
 		ImGui::Spacing();
 		ImGui::Text("Current Brush: ");
 
-		const auto texClip = map->GetClipForTile(current_brush_index);
+		const auto texClip = map.GetClipForTile(current_brush_index);
 
 		ImGui::Image((ImTextureID)mPalletteTextureId,
 		             ImVec2(50, 50), ImVec2(texClip.x, texClip.y),
@@ -280,7 +281,7 @@ void MapEditor::_PaletteMenu(bool* p_open)
 
 		if (ImGui::Button("Save"))
 		{
-			map->SaveTilesToFile();
+			map.SaveTilesToFile();
 		}
 		if (ImGui::Button("Close"))
 		{
@@ -308,22 +309,22 @@ void MapEditor::_PreviewTexture(const char* mapName)
 
 void MapEditor::_TextureMenu(bool* p_open) const
 {
-	const auto& map = mMapRegistry.GetCurrentMap();
+	auto& map = mMapRegistry.GetCurrentMap();
 	const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
 	ImGui::SetNextWindowSize(ImVec2(200, main_viewport->Size.y - 20));
 	ImGui::SetNextWindowPos(ImVec2(0, 20));
 	if (ImGui::Begin("Texture", p_open, mWindowFlags))
 	{
-		static int rows = map->GetMapTextureRows();
+		static int rows = map.GetMapTextureRows();
 		if (ImGui::InputInt("Rows", &rows))
 		{
-			map->SetTextureRows(rows);
+			map.SetTextureRows(rows);
 		}
 
-		static int columns = map->GetMapTextureColumns();
+		static int columns = map.GetMapTextureColumns();
 		if (ImGui::InputInt("Columns", &columns))
 		{
-			map->SetTextureColumns(columns);
+			map.SetTextureColumns(columns);
 		}
 
 		static bool saveChanges = false;
@@ -364,23 +365,22 @@ void MapEditor::_DrawMapDebugGrid() const
 }
 
 
-void MapEditor::_CameraInfo(bool* p_open, const std::unique_ptr<Camera>& camera) const
+void MapEditor::_CameraInfo(bool* p_open, Camera& camera) const
 {
-	if (camera == nullptr) return;
 	if (ImGui::Begin("Camera Info", p_open, ImGuiWindowFlags_MenuBar))
 	{
-		const auto front = camera->GetFront();
+		const auto front = camera.GetFront();
 		static float cameraFront[3] = {front.x, front.y, front.z};
 		if (ImGui::SliderFloat3("Camera Front", cameraFront, -2, 2))
 		{
-			camera->SetFront({cameraFront[0], cameraFront[1], cameraFront[2]});
+			camera.SetFront({cameraFront[0], cameraFront[1], cameraFront[2]});
 		}
 
-		const auto cameraPos = camera->GetFront();
+		const auto cameraPos = camera.GetFront();
 		static float cameraPosition[3] = {cameraPos.x, cameraPos.y, cameraPos.z};
 		if (ImGui::SliderFloat3("Camera Position", cameraPosition, -100, 100))
 		{
-			camera->SetPosition({cameraPosition[0], cameraPosition[1], cameraPosition[2]});
+			camera.SetPosition({cameraPosition[0], cameraPosition[1], cameraPosition[2]});
 		}
 	}
 	ImGui::End();

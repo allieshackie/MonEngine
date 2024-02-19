@@ -6,6 +6,7 @@
 void MapRegistry::OpenMap(const std::string& mapPath, glm::vec3 pos, glm::vec3 rotation, float tileSize)
 {
 	mMaps.emplace_back(std::make_unique<Map>(mapPath, pos, rotation, tileSize));
+	mCurrentFocusedMapIndex = static_cast<int>(mMaps.size()) - 1;
 }
 
 void MapRegistry::OpenMap(const std::string& mapPath)
@@ -19,10 +20,10 @@ const std::vector<std::shared_ptr<Map>>& MapRegistry::GetAllMaps()
 	return mMaps;
 }
 
-const std::shared_ptr<Map>& MapRegistry::GetCurrentMap()
+Map& MapRegistry::GetCurrentMap() const
 {
-	if (mCurrentFocusedMapIndex == -1) return mEmptyMap;
-	return mMaps[mCurrentFocusedMapIndex];
+	if (mCurrentFocusedMapIndex == -1) return *mEmptyMap;
+	return *mMaps[mCurrentFocusedMapIndex];
 }
 
 void MapRegistry::CloseMap(const std::string& mapId)

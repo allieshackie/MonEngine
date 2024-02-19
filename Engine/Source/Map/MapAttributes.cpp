@@ -26,7 +26,9 @@ std::unique_ptr<MapAttributes> MapHelpers::CreateAttributes(const std::string& f
 	assert(json.contains(DATA_PATH_STRING));
 	std::string dataPath = json[DATA_PATH_STRING];
 
-	std::ifstream file(dataPath.c_str());
+	std::string fullMapDataPath = MAPS_FOLDER;
+	fullMapDataPath.append(dataPath);
+	std::ifstream file(fullMapDataPath.c_str());
 
 	std::string str;
 	std::vector<int> data;

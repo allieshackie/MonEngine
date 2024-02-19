@@ -24,9 +24,9 @@ class Level
 public:
 	Level(const std::string& levelName);
 
-	const std::unique_ptr<Camera>& GetCamera() const { return mCamera; }
+	Camera& GetCamera() const { return *mCamera; }
 
-	const std::unique_ptr<MapData>& GetMapData() const { return mMapData; }
+	const MapData& GetMapData() const { return *mMapData; }
 	const std::vector<EntityData>& GetEntityDefinitions() const { return mEntityDefinitions; }
 	const std::vector<std::string>& GetScripts() const { return mScripts; }
 

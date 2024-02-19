@@ -28,7 +28,7 @@ void EngineContext::_Init(const LLGL::Extent2D screenSize, const LLGL::UTF8Strin
 	mMapRegistry = std::make_unique<MapRegistry>();
 	mTimer = std::make_unique<Timer>();
 
-	mLevelManager = std::make_unique<LevelManager>(*mLuaSystem, *mMapRegistry);
+	mLevelManager = std::make_unique<LevelManager>();
 
 	mCollisionSystem = std::make_unique<CollisionSystem>(*mEventPublisher);
 	mPhysicsSystem = std::make_unique<PhysicsSystem>();
@@ -115,9 +115,9 @@ void EngineContext::Run(GameInterface* game) const
 		//GUISystem::RenderMenus();
 		//GUISystem::GUIEndFrame();
 
-		if (const auto& level = mLevelManager->GetCurrentLevel())
+		game->Render();
+		if (const auto level = mLevelManager->GetCurrentLevel())
 		{
-			game->Render();
 			mRenderContext->Render(level->GetCamera(), *mEntityRegistry, *mMapRegistry);
 		}
 
@@ -164,10 +164,10 @@ const std::vector<const char*>& EngineContext::GetLevelNames() const
 
 void EngineContext::LoadLevel(const char* levelName) const
 {
-	mLevelManager->LoadLevel(levelName, *this);
+	mLevelManager->LoadLevel(levelName, *this, *mMapRegistry, *mLuaSystem);
 }
 
-const std::unique_ptr<Level>& EngineContext::GetLevel() const
+const Level* EngineContext::GetLevel() const
 {
 	return mLevelManager->GetCurrentLevel();
 }
@@ -180,6 +180,11 @@ void EngineContext::OpenMap(const char* mapName) const
 void EngineContext::OpenMap(const char* mapName, glm::vec3 position, glm::vec3 rotation, float tileSize) const
 {
 	mMapRegistry->OpenMap(mapName, position, rotation, tileSize);
+}
+
+void EngineContext::InitMapRendering(Map& map) const
+{
+	mRenderContext->InitMapRendering(map);
 }
 
 void EngineContext::DrawPoint(glm::vec3 position, float size, glm::vec4 color) const
@@ -227,9 +232,9 @@ void EngineContext::ToggleEditorMode(bool toggle) const
 {
 	if (toggle)
 	{
-		if (const auto& level = mLevelManager->GetCurrentLevel())
+		if (const auto level = mLevelManager->GetCurrentLevel())
 		{
-			mInputHandler->AddEditorInputs(*level->GetCamera());
+			mInputHandler->AddEditorInputs(level->GetCamera());
 		}
 	}
 }

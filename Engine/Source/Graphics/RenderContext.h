@@ -24,7 +24,7 @@ public:
 	~RenderContext();
 
 	void BeginFrame() const;
-	void Render(const std::unique_ptr<Camera>& camera, EntityRegistry& entityRegistry,
+	void Render(const Camera& camera, EntityRegistry& entityRegistry,
 	            MapRegistry& mapRegistry) const;
 	void EndFrame() const;
 	bool ProcessEvents() const;
@@ -42,6 +42,7 @@ public:
 	bool GetCommandBufferNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const;
 	// Color range from 0.0f - 1.0f
 	void SetBackgroundClearColor(const LLGL::ColorRGBAf color);
+	void InitMapRendering(Map& map) const;
 
 	void UpdateProjection();
 	glm::vec3 NormalizedDeviceCoords(glm::vec3 vec) const;

@@ -104,7 +104,6 @@ void Map::SetPosition(glm::vec3 pos)
 	mPosition = pos;
 }
 
-
 void Map::SetRotation(glm::vec3 rot)
 {
 	mRotation = rot;
@@ -119,7 +118,6 @@ void Map::SetTextureColumns(int columns) const
 {
 	mMapAttributes->mTextureMapColumns = columns;
 }
-
 
 glm::vec4 Map::GetClipForTile(int index) const
 {

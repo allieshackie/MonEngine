@@ -111,6 +111,11 @@ void RenderContext::SetBackgroundClearColor(const LLGL::ColorRGBAf color)
 	mBackgroundColor = color;
 }
 
+void RenderContext::InitMapRendering(Map& map) const
+{
+	mMapPipeline->WriteQueuedMapTextures(mRenderSystem, *mCommands, map);
+}
+
 void RenderContext::BeginFrame() const
 {
 	// Render Commands to Queue
@@ -122,20 +127,17 @@ void RenderContext::BeginFrame() const
 	// set viewport and scissor rectangle
 	mCommands->SetViewport(mSwapChain->GetResolution());
 
-	// TODO: Can we generate and save map textures?
-	mMapPipeline->WriteQueuedMapTextures(mRenderSystem, *mCommands);
-
 	mCommands->BeginRenderPass(*mSwapChain);
 }
 
-void RenderContext::Render(const std::unique_ptr<Camera>& camera, EntityRegistry& entityRegistry,
+void RenderContext::Render(const Camera& camera, EntityRegistry& entityRegistry,
                            MapRegistry& mapRegistry) const
 {
-	const auto projectionViewMat = mProjection * camera->GetView();
+	const auto projectionViewMat = mProjection * camera.GetView();
 
-	for (const auto& map : mapRegistry.GetAllMaps())
+	for (auto& map : mapRegistry.GetAllMaps())
 	{
-		mMapPipeline->Render(*mCommands, projectionViewMat, map);
+		mMapPipeline->Render(*mCommands, projectionViewMat, *map);
 	}
 	mTextPipeline->Render(*mCommands, projectionViewMat);
 	mSpritePipeline->Render(*mCommands, projectionViewMat, entityRegistry);

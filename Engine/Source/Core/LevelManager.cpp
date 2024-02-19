@@ -5,8 +5,7 @@
 
 #include "LevelManager.h"
 
-LevelManager::LevelManager(LuaSystem& luaSystem, MapRegistry& mapRegistry)
-	: mLuaSystem(luaSystem), mMapRegistry(mapRegistry)
+LevelManager::LevelManager()
 {
 	mLevelFileNames.clear();
 	for (const auto& entry : std::filesystem::directory_iterator(LEVELS_FOLDER))
@@ -17,16 +16,17 @@ LevelManager::LevelManager(LuaSystem& luaSystem, MapRegistry& mapRegistry)
 	}
 }
 
-std::unique_ptr<Level>& LevelManager::GetCurrentLevel()
+const Level* LevelManager::GetCurrentLevel() const
 {
-	return mCurrentLevel;
+	return mCurrentLevel.get();
 }
 
-void LevelManager::LoadLevel(const std::string& levelName, const EngineContext& context)
+void LevelManager::LoadLevel(const std::string& levelName, const EngineContext& context, MapRegistry& mapRegistry,
+                             LuaSystem& luaSystem)
 {
 	if (mCurrentLevel != nullptr)
 	{
-		_UnloadLevel(context);
+		_UnloadLevel(context, mapRegistry, luaSystem);
 	}
 
 	// parse and serialize JSON
@@ -36,10 +36,9 @@ void LevelManager::LoadLevel(const std::string& levelName, const EngineContext& 
 	auto level = std::make_unique<Level>(fullFileName);
 
 	// Create Map
-	if (const auto& mapData = level->GetMapData())
-	{
-		mMapRegistry.OpenMap(mapData->name, mapData->position, mapData->rotation, mapData->tileSize);
-	}
+	const auto& mapData = level->GetMapData();
+	mapRegistry.OpenMap(mapData.name, mapData.position, mapData.rotation, mapData.tileSize);
+	context.InitMapRendering(mapRegistry.GetCurrentMap());
 
 	for (const auto& entity : level->GetEntityDefinitions())
 	{
@@ -50,7 +49,7 @@ void LevelManager::LoadLevel(const std::string& levelName, const EngineContext& 
 
 	for (const auto& script : level->GetScripts())
 	{
-		mLuaSystem.LoadScript(script.c_str(), context);
+		luaSystem.LoadScript(script.c_str(), context);
 	}
 
 	mCurrentLevel = std::move(level);
@@ -61,14 +60,11 @@ const std::vector<const char*>& LevelManager::GetLevelNames() const
 	return mLevelFileNames;
 }
 
-void LevelManager::_UnloadLevel(const EngineContext& context) const
+void LevelManager::_UnloadLevel(const EngineContext& context, MapRegistry& mapRegistry,
+                                LuaSystem& luaSystem) const
 {
-	mLuaSystem.QueueClose();
-
-	if (const auto& mapData = mCurrentLevel->GetMapData())
-	{
-		mMapRegistry.CloseMap(mapData->name);
-	}
+	luaSystem.QueueClose();
+	mapRegistry.CloseMap(mCurrentLevel->GetMapData().name);
 
 	context.FlushEntities();
 }

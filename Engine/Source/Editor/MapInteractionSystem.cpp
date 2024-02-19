@@ -8,9 +8,9 @@
 
 #include "MapInteractionSystem.h"
 
-MapInteractionSystem::MapInteractionSystem(const std::unique_ptr<Camera>& camera, InputHandler& inputHandler,
+MapInteractionSystem::MapInteractionSystem(Camera& camera, InputHandler& inputHandler,
                                            MapRegistry& mapRegistry, RenderContext& renderContext)
-	: mRenderContext(renderContext), mMapRegistry(mapRegistry), mCamera(*camera)
+	: mRenderContext(renderContext), mMapRegistry(mapRegistry), mCamera(camera)
 {
 	inputHandler.RegisterMouseMoveHandler([this](LLGL::Offset2D mousePos) { _HandleMouseMove(mousePos); });
 	inputHandler.RegisterButtonDownHandler(LLGL::Key::LButton, [this]() { _OnClick(); });
@@ -53,7 +53,7 @@ void MapInteractionSystem::_OnClick()
 			{
 				glm::vec3 tilePos;
 				glm::vec3 size;
-				_CalculateTileInteractionData(map, map->GetColumns(), i, tilePos, size);
+				_CalculateTileInteractionData(*map, map->GetColumns(), i, tilePos, size);
 
 				const auto cameraPos = mCamera.GetPosition();
 				const auto intersection = glm::vec3(cameraPos.x + ray.x * t, cameraPos.y + ray.y * t,
@@ -98,12 +98,12 @@ float MapInteractionSystem::_WithinMapBounds(glm::vec3 position, glm::vec3 size,
 	return -1 * (numerator / denominator);
 }
 
-void MapInteractionSystem::_CalculateTileInteractionData(const std::shared_ptr<Map>& map, int columns, int tileIndex,
+void MapInteractionSystem::_CalculateTileInteractionData(const Map& map, int columns, int tileIndex,
                                                          glm::vec3& pos, glm::vec3& size) const
 {
-	const auto mapSize = map->GetMapSize();
-	const auto position = map->GetPosition();
-	const auto tileSize = map->GetTileSize();
+	const auto mapSize = map.GetMapSize();
+	const auto position = map.GetPosition();
+	const auto tileSize = map.GetTileSize();
 	const float halfTileSize = static_cast<float>(tileSize) / 2.0f;
 	const glm::vec3 mapTopLeft = {
 		position.x - (mapSize.x / 2) + halfTileSize,

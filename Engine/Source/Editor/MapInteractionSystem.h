@@ -13,7 +13,7 @@ class RenderContext;
 class MapInteractionSystem
 {
 public:
-	MapInteractionSystem(const std::unique_ptr<Camera>& camera, InputHandler& inputHandler, MapRegistry& mapRegistry,
+	MapInteractionSystem(Camera& camera, InputHandler& inputHandler, MapRegistry& mapRegistry,
 	                     RenderContext& renderContext);
 
 	void SetPaletteBrush(int brushIndex);
@@ -25,7 +25,7 @@ private:
 	glm::vec3 _CalculateMouseRay(glm::vec2 mousePos) const;
 	bool _Intersect(glm::vec3 position, glm::vec3 size, glm::vec3 intersection);
 	float _WithinMapBounds(glm::vec3 position, glm::vec3 size, glm::vec3 mouseRay) const;
-	void _CalculateTileInteractionData(const std::shared_ptr<Map>& map, int columns, int tileIndex, glm::vec3& pos,
+	void _CalculateTileInteractionData(const Map& map, int columns, int tileIndex, glm::vec3& pos,
 	                                   glm::vec3& size) const;
 
 	glm::vec2 mMousePos = {0, 0};

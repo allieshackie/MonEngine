@@ -47,10 +47,11 @@ public:
 
 	const std::vector<const char*>& GetLevelNames() const;
 	void LoadLevel(const char* levelName) const;
-	const std::unique_ptr<Level>& GetLevel() const;
+	const Level* GetLevel() const;
 
 	void OpenMap(const char* mapName) const;
 	void OpenMap(const char* mapName, glm::vec3 position, glm::vec3 rotation, float tileSize) const;
+	void InitMapRendering(Map& map) const;
 
 	void DrawPoint(glm::vec3 position, float size, glm::vec4 color) const;
 	void DrawLine(glm::vec3 from, glm::vec3 to, glm::vec4 color) const;
