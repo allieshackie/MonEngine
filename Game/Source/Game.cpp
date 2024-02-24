@@ -25,11 +25,13 @@ void Game::Init(EngineContext* engine)
 	mEngine->LoadLevel("game.json");
 
 	mEngine->ToggleEditorMode(true);
+
+	mMovementSystem = std::make_unique<MovementSystem>();
 }
 
 void Game::Update(float dt) const
 {
-	//mPhysicsSystem->Update(mTimer->mDT);
+	mMovementSystem->Update(mEngine->GetInputHandler(), mEngine->GetEntityRegistry());
 }
 
 void Game::Render()

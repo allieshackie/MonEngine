@@ -14,4 +14,5 @@ enum MovementInput
 struct PlayerComponent
 {
 	int mMovementInput = MovementInput::None;
+	bool mRegistered = false;
 };

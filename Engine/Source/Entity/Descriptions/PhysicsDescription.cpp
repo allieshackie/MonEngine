@@ -6,7 +6,7 @@
 
 void PhysicsDescription::ApplyToEntity(EntityId entity, EntityRegistry& entityRegistry)
 {
-	entityRegistry.AddComponent<PhysicsComponent>(entity, mMass, mMaxSpeed, mAccelerationRate);
+	entityRegistry.AddComponent<PhysicsComponent>(entity, mMass, mMaxSpeed, mAccelerationRate, mFriction, mIsDynamic);
 }
 
 void PhysicsDescription::ParseJSON(const nlohmann::json& json)
@@ -20,8 +20,13 @@ void PhysicsDescription::ParseJSON(const nlohmann::json& json)
 	assert(json.contains(ACCELERATION_RATE_STRING));
 	mAccelerationRate = json[ACCELERATION_RATE_STRING];
 
-	if (json.contains(APPLY_GRAVITY_STRING))
+	if (json.contains(IS_DYNAMIC_STRING))
 	{
-		mApplyGravity = json[APPLY_GRAVITY_STRING];
+		mIsDynamic = json[IS_DYNAMIC_STRING];
+	}
+
+	if (json.contains(FRICTION_STRING))
+	{
+		mFriction = json[FRICTION_STRING];
 	}
 }

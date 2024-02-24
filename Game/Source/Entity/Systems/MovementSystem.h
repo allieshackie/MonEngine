@@ -1,17 +1,10 @@
 #pragma once
 
-class PlayerInputHandler;
+class EntityRegistry;
+class InputHandler;
 
 class MovementSystem
 {
 public:
-	MovementSystem(PlayerInputHandler& playerInputHandler);
-	~MovementSystem() = default;
-
-	void Update();
-private:
-	void _MovePlayer();
-	void _MoveEntity();
-
-	PlayerInputHandler& mPlayerInputHandler;
+	void Update(InputHandler& inputHandler, EntityRegistry& registry);
 };
