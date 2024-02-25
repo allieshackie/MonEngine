@@ -31,5 +31,5 @@ private:
 	float mMaxSpeed = 0.0f;
 	float mAccelerationRate = 0.0f;
 	bool mIsDynamic = false;
-	float mFriction = 0.0f;
+	float mFriction = 1.0f;
 };

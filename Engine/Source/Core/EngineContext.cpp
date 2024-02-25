@@ -177,10 +177,6 @@ void EngineContext::OpenMap(const char* mapName) const
 	mMapRegistry->OpenMap(mapName);
 }
 
-void EngineContext::OpenMap(const char* mapName, glm::vec3 position, glm::vec3 rotation, float tileSize) const
-{
-	mMapRegistry->OpenMap(mapName, position, rotation, tileSize);
-}
 
 void EngineContext::InitMapRendering(Map& map) const
 {

@@ -1,12 +1,13 @@
 #pragma once
-#include <glm/vec3.hpp>
 
 class Map;
+
+struct MapData;
 
 class MapRegistry
 {
 public:
-	void OpenMap(const std::string& mapPath, glm::vec3 pos, glm::vec3 rotation, float tileSize);
+	void OpenMap(const MapData& mapData);
 	void OpenMap(const std::string& mapPath);
 	void CloseMap(const std::string& mapId);
 

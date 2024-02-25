@@ -32,11 +32,19 @@ struct InputEvent
 	wchar_t mChar = '_';
 };
 
+struct HoldHandler
+{
+	std::function<void()> onHold;
+	std::function<void()> onRelease;
+};
+
 class InputHandler : public LLGL::Window::EventListener
 {
 public:
 	void RegisterButtonUpHandler(LLGL::Key keyCode, const std::function<void()>& callback);
 	void RegisterButtonDownHandler(LLGL::Key keyCode, const std::function<void()>& callback);
+	void RegisterButtonHoldHandler(LLGL::Key keyCode, const std::function<void()>& onPress,
+	                               const std::function<void()>& onRelease);
 
 	void RegisterMouseMoveHandler(const std::function<void(LLGL::Offset2D)>& callback);
 	void RegisterZoomInHandler(const std::function<void()>& callback);
@@ -62,6 +70,7 @@ private:
 
 	std::unordered_map<LLGL::Key, std::vector<std::function<void()>>> mButtonUpHandlers;
 	std::unordered_map<LLGL::Key, std::vector<std::function<void()>>> mButtonDownHandlers;
+	std::unordered_map<LLGL::Key, std::vector<HoldHandler>> mButtonHoldHandlers;
 	std::vector<std::function<void(LLGL::Offset2D)>> mMouseMoveCallbacks;
 	std::vector<std::function<void(InputEvent)>> mMouseScrollCallbacks;
 	std::function<void()> mZoomInCallback;

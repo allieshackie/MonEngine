@@ -9,68 +9,89 @@
 
 void MovementSystem::Update(InputHandler& inputHandler, EntityRegistry& registry)
 {
-	const auto playerView = registry.GetEnttRegistry().view<PlayerComponent>();
-	playerView.each([=, &inputHandler, &registry](auto entity, auto& player)
+	const auto playerView = registry.GetEnttRegistry().view<PlayerComponent, PhysicsComponent>();
+	playerView.each([=, &inputHandler](auto& player, auto& physics)
 	{
+		// Register input for player 
 		if (!player.mRegistered)
 		{
-			_RegisterPlayerInputBindings(inputHandler, registry, entity);
+			_RegisterPlayerInputBindings(inputHandler, player);
 			player.mRegistered = true;
+		}
+		// Apply movement directions to physics component
+		else
+		{
+			_ApplyVelocityFromDirection(player, physics);
 		}
 	});
 }
 
-static void _RegisterPlayerInputBindings(InputHandler& inputHandler, EntityRegistry& registry, EntityId entity)
+static void _ApplyVelocityFromDirection(const PlayerComponent& player, PhysicsComponent& physics)
+{
+	glm::vec3 velocity(0.0f, 0.0f, 0.0f);
+	if (player.mMovementInput & MovementInput::Forward)
+	{
+		velocity.z -= 1.0f;
+	}
+	if (player.mMovementInput & MovementInput::Backward)
+	{
+		velocity.z += 1.0f;
+	}
+	if (player.mMovementInput & MovementInput::Left)
+	{
+		velocity.x -= 1.0f;
+	}
+	if (player.mMovementInput & MovementInput::Right)
+	{
+		velocity.x += 1.0f;
+	}
+
+	physics.mVelocity = velocity;
+}
+
+static void _RegisterPlayerInputBindings(InputHandler& inputHandler, PlayerComponent& player)
 {
 	// Forward
-	inputHandler.RegisterButtonDownHandler(LLGL::Key::W, [=, &registry]()
+	inputHandler.RegisterButtonDownHandler(LLGL::Key::W, [&player]()
 	{
-		auto& player = registry.GetComponent<PlayerComponent>(entity);
 		player.mMovementInput |= MovementInput::Forward;
 	});
 
-	inputHandler.RegisterButtonUpHandler(LLGL::Key::W, [=, &registry]()
+	inputHandler.RegisterButtonUpHandler(LLGL::Key::W, [&player]()
 	{
-		auto& player = registry.GetComponent<PlayerComponent>(entity);
 		player.mMovementInput &= ~(MovementInput::Forward);
 	});
 
 	// Back
-	inputHandler.RegisterButtonDownHandler(LLGL::Key::S, [=, &registry]()
+	inputHandler.RegisterButtonDownHandler(LLGL::Key::S, [&player]()
 	{
-		auto& player = registry.GetComponent<PlayerComponent>(entity);
 		player.mMovementInput |= MovementInput::Backward;
 	});
 
-	inputHandler.RegisterButtonUpHandler(LLGL::Key::S, [=, &registry]()
+	inputHandler.RegisterButtonUpHandler(LLGL::Key::S, [&player]()
 	{
-		auto& player = registry.GetComponent<PlayerComponent>(entity);
 		player.mMovementInput &= ~(MovementInput::Backward);
 	});
 
 	// Left
-	inputHandler.RegisterButtonDownHandler(LLGL::Key::A, [=, &registry]()
+	inputHandler.RegisterButtonDownHandler(LLGL::Key::A, [&player]()
 	{
-		auto& player = registry.GetComponent<PlayerComponent>(entity);
 		player.mMovementInput |= MovementInput::Left;
 	});
 
-	inputHandler.RegisterButtonUpHandler(LLGL::Key::A, [=, &registry]()
+	inputHandler.RegisterButtonUpHandler(LLGL::Key::A, [&player]()
 	{
-		auto& player = registry.GetComponent<PlayerComponent>(entity);
 		player.mMovementInput &= ~(MovementInput::Left);
 	});
 
 	// Right
-	inputHandler.RegisterButtonDownHandler(LLGL::Key::D, [=, &registry]()
+	inputHandler.RegisterButtonDownHandler(LLGL::Key::D, [&player]()
 	{
-		auto& player = registry.GetComponent<PlayerComponent>(entity);
 		player.mMovementInput |= MovementInput::Right;
 	});
 
-	inputHandler.RegisterButtonUpHandler(LLGL::Key::D, [=, &registry]()
+	inputHandler.RegisterButtonUpHandler(LLGL::Key::D, [&player]()
 	{
-		auto& player = registry.GetComponent<PlayerComponent>(entity);
 		player.mMovementInput &= ~(MovementInput::Right);
 	});
 }

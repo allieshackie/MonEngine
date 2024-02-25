@@ -50,7 +50,6 @@ public:
 	const Level* GetLevel() const;
 
 	void OpenMap(const char* mapName) const;
-	void OpenMap(const char* mapName, glm::vec3 position, glm::vec3 rotation, float tileSize) const;
 	void InitMapRendering(Map& map) const;
 
 	void DrawPoint(glm::vec3 position, float size, glm::vec4 color) const;

@@ -8,7 +8,7 @@ struct PhysicsComponent
 	float mAccelerationRate = 10.0f;
 	float mFriction = 1.0f;
 
-	bool mIsDynamic = false;
+	bool mIsDynamic = false; 
 
 	glm::vec3 mAcceleration = {0, 0, 0};
 	glm::vec3 mVelocity = {0, 0, 0};

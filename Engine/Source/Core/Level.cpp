@@ -41,11 +41,19 @@ void Level::_ParseJson(const nlohmann::json& json)
 			auto mapRotationVec = glm::vec3(mapRotation[0], mapRotation[1], mapRotation[2]);
 
 			float mapTileSize = mapData[TILE_SIZE_STRING];
+
+			bool hasDimension = false;
+			if (mapData.contains(HAS_DIMENSION_STRING))
+			{
+				hasDimension = mapData[HAS_DIMENSION_STRING];
+			}
+
 			mMapData = std::make_unique<MapData>();
 			mMapData->name = mapName;
 			mMapData->position = mapPosVec;
 			mMapData->rotation = mapRotationVec;
 			mMapData->tileSize = mapTileSize;
+			mMapData->hasDimension = hasDimension;
 		}
 	}
 

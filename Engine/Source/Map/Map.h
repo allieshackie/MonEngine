@@ -3,11 +3,13 @@
 #include <glm/vec4.hpp>
 #include "MapAttributes.h"
 
+struct MapData;
+
 class Map
 {
 public:
 	Map(const std::string& fileName);
-	Map(const std::string& fileName, glm::vec3 position, glm::vec3 rotation, float tileSize);
+	Map(const MapData& mapData);
 
 	const std::string& GetMapId() const;
 	glm::vec3 GetPosition() const;
@@ -23,6 +25,7 @@ public:
 	int GetMapTextureColumns() const;
 	// TODO: This should probably be from a Sprite Component
 	const std::string& GetTexturePath() const;
+	bool GetHasDimension() const;
 
 	// TODO: Should these be in editor specific class?
 	void UpdateTile(int tileIndex, int brush) const;
@@ -49,4 +52,5 @@ private:
 	glm::vec3 mMapSize = {0, 0, 0};
 	glm::vec3 mRotation = {0, 0, 0};
 	float mTileSize = 1.0f;
+	bool mHasDimension = false;
 };

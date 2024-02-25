@@ -3,6 +3,8 @@
 
 #include "Map.h"
 
+#include "Core/Level.h"
+
 Map::Map(const std::string& fileName) : mMapId(fileName)
 {
 	std::string fullMapPath = MAPS_FOLDER;
@@ -15,11 +17,12 @@ Map::Map(const std::string& fileName) : mMapId(fileName)
 	};
 }
 
-Map::Map(const std::string& fileName, glm::vec3 position, glm::vec3 rotation, float tileSize) : mMapId(fileName),
-	mPosition(position), mRotation(rotation), mTileSize(tileSize)
+Map::Map(const MapData& mapData)
+	: mMapId(mapData.name), mPosition(mapData.position), mRotation(mapData.rotation), mTileSize(mapData.tileSize),
+	  mHasDimension(mapData.hasDimension)
 {
 	std::string fullMapPath = MAPS_FOLDER;
-	fullMapPath.append(fileName);
+	fullMapPath.append(mapData.name);
 	mMapAttributes = MapHelpers::CreateAttributes(fullMapPath);
 
 	mMapSize = {
@@ -88,6 +91,11 @@ const std::string& Map::GetTexturePath() const
 	return mMapAttributes->mTexturePath;
 }
 
+bool Map::GetHasDimension() const
+{
+	return mHasDimension;
+}
+
 void Map::SetMapTextureId(int id)
 {
 	mMapTextureId = id;
@@ -97,7 +105,6 @@ void Map::UpdateTile(int tileIndex, int brush) const
 {
 	mMapAttributes->mData[tileIndex] = brush;
 }
-
 
 void Map::SetPosition(glm::vec3 pos)
 {

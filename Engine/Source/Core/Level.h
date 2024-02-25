@@ -10,6 +10,7 @@ struct MapData
 	glm::vec3 position = {0, 0, 0};
 	glm::vec3 rotation = {0, 0, 0};
 	float tileSize = 0.0f;
+	bool hasDimension = false;
 };
 
 struct EntityData
@@ -42,6 +43,7 @@ private:
 	static constexpr char NAME_STRING[] = "name";
 	static constexpr char ROTATION_STRING[] = "rotation";
 	static constexpr char TILE_SIZE_STRING[] = "tile_size";
+	static constexpr char HAS_DIMENSION_STRING[] = "has_dimension";
 
 	static constexpr char ENTITIES_STRING[] = "entities";
 

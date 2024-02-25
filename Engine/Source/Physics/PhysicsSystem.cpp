@@ -28,6 +28,9 @@ static void _TickMovement(float deltaTime, PhysicsComponent& physics, TransformC
 	const glm::vec3 newVelocity = velocity * friction;
 	physics.mVelocity = newVelocity;
 
+	//printf("\rvelocity: %f, %f, %f", newVelocity.x, newVelocity.y, newVelocity.z);
+	//fflush(stdout);
+
 	transform.mPosition = {
 		pos.x + newVelocity.x * deltaTime, pos.y + newVelocity.y * deltaTime, pos.z + newVelocity.z * deltaTime
 	};

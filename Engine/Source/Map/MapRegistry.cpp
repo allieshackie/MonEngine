@@ -1,11 +1,10 @@
-#include <glm/vec2.hpp>
 #include "Map.h"
 
 #include "MapRegistry.h"
 
-void MapRegistry::OpenMap(const std::string& mapPath, glm::vec3 pos, glm::vec3 rotation, float tileSize)
+void MapRegistry::OpenMap(const MapData& mapData)
 {
-	mMaps.emplace_back(std::make_unique<Map>(mapPath, pos, rotation, tileSize));
+	mMaps.emplace_back(std::make_unique<Map>(mapData));
 	mCurrentFocusedMapIndex = static_cast<int>(mMaps.size()) - 1;
 }
 
