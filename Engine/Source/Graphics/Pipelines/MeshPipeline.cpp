@@ -1,4 +1,7 @@
 #include "LLGL/Utils/Utility.h"
+#include <glm/gtc/matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
+#include <sstream>
+#include <filesystem>
 
 #include "Graphics/Core/Shader.h"
 #include "Graphics/Core/Vertex.h"
@@ -77,10 +80,8 @@ void MeshPipeline::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& command
 // TODO: Implement actual model class as RenderObject
 void MeshPipeline::AddRenderObjectVBuffer(const LLGL::RenderSystemPtr& renderSystem, RenderObject& obj)
 {
-	// TODO: Hardcoded volume test
 	std::vector<TexturedVertex> vertices;
-	// TODO:
-	//mResourceManager.LoadObjModel(vertices, "../Data/Models/Pyramid.obj");
+	_LoadObjModel(vertices, "../Data/Models/Pyramid.obj");
 	model = std::make_unique<Model>();
 	model->numVertices = static_cast<std::uint32_t>(vertices.size());
 
@@ -88,4 +89,92 @@ void MeshPipeline::AddRenderObjectVBuffer(const LLGL::RenderSystemPtr& renderSys
 		VertexBufferDesc(static_cast<std::uint32_t>(vertices.size() * sizeof(Vertex)), mShader->GetVertexFormat()),
 		vertices.data()
 	);
+}
+
+TriangleMesh MeshPipeline::_LoadObjModel(std::vector<TexturedVertex>& vertices, const std::string& filename) const
+{
+	// Read obj file
+	std::ifstream file(filename);
+	if (!file.good())
+		throw std::runtime_error("failed to load model from file: \"" + filename + "\"");
+
+	// Initialize triangle mesh
+	TriangleMesh mesh;
+	mesh.firstVertex = static_cast<std::uint32_t>(vertices.size());
+
+	std::vector<glm::vec3> coords, normals;
+	std::vector<glm::vec2> texCoords;
+
+	std::string line;
+	// Read each line
+	while (std::getline(file, line))
+	{
+		std::stringstream s;
+		s << line;
+
+		// Parse line
+		std::string mode;
+		s >> mode;
+
+		if (mode == "v")
+		{
+			glm::vec3 v;
+			s >> v.x;
+			s >> v.y;
+			s >> v.z;
+			coords.push_back(v);
+		}
+		else if (mode == "vt")
+		{
+			glm::vec2 t;
+			s >> t.x;
+			s >> t.y;
+			texCoords.push_back(t);
+		}
+		else if (mode == "vn")
+		{
+			glm::vec3 n;
+			s >> n.x;
+			s >> n.y;
+			s >> n.z;
+			normals.push_back(n);
+		}
+		else if (mode == "f")
+		{
+			unsigned int v = 0, vt = 0, vn = 0;
+
+			for (int i = 0; i < 3; ++i)
+			{
+				// Read vertex index
+				s >> v;
+
+				// Read texture-coordinate index
+				if (texCoords.empty())
+					s.ignore(2);
+				else
+				{
+					s.ignore(1);
+					s >> vt;
+					s.ignore(1);
+				}
+
+				// Read normal index
+				s >> vn;
+
+				// Add vertex to mesh
+				vertices.push_back(
+					{
+						coords[v - 1],
+						(vn - 1 < normals.size() ? normals[vn - 1] : glm::vec3{}),
+						(vt - 1 < texCoords.size() ? texCoords[vt - 1] : glm::vec2{})
+					}
+				);
+				mesh.numVertices++;
+			}
+		}
+	}
+
+	file.close();
+
+	return mesh;
 }

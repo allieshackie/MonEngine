@@ -15,14 +15,6 @@ struct TexturedVertex
 	glm::vec2 texCoord;
 };
 
-struct TriangleMesh
-{
-	std::uint32_t firstVertex = 0;
-	std::uint32_t numVertices = 0;
-	glm::mat4 transform;
-	glm::vec4 color;
-};
-
 struct Model
 {
 	std::uint32_t numVertices = 0;

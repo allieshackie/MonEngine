@@ -6,6 +6,14 @@
 class RenderObject;
 class Shader;
 
+struct TriangleMesh
+{
+	std::uint32_t firstVertex = 0;
+	std::uint32_t numVertices = 0;
+	glm::mat4 transform;
+	glm::vec4 color;
+};
+
 class MeshPipeline
 {
 public:
@@ -18,6 +26,8 @@ public:
 	void AddRenderObjectVBuffer(const LLGL::RenderSystemPtr& renderSystem, RenderObject& obj);
 
 private:
+	TriangleMesh _LoadObjModel(std::vector<TexturedVertex>& vertices, const std::string& filename) const;
+
 	LLGL::PipelineState* mPipeline = nullptr;
 	std::unique_ptr<Shader> mShader = nullptr;
 	LLGL::Buffer* mConstantBuffer = nullptr;

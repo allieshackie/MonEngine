@@ -1,10 +1,6 @@
 #pragma once
 #include <LLGL/LLGL.h>
 #include "Texture.h"
-#include "Vertex.h"
-
-class Map;
-class Renderer;
 
 using GLuint = unsigned int;
 
@@ -17,8 +13,6 @@ public:
 		const LLGL::RenderSystemPtr& renderSystem);
 
 	static int GetTextureId(const std::string& textureName);
-
-	TriangleMesh LoadObjModel(std::vector<TexturedVertex>& vertices, const std::string& filename) const;
 
 	static bool CreateSimpleOpenGLTexture(const std::string& filename, GLuint* out_texture, int* out_width,
 	                                      int* out_height);
