@@ -9,6 +9,7 @@
 #include "Graphics/Pipelines/SpritePipeline.h"
 #include "Graphics/Pipelines/TextPipeline.h"
 
+struct EntityId;
 class Camera;
 class EntityRegistry;
 class InputHandler;
@@ -42,13 +43,15 @@ public:
 	bool GetCommandBufferNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const;
 	// Color range from 0.0f - 1.0f
 	void SetBackgroundClearColor(const LLGL::ColorRGBAf color);
-	void InitMapRendering(Map& map) const;
 
 	void UpdateProjection();
 	glm::vec3 NormalizedDeviceCoords(glm::vec3 vec) const;
 	glm::mat4 GetProjection() const;
 
 	void ResizeBuffers(const LLGL::Extent2D& size) const;
+
+	void GenerateMapTexture(EntityRegistry& entityRegistry, EntityId mapId) const;
+
 private:
 	void _CreateWindow(const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler);
 	void _CreatePipelines();

@@ -36,8 +36,7 @@ void LevelManager::LoadLevel(const std::string& levelName, const EngineContext& 
 	auto level = std::make_unique<Level>(fullFileName);
 
 	// Create Map
-	mapRegistry.OpenMap(level->GetMapData());
-	context.InitMapRendering(mapRegistry.GetCurrentMap());
+	mapRegistry.OpenMap(context, level->GetMapData());
 
 	for (const auto& entity : level->GetEntityDefinitions())
 	{

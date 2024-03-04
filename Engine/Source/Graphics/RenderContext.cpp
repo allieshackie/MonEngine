@@ -2,6 +2,7 @@
 #include <glm/ext/matrix_clip_space.hpp>
 
 #include "Core/Camera.h"
+#include "Entity/EntityRegistry.h"
 #include "Input/InputHandler.h"
 #include "Map/MapRegistry.h"
 
@@ -111,11 +112,6 @@ void RenderContext::SetBackgroundClearColor(const LLGL::ColorRGBAf color)
 	mBackgroundColor = color;
 }
 
-void RenderContext::InitMapRendering(Map& map) const
-{
-	mMapPipeline->WriteQueuedMapTextures(mRenderSystem, *mCommands, map);
-}
-
 void RenderContext::BeginFrame() const
 {
 	// Render Commands to Queue
@@ -135,10 +131,7 @@ void RenderContext::Render(const Camera& camera, EntityRegistry& entityRegistry,
 {
 	const auto projectionViewMat = mProjection * camera.GetView();
 
-	for (auto& map : mapRegistry.GetAllMaps())
-	{
-		mMapPipeline->Render(*mCommands, projectionViewMat, *map);
-	}
+	mMapPipeline->Render(*mCommands, projectionViewMat, entityRegistry);
 	mTextPipeline->Render(*mCommands, projectionViewMat);
 	mSpritePipeline->Render(*mCommands, projectionViewMat, entityRegistry);
 	mImmediatePipeline->Render(*mCommands, projectionViewMat);
@@ -224,6 +217,11 @@ glm::mat4 RenderContext::GetProjection() const
 void RenderContext::ResizeBuffers(const LLGL::Extent2D& size) const
 {
 	mSwapChain->ResizeBuffers(size);
+}
+
+void RenderContext::GenerateMapTexture(EntityRegistry& entityRegistry, EntityId mapId) const
+{
+	mMapPipeline->GenerateMapTexture(mRenderSystem, *mCommands, entityRegistry, mapId);
 }
 
 void RenderContext::_CreateWindow(const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler)

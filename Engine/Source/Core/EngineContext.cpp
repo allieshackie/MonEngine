@@ -172,15 +172,9 @@ const Level* EngineContext::GetLevel() const
 	return mLevelManager->GetCurrentLevel();
 }
 
-void EngineContext::OpenMap(const char* mapName) const
+void EngineContext::GenerateMapTexture(EntityId mapId) const
 {
-	mMapRegistry->OpenMap(mapName);
-}
-
-
-void EngineContext::InitMapRendering(Map& map) const
-{
-	mRenderContext->InitMapRendering(map);
+	mRenderContext->GenerateMapTexture(*mEntityRegistry, mapId);
 }
 
 void EngineContext::DrawPoint(glm::vec3 position, float size, glm::vec4 color) const

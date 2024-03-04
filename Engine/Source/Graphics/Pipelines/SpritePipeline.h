@@ -27,7 +27,6 @@ private:
 	LLGL::PipelineLayout* mPipelineLayout = nullptr;
 	LLGL::PipelineState* mPipeline = nullptr;
 	LLGL::ResourceHeap* mResourceHeap = nullptr;
-
 	std::unique_ptr<Shader> mShader = nullptr;
 
 	LLGL::Buffer* mConstantBuffer = nullptr;

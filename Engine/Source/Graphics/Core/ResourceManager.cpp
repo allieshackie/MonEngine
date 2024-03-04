@@ -1,7 +1,5 @@
 #include <glad/glad.h>
-#include <glm/gtc/matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
 #include <filesystem>
-#include <sstream>
 
 #include "Graphics/Util/stb_image.h"
 

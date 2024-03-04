@@ -3,53 +3,44 @@
 #include "LLGL/Utils/Utility.h"
 
 #include "Core/Camera.h"
+#include "Entity/EntityRegistry.h"
+#include "Entity/Components/MapComponent.h"
+#include "Entity/Components/TransformComponent.h"
 #include "Graphics/Core/ResourceManager.h"
 #include "Graphics/Core/Texture.h"
 
 #include "MapPipeline.h"
 
 void MapPipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat,
-                         const Map& map) const
+                         EntityRegistry& entityRegistry) const
 {
 	// set graphics pipeline
 	commandBuffer.SetPipelineState(*mPipeline);
 	commandBuffer.SetVertexBuffer(*mVertexBuffer);
 
-	_Render(commandBuffer, pvMat, map);
+	const auto mapView = entityRegistry.GetEnttRegistry().view<const TransformComponent, const MapComponent>();
+	mapView.each([this, &commandBuffer, &pvMat](const TransformComponent& transform, const MapComponent& map)
+	{
+		commandBuffer.SetResourceHeap(*mMapResourceHeap, map.mGeneratedTextureId);
+		_UpdateUniforms(commandBuffer, pvMat, transform);
+		commandBuffer.Draw(4, 0);
+	});
 }
 
-void MapPipeline::_Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat,
-                          const Map& map) const
-{
-	commandBuffer.SetResourceHeap(*mResourceHeap, mWrittenTextureId);
-	_UpdateUniforms(commandBuffer, pvMat, map.GetPosition(), map.GetMapSize(),
-	                map.GetRotation());
-	commandBuffer.Draw(4, 0);
-}
-
-void MapPipeline::RenderMapTexture(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat,
-                                   const Map& map) const
-{
-	const auto textureId = ResourceManager::GetTextureId(map.GetTexturePath());
-	commandBuffer.SetResourceHeap(*mResourceHeap, textureId);
-	_UpdateUniforms(commandBuffer, pvMat, map.GetPosition(), map.GetMapSize(), map.GetRotation());
-	commandBuffer.Draw(4, 0);
-}
-
-void MapPipeline::_UpdateUniforms(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat, glm::vec3 pos,
-                                  glm::vec3 size, glm::vec3 rot) const
+void MapPipeline::_UpdateUniforms(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat,
+                                  const TransformComponent& transform) const
 {
 	// Update
 	auto model = glm::mat4(1.0f);
-	model = translate(model, pos);
-	model = translate(model, glm::vec3(0.5f * size.x, 0.5f * size.y, 0.0f));
+	model = translate(model, transform.mPosition);
+	model = translate(model, glm::vec3(0.5f * transform.mSize.x, 0.5f * transform.mSize.y, 0.0f));
 	// Apply rotation in ZXY order
-	model = rotate(model, glm::radians(rot.z), glm::vec3(0.0f, 0.0f, 1.0f));
-	model = rotate(model, glm::radians(rot.x), glm::vec3(1.0f, 0.0f, 0.0f));
-	model = rotate(model, glm::radians(rot.y), glm::vec3(0.0f, 1.0f, 0.0f));
+	model = rotate(model, glm::radians(transform.mRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+	model = rotate(model, glm::radians(transform.mRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+	model = rotate(model, glm::radians(transform.mRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
 
-	model = translate(model, glm::vec3(-0.5f * size.x, -0.5f * size.y, 0.0f));
-	model = scale(model, size);
+	model = translate(model, glm::vec3(-0.5f * transform.mSize.x, -0.5f * transform.mSize.y, 0.0f));
+	model = scale(model, transform.mSize);
 
 	const auto textureClip = glm::mat4(1.0f);
 
@@ -139,13 +130,12 @@ void MapPipeline::_CreateResourceHeap(const LLGL::RenderSystemPtr& renderSystem)
 		samplerDesc.magFilter = LLGL::SamplerFilter::Nearest;
 		samplerDesc.mipMapFilter = LLGL::SamplerFilter::Nearest;
 	}
-	const auto sampler = renderSystem->CreateSampler(samplerDesc);
+	mSampler = renderSystem->CreateSampler(samplerDesc);
 
 	const auto textures = ResourceManager::LoadAllTexturesFromFolder(renderSystem);
 
 	std::vector<LLGL::ResourceViewDescriptor> resourceViews;
-	int addedTexture = mWrittenMapTexture != nullptr ? 1 : 0;
-	resourceViews.reserve((textures.size() + addedTexture) * 3);
+	resourceViews.reserve(textures.size() * 3);
 
 	for (const auto& texture : textures)
 	{
@@ -154,31 +144,39 @@ void MapPipeline::_CreateResourceHeap(const LLGL::RenderSystemPtr& renderSystem)
 		resourceViews.emplace_back(&texture->GetSamplerData());
 	}
 
-	// TODO: If more than one map needs to be rendered, will need a system to keep these textures
-	if (mWrittenMapTexture)
-	{
-		resourceViews.emplace_back(mConstantBuffer);
-		resourceViews.emplace_back(mWrittenMapTexture);
-		resourceViews.emplace_back(sampler);
-		mWrittenTextureId = textures.size();
-	}
-
 	mResourceHeap = renderSystem->CreateResourceHeap(mPipelineLayout, resourceViews);
 }
 
-void MapPipeline::WriteQueuedMapTextures(const LLGL::RenderSystemPtr& renderSystem,
-                                         LLGL::CommandBuffer& commandBuffer, const Map& map)
+void MapPipeline::_CreateMapResourceHeap(const LLGL::RenderSystemPtr& renderSystem)
 {
-	_InitMapTexturePipeline(commandBuffer, renderSystem, map);
+	std::vector<LLGL::ResourceViewDescriptor> resourceViews;
+	resourceViews.reserve(mGeneratedTextures.size() * 3);
+
+	for (const auto& texture : mGeneratedTextures)
+	{
+		resourceViews.emplace_back(mConstantBuffer);
+		resourceViews.emplace_back(texture);
+		resourceViews.emplace_back(mSampler);
+	}
+
+	// Add to Map ResourceHeap
+	mMapResourceHeap = renderSystem->CreateResourceHeap(mPipelineLayout, resourceViews);
 }
 
-// TODO: Where should this be? Writing map texture to render
+void MapPipeline::GenerateMapTexture(const LLGL::RenderSystemPtr& renderSystem,
+                                     LLGL::CommandBuffer& commandBuffer, EntityRegistry& entityRegistry,
+                                     EntityId mapId)
+{
+	_InitMapTexturePipeline(commandBuffer, renderSystem, entityRegistry, mapId);
+}
+
 void MapPipeline::_InitMapTexturePipeline(LLGL::CommandBuffer& commandBuffer,
                                           const LLGL::RenderSystemPtr& renderSystem,
-                                          const Map& map)
+                                          EntityRegistry& entityRegistry,
+                                          EntityId mapId)
 {
 	// Create Render Target
-	mWrittenMapTexture = renderSystem->CreateTexture(
+	const auto texture = renderSystem->CreateTexture(
 		LLGL::Texture2DDesc(LLGL::Format::RGBA8UNorm, mTextureSize.width, mTextureSize.height)
 	);
 
@@ -186,7 +184,7 @@ void MapPipeline::_InitMapTexturePipeline(LLGL::CommandBuffer& commandBuffer,
 	LLGL::RenderTargetDescriptor renderTargetDesc;
 	{
 		renderTargetDesc.resolution = mTextureSize;
-		renderTargetDesc.colorAttachments[0] = mWrittenMapTexture;
+		renderTargetDesc.colorAttachments[0] = texture;
 	}
 	const auto renderTarget = renderSystem->CreateRenderTarget(renderTargetDesc);
 
@@ -206,14 +204,17 @@ void MapPipeline::_InitMapTexturePipeline(LLGL::CommandBuffer& commandBuffer,
 	}
 
 	const auto pipeline = renderSystem->CreatePipelineState(pipelineDesc);
-	_WriteMapTexture(commandBuffer, map, pipeline, renderTarget);
+	_WriteMapTexture(commandBuffer, pipeline, renderTarget, texture, entityRegistry, mapId);
 
-	_CreateResourceHeap(renderSystem);
+	_CreateMapResourceHeap(renderSystem);
 }
 
-void MapPipeline::_WriteMapTexture(LLGL::CommandBuffer& commandBuffer, const Map& map,
-                                   LLGL::PipelineState* writePipeline, LLGL::RenderTarget* writeTarget) const
+void MapPipeline::_WriteMapTexture(LLGL::CommandBuffer& commandBuffer, LLGL::PipelineState* writePipeline,
+                                   LLGL::RenderTarget* writeTarget, LLGL::Texture* writtenTexture,
+                                   EntityRegistry& entityRegistry, EntityId mapId)
 {
+	auto mapComponent = entityRegistry.GetComponent<MapComponent>(mapId);
+	auto transformComponent = entityRegistry.GetComponent<TransformComponent>(mapId);
 	// Set the render target and clear the color buffer
 	commandBuffer.BeginRenderPass(*writeTarget);
 	{
@@ -225,22 +226,65 @@ void MapPipeline::_WriteMapTexture(LLGL::CommandBuffer& commandBuffer, const Map
 		commandBuffer.SetPipelineState(*writePipeline);
 		commandBuffer.SetVertexBuffer(*mVertexBuffer);
 
-		const auto textureId = ResourceManager::GetTextureId(map.GetTexturePath());
+		const auto textureId = ResourceManager::GetTextureId(mapComponent.mTexturePath);
 		commandBuffer.SetResourceHeap(*mResourceHeap, textureId);
 
-		const auto& mapData = map.GetData();
+		const auto& mapData = mapComponent.mData;
 		for (int i = 0; i < mapData.size(); i++)
 		{
 			glm::vec3 tilePos;
 			glm::vec3 size;
 			glm::vec4 clip;
-			map.CalculateTileDrawData(i, tilePos, size, clip);
+			_CalculateTileDrawData(mapComponent, i, tilePos, size, clip);
 
-			_UpdateUniformsModel(commandBuffer, tilePos, size, map.GetRotation(), clip);
+			_UpdateUniformsModel(commandBuffer, tilePos, size, transformComponent.mRotation, clip);
 			commandBuffer.Draw(4, 0);
 		}
 	}
 	commandBuffer.EndRenderPass();
 
-	commandBuffer.GenerateMips(*mWrittenMapTexture);
+	commandBuffer.GenerateMips(*writtenTexture);
+
+	// Does this ptr need to be moved or cleaned up in any way?
+	int newTextureId = static_cast<int>(mGeneratedTextures.size());
+	mGeneratedTextures.push_back(writtenTexture);
+
+	mapComponent.mGeneratedTextureId = newTextureId;
+}
+
+void MapPipeline::_CalculateTileDrawData(const MapComponent& mapComponent, int tileIndex, glm::vec3& pos,
+                                         glm::vec3& size, glm::vec4& clip) const
+{
+	const auto rows = mapComponent.mRows;
+	const auto columns = mapComponent.mColumns;
+	const glm::vec2 tileSize = {(1.0f / columns) * 2, (1.0f / rows) * 2};
+	const glm::vec3 mapTopLeft = {-1 + (tileSize.x / 2.0f), 1 - (tileSize.y / 2.0f), 0};
+
+	const int tile = mapComponent.mData[tileIndex];
+	const float posX = tileIndex % columns;
+	const float currentRow = floorf(tileIndex / columns);
+
+	clip = _GetClipForTile(mapComponent, tile);
+
+	pos = {
+		mapTopLeft.x + (posX * tileSize.x),
+		mapTopLeft.y - (currentRow * tileSize.y),
+		mapTopLeft.z
+	};
+	size = {tileSize.x, tileSize.y, 0};
+}
+
+glm::vec4 MapPipeline::_GetClipForTile(const MapComponent& mapComponent, int index) const
+{
+	const auto texColumns = mapComponent.mTextureMapColumns;
+	const auto texRows = mapComponent.mTextureMapRows;
+	const auto whichColumn = fmod(index, texColumns);
+	// Add one or else the last index in row tries to go to next row
+	const auto whichRow = floor(index / (texRows + 1));
+	const glm::vec2 clipStart = {
+		whichColumn / texColumns, whichRow / texRows
+	};
+	return {
+		clipStart.x, clipStart.y, 1.0 / texColumns, 1.0 / texRows
+	};
 }

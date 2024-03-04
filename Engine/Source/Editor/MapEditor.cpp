@@ -2,12 +2,9 @@
 #include <nlohmann/json.hpp>
 #include "imgui.h"
 #include "Core/Camera.h"
-#include "Core/Level.h"
 #include "Core/LevelManager.h"
 #include "Graphics/RenderContext.h"
 #include "Graphics/Core/ResourceManager.h"
-#include "Map/Map.h"
-#include "Map/MapAttributes.h"
 #include "Map/MapRegistry.h"
 
 #include "MapEditor.h"
@@ -105,15 +102,15 @@ void MapEditor::_NewMapMenu(bool* p_open, Camera& camera)
 		{
 			// Create map json file
 			nlohmann::json mapJsonData;
-			mapJsonData[MapHelpers::ID_STRING] = id;
-			mapJsonData[MapHelpers::ROWS_STRING] = rows;
-			mapJsonData[MapHelpers::COLUMNS_STRING] = columns;
+			//mapJsonData[MapHelpers::ID_STRING] = id;
+			//mapJsonData[MapHelpers::ROWS_STRING] = rows;
+			//mapJsonData[MapHelpers::COLUMNS_STRING] = columns;
 
-			mapJsonData[MapHelpers::TEXTURE_DATA_STRING] = {
-				{MapHelpers::TEXTURE_PATH_STRING, textureFileNames[current_texture_selected]},
-				{MapHelpers::ROWS_STRING, texMapRows},
-				{MapHelpers::COLUMNS_STRING, texMapColumns},
-			};
+			//mapJsonData[MapHelpers::TEXTURE_DATA_STRING] = {
+			//	{MapHelpers::TEXTURE_PATH_STRING, textureFileNames[current_texture_selected]},
+			//	{MapHelpers::ROWS_STRING, texMapRows},
+			//	{MapHelpers::COLUMNS_STRING, texMapColumns},
+			//};
 
 			std::string mapJson = MAPS_FOLDER;
 			mapJson.append(fileName).append(".json");
@@ -172,10 +169,12 @@ void MapEditor::_LoadMapMenu(bool* p_open, Camera& camera)
 
 void MapEditor::_LoadMap(const char* mapName, Camera& camera)
 {
-	mMapRegistry.OpenMap(mapName);
+	//mMapRegistry.OpenMap(mapName);
 	mMapInteractionSystem = std::make_unique<MapInteractionSystem>(camera, mInputHandler, mMapRegistry,
 	                                                               mRenderContext);
 
+	/*
+	 *
 	const auto& mapTexture = mMapRegistry.GetCurrentMap().GetTexturePath();
 	if (ResourceManager::CreateSimpleOpenGLTexture(
 		mapTexture, &mPalletteTextureId, &mPalletteTextureWidth, &mPalletteTextureHeight))
@@ -186,10 +185,13 @@ void MapEditor::_LoadMap(const char* mapName, Camera& camera)
 		show_map_menu = true;
 		draw_debug_map_grid = true;
 	}
+	 */
 }
 
 void MapEditor::_MapMenu(bool* p_open) const
 {
+	/*
+	 *
 	auto& map = mMapRegistry.GetCurrentMap();
 	ImGui::SetNextWindowSize(ImVec2(200, 200));
 	ImGui::SetNextWindowPos(ImVec2(0, 20));
@@ -231,11 +233,14 @@ void MapEditor::_MapMenu(bool* p_open) const
 		}
 	}
 	ImGui::End();
+	 */
 }
 
 // ==== PALLETTE ====
 void MapEditor::_PaletteMenu(bool* p_open)
 {
+	/*
+	 *
 	const auto& map = mMapRegistry.GetCurrentMap();
 	ImGui::SetNextWindowSize(ImVec2(200, 600));
 	ImGui::SetNextWindowPos(ImVec2(0, 220));
@@ -292,11 +297,12 @@ void MapEditor::_PaletteMenu(bool* p_open)
 		}
 	}
 	ImGui::End();
+	 */
 }
 
 void MapEditor::_PreviewTexture(const char* mapName)
 {
-	mMapRegistry.OpenMap(mapName);
+	//mMapRegistry.OpenMap(mapName);
 
 	// RenderDebug will render the map texture instead of the map tiles
 	// TODO: Yeah we definitely want to handle this differently
@@ -309,6 +315,8 @@ void MapEditor::_PreviewTexture(const char* mapName)
 
 void MapEditor::_TextureMenu(bool* p_open) const
 {
+	/*
+	 *
 	auto& map = mMapRegistry.GetCurrentMap();
 	const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
 	ImGui::SetNextWindowSize(ImVec2(200, main_viewport->Size.y - 20));
@@ -338,6 +346,7 @@ void MapEditor::_TextureMenu(bool* p_open) const
 		}
 	}
 	ImGui::End();
+	 */
 }
 
 void MapEditor::_CenterWindow(float width, float height)
@@ -352,14 +361,14 @@ void MapEditor::_CenterWindow(float width, float height)
 // TODO: Re-add Debug draw
 void MapEditor::_DrawTextureDebugGrid() const
 {
-	const auto& map = mMapRegistry.GetCurrentMap();
+	//const auto& map = mMapRegistry.GetCurrentMap();
 	//DebugDrawManager::GetInstance()->DrawGrid(map->GetPosition(), map->GetMapSize(), {255, 0, 0},
 	//            map->GetMapTextureRows(), map->GetMapTextureColumns());
 }
 
 void MapEditor::_DrawMapDebugGrid() const
 {
-	const auto& map = mMapRegistry.GetCurrentMap();
+	//const auto& map = mMapRegistry.GetCurrentMap();
 	//DebugDrawManager::GetInstance()->DrawGrid(map->GetPosition(), map->GetMapSize(), {255, 0, 0},
 	//                                          map->GetRows(), map->GetColumns());
 }

@@ -4,7 +4,6 @@
 #include "Graphics/RenderContext.h"
 #include "Input/InputHandler.h"
 #include "Map/MapRegistry.h"
-#include "Map/Map.h"
 
 #include "MapInteractionSystem.h"
 
@@ -35,6 +34,8 @@ void MapInteractionSystem::_OnClick()
 	const auto ray = _CalculateMouseRay(mMousePos);
 	// TODO: Switch focus when clicking on map?
 	//int i = 0;
+	/*
+	 *
 	for (auto& map : mMapRegistry.GetAllMaps())
 	{
 		auto& data = map->GetData();
@@ -66,6 +67,7 @@ void MapInteractionSystem::_OnClick()
 		}
 		//i++;
 	}
+	 */
 }
 
 glm::vec3 MapInteractionSystem::_CalculateMouseRay(glm::vec2 mousePos) const
@@ -101,6 +103,8 @@ float MapInteractionSystem::_WithinMapBounds(glm::vec3 position, glm::vec3 size,
 void MapInteractionSystem::_CalculateTileInteractionData(const Map& map, int columns, int tileIndex,
                                                          glm::vec3& pos, glm::vec3& size) const
 {
+	/*
+	 *
 	const auto mapSize = map.GetMapSize();
 	const auto position = map.GetPosition();
 	const auto tileSize = map.GetTileSize();
@@ -122,6 +126,7 @@ void MapInteractionSystem::_CalculateTileInteractionData(const Map& map, int col
 	// TODO: Draw center of each tile
 	//DebugDrawManager::GetInstance()->DrawBox(pos, {0.1f, 0.1f, 1.0f}, {255, 0, 0});
 	size = {tileSize, tileSize, 1.0f};
+	 */
 }
 
 // pos is center of the tile

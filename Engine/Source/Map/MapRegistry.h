@@ -1,5 +1,6 @@
 #pragma once
 
+class EngineContext;
 class Map;
 
 struct MapData;
@@ -7,17 +8,19 @@ struct MapData;
 class MapRegistry
 {
 public:
-	void OpenMap(const MapData& mapData);
-	void OpenMap(const std::string& mapPath);
+	void OpenMap(const EngineContext& context, const MapData& mapData) const;
 	void CloseMap(const std::string& mapId);
 
-	const std::vector<std::shared_ptr<Map>>& GetAllMaps();
-	Map& GetCurrentMap() const;
-
 private:
-	std::vector<std::shared_ptr<Map>> mMaps;
+	void _ParseMapData(const MapData& mapData, EntityId entityId, EntityRegistry& entityReg) const;
 
-	std::shared_ptr<Map> mEmptyMap = nullptr;
+	static constexpr char ID_STRING[] = "id";
 
-	int mCurrentFocusedMapIndex = -1;
+	static constexpr char ROWS_STRING[] = "rows";
+	static constexpr char COLUMNS_STRING[] = "columns";
+	static constexpr char TEXTURE_SIZE_STRING[] = "texture_size";
+
+	static constexpr char TEXTURE_DATA_STRING[] = "texture_data";
+	static constexpr char TEXTURE_PATH_STRING[] = "texture_path";
+	static constexpr char DATA_PATH_STRING[] = "data_path";
 };

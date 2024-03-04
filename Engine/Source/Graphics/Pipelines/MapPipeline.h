@@ -3,42 +3,56 @@
 #include <glm/mat4x4.hpp>
 #include "Graphics/Core/Shader.h"
 #include "Graphics/Core/Vertex.h"
-#include "Map/Map.h"
+
+struct EntityId;
+struct MapComponent;
+struct TransformComponent;
+
+class EntityRegistry;
 
 class MapPipeline
 {
 public:
 	void Init(LLGL::RenderSystemPtr& renderSystem);
-	void Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat, const Map& map) const;
 
-	void RenderMapTexture(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat,
-	                      const Map& map) const;
-	void WriteQueuedMapTextures(const LLGL::RenderSystemPtr& renderSystem,
-	                            LLGL::CommandBuffer& commandBuffer, const Map& map);
+	void Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat, EntityRegistry& entityRegistry) const;
+
+	void GenerateMapTexture(const LLGL::RenderSystemPtr& renderSystem, LLGL::CommandBuffer& commandBuffer,
+	                        EntityRegistry& entityRegistry, EntityId mapId);
 
 private:
 	void _CreateResourceHeap(const LLGL::RenderSystemPtr& renderSystem);
+	void _CreateMapResourceHeap(const LLGL::RenderSystemPtr& renderSystem);
 
-	void _Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat, const Map& map) const;
-	void _UpdateUniforms(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat, glm::vec3 pos, glm::vec3 size,
-	                     glm::vec3 rot) const;
+	void _UpdateUniforms(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat,
+	                     const TransformComponent& transform) const;
 	void _UpdateUniformsModel(LLGL::CommandBuffer& commandBuffer, glm::vec3 pos, glm::vec3 size, glm::vec3 rot,
 	                          glm::vec4 texClip) const;
 
 	void _InitMapTexturePipeline(LLGL::CommandBuffer& commandBuffer,
 	                             const LLGL::RenderSystemPtr& renderSystem,
-	                             const Map& map);
-	void _WriteMapTexture(LLGL::CommandBuffer& commandBuffer, const Map& map,
-	                      LLGL::PipelineState* writePipeline, LLGL::RenderTarget* writeTarget) const;
+	                             EntityRegistry& entityRegistry,
+	                             EntityId mapId);
+
+	void _WriteMapTexture(LLGL::CommandBuffer& commandBuffer, LLGL::PipelineState* writePipeline,
+	                      LLGL::RenderTarget* writeTarget, LLGL::Texture* writtenTexture,
+	                      EntityRegistry& entityRegistry, EntityId mapId);
+
+	void _CalculateTileDrawData(const MapComponent& mapComponent, int tileIndex, glm::vec3& pos, glm::vec3& size,
+	                            glm::vec4& clip) const;
+	glm::vec4 _GetClipForTile(const MapComponent& mapComponent, int index) const;
 
 	LLGL::PipelineLayout* mPipelineLayout = nullptr;
 	LLGL::PipelineState* mPipeline = nullptr;
+
 	LLGL::ResourceHeap* mResourceHeap = nullptr;
+	LLGL::ResourceHeap* mMapResourceHeap = nullptr;
 
 	std::unique_ptr<Shader> mShader = nullptr;
 
 	LLGL::Buffer* mConstantBuffer = nullptr;
 	LLGL::Buffer* mVertexBuffer = nullptr;
+	LLGL::Sampler* mSampler = nullptr;
 
 	struct SpriteSettings
 	{
@@ -54,9 +68,8 @@ private:
 		{{0.5, 0.5, 1}, {1, 1, 1, 1}, {1, 0}}, // bottom right
 	};
 
-	// Write Map Textures
-	LLGL::Texture* mWrittenMapTexture = nullptr;
-	int mWrittenTextureId = 0;
+	// texture id, texture ptr
+	std::vector<LLGL::Texture*> mGeneratedTextures;
 
 	const LLGL::Extent2D mTextureSize = {512, 512};
 };

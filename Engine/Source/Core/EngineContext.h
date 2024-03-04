@@ -14,6 +14,7 @@
 #include "Physics/PhysicsSystem.h"
 #include "Scripting/LuaSystem.h"
 
+struct MapComponent;
 class GameInterface;
 
 class EngineContext
@@ -49,8 +50,7 @@ public:
 	void LoadLevel(const char* levelName) const;
 	const Level* GetLevel() const;
 
-	void OpenMap(const char* mapName) const;
-	void InitMapRendering(Map& map) const;
+	void GenerateMapTexture(EntityId mapId) const;
 
 	void DrawPoint(glm::vec3 position, float size, glm::vec4 color) const;
 	void DrawLine(glm::vec3 from, glm::vec3 to, glm::vec4 color) const;
