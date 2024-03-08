@@ -1,9 +1,10 @@
 #version 460
 
-layout(std140) uniform SpriteSettings 
+layout(std140) uniform Settings 
 {
     mat4 pvmMat;
-    mat4 textureTransform;
+    mat4 textureClip;
+    mat4 mMat;
 };
 
 uniform sampler2D colorMap;

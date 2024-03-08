@@ -1,13 +1,15 @@
 // GLSL shader version 1.30 (for OpenGL 3.1)
 #version 460
 
-layout(std140) uniform SpriteSettings 
+layout(std140) uniform Settings 
 {
     mat4 pvmMat;
-    mat4 textureTransform;
+    mat4 textureClip;
+    mat4 mMat;
 };
 
 in vec3 position;
+in vec4 color;
 in vec2 texCoord;
 
 out vec2 vTexCoord;
@@ -15,7 +17,7 @@ out vec2 vTexCoord;
 void main()
 {
     // Transform and pass the vertex's texture coordinate to the fragment shader.
-    vec4 newCoords = textureTransform * vec4(texCoord, 1.0, 1.0);
+    vec4 newCoords = textureClip * vec4(texCoord, 1.0, 1.0);
     vTexCoord = vec2(newCoords);
     gl_Position = pvmMat * vec4(position, 1.0);
 }

@@ -2,18 +2,25 @@
 
 layout(std140) uniform VolumeSettings
 {
-    mat4 pvmMat;
-    vec4 color;
+	mat4 pvmMat;
+	mat4 mMat;
 };
 
+uniform sampler2D colorMap;
+
 in vec3 vNormal;
+in vec2 vTexCoord;
 
 out vec4 fragColor;
 
 void main()
 {
-    vec3 lightDir = vec3(0, 0, -1);
-    float NdotL = dot(lightDir, normalize(vNormal));
-    float intensity = max(0.2, NdotL);
-    fragColor = color * vec4(vec3(intensity), 1);
+    vec4 color = texture(colorMap, vTexCoord);
+    
+	// Apply lambert factor for simple shading
+	const vec3 lightVec = vec3(0, 0, 1);
+	float NdotL = dot(lightVec, normalize(vNormal));
+	color.rgb *= mix(0.2, 1.0, NdotL);
+    
+    fragColor = color;
 }
