@@ -15,12 +15,6 @@ struct TexturedVertex
 	glm::vec2 texCoord;
 };
 
-struct Model
-{
-	std::uint32_t numVertices = 0;
-	std::uint32_t firstVertex = 0;
-};
-
 struct DebugVertex
 {
 	glm::vec3 pos;

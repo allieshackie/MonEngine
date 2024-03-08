@@ -31,6 +31,18 @@ std::vector<std::unique_ptr<Texture>> ResourceManager::LoadAllTexturesFromFolder
 	return textures;
 }
 
+std::vector<std::unique_ptr<Mesh>> ResourceManager::LoadAllMeshesFromFolder()
+{
+	std::vector<std::unique_ptr<Mesh>> meshes;
+	for (const auto& entry : std::filesystem::directory_iterator(MODELS_FOLDER))
+	{
+		auto fullPath = entry.path().string();
+		meshes.push_back(std::make_unique<Mesh>(fullPath));
+	}
+
+	return meshes;
+}
+
 int ResourceManager::GetTextureId(const std::string& textureName)
 {
 	const auto it = mTextureIds.find(textureName);
