@@ -11,6 +11,24 @@
 
 #include "MapPipeline.h"
 
+MapPipeline::MapPipeline(const LLGL::RenderSystemPtr& renderSystem) : PipelineBase(
+	renderSystem, "sprite.vert", "sprite.frag")
+{
+	// Create nearest sampler
+	LLGL::SamplerDescriptor samplerDesc;
+	{
+		samplerDesc.minFilter = LLGL::SamplerFilter::Nearest;
+		samplerDesc.magFilter = LLGL::SamplerFilter::Nearest;
+		samplerDesc.mipMapFilter = LLGL::SamplerFilter::Nearest;
+	}
+	mSampler = renderSystem->CreateSampler(samplerDesc);
+
+	mVertexBuffer = renderSystem->CreateBuffer(
+		VertexBufferDesc(static_cast<std::uint32_t>(mVertices.size() * sizeof(Vertex)),
+		                 mShader->GetVertexFormat()), mVertices.data()
+	);
+}
+
 void MapPipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat,
                          EntityRegistry& entityRegistry) const
 {
@@ -42,9 +60,7 @@ void MapPipeline::_UpdateUniforms(LLGL::CommandBuffer& commandBuffer, const glm:
 	model = translate(model, glm::vec3(-0.5f * transform.mSize.x, -0.5f * transform.mSize.y, 0.0f));
 	model = scale(model, transform.mSize);
 
-	const auto textureClip = glm::mat4(1.0f);
-
-	const SpriteSettings settings = {pvMat * model, textureClip};
+	const Settings settings = {pvMat * model, glm::mat4(1.0f), glm::mat4()};
 	commandBuffer.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
 }
 
@@ -67,88 +83,15 @@ void MapPipeline::_UpdateUniformsModel(LLGL::CommandBuffer& commandBuffer, glm::
 	textureClip = translate(textureClip, glm::vec3(texClip.x, texClip.y, 0.0f));
 	textureClip = scale(textureClip, glm::vec3(texClip.z, texClip.w, 1.0f));
 
-	const SpriteSettings settings = {model, textureClip};
+	const Settings settings = {model, textureClip, glm::mat4()};
 	commandBuffer.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
-}
-
-void MapPipeline::Init(LLGL::RenderSystemPtr& renderSystem)
-{
-	mConstantBuffer = renderSystem->CreateBuffer(LLGL::ConstantBufferDesc(sizeof(SpriteSettings)),
-	                                             &spriteSettings);
-
-	LLGL::VertexFormat vertexFormat;
-	vertexFormat.AppendAttribute({"position", LLGL::Format::RGB32Float});
-	vertexFormat.AppendAttribute({"color", LLGL::Format::RGBA32Float});
-	vertexFormat.AppendAttribute({"texCoord", LLGL::Format::RG32Float});
-
-	std::string vertPath = SHADERS_FOLDER;
-	vertPath.append("sprite.vert");
-
-	std::string fragPath = SHADERS_FOLDER;
-	fragPath.append("sprite.frag");
-
-	mShader = std::make_unique<Shader>(*renderSystem, vertexFormat, vertPath.c_str(),
-	                                   fragPath.c_str());
-
-	// All layout bindings that will be used by graphics and compute pipelines
-	// Create pipeline layout
-	mPipelineLayout = renderSystem->CreatePipelineLayout(
-		LLGL::Parse("heap{cbuffer(0):vert:frag, texture(0):frag, sampler(0):frag}"));
-
-	// Create graphics pipeline
-	LLGL::GraphicsPipelineDescriptor pipelineDesc;
-	{
-		pipelineDesc.vertexShader = &mShader->GetVertexShader();
-		pipelineDesc.fragmentShader = &mShader->GetFragmentShader();
-		pipelineDesc.pipelineLayout = mPipelineLayout;
-		pipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::TriangleStrip;
-
-		// Enable depth test and writing
-		//pipelineDesc.depth.testEnabled = true;
-		//pipelineDesc.depth.writeEnabled = true;
-	}
-	mPipeline = renderSystem->CreatePipelineState(pipelineDesc);
-
-	_CreateResourceHeap(renderSystem);
-
-	mVertexBuffer = renderSystem->CreateBuffer(
-		VertexBufferDesc(static_cast<std::uint32_t>(mVertices.size() * sizeof(Vertex)),
-		                 mShader->GetVertexFormat()),
-		mVertices.data()
-	);
-}
-
-void MapPipeline::_CreateResourceHeap(const LLGL::RenderSystemPtr& renderSystem)
-{
-	// Resource Heap
-
-	// 1st sampler state with default settings
-	// Create nearest sampler
-	LLGL::SamplerDescriptor samplerDesc;
-	{
-		samplerDesc.minFilter = LLGL::SamplerFilter::Nearest;
-		samplerDesc.magFilter = LLGL::SamplerFilter::Nearest;
-		samplerDesc.mipMapFilter = LLGL::SamplerFilter::Nearest;
-	}
-	mSampler = renderSystem->CreateSampler(samplerDesc);
-
-	const auto textures = ResourceManager::LoadAllTexturesFromFolder(renderSystem);
-
-	std::vector<LLGL::ResourceViewDescriptor> resourceViews;
-	resourceViews.reserve(textures.size() * 3);
-
-	for (const auto& texture : textures)
-	{
-		resourceViews.emplace_back(mConstantBuffer);
-		resourceViews.emplace_back(&texture->GetTextureData());
-		resourceViews.emplace_back(&texture->GetSamplerData());
-	}
-
-	mResourceHeap = renderSystem->CreateResourceHeap(mPipelineLayout, resourceViews);
 }
 
 void MapPipeline::_CreateMapResourceHeap(const LLGL::RenderSystemPtr& renderSystem)
 {
+	// Release previous resource heap if set
+	renderSystem->Release(*mMapResourceHeap);
+
 	std::vector<LLGL::ResourceViewDescriptor> resourceViews;
 	resourceViews.reserve(mGeneratedTextures.size() * 3);
 

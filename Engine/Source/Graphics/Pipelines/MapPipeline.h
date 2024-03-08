@@ -1,7 +1,8 @@
 #pragma once
 #include <LLGL/LLGL.h>
 #include <glm/mat4x4.hpp>
-#include "Graphics/Core/Shader.h"
+
+#include "PipelineBase.h"
 #include "Graphics/Core/Vertex.h"
 
 struct EntityId;
@@ -10,10 +11,10 @@ struct TransformComponent;
 
 class EntityRegistry;
 
-class MapPipeline
+class MapPipeline : public PipelineBase
 {
 public:
-	void Init(LLGL::RenderSystemPtr& renderSystem);
+	MapPipeline(const LLGL::RenderSystemPtr& renderSystem);
 
 	void Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat, EntityRegistry& entityRegistry) const;
 
@@ -21,7 +22,6 @@ public:
 	                        EntityRegistry& entityRegistry, EntityId mapId);
 
 private:
-	void _CreateResourceHeap(const LLGL::RenderSystemPtr& renderSystem);
 	void _CreateMapResourceHeap(const LLGL::RenderSystemPtr& renderSystem);
 
 	void _UpdateUniforms(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat,
@@ -42,24 +42,10 @@ private:
 	                            glm::vec4& clip) const;
 	glm::vec4 _GetClipForTile(const MapComponent& mapComponent, int index) const;
 
-	LLGL::PipelineLayout* mPipelineLayout = nullptr;
-	LLGL::PipelineState* mPipeline = nullptr;
-
-	LLGL::ResourceHeap* mResourceHeap = nullptr;
 	LLGL::ResourceHeap* mMapResourceHeap = nullptr;
 
-	std::unique_ptr<Shader> mShader = nullptr;
-
-	LLGL::Buffer* mConstantBuffer = nullptr;
 	LLGL::Buffer* mVertexBuffer = nullptr;
 	LLGL::Sampler* mSampler = nullptr;
-
-	struct SpriteSettings
-	{
-		glm::mat4 pvmMat;
-		glm::mat4 textureTransform;
-	}
-	spriteSettings = {};
 
 	std::vector<Vertex> mVertices = {
 		{{-0.5, -0.5, 1}, {1, 1, 1, 1}, {0, 1}}, // top left

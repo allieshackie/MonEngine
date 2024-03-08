@@ -135,6 +135,7 @@ void RenderContext::Render(const Camera& camera, EntityRegistry& entityRegistry,
 	mTextPipeline->Render(*mCommands, projectionViewMat);
 	mSpritePipeline->Render(*mCommands, projectionViewMat, entityRegistry);
 	mImmediatePipeline->Render(*mCommands, projectionViewMat);
+	mMeshPipeline->Render(*mCommands, projectionViewMat);
 
 	mTextPipeline->Release(mRenderSystem);
 }
@@ -246,18 +247,15 @@ void RenderContext::_CreateWindow(const LLGL::UTF8String& title, const std::shar
 
 void RenderContext::_CreatePipelines()
 {
-	mSpritePipeline = std::make_unique<SpritePipeline>();
-	mMapPipeline = std::make_unique<MapPipeline>();
+	mSpritePipeline = std::make_unique<SpritePipeline>(mRenderSystem);
+	mMapPipeline = std::make_unique<MapPipeline>(mRenderSystem);
 	mImmediatePipeline = std::make_unique<ImmediatePipeline>();
 	mTextPipeline = std::make_unique<TextPipeline>();
-	// TODO: Enable for 3D
-	//mPipeline3D = std::make_unique<Pipeline3D>(*this, mResourceManager);
+	mMeshPipeline = std::make_unique<MeshPipeline>();
 
-	mSpritePipeline->Init(mRenderSystem);
-	mMapPipeline->Init(mRenderSystem);
 	mImmediatePipeline->Init(mRenderSystem);
 	mTextPipeline->Init(mRenderSystem);
-	//mPipeline3D->Init(mRenderSystem, shaderPath);
+	mMeshPipeline->Init(mRenderSystem);
 }
 
 LLGL::Extent2D RenderContext::_ScaleResolution(const LLGL::Extent2D& res, float scale)
