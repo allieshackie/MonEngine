@@ -2,93 +2,63 @@
 
 #include "Mesh.h"
 
-Mesh::Mesh(const std::string& path)
+Mesh::Mesh(const std::string& path, std::string fileName) : mId(std::move(fileName))
 {
 	_LoadObjModel(path);
 }
 
-void Mesh::_LoadObjModel(const std::string& filename)
+void Mesh::_LoadObjModel(const std::string& path)
 {
-	std::ifstream file(filename);
+	std::ifstream file(path);
 	if (!file.is_open())
 	{
-		throw std::runtime_error("failed to load model from file: \"" + filename + "\"");
+		std::cerr << "Error opening file: " << path << std::endl;
+		return;
 	}
 
-	// Initialize triangle mesh
-	mFirstVertex = static_cast<std::uint32_t>(mVertices.size());
-
-	std::vector<glm::vec3> coords, normals;
-	std::vector<glm::vec2> texCoords;
-
 	std::string line;
-	// Read each line
 	while (std::getline(file, line))
 	{
-		std::stringstream s;
-		s << line;
+		std::istringstream iss(line);
+		std::string type;
+		iss >> type;
 
-		// Parse line
-		std::string mode;
-		s >> mode;
-
-		if (mode == "v")
+		if (type == "v")
 		{
-			glm::vec3 v;
-			s >> v.x;
-			s >> v.y;
-			s >> v.z;
-			coords.push_back(v);
+			TexturedVertex vertex;
+			iss >> vertex.position.x >> vertex.position.y >> vertex.position.z;
+			mVertices.push_back(vertex);
 		}
-		else if (mode == "vt")
+		else if (type == "vt")
 		{
-			glm::vec2 t;
-			s >> t.x;
-			s >> t.y;
-			texCoords.push_back(t);
+			// Handle texture coordinates if needed
 		}
-		else if (mode == "vn")
+		else if (type == "vn")
 		{
-			glm::vec3 n;
-			s >> n.x;
-			s >> n.y;
-			s >> n.z;
-			normals.push_back(n);
+			// Handle normals if needed
 		}
-		else if (mode == "f")
+		else if (type == "f")
 		{
-			unsigned int v = 0, vt = 0, vn = 0;
-
-			for (int i = 0; i < 3; ++i)
+			std::string vertexData;
+			while (iss >> vertexData)
 			{
-				// Read vertex index
-				s >> v;
-
-				// Read texture-coordinate index
-				if (texCoords.empty())
-					s.ignore(2);
-				else
+				std::istringstream vertexIss(vertexData);
+				std::string indexStr;
+				int index;
+				std::getline(vertexIss, indexStr, '/');
+				std::istringstream(indexStr) >> index;
+				std::getline(vertexIss, indexStr, '/');
+				if (!indexStr.empty())
 				{
-					s.ignore(1);
-					s >> vt;
-					s.ignore(1);
+					//std::istringstream(indexStr) >> index.texCoordIndex;
 				}
-
-				// Read normal index
-				s >> vn;
-
-				// Add vertex to mesh
-				mVertices.push_back(
-					{
-						coords[v - 1],
-						(vn - 1 < normals.size() ? normals[vn - 1] : glm::vec3{}),
-						(vt - 1 < texCoords.size() ? texCoords[vt - 1] : glm::vec2{})
-					}
-				);
-				mNumVertices++;
+				std::getline(vertexIss, indexStr, '/');
+				if (!indexStr.empty())
+				{
+					//std::istringstream(indexStr) >> index.normalIndex;
+				}
+				mIndices.push_back(index);
 			}
 		}
 	}
-
-	file.close();
 }
