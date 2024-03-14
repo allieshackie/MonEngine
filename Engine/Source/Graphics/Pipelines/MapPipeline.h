@@ -5,6 +5,9 @@
 #include "PipelineBase.h"
 #include "Graphics/Core/Vertex.h"
 
+class MeshPipeline;
+class SpritePipeline;
+
 struct EntityId;
 struct MapComponent;
 struct TransformComponent;
@@ -16,7 +19,8 @@ class MapPipeline : public PipelineBase
 public:
 	MapPipeline(const LLGL::RenderSystemPtr& renderSystem);
 
-	void Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat, EntityRegistry& entityRegistry) const;
+	void Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat, EntityRegistry& entityRegistry,
+	            MeshPipeline& meshPipeline, SpritePipeline& spritePipeline) const;
 
 	void GenerateMapTexture(const LLGL::RenderSystemPtr& renderSystem, LLGL::CommandBuffer& commandBuffer,
 	                        EntityRegistry& entityRegistry, EntityId mapId);
@@ -24,15 +28,8 @@ public:
 private:
 	void _CreateMapResourceHeap(const LLGL::RenderSystemPtr& renderSystem);
 
-	void _UpdateUniforms(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat,
-	                     const TransformComponent& transform) const;
 	void _UpdateUniformsModel(LLGL::CommandBuffer& commandBuffer, glm::vec3 pos, glm::vec3 size, glm::vec3 rot,
 	                          glm::vec4 texClip) const;
-
-	void _InitMapTexturePipeline(LLGL::CommandBuffer& commandBuffer,
-	                             const LLGL::RenderSystemPtr& renderSystem,
-	                             EntityRegistry& entityRegistry,
-	                             EntityId mapId);
 
 	void _WriteMapTexture(LLGL::CommandBuffer& commandBuffer, LLGL::PipelineState* writePipeline,
 	                      LLGL::RenderTarget* writeTarget, LLGL::Texture* writtenTexture,

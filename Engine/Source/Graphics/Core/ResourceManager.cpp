@@ -37,7 +37,7 @@ std::vector<std::unique_ptr<Mesh>> ResourceManager::LoadAllMeshesFromFolder()
 	for (const auto& entry : std::filesystem::directory_iterator(MODELS_FOLDER))
 	{
 		auto fullPath = entry.path().string();
-		meshes.push_back(std::make_unique<Mesh>(fullPath));
+		meshes.push_back(std::make_unique<Mesh>(fullPath, entry.path().filename().string()));
 	}
 
 	return meshes;

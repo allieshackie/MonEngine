@@ -2,9 +2,11 @@
 #include "LLGL/Utils/VertexFormat.h"
 #include "LLGL/Utils/Utility.h"
 
+#include "MeshPipeline.h"
 #include "Core/Camera.h"
 #include "Entity/EntityRegistry.h"
 #include "Entity/Components/MapComponent.h"
+#include "Entity/Components/MeshComponent.h"
 #include "Entity/Components/TransformComponent.h"
 #include "Graphics/Core/ResourceManager.h"
 #include "Graphics/Core/Texture.h"
@@ -29,39 +31,33 @@ MapPipeline::MapPipeline(const LLGL::RenderSystemPtr& renderSystem) : PipelineBa
 	);
 }
 
-void MapPipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat,
-                         EntityRegistry& entityRegistry) const
+void MapPipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat, EntityRegistry& entityRegistry,
+                         MeshPipeline& meshPipeline, SpritePipeline& spritePipeline) const
 {
-	// set graphics pipeline
 	commandBuffer.SetPipelineState(*mPipeline);
-	commandBuffer.SetVertexBuffer(*mVertexBuffer);
 
-	const auto mapView = entityRegistry.GetEnttRegistry().view<const TransformComponent, const MapComponent>();
-	mapView.each([this, &commandBuffer, &pvMat](const TransformComponent& transform, const MapComponent& map)
+	const auto map2DView = entityRegistry.GetEnttRegistry().view<
+		const MapComponent, const TransformComponent>(entt::exclude<MeshComponent>);
+
+	map2DView.each([this, &commandBuffer, &pvMat](const MapComponent& map, const TransformComponent& transform)
 	{
+		// Set resources
 		commandBuffer.SetResourceHeap(*mMapResourceHeap, map.mGeneratedTextureId);
-		_UpdateUniforms(commandBuffer, pvMat, transform);
-		commandBuffer.Draw(4, 0);
+		//spritePipeline.
 	});
-}
 
-void MapPipeline::_UpdateUniforms(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat,
-                                  const TransformComponent& transform) const
-{
-	// Update
-	auto model = glm::mat4(1.0f);
-	model = translate(model, transform.mPosition);
-	model = translate(model, glm::vec3(0.5f * transform.mSize.x, 0.5f * transform.mSize.y, 0.0f));
-	// Apply rotation in ZXY order
-	model = rotate(model, glm::radians(transform.mRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-	model = rotate(model, glm::radians(transform.mRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-	model = rotate(model, glm::radians(transform.mRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+	const auto map3DView = entityRegistry.GetEnttRegistry().view<
+		const MapComponent, const TransformComponent, const MeshComponent>();
 
-	model = translate(model, glm::vec3(-0.5f * transform.mSize.x, -0.5f * transform.mSize.y, 0.0f));
-	model = scale(model, transform.mSize);
-
-	const Settings settings = {pvMat * model, glm::mat4(1.0f), glm::mat4()};
-	commandBuffer.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
+	map3DView.each([this, &commandBuffer, &pvMat, &meshPipeline](const MapComponent& map,
+	                                                             const TransformComponent& transform,
+	                                                             const MeshComponent& mesh)
+	{
+		// Set resources
+		meshPipeline.SetPipeline(commandBuffer);
+		commandBuffer.SetResourceHeap(*mMapResourceHeap, map.mGeneratedTextureId);
+		meshPipeline.RenderMap(commandBuffer, pvMat, mesh, transform);
+	});
 }
 
 void MapPipeline::_UpdateUniformsModel(LLGL::CommandBuffer& commandBuffer, glm::vec3 pos, glm::vec3 size, glm::vec3 rot,
@@ -109,14 +105,6 @@ void MapPipeline::_CreateMapResourceHeap(const LLGL::RenderSystemPtr& renderSyst
 void MapPipeline::GenerateMapTexture(const LLGL::RenderSystemPtr& renderSystem,
                                      LLGL::CommandBuffer& commandBuffer, EntityRegistry& entityRegistry,
                                      EntityId mapId)
-{
-	_InitMapTexturePipeline(commandBuffer, renderSystem, entityRegistry, mapId);
-}
-
-void MapPipeline::_InitMapTexturePipeline(LLGL::CommandBuffer& commandBuffer,
-                                          const LLGL::RenderSystemPtr& renderSystem,
-                                          EntityRegistry& entityRegistry,
-                                          EntityId mapId)
 {
 	// Create Render Target
 	const auto texture = renderSystem->CreateTexture(

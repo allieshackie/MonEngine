@@ -3,6 +3,10 @@
 #include <glm/gtc/matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
 #include <filesystem>
 
+#include "Entity/EntityRegistry.h"
+#include "Entity/Components/MapComponent.h"
+#include "Entity/Components/SpriteComponent.h"
+#include "Entity/Components/TransformComponent.h"
 #include "Graphics/Core/Mesh.h"
 #include "Graphics/Core/ResourceManager.h"
 #include "Graphics/Core/Shader.h"
@@ -10,17 +14,44 @@
 
 #include "MeshPipeline.h"
 
-void MeshPipeline::Render(LLGL::CommandBuffer& commands, const glm::mat4 pvMat)
+void MeshPipeline::Render(LLGL::CommandBuffer& commands, const glm::mat4 pvMat, EntityRegistry& entityRegistry)
 {
-	// Set resources
 	commands.SetPipelineState(*mPipeline);
-	commands.SetVertexBuffer(*mVertexBuffer);
-	commands.SetIndexBuffer(*mIndexBuffer);
-	commands.SetResourceHeap(*mVolumeResourceHeap, 1);
 
-	UpdateProjectionViewModelUniform(commands, glm::mat4(), pvMat);
+	// TODO: Sort the entities based on their mesh component file names
+	const auto meshView = entityRegistry.GetEnttRegistry().view<
+		const TransformComponent, const MeshComponent, const SpriteComponent>(
+		entt::exclude<MapComponent>);
 
-	commands.DrawIndexed(36, 0);
+	meshView.each([this, &commands, &pvMat](const TransformComponent& transform, const MeshComponent& mesh,
+	                                        const SpriteComponent& sprite)
+	{
+		// Set resources
+		const auto textureId = ResourceManager::GetTextureId(sprite.mTexturePath);
+		commands.SetResourceHeap(*mVolumeResourceHeap, textureId);
+		int numIndices = _SetMeshVBuffer(commands, mesh);
+
+		UpdateProjectionViewModelUniform(commands, pvMat, transform);
+
+		commands.DrawIndexed(numIndices, 0);
+	});
+}
+
+void MeshPipeline::RenderMap(LLGL::CommandBuffer& commands, const glm::mat4 pvMat, const MeshComponent& meshComponent,
+                             const TransformComponent& transform)
+{
+	//commands.SetResourceHeap(*mVolumeResourceHeap, 1);
+
+	int numIndices = _SetMeshVBuffer(commands, meshComponent);
+
+	UpdateProjectionViewModelUniform(commands, pvMat, transform);
+
+	commands.DrawIndexed(numIndices, 0);
+}
+
+void MeshPipeline::SetPipeline(LLGL::CommandBuffer& commands) const
+{
+	commands.SetPipelineState(*mPipeline);
 }
 
 void MeshPipeline::Init(LLGL::RenderSystemPtr& renderSystem)
@@ -70,40 +101,74 @@ void MeshPipeline::Init(LLGL::RenderSystemPtr& renderSystem)
 
 	mVolumeResourceHeap = renderSystem->CreateResourceHeap(pipelineLayout, resourceViews);
 
+	const auto meshData = ResourceManager::LoadAllMeshesFromFolder();
+
+	for (auto& mesh : meshData)
+	{
+		MeshVBO vbo;
+		vbo.mVertexBuffer = renderSystem->CreateBuffer(
+			VertexBufferDesc(static_cast<std::uint32_t>(mesh->GetVertices().size() * sizeof(TexturedVertex)),
+			                 mShader->GetVertexFormat()), mesh->GetVertices().data());
+
+		vbo.mIndexBuffer = renderSystem->CreateBuffer(
+			IndexBufferDesc(static_cast<std::uint32_t>(mesh->GetIndices().size() * sizeof(std::uint32_t)),
+			                LLGL::Format::R32UInt), mesh->GetIndices().data());
+
+		vbo.mNumIndices = static_cast<int>(mesh->GetIndices().size());
+
+		mMeshVertexBuffers[mesh->GetId()] = vbo;
+	}
+
 	auto vertices = ResourceManager::GenerateTexturedCubeVertices();
-	auto indices = ResourceManager::GenerateTexturedCubeTriangleIndices();
-
-	mVertexBuffer = renderSystem->CreateBuffer(
+	mTestMesh.mVertexBuffer = renderSystem->CreateBuffer(
 		VertexBufferDesc(static_cast<std::uint32_t>(vertices.size() * sizeof(TexturedVertex)),
-		                 mShader->GetVertexFormat()), vertices.data()
-	);
+		                 mShader->GetVertexFormat()), vertices.data());
 
-	mIndexBuffer = renderSystem->CreateBuffer(
+	auto indices = ResourceManager::GenerateTexturedCubeTriangleIndices();
+	mTestMesh.mIndexBuffer = renderSystem->CreateBuffer(
 		IndexBufferDesc(static_cast<std::uint32_t>(indices.size() * sizeof(std::uint32_t)),
-		                LLGL::Format::R32UInt), indices.data()
-	);
+		                LLGL::Format::R32UInt), indices.data());
+
+	mTestMesh.mNumIndices = static_cast<int>(indices.size());
 }
 
-void MeshPipeline::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& commands, glm::mat4 model, glm::mat4 pvMat)
+void MeshPipeline::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& commands, glm::mat4 pvMat,
+                                                    const TransformComponent& transform) const
 {
-	// TODO: Apply rotation in ZXY order
-	//mVolumeSettings.pvmMat = projection * view * model;
+	// Update
+	auto model = glm::mat4(1.0f);
+	model = glm::translate(model, transform.mPosition);
+	model = glm::translate(model, glm::vec3(0.5f * transform.mSize.x, 0.5f * transform.mSize.y, 0.0f));
+	// Apply rotation in ZXY order
+	model = glm::rotate(model, glm::radians(transform.mRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+	model = glm::rotate(model, glm::radians(transform.mRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+	model = glm::rotate(model, glm::radians(transform.mRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
 
-	float rotation = glm::radians(-20.0f);
-	mVolumeSettings.mMat = glm::identity<glm::mat4>();
-	glm::translate(mVolumeSettings.mMat, glm::vec3{0, 0, 5});
-	glm::rotate(mVolumeSettings.mMat, rotation, glm::vec3{0, 1, 0});
+	model = glm::translate(model, glm::vec3(-0.5f * transform.mSize.x, -0.5f * transform.mSize.y, 0.0f));
+	model = glm::scale(model, transform.mSize);
 
-	mVolumeSettings.pvmMat = pvMat;
-	mVolumeSettings.pvmMat *= mVolumeSettings.mMat;
-
-	commands.UpdateBuffer(*mConstantBuffer, 0, &mVolumeSettings, sizeof(VolumeSettings));
+	const VolumeSettings settings = {pvMat * model, model};
+	commands.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
 }
 
-void MeshPipeline::AddRenderObjectVBuffer(const LLGL::RenderSystemPtr& renderSystem, const Mesh& mesh)
+int MeshPipeline::_SetMeshVBuffer(LLGL::CommandBuffer& commands, const MeshComponent& meshComponent)
 {
-	mVertexBuffer = renderSystem->CreateBuffer(
-		VertexBufferDesc(static_cast<std::uint32_t>(mesh.GetNumVertices() * sizeof(TexturedVertex)),
-		                 mShader->GetVertexFormat()), mesh.GetVertices().data()
-	);
+	/*
+	 *
+	const auto meshVbo = mMeshVertexBuffers.find(meshComponent.mMeshPath);
+	if (meshVbo != mMeshVertexBuffers.end())
+	{
+		commands.SetVertexBuffer(*meshVbo->second.mVertexBuffer);
+		commands.SetIndexBuffer(*meshVbo->second.mIndexBuffer);
+
+		return meshVbo->second.mNumIndices;
+	}
+	 */
+
+	//return 0;
+
+	commands.SetVertexBuffer(*mTestMesh.mVertexBuffer);
+	commands.SetIndexBuffer(*mTestMesh.mIndexBuffer);
+
+	return mTestMesh.mNumIndices;
 }

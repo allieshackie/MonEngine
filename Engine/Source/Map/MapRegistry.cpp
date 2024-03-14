@@ -69,4 +69,10 @@ void MapRegistry::_ParseMapData(const MapData& mapData, EntityId entityId, Entit
 		static_cast<float>(rows) * mapData.tileSize, 1
 	};
 	entityReg.AddComponent<TransformComponent>(entityId, mapData.position, size, mapData.rotation);
+
+	if (mapData.hasDimension)
+	{
+		// TODO: Should maps be able to define different meshes?
+		entityReg.AddComponent<MeshComponent>(entityId, "MapBox.obj");
+	}
 }
