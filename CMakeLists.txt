@@ -21,6 +21,7 @@ endmacro()
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
+set(BUILD_SHARED_LIBS OFF)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CmakeGenerated")
 
@@ -91,6 +92,14 @@ set_property(TARGET imgui PROPERTY FOLDER "ThirdParty")
 target_include_directories(imgui PUBLIC
     ${THIRD_PARTY_DIR}/imgui
 )
+
+## ASSIMP
+add_subdirectory(${THIRD_PARTY_DIR}/assimp)
+
+set_property(TARGET assimp PROPERTY FOLDER "ThirdParty")
+set_property(TARGET unit PROPERTY FOLDER "ThirdParty")
+set_property(TARGET UpdateAssimpLibsDebugSymbolsAndDLLs PROPERTY FOLDER "ThirdParty")
+set_property(TARGET zlibstatic PROPERTY FOLDER "ThirdParty")
 
 ## LUA
 file(GLOB_RECURSE LUA_SOURCES "${THIRD_PARTY_DIR}/Lua/src/*.c")

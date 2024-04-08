@@ -1,64 +1,68 @@
-#include <sstream>
+#include <assimp/Importer.hpp>      // C++ importer interface
+#include <assimp/scene.h>           // Output data structure
+#include "assimp/postprocess.h"
 
 #include "Mesh.h"
 
 Mesh::Mesh(const std::string& path, std::string fileName) : mId(std::move(fileName))
 {
-	_LoadObjModel(path);
-}
+	// Create an instance of the Importer class
+	Assimp::Importer importer;
+	const aiScene* scene = importer.ReadFile(path,
+	                                         aiProcessPreset_TargetRealtime_Quality);
 
-void Mesh::_LoadObjModel(const std::string& path)
-{
-	std::ifstream file(path);
-	if (!file.is_open())
+	// Check if there was errors with 
+	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{
-		std::cerr << "Error opening file: " << path << std::endl;
-		return;
+		std::cout << importer.GetErrorString() << std::endl;
 	}
 
-	std::string line;
-	while (std::getline(file, line))
+	for (unsigned int i = 0; i < scene->mNumMeshes; i++)
 	{
-		std::istringstream iss(line);
-		std::string type;
-		iss >> type;
+		aiMesh* mesh = scene->mMeshes[i];
+		_LoadObjModel(mesh);
+	}
+}
 
-		if (type == "v")
+void Mesh::_LoadObjModel(aiMesh* mesh)
+{
+	std::vector<Vertex> vertices;
+
+	for (unsigned int i = 0; i < mesh->mNumVertices; ++i)
+	{
+		Vertex vertex;
+		// process vertex positions, normals and texture coordinates
+		vertex.position.x = mesh->mVertices[i].x;
+		vertex.position.y = mesh->mVertices[i].y;
+		vertex.position.z = mesh->mVertices[i].z;
+
+		// UVs coordinates
+		if (mesh->mTextureCoords[0])
 		{
-			TexturedVertex vertex;
-			iss >> vertex.position.x >> vertex.position.y >> vertex.position.z;
-			mVertices.push_back(vertex);
+			vertex.texCoord.x = mesh->mTextureCoords[0][i].x;
+			vertex.texCoord.y = mesh->mTextureCoords[0][i].y;
 		}
-		else if (type == "vt")
+		else
 		{
-			// Handle texture coordinates if needed
+			vertex.texCoord.x = 0.0f;
+			vertex.texCoord.y = 0.0f;
 		}
-		else if (type == "vn")
+
+		// Normals
+		vertex.normal.x = mesh->mNormals[i].x;
+		vertex.normal.y = mesh->mNormals[i].y;
+		vertex.normal.z = mesh->mNormals[i].z;
+
+		mVertices.push_back(vertex);
+	}
+
+	// process indices
+	for (unsigned int i = 0; i < mesh->mNumFaces; i++)
+	{
+		aiFace face = mesh->mFaces[i];
+		for (unsigned int j = 0; j < face.mNumIndices; j++)
 		{
-			// Handle normals if needed
-		}
-		else if (type == "f")
-		{
-			std::string vertexData;
-			while (iss >> vertexData)
-			{
-				std::istringstream vertexIss(vertexData);
-				std::string indexStr;
-				int index;
-				std::getline(vertexIss, indexStr, '/');
-				std::istringstream(indexStr) >> index;
-				std::getline(vertexIss, indexStr, '/');
-				if (!indexStr.empty())
-				{
-					//std::istringstream(indexStr) >> index.texCoordIndex;
-				}
-				std::getline(vertexIss, indexStr, '/');
-				if (!indexStr.empty())
-				{
-					//std::istringstream(indexStr) >> index.normalIndex;
-				}
-				mIndices.push_back(index);
-			}
+			mIndices.push_back(face.mIndices[j]);
 		}
 	}
 }

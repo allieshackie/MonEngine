@@ -9,7 +9,7 @@ layout(std140) uniform Settings
 };
 
 in vec3 position;
-in vec4 color;
+in vec3 normal;
 in vec2 texCoord;
 
 out vec2 vTexCoord;

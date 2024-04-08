@@ -117,7 +117,7 @@ void RenderContext::BeginFrame() const
 	// Render Commands to Queue
 	mCommands->Begin();
 
-	mCommands->Clear(LLGL::ClearFlags::Color, {
+	mCommands->Clear(LLGL::ClearFlags::ColorDepth, {
 		                 mBackgroundColor.r, mBackgroundColor.g, mBackgroundColor.b, mBackgroundColor.a
 	                 });
 	// set viewport and scissor rectangle
@@ -248,14 +248,16 @@ void RenderContext::_CreateWindow(const LLGL::UTF8String& title, const std::shar
 void RenderContext::_CreatePipelines()
 {
 	mSpritePipeline = std::make_unique<SpritePipeline>(mRenderSystem);
-	mMapPipeline = std::make_unique<MapPipeline>(mRenderSystem);
 	mImmediatePipeline = std::make_unique<ImmediatePipeline>();
 	mTextPipeline = std::make_unique<TextPipeline>();
-	mMeshPipeline = std::make_unique<MeshPipeline>();
+	mMeshPipeline = std::make_unique<MeshPipeline>(mRenderSystem);
+	mMapPipeline = std::make_unique<MapPipeline>(mRenderSystem, mMeshPipeline->GetPipelineLayout(),
+	                                             mSpritePipeline->GetPipelineLayout(),
+	                                             mMeshPipeline->GetConstantBuffer(),
+	                                             mSpritePipeline->GetConstantBuffer());
 
 	mImmediatePipeline->Init(mRenderSystem);
 	mTextPipeline->Init(mRenderSystem);
-	mMeshPipeline->Init(mRenderSystem);
 }
 
 LLGL::Extent2D RenderContext::_ScaleResolution(const LLGL::Extent2D& res, float scale)

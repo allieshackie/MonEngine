@@ -7,6 +7,7 @@
 #include "Graphics/Core/Texture.h"
 #include "Entity/EntityRegistry.h"
 #include "Entity/Components/MapComponent.h"
+#include "Entity/Components/MeshComponent.h"
 #include "Entity/Components/SpriteComponent.h"
 #include "Entity/Components/TransformComponent.h"
 
@@ -29,7 +30,7 @@ void SpritePipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 
 	commandBuffer.SetVertexBuffer(*mVertexBuffer);
 
 	const auto spriteView = entityRegistry.GetEnttRegistry().view<const TransformComponent, const SpriteComponent>(
-		entt::exclude<MapComponent>);
+		entt::exclude<MapComponent, MeshComponent>);
 	spriteView.each([this, &commandBuffer, &pvMat](const TransformComponent& transform, const SpriteComponent& sprite)
 	{
 		_Render(commandBuffer, pvMat, transform, sprite);

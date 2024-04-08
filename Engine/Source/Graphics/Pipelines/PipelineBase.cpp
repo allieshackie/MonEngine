@@ -5,11 +5,12 @@
 
 #include "PipelineBase.h"
 
-PipelineBase::PipelineBase(const LLGL::RenderSystemPtr& renderSystem, const char* vertexFile, const char* fragmentFile)
+PipelineBase::PipelineBase(const LLGL::RenderSystemPtr& renderSystem, const char* vertexFile, const char* fragmentFile,
+                           LLGL::PrimitiveTopology topology)
 {
 	_InitConstantBuffer(renderSystem);
 	_InitShader(renderSystem, vertexFile, fragmentFile);
-	_InitPipeline(renderSystem);
+	_InitPipeline(renderSystem, topology);
 	_InitResourceHeap(renderSystem);
 }
 
@@ -23,7 +24,7 @@ void PipelineBase::_InitShader(const LLGL::RenderSystemPtr& renderSystem, const 
 {
 	LLGL::VertexFormat vertexFormat;
 	vertexFormat.AppendAttribute({"position", LLGL::Format::RGB32Float});
-	vertexFormat.AppendAttribute({"color", LLGL::Format::RGBA32Float});
+	vertexFormat.AppendAttribute({"normal", LLGL::Format::RGB32Float});
 	vertexFormat.AppendAttribute({"texCoord", LLGL::Format::RG32Float});
 
 	std::string vertPath = SHADERS_FOLDER;
@@ -36,7 +37,7 @@ void PipelineBase::_InitShader(const LLGL::RenderSystemPtr& renderSystem, const 
 	                                   fragPath.c_str());
 }
 
-void PipelineBase::_InitPipeline(const LLGL::RenderSystemPtr& renderSystem)
+void PipelineBase::_InitPipeline(const LLGL::RenderSystemPtr& renderSystem, LLGL::PrimitiveTopology topology)
 {
 	// All layout bindings that will be used by graphics and compute pipelines
 	// Create pipeline layout
@@ -49,12 +50,13 @@ void PipelineBase::_InitPipeline(const LLGL::RenderSystemPtr& renderSystem)
 		pipelineDesc.vertexShader = &mShader->GetVertexShader();
 		pipelineDesc.fragmentShader = &mShader->GetFragmentShader();
 		pipelineDesc.pipelineLayout = mPipelineLayout;
-		pipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::TriangleStrip;
+		pipelineDesc.primitiveTopology = topology;
 		pipelineDesc.blend.targets[0].blendEnabled = true;
+		pipelineDesc.rasterizer.cullMode = LLGL::CullMode::Disabled;
 
 		// Enable depth test and writing
-		//pipelineDesc.depth.testEnabled = true;
-		//pipelineDesc.depth.writeEnabled = true;
+		pipelineDesc.depth.testEnabled = true;
+		pipelineDesc.depth.writeEnabled = true;
 	}
 	mPipeline = renderSystem->CreatePipelineState(pipelineDesc);
 }

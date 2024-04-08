@@ -17,7 +17,9 @@ class EntityRegistry;
 class MapPipeline : public PipelineBase
 {
 public:
-	MapPipeline(const LLGL::RenderSystemPtr& renderSystem);
+	MapPipeline(const LLGL::RenderSystemPtr& renderSystem, LLGL::PipelineLayout& meshPipelineLayout,
+	            LLGL::PipelineLayout& spritePipelineLayout, LLGL::Buffer* meshConstantBuffer,
+	            LLGL::Buffer* spriteConstantBuffer);
 
 	void Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat, EntityRegistry& entityRegistry,
 	            MeshPipeline& meshPipeline, SpritePipeline& spritePipeline) const;
@@ -39,20 +41,27 @@ private:
 	                            glm::vec4& clip) const;
 	glm::vec4 _GetClipForTile(const MapComponent& mapComponent, int index) const;
 
-	LLGL::ResourceHeap* mMapResourceHeap = nullptr;
+	LLGL::ResourceHeap* mMapMeshResourceHeap = nullptr;
+	LLGL::ResourceHeap* mMapSpriteResourceHeap = nullptr;
 
 	LLGL::Buffer* mVertexBuffer = nullptr;
 	LLGL::Sampler* mSampler = nullptr;
 
 	std::vector<Vertex> mVertices = {
-		{{-0.5, -0.5, 1}, {1, 1, 1, 1}, {0, 1}}, // top left
-		{{-0.5, 0.5, 1}, {1, 1, 1, 1}, {0, 0}}, // bottom left
-		{{0.5, -0.5, 1}, {1, 1, 1, 1}, {1, 1}}, // top right
-		{{0.5, 0.5, 1}, {1, 1, 1, 1}, {1, 0}}, // bottom right
+		{{-0.5, -0.5, 1}, {1, 1, 1}, {0, 1}}, // top left
+		{{-0.5, 0.5, 1}, {1, 1, 1}, {0, 0}}, // bottom left
+		{{0.5, -0.5, 1}, {1, 1, 1}, {1, 1}}, // top right
+		{{0.5, 0.5, 1}, {1, 1, 1}, {1, 0}}, // bottom right
 	};
 
 	// texture id, texture ptr
 	std::vector<LLGL::Texture*> mGeneratedTextures;
 
 	const LLGL::Extent2D mTextureSize = {512, 512};
+
+	LLGL::PipelineLayout& mMeshPipelineLayout;
+	LLGL::PipelineLayout& mSpritePipelineLayout;
+
+	LLGL::Buffer* mMeshConstantBuffer = nullptr;
+	LLGL::Buffer* mSpriteConstantBuffer = nullptr;
 };

@@ -1,4 +1,5 @@
 #include "Entity/Descriptions/CollisionDescription.h"
+#include "Entity/Descriptions/MeshDescription.h"
 #include "Entity/Descriptions/PhysicsDescription.h"
 #include "Entity/Descriptions/PlayerDescription.h"
 #include "Entity/Descriptions/SpriteDescription.h"
@@ -59,6 +60,7 @@ void EngineContext::_DrawAxis() const
 void EngineContext::_InitDescriptions() const
 {
 	mDescriptionFactory->RegisterDescription<CollisionDescription>(CollisionDescription::JsonName);
+	mDescriptionFactory->RegisterDescription<MeshDescription>(MeshDescription::JsonName);
 	mDescriptionFactory->RegisterDescription<PhysicsDescription>(PhysicsDescription::JsonName);
 	mDescriptionFactory->RegisterDescription<PlayerDescription>(PlayerDescription::JsonName);
 	mDescriptionFactory->RegisterDescription<SpriteDescription>(SpriteDescription::JsonName);

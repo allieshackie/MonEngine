@@ -73,6 +73,6 @@ void MapRegistry::_ParseMapData(const MapData& mapData, EntityId entityId, Entit
 	if (mapData.hasDimension)
 	{
 		// TODO: Should maps be able to define different meshes?
-		entityReg.AddComponent<MeshComponent>(entityId, "MapBox.obj");
+		entityReg.AddComponent<MeshComponent>(entityId, "PlainBox.obj");
 	}
 }

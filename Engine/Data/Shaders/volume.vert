@@ -1,9 +1,10 @@
 #version 460
 
-layout(std140) uniform VolumeSettings
+layout(std140) uniform Settings 
 {
-	mat4 pvmMat;
-	mat4 mMat;
+    mat4 pvmMat;
+    mat4 textureClip;
+    mat4 mMat;
 };
 
 in vec3 position;

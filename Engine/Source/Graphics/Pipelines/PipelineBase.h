@@ -7,12 +7,16 @@
 class PipelineBase
 {
 public:
-	PipelineBase(const LLGL::RenderSystemPtr& renderSystem, const char* vertexFile, const char* fragmentFile);
+	PipelineBase(const LLGL::RenderSystemPtr& renderSystem, const char* vertexFile, const char* fragmentFile,
+	             LLGL::PrimitiveTopology topology = LLGL::PrimitiveTopology::TriangleStrip);
+
+	LLGL::PipelineLayout& GetPipelineLayout() const { return *mPipelineLayout; }
+	LLGL::Buffer* GetConstantBuffer() const { return mConstantBuffer; }
 
 protected:
 	void _InitConstantBuffer(const LLGL::RenderSystemPtr& renderSystem);
 	void _InitShader(const LLGL::RenderSystemPtr& renderSystem, const char* vertexFile, const char* fragmentFile);
-	void _InitPipeline(const LLGL::RenderSystemPtr& renderSystem);
+	void _InitPipeline(const LLGL::RenderSystemPtr& renderSystem, LLGL::PrimitiveTopology topology);
 	void _InitResourceHeap(const LLGL::RenderSystemPtr& renderSystem);
 
 	LLGL::PipelineLayout* mPipelineLayout = nullptr;

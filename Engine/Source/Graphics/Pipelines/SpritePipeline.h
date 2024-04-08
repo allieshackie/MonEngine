@@ -26,9 +26,9 @@ private:
 	LLGL::Buffer* mVertexBuffer = nullptr;
 
 	std::vector<Vertex> mVertices = {
-		{{-0.5, -0.5, 1}, {1, 1, 1, 1}, {0, 1}}, // top left
-		{{-0.5, 0.5, 1}, {1, 1, 1, 1}, {0, 0}}, // bottom left
-		{{0.5, -0.5, 1}, {1, 1, 1, 1}, {1, 1}}, // top right
-		{{0.5, 0.5, 1}, {1, 1, 1, 1}, {1, 0}}, // bottom right
+		{{-0.5, -0.5, 1}, {1, 1, 1}, {0, 1}}, // top left
+		{{-0.5, 0.5, 1}, {1, 1, 1}, {0, 0}}, // bottom left
+		{{0.5, -0.5, 1}, {1, 1, 1}, {1, 1}}, // top right
+		{{0.5, 0.5, 1}, {1, 1, 1}, {1, 0}}, // bottom right
 	};
 };

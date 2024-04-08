@@ -1,6 +1,7 @@
 #pragma once
-#include <LLGL/LLGL.h>
 #include <glm/mat4x4.hpp>
+
+#include "PipelineBase.h"
 #include "Entity/Components/MeshComponent.h"
 
 class EntityRegistry;
@@ -17,10 +18,10 @@ struct MeshVBO
 	int mNumIndices = 0;
 };
 
-class MeshPipeline
+class MeshPipeline : public PipelineBase
 {
 public:
-	void Init(LLGL::RenderSystemPtr& renderSystem);
+	MeshPipeline(LLGL::RenderSystemPtr& renderSystem);
 
 	void Render(LLGL::CommandBuffer& commands, const glm::mat4 pvMat, EntityRegistry& entityRegistry);
 	void RenderMap(LLGL::CommandBuffer& commands, const glm::mat4 pvMat, const MeshComponent& meshComponent,
@@ -35,20 +36,7 @@ public:
 private:
 	int _SetMeshVBuffer(LLGL::CommandBuffer& commands, const MeshComponent& meshComponent);
 
-	LLGL::PipelineState* mPipeline = nullptr;
-	std::unique_ptr<Shader> mShader = nullptr;
-	LLGL::ResourceHeap* mVolumeResourceHeap = nullptr;
-
-	LLGL::Buffer* mConstantBuffer = nullptr;
-
 	std::unordered_map<std::string, MeshVBO> mMeshVertexBuffers;
 
 	MeshVBO mTestMesh;
-
-	struct VolumeSettings
-	{
-		glm::mat4 pvmMat = glm::mat4();
-		glm::mat4 mMat = glm::mat4();
-	}
-	mVolumeSettings = {};
 };

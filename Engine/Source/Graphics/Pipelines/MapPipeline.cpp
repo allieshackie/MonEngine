@@ -13,8 +13,14 @@
 
 #include "MapPipeline.h"
 
-MapPipeline::MapPipeline(const LLGL::RenderSystemPtr& renderSystem) : PipelineBase(
-	renderSystem, "sprite.vert", "sprite.frag")
+MapPipeline::MapPipeline(const LLGL::RenderSystemPtr& renderSystem, LLGL::PipelineLayout& meshPipelineLayout,
+                         LLGL::PipelineLayout& spritePipelineLayout, LLGL::Buffer* meshConstantBuffer,
+                         LLGL::Buffer* spriteConstantBuffer)
+	: PipelineBase(renderSystem, "sprite.vert", "sprite.frag"),
+	  mMeshPipelineLayout(meshPipelineLayout),
+	  mSpritePipelineLayout(spritePipelineLayout),
+	  mMeshConstantBuffer(meshConstantBuffer),
+	  mSpriteConstantBuffer(spriteConstantBuffer)
 {
 	// Create nearest sampler
 	LLGL::SamplerDescriptor samplerDesc;
@@ -42,7 +48,7 @@ void MapPipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvM
 	map2DView.each([this, &commandBuffer, &pvMat](const MapComponent& map, const TransformComponent& transform)
 	{
 		// Set resources
-		commandBuffer.SetResourceHeap(*mMapResourceHeap, map.mGeneratedTextureId);
+		commandBuffer.SetResourceHeap(*mMapSpriteResourceHeap, map.mGeneratedTextureId);
 		//spritePipeline.
 	});
 
@@ -55,7 +61,7 @@ void MapPipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvM
 	{
 		// Set resources
 		meshPipeline.SetPipeline(commandBuffer);
-		commandBuffer.SetResourceHeap(*mMapResourceHeap, map.mGeneratedTextureId);
+		commandBuffer.SetResourceHeap(*mMapMeshResourceHeap, map.mGeneratedTextureId);
 		meshPipeline.RenderMap(commandBuffer, pvMat, mesh, transform);
 	});
 }
@@ -86,20 +92,37 @@ void MapPipeline::_UpdateUniformsModel(LLGL::CommandBuffer& commandBuffer, glm::
 void MapPipeline::_CreateMapResourceHeap(const LLGL::RenderSystemPtr& renderSystem)
 {
 	// Release previous resource heap if set
-	renderSystem->Release(*mMapResourceHeap);
+	renderSystem->Release(*mMapMeshResourceHeap);
 
-	std::vector<LLGL::ResourceViewDescriptor> resourceViews;
-	resourceViews.reserve(mGeneratedTextures.size() * 3);
+	std::vector<LLGL::ResourceViewDescriptor> meshResourceViews;
+	meshResourceViews.reserve(mGeneratedTextures.size() * 3);
 
 	for (const auto& texture : mGeneratedTextures)
 	{
-		resourceViews.emplace_back(mConstantBuffer);
-		resourceViews.emplace_back(texture);
-		resourceViews.emplace_back(mSampler);
+		meshResourceViews.emplace_back(mMeshConstantBuffer);
+		meshResourceViews.emplace_back(texture);
+		meshResourceViews.emplace_back(mSampler);
 	}
 
 	// Add to Map ResourceHeap
-	mMapResourceHeap = renderSystem->CreateResourceHeap(mPipelineLayout, resourceViews);
+	mMapMeshResourceHeap = renderSystem->CreateResourceHeap(mPipelineLayout, meshResourceViews);
+
+
+	// Release previous resource heap if set
+	renderSystem->Release(*mMapSpriteResourceHeap);
+
+	std::vector<LLGL::ResourceViewDescriptor> spriteResourceViews;
+	spriteResourceViews.reserve(mGeneratedTextures.size() * 3);
+
+	for (const auto& texture : mGeneratedTextures)
+	{
+		spriteResourceViews.emplace_back(mSpriteConstantBuffer);
+		spriteResourceViews.emplace_back(texture);
+		spriteResourceViews.emplace_back(mSampler);
+	}
+
+	// Add to Map ResourceHeap
+	mMapSpriteResourceHeap = renderSystem->CreateResourceHeap(mPipelineLayout, spriteResourceViews);
 }
 
 void MapPipeline::GenerateMapTexture(const LLGL::RenderSystemPtr& renderSystem,
