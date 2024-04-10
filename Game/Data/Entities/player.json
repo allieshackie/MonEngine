@@ -2,18 +2,22 @@
     "template_name": "player", 
     "components" : {
         "transform" : {
-            "position": [0,2,5],
+            "position": [0,0,0],
             "size": [1,1,1],
             "rotation": [0,0,0]
         },
         "sprite": {
-            "resource_path": "awesomeface.png"
+            "resource_path": "container.jpg"
+        },
+        "mesh": {
+            "mesh_path": "PlainBox.obj" 
         },
         "player": {},
         "rigidbody": {
             "mass": 1.0,
             "max_speed": 10.0,
             "acceleration_rate": 10.0
+            //"is_dynamic": true
         },
         "collider": {
             "collider_shape": 0, // Box collider

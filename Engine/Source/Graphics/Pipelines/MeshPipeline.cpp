@@ -93,6 +93,11 @@ void MeshPipeline::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& command
 	commands.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
 }
 
+void MeshPipeline::SetResourceHeapTexture(LLGL::CommandBuffer& commands, int textureId) const
+{
+	commands.SetResourceHeap(*mResourceHeap, textureId);
+}
+
 int MeshPipeline::_SetMeshVBuffer(LLGL::CommandBuffer& commands, const MeshComponent& meshComponent)
 {
 	const auto meshVbo = mMeshVertexBuffers.find(meshComponent.mMeshPath);

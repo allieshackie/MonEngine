@@ -9,13 +9,14 @@
             "name": "ground_map.json",
             "position": [0,-2,0],
             "rotation": [-68,0,0],
-            "tile_size": 1
+            "tile_size": 1,
+            "has_dimension": true
         }
     ],
     "entities": [
         {
             "name": "player",
-            "position": [0,0,0]
+            "position": [0,2,0]
         }
     ]
 }

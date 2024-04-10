@@ -32,6 +32,7 @@ public:
 	void UpdateProjectionViewModelUniform(LLGL::CommandBuffer& commands, glm::mat4 pvMat,
 	                                      const TransformComponent& transform) const;
 
+	void SetResourceHeapTexture(LLGL::CommandBuffer& commands, int textureId) const;
 
 private:
 	int _SetMeshVBuffer(LLGL::CommandBuffer& commands, const MeshComponent& meshComponent);

@@ -12,7 +12,7 @@ public:
 	void CloseMap(const std::string& mapId);
 
 private:
-	void _ParseMapData(const MapData& mapData, EntityId entityId, EntityRegistry& entityReg) const;
+	bool _ParseMapData(const MapData& mapData, EntityId entityId, EntityRegistry& entityReg) const;
 
 	static constexpr char ID_STRING[] = "id";
 

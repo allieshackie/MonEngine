@@ -4,7 +4,7 @@ struct MapComponent
 {
 	std::string mId;
 	//Set once texture has been generated
-	int mGeneratedTextureId = 0;
+	int mGeneratedTextureId = -1;
 
 	int mRows = 0;
 	int mColumns = 0;

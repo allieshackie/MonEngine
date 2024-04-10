@@ -12,17 +12,18 @@ void MapRegistry::OpenMap(const EngineContext& context, const MapData& mapData) 
 	auto& entityReg = context.GetEntityRegistry();
 	const auto entityId = entityReg.CreateEntity();
 
-	_ParseMapData(mapData, entityId, entityReg);
-
-	// Generate texture
-	context.GenerateMapTexture(entityId);
+	if (_ParseMapData(mapData, entityId, entityReg))
+	{
+		// Generate texture
+		context.GenerateMapTexture(entityId);
+	}
 }
 
 void MapRegistry::CloseMap(const std::string& mapId)
 {
 }
 
-void MapRegistry::_ParseMapData(const MapData& mapData, EntityId entityId, EntityRegistry& entityReg) const
+bool MapRegistry::_ParseMapData(const MapData& mapData, EntityId entityId, EntityRegistry& entityReg) const
 {
 	std::string fullMapPath = MAPS_FOLDER;
 	fullMapPath.append(mapData.name);
@@ -39,8 +40,18 @@ void MapRegistry::_ParseMapData(const MapData& mapData, EntityId entityId, Entit
 	assert(json.contains(TEXTURE_DATA_STRING));
 	const auto textureData = json[TEXTURE_DATA_STRING];
 	std::string texturePath = textureData[TEXTURE_PATH_STRING];
-	int textureRows = textureData[ROWS_STRING];
-	int textureColumns = textureData[COLUMNS_STRING];
+
+	int textureRows = 0;
+	if (textureData.contains(ROWS_STRING))
+	{
+		textureRows = textureData[ROWS_STRING];
+	}
+
+	int textureColumns = 0;
+	if (textureData.contains(COLUMNS_STRING))
+	{
+		textureColumns = textureData[COLUMNS_STRING];
+	}
 
 	assert(json.contains(TEXTURE_SIZE_STRING));
 	auto textureSize = json[TEXTURE_SIZE_STRING];
@@ -61,7 +72,7 @@ void MapRegistry::_ParseMapData(const MapData& mapData, EntityId entityId, Entit
 		data.emplace_back(std::stoi(str));
 	}
 
-	entityReg.AddComponent<MapComponent>(entityId, mapData.name, 0, rows, columns, textureDimension, texturePath,
+	entityReg.AddComponent<MapComponent>(entityId, mapData.name, -1, rows, columns, textureDimension, texturePath,
 	                                     textureRows, textureColumns, dataPath, data);
 
 	auto size = glm::vec3{
@@ -75,4 +86,6 @@ void MapRegistry::_ParseMapData(const MapData& mapData, EntityId entityId, Entit
 		// TODO: Should maps be able to define different meshes?
 		entityReg.AddComponent<MeshComponent>(entityId, "PlainBox.obj");
 	}
+
+	return textureRows != 0 && textureColumns != 0;
 }

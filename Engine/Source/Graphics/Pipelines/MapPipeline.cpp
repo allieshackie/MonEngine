@@ -47,9 +47,9 @@ void MapPipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvM
 
 	map2DView.each([this, &commandBuffer, &pvMat](const MapComponent& map, const TransformComponent& transform)
 	{
-		// Set resources
+		// TODO:  Set resources
 		commandBuffer.SetResourceHeap(*mMapSpriteResourceHeap, map.mGeneratedTextureId);
-		//spritePipeline.
+		// TODO: spritePipeline.
 	});
 
 	const auto map3DView = entityRegistry.GetEnttRegistry().view<
@@ -61,7 +61,15 @@ void MapPipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvM
 	{
 		// Set resources
 		meshPipeline.SetPipeline(commandBuffer);
-		commandBuffer.SetResourceHeap(*mMapMeshResourceHeap, map.mGeneratedTextureId);
+		if (map.mGeneratedTextureId != -1) 
+		{
+			commandBuffer.SetResourceHeap(*mMapMeshResourceHeap, map.mGeneratedTextureId);
+		}
+		else
+		{
+			const auto textureId = ResourceManager::GetTextureId(map.mTexturePath);
+			meshPipeline.SetResourceHeapTexture(commandBuffer, textureId);
+		}
 		meshPipeline.RenderMap(commandBuffer, pvMat, mesh, transform);
 	});
 }
@@ -167,8 +175,8 @@ void MapPipeline::_WriteMapTexture(LLGL::CommandBuffer& commandBuffer, LLGL::Pip
                                    LLGL::RenderTarget* writeTarget, LLGL::Texture* writtenTexture,
                                    EntityRegistry& entityRegistry, EntityId mapId)
 {
-	auto mapComponent = entityRegistry.GetComponent<MapComponent>(mapId);
-	auto transformComponent = entityRegistry.GetComponent<TransformComponent>(mapId);
+	auto& mapComponent = entityRegistry.GetComponent<MapComponent>(mapId);
+	const auto& transformComponent = entityRegistry.GetComponent<TransformComponent>(mapId);
 	// Set the render target and clear the color buffer
 	commandBuffer.BeginRenderPass(*writeTarget);
 	{

@@ -4,8 +4,8 @@
 #include "Entity/Descriptions/PlayerDescription.h"
 #include "Entity/Descriptions/SpriteDescription.h"
 #include "Entity/Descriptions/TransformDescription.h"
-#include "GameInterface.h"
 #include "GUI/GUISystem.h"
+#include "GameInterface.h"
 
 #include "EngineContext.h"
 
