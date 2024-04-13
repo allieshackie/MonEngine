@@ -31,7 +31,7 @@ void EngineContext::_Init(const LLGL::Extent2D screenSize, const LLGL::UTF8Strin
 
 	mLevelManager = std::make_unique<LevelManager>();
 
-	mCollisionSystem = std::make_unique<CollisionSystem>(*mEventPublisher);
+	mCollisionSystem = std::make_unique<CollisionSystem>();
 	mPhysicsSystem = std::make_unique<PhysicsSystem>();
 }
 

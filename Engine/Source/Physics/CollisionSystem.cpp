@@ -2,48 +2,37 @@
 #include "Entity/Components/PhysicsComponent.h"
 #include "Entity/Components/TransformComponent.h"
 #include "Entity/EntityRegistry.h"
-#include "Core/EventListener.h"
 
 #include "CollisionSystem.h"
 
-// TODO: Potential collision detection methods to explore: AABB, OBB, Sweep and Prune, Hierarchical Grids, Spatial Partitioning
-
-CollisionSystem::CollisionSystem(EventPublisher& eventPublisher)
-	: mEventPublisher(eventPublisher)
-{
-	EventFunc addedFunc = [this](int entityId, const std::type_info& typeInfo)
-	{
-		_OnColliderAdded(entityId, typeInfo);
-	};
-	mEventPublisher.AddListener("component_added", addedFunc);
-
-	EventFunc removedFunc = [this](int entityId, const std::type_info& typeInfo)
-	{
-		_OnColliderAdded(entityId, typeInfo);
-	};
-
-	mEventPublisher.AddListener("component_removed", removedFunc);
-}
-
 void CollisionSystem::Update(EntityRegistry& entityRegistry) const
 {
-	const auto view = entityRegistry.GetEnttRegistry().view<
-		CollisionComponent, TransformComponent>();
-	view.each([=](const auto& collider, auto& transform)
+	const auto staticView = entityRegistry.GetEnttRegistry().view<
+		CollisionComponent, TransformComponent>(entt::exclude<PhysicsComponent>);
+	const auto dynamicView = entityRegistry.GetEnttRegistry().view<
+		CollisionComponent, TransformComponent, PhysicsComponent>();
+
+	dynamicView.each([=](const auto& collider, const auto& transform, auto& physics)
 	{
+		staticView.each([=](const auto& staticCollider, const auto& staticTransform)
+		{
+		});
 	});
 }
 
-void CollisionSystem::_CheckForCollisions(const CollisionComponent& collider, TransformComponent& transform)
+void CollisionSystem::_CheckForCollisions(const CollisionComponent& collider, TransformComponent& transform,
+                                          const CollisionComponent& secondCollision,
+                                          TransformComponent& secondTransform)
 {
 	// AABB check
 	if (collider.mColliderShape == ColliderShapes::Box)
 	{
+		// vs AABB check
+		if (secondCollision.mColliderShape == ColliderShapes::Box)
+		{
+			_AABBCheck(collider, transform, secondCollision, secondTransform);
+		}
 	}
-}
-
-void CollisionSystem::_UpdatePositionIfColliding(TransformComponent& transform)
-{
 }
 
 bool CollisionSystem::_AABBCheck(const CollisionComponent& firstCollider, TransformComponent& firstTransform,
@@ -58,22 +47,4 @@ bool CollisionSystem::_AABBCheck(const CollisionComponent& firstCollider, Transf
 	const glm::vec3 secondColliderWorldPosition = secondTransform.mPosition * secondCollider.mSize;
 
 	return false;
-}
-
-void CollisionSystem::_OnColliderAdded(int entityId, const std::type_info& typeInfo)
-{
-	if (typeInfo == typeid(CollisionComponent))
-	{
-		mEntitiesWithColliders.push_back(entityId);
-	}
-}
-
-void CollisionSystem::_OnColliderRemoved(int entityId, const std::type_info& typeInfo)
-{
-	if (typeInfo == typeid(CollisionComponent))
-	{
-		mEntitiesWithColliders.erase(
-			std::remove(mEntitiesWithColliders.begin(), mEntitiesWithColliders.end(), entityId),
-			mEntitiesWithColliders.end());
-	}
 }

@@ -16,8 +16,8 @@
         "rigidbody": {
             "mass": 1.0,
             "max_speed": 10.0,
-            "acceleration_rate": 10.0
-            //"is_dynamic": true
+            "acceleration_rate": 10.0,
+            "is_dynamic": true
         },
         "collider": {
             "collider_shape": 0, // Box collider

@@ -14,7 +14,7 @@ static void _ApplyGravity(PhysicsComponent& physics)
 {
 	if (physics.mIsDynamic)
 	{
-		physics.mAcceleration.y -= DEFAULT_GRAVITY;
+		physics.mVelocity.y = -DEFAULT_GRAVITY;
 	}
 }
 
@@ -22,17 +22,13 @@ static void _TickMovement(float deltaTime, PhysicsComponent& physics, TransformC
 {
 	// integrate velocity
 	const auto& pos = transform.mPosition;
-	const auto& velocity = physics.mVelocity;
-	float friction = physics.mFriction;
 
-	const glm::vec3 newVelocity = velocity * friction;
-	physics.mVelocity = newVelocity;
-
-	//printf("\rvelocity: %f, %f, %f", newVelocity.x, newVelocity.y, newVelocity.z);
-	//fflush(stdout);
+	physics.mVelocity.x *= physics.mFriction;
+	physics.mVelocity.z *= physics.mFriction;
 
 	transform.mPosition = {
-		pos.x + newVelocity.x * deltaTime, pos.y + newVelocity.y * deltaTime, pos.z + newVelocity.z * deltaTime
+		pos.x + physics.mVelocity.x * deltaTime, pos.y + physics.mVelocity.y * deltaTime,
+		pos.z + physics.mVelocity.z * deltaTime
 	};
 }
 

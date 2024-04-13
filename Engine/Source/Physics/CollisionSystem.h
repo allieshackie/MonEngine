@@ -1,34 +1,23 @@
 #pragma once
 
 class EntityRegistry;
-class EventPublisher;
-class EventSubscription;
-class MapSystem;
 
 struct CollisionComponent;
 struct TransformComponent;
 
+// TODO: optimize by only checking collision on shapes that have moved in the last frame
+
 class CollisionSystem
 {
 public:
-	CollisionSystem(EventPublisher& eventPublisher);
-
 	void Update(EntityRegistry& entityRegistry) const;
 
 private:
-	void _CheckForCollisions(const CollisionComponent& collider, TransformComponent& transform);
+	void _CheckForCollisions(const CollisionComponent& collider, TransformComponent& transform,
+	                         const CollisionComponent& secondCollision, TransformComponent& secondTransform);
+
 	void _UpdatePositionIfColliding(TransformComponent& transform);
 
 	bool _AABBCheck(const CollisionComponent& firstCollider, TransformComponent& firstTransform,
 	                const CollisionComponent& secondCollider, TransformComponent& secondTransform);
-
-	void _OnColliderAdded(int entityId, const std::type_info& typeInfo);
-	void _OnColliderRemoved(int entityId, const std::type_info& typeInfo);
-
-	std::vector<int> mEntitiesWithColliders;
-
-	EventPublisher& mEventPublisher;
-
-	std::unique_ptr<EventSubscription> mAddComponentSubscription;
-	std::unique_ptr<EventSubscription> mRemoveComponentSubscription;
 };

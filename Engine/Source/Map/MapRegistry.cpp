@@ -1,6 +1,7 @@
 #include "Core/EngineContext.h"
 #include "Core/FileSystem.h"
 #include "Entity/EntityRegistry.h"
+#include "Entity/Components/CollisionComponent.h"
 #include "Entity/Components/MapComponent.h"
 #include "Entity/Components/TransformComponent.h"
 
@@ -75,6 +76,7 @@ bool MapRegistry::_ParseMapData(const MapData& mapData, EntityId entityId, Entit
 	entityReg.AddComponent<MapComponent>(entityId, mapData.name, -1, rows, columns, textureDimension, texturePath,
 	                                     textureRows, textureColumns, dataPath, data);
 
+	// TODO: This is only accounting for 2D maps, need to have the size of the 3D mesh if its overridden
 	auto size = glm::vec3{
 		static_cast<float>(columns) * mapData.tileSize,
 		static_cast<float>(rows) * mapData.tileSize, 1
@@ -86,6 +88,8 @@ bool MapRegistry::_ParseMapData(const MapData& mapData, EntityId entityId, Entit
 		// TODO: Should maps be able to define different meshes?
 		entityReg.AddComponent<MeshComponent>(entityId, "PlainBox.obj");
 	}
+
+	entityReg.AddComponent<CollisionComponent>(entityId, ColliderShapes::Box, size);
 
 	return textureRows != 0 && textureColumns != 0;
 }
