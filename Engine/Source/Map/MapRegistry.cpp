@@ -89,7 +89,7 @@ bool MapRegistry::_ParseMapData(const MapData& mapData, EntityId entityId, Entit
 		entityReg.AddComponent<MeshComponent>(entityId, "PlainBox.obj");
 	}
 
-	entityReg.AddComponent<CollisionComponent>(entityId, ColliderShapes::Box, size);
+	entityReg.AddComponent<CollisionComponent>(entityId, ColliderShapes::Box, size, -1);
 
 	return textureRows != 0 && textureColumns != 0;
 }
