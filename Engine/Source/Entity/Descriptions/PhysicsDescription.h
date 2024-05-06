@@ -22,14 +22,8 @@ public:
 
 private:
 	static constexpr char MASS_STRING[] = "mass";
-	static constexpr char MAX_SPEED_STRING[] = "max_speed";
-	static constexpr char ACCELERATION_RATE_STRING[] = "acceleration_rate";
-	static constexpr char IS_DYNAMIC_STRING[] = "is_dynamic";
 	static constexpr char FRICTION_STRING[] = "friction";
 
 	float mMass = 0.0f;
-	float mMaxSpeed = 0.0f;
-	float mAccelerationRate = 0.0f;
-	bool mIsDynamic = false;
 	float mFriction = 1.0f;
 };

@@ -54,13 +54,11 @@ void SpritePipeline::_UpdateUniforms(LLGL::CommandBuffer& commandBuffer, const g
 	// Update
 	auto model = glm::mat4(1.0f);
 	model = translate(model, transform.mPosition);
-	model = translate(model, glm::vec3(0.5f * transform.mSize.x, 0.5f * transform.mSize.y, 0.0f));
 	// Apply rotation in ZXY order
 	model = rotate(model, glm::radians(transform.mRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
 	model = rotate(model, glm::radians(transform.mRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
 	model = rotate(model, glm::radians(transform.mRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
 
-	model = translate(model, glm::vec3(-0.5f * transform.mSize.x, -0.5f * transform.mSize.y, 0.0f));
 	model = scale(model, transform.mSize);
 
 	const Settings settings = {pvMat * model, glm::mat4(1.0f), glm::mat4()};

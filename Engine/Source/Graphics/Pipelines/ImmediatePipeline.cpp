@@ -1,9 +1,8 @@
 #include <glm/ext/matrix_transform.hpp>
+#include "LLGL/Utils/Parse.h"
 #include "LLGL/Utils/Utility.h"
 
 #include "ImmediatePipeline.h"
-
-#include "LLGL/Utils/Parse.h"
 
 void ImmediatePipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat)
 {
@@ -63,14 +62,14 @@ void ImmediatePipeline::Init(LLGL::RenderSystemPtr& renderSystem)
 
 	// Create pipeline layout
 	// TODO: Does the pipeline layout need to be removed if we aren't using resource heap?
-	auto pipelineLayout = renderSystem->CreatePipelineLayout(
+	mPipelineLayout = renderSystem->CreatePipelineLayout(
 		LLGL::Parse("heap{cbuffer(0):vert}"));
 	// Create graphics pipeline
 	LLGL::GraphicsPipelineDescriptor pointPipelineDesc;
 	{
 		pointPipelineDesc.vertexShader = &mShader->GetVertexShader();
 		pointPipelineDesc.fragmentShader = &mShader->GetFragmentShader();
-		pointPipelineDesc.pipelineLayout = pipelineLayout;
+		pointPipelineDesc.pipelineLayout = mPipelineLayout;
 		pointPipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::PointList;
 		pointPipelineDesc.blend.targets[0].blendEnabled = true;
 	}
@@ -86,7 +85,7 @@ void ImmediatePipeline::Init(LLGL::RenderSystemPtr& renderSystem)
 	{
 		linePipelineDesc.vertexShader = &mShader->GetVertexShader();
 		linePipelineDesc.fragmentShader = &mShader->GetFragmentShader();
-		linePipelineDesc.pipelineLayout = pipelineLayout;
+		linePipelineDesc.pipelineLayout = mPipelineLayout;
 		linePipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::LineList;
 		linePipelineDesc.blend.targets[0].blendEnabled = true;
 	}
@@ -102,7 +101,7 @@ void ImmediatePipeline::Init(LLGL::RenderSystemPtr& renderSystem)
 	{
 		circlePipelineDesc.vertexShader = &mShader->GetVertexShader();
 		circlePipelineDesc.fragmentShader = &mShader->GetFragmentShader();
-		circlePipelineDesc.pipelineLayout = pipelineLayout;
+		circlePipelineDesc.pipelineLayout = mPipelineLayout;
 		circlePipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::TriangleList;
 		circlePipelineDesc.blend.targets[0].blendEnabled = true;
 	}
@@ -111,6 +110,8 @@ void ImmediatePipeline::Init(LLGL::RenderSystemPtr& renderSystem)
 	mCircleVertexBuffer = renderSystem->CreateBuffer(
 		VertexBufferDesc(static_cast<std::uint32_t>(1000 * sizeof(DebugVertex)),
 		                 mShader->GetVertexFormat()));
+
+	_InitResourceHeap(renderSystem);
 }
 
 void ImmediatePipeline::_RenderPoints(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat)
@@ -123,7 +124,7 @@ void ImmediatePipeline::_RenderPoints(LLGL::CommandBuffer& commandBuffer, const 
 
 	// set graphics pipeline
 	commandBuffer.SetPipelineState(*mPointPipeline);
-	commandBuffer.SetResource(0, *mConstantBuffer);
+	commandBuffer.SetResourceHeap(*mResourceHeap);
 	commandBuffer.SetVertexBuffer(*mPointVertexBuffer);
 	UpdateProjectionViewUniform(commandBuffer, pvMat);
 	commandBuffer.Draw(mFramePointVertices.size(), 0);
@@ -139,7 +140,7 @@ void ImmediatePipeline::_RenderLines(LLGL::CommandBuffer& commandBuffer, const g
 
 	// set graphics pipeline
 	commandBuffer.SetPipelineState(*mLinePipeline);
-	commandBuffer.SetResource(0, *mConstantBuffer);
+	commandBuffer.SetResourceHeap(*mResourceHeap);
 	commandBuffer.SetVertexBuffer(*mLineVertexBuffer);
 	UpdateProjectionViewUniform(commandBuffer, pvMat);
 	commandBuffer.Draw(mFrameLineVertices.size(), 0);
@@ -155,7 +156,7 @@ void ImmediatePipeline::_RenderCircles(LLGL::CommandBuffer& commandBuffer, const
 
 	// set graphics pipeline
 	commandBuffer.SetPipelineState(*mCirclePipeline);
-	commandBuffer.SetResource(0, *mConstantBuffer);
+	commandBuffer.SetResourceHeap(*mResourceHeap);
 	commandBuffer.SetVertexBuffer(*mCircleVertexBuffer);
 	UpdateProjectionViewUniform(commandBuffer, pvMat);
 	commandBuffer.Draw(mFrameCircleVertices.size(), 0);
@@ -166,6 +167,16 @@ void ImmediatePipeline::_ClearVertices()
 	mFramePointVertices.clear();
 	mFrameLineVertices.clear();
 	mFrameCircleVertices.clear();
+}
+
+void ImmediatePipeline::_InitResourceHeap(const LLGL::RenderSystemPtr& renderSystem)
+{
+	// Resource Heap
+
+	std::vector<LLGL::ResourceViewDescriptor> resourceViews;
+	resourceViews.emplace_back(mConstantBuffer);
+
+	mResourceHeap = renderSystem->CreateResourceHeap(mPipelineLayout, resourceViews);
 }
 
 glm::vec3 ImmediatePipeline::_CalculateModelPoint(glm::vec3 pos, glm::vec3 size, glm::vec3 basePoint)

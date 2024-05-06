@@ -4,13 +4,15 @@
 #include <BulletSoftBody/btSoftBodyRigidBodyCollisionConfiguration.h>
 #include <BulletSoftBody/btSoftRigidDynamicsWorld.h>
 
+#include "PhysicsDebugDraw.h"
+
 class EngineContext;
 class EntityRegistry;
 
 class PhysicsSystem
 {
 public:
-	PhysicsSystem();
+	PhysicsSystem(EngineContext& engineContext);
 
 	void UpdateCollisionShapes(EntityRegistry& entityRegistry);
 	void Update(float deltaTime, EntityRegistry& entityRegistry);
@@ -29,4 +31,6 @@ private:
 
 	// world properties
 	btVector3 mGravityConst = {0.0f, -9.81f, 0.0f};
+
+	std::unique_ptr<PhysicsDebugDraw> mPhysicsDebugDraw;
 };

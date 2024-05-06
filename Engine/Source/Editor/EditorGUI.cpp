@@ -2,18 +2,18 @@
 #include <filesystem>
 
 #include "Core/LevelManager.h"
-#include "Input/InputHandler.h"
 
 #include "EditorGUI.h"
 
-EditorGUI::EditorGUI(EngineContext& engineContext, InputHandler& inputHandler, LevelManager& levelManager,
-                     MapRegistry& mapRegistry, RenderContext& renderContext) : mInputHandler(inputHandler)
+EditorGUI::EditorGUI()
 {
-	mMapEditor = std::make_unique<MapEditor>(engineContext, inputHandler, levelManager, mapRegistry, renderContext);
+	//mMapEditor = std::make_unique<MapEditor>(engineContext, inputHandler, levelManager, mapRegistry, renderContext);
+	mObjectGUI = std::make_unique<ObjectGUI>();
 }
 
-void EditorGUI::RenderGUI()
+void EditorGUI::Render(EntityRegistry& entityRegistry) const
 {
+	mObjectGUI->RenderGUI(entityRegistry);
 	// TODO: How can the camera be addressed?
 	/*
 	 *
@@ -35,7 +35,7 @@ void EditorGUI::_MainMenu(Camera& camera) const
 		if (ImGui::MenuItem("Editor"))
 		{
 			// TODO: Set Edit mode?
-			mInputHandler.AddEditorInputs(camera);
+			//mInputHandler.AddEditorInputs(camera);
 		}
 		ImGui::EndMainMenuBar();
 	}

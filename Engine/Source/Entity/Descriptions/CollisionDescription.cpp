@@ -2,7 +2,7 @@
 
 void CollisionDescription::ApplyToEntity(EntityId entity, EntityRegistry& entityRegistry)
 {
-	entityRegistry.AddComponent<CollisionComponent>(entity, mColliderShape, mSize, -1);
+	entityRegistry.AddComponent<CollisionComponent>(entity, mColliderShape, mSize, -1, false);
 }
 
 void CollisionDescription::ParseJSON(const nlohmann::json& json)

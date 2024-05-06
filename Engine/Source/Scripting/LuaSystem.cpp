@@ -51,6 +51,10 @@ void Mon::Lua::BindEngineContext(lua_State* state, const EngineContext& engine)
 	lua_pushcfunction(state, Mon::Engine::GetLevelNames);
 	lua_setfield(state, -2, "GetLevelNames");
 
+	// Add the getValue method to the metatable
+	lua_pushcfunction(state, Mon::Engine::OpenEditorMenu);
+	lua_setfield(state, -2, "OpenEditorMenu");
+
 	lua_pushstring(state, "__index");
 	lua_pushvalue(state, -2);
 	lua_settable(state, -3);
@@ -385,6 +389,17 @@ int Mon::Engine::GetLevelNames(lua_State* L)
 
 		// Return the Lua table containing the level names
 		return 1;
+	}
+
+	return 0;
+}
+
+int Mon::Engine::OpenEditorMenu(lua_State* L)
+{
+	auto userdata = static_cast<EngineContext**>(luaL_checkudata(L, 1, EngineTableName));
+	if (*userdata)
+	{
+		(*userdata)->OpenEditorMenu();
 	}
 
 	return 0;

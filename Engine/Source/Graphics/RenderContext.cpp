@@ -126,8 +126,7 @@ void RenderContext::BeginFrame() const
 	mCommands->BeginRenderPass(*mSwapChain);
 }
 
-void RenderContext::Render(const Camera& camera, EntityRegistry& entityRegistry,
-                           MapRegistry& mapRegistry) const
+void RenderContext::Render(const Camera& camera, EntityRegistry& entityRegistry) const
 {
 	const auto projectionViewMat = mProjection * camera.GetView();
 

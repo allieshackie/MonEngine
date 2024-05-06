@@ -6,7 +6,7 @@
 
 #include "PhysicsSystem.h"
 
-PhysicsSystem::PhysicsSystem()
+PhysicsSystem::PhysicsSystem(EngineContext& engineContext)
 {
 	mBroadPhase = std::make_unique<btDbvtBroadphase>();
 	mConstraintSolver = std::make_unique<btSequentialImpulseConstraintSolver>();
@@ -21,6 +21,10 @@ PhysicsSystem::PhysicsSystem()
 
 	// setup
 	mDynamicWorld->setGravity(mGravityConst);
+
+	mPhysicsDebugDraw = std::make_unique<PhysicsDebugDraw>(engineContext);
+	mDynamicWorld->setDebugDrawer(mPhysicsDebugDraw.get());
+	mDynamicWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
 }
 
 void PhysicsSystem::UpdateCollisionShapes(EntityRegistry& entityRegistry)
@@ -41,11 +45,13 @@ void PhysicsSystem::UpdateCollisionShapes(EntityRegistry& entityRegistry)
 			const auto boxShape = new btBoxShape(btVector3{size.x, size.y, size.z});
 
 			btTransform boxTransform;
-			boxTransform.setIdentity();
 			boxTransform.setOrigin(btVector3{position.x, position.y, position.z});
 			boxTransform.setRotation(_ConvertDegreesToQuat(rotation));
 
-			const btRigidBody::btRigidBodyConstructionInfo rbInfo(0, nullptr, boxShape, btVector3{0, 0, 0});
+			const btVector3 localInertia(0, 0, 0);
+			const auto motionState = new btDefaultMotionState(boxTransform);
+
+			const btRigidBody::btRigidBodyConstructionInfo rbInfo(0, motionState, boxShape, localInertia);
 
 			staticCollider.mColliderIndex = mDynamicWorld->getNumCollisionObjects();
 			mDynamicWorld->addRigidBody(new btRigidBody(rbInfo));
@@ -62,9 +68,8 @@ void PhysicsSystem::UpdateCollisionShapes(EntityRegistry& entityRegistry)
 			auto boxShape = new btBoxShape({size.x, size.y, size.z});
 
 			btTransform boxTransform;
-			boxTransform.setIdentity();
 
-			btScalar mass(1.f);
+			btScalar mass(physics.mMass);
 			btVector3 localInertia(0, 0, 0);
 			boxShape->calculateLocalInertia(mass, localInertia);
 
@@ -75,6 +80,7 @@ void PhysicsSystem::UpdateCollisionShapes(EntityRegistry& entityRegistry)
 			const btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, motionState, boxShape, localInertia);
 
 			collider.mColliderIndex = mDynamicWorld->getNumCollisionObjects();
+			collider.mIsDynamic = true;
 			mDynamicWorld->addRigidBody(new btRigidBody(rbInfo));
 		}
 	});
@@ -83,45 +89,32 @@ void PhysicsSystem::UpdateCollisionShapes(EntityRegistry& entityRegistry)
 void PhysicsSystem::Update(float deltaTime, EntityRegistry& entityRegistry)
 {
 	mDynamicWorld->stepSimulation(deltaTime);
+	mDynamicWorld->debugDrawWorld();
 
 	const auto view = entityRegistry.GetEnttRegistry().view<CollisionComponent, TransformComponent>();
 	view.each([=](const auto& collider, auto& transform)
 	{
-		int collisionIndex = collider.mColliderIndex;
-
-		if (collisionIndex < mDynamicWorld->getNumCollisionObjects())
+		if (collider.mIsDynamic)
 		{
-			btCollisionObject* obj = mDynamicWorld->getCollisionObjectArray()[collisionIndex];
-			btVector3 pos = obj->getWorldTransform().getOrigin();
-			btQuaternion orn = obj->getWorldTransform().getRotation();
+			int collisionIndex = collider.mColliderIndex;
 
-			transform.mPosition = {pos.x(), pos.y(), pos.z()};
-			transform.mRotation = _ConvertQuatToRadians(orn);
+			if (collisionIndex < mDynamicWorld->getNumCollisionObjects())
+			{
+				btCollisionObject* obj = mDynamicWorld->getCollisionObjectArray()[collisionIndex];
+				btVector3 pos = obj->getWorldTransform().getOrigin();
+				btQuaternion orn = obj->getWorldTransform().getRotation();
+
+				transform.mPosition = {pos.x(), pos.y(), pos.z()};
+				transform.mRotation = _ConvertQuatToRadians(orn);
+			}
 		}
 	});
-
-	// TODO: Debug draw the bounds of the colliders to check if box is falling around ground
-	/*
-	 *
-	//print positions of all objects
-	for (int i = 0; i < mDynamicWorld->getNumCollisionObjects(); i++)
-	{
-		btCollisionObject* obj = mDynamicWorld->getCollisionObjectArray()[i];
-		btVector3 pos = obj->getWorldTransform().getOrigin();
-		btQuaternion orn = obj->getWorldTransform().getRotation();
-
-		//engine.DrawBox({static_cast<float>(pos.x()), static_cast<float>(pos.y()), static_cast<float>(pos.z())},
-		//               {1, 1, 1}, {1, 1, 1, 1}, false);
-		//printf("world pos object %d = %f,%f,%f\n", j, pos.getX(),
-		//     pos.getY(), pos.getZ());
-	}
-	 */
 }
 
 btQuaternion PhysicsSystem::_ConvertDegreesToQuat(glm::vec3 rot)
 {
-	btQuaternion q;
 	const auto radianConversion = glm::radians(rot);
+	btQuaternion q;
 	q.setEuler(radianConversion.y, radianConversion.x, radianConversion.z);
 
 	return q;

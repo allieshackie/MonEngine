@@ -35,6 +35,8 @@ private:
 
 	void _ClearVertices();
 
+	void _InitResourceHeap(const LLGL::RenderSystemPtr& renderSystem);
+
 	struct Settings
 	{
 		glm::mat4 pvMat;
@@ -42,6 +44,8 @@ private:
 	settings = {};
 
 	const std::array<glm::vec3, 4> mBoxVertices{{{0, 1.0, 1.0}, {0, 0, 1.0}, {1.0, 1.0, 1.0}, {1.0, 0, 1.0}}};
+
+	LLGL::PipelineLayout* mPipelineLayout = nullptr;
 
 	LLGL::PipelineState* mPointPipeline = nullptr;
 	LLGL::PipelineState* mLinePipeline = nullptr;
@@ -58,4 +62,6 @@ private:
 	std::vector<DebugVertex> mFramePointVertices;
 	std::vector<DebugVertex> mFrameLineVertices;
 	std::vector<DebugVertex> mFrameCircleVertices;
+
+	LLGL::ResourceHeap* mResourceHeap = nullptr;
 };
