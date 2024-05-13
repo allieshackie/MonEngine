@@ -6,7 +6,7 @@
 
 void PhysicsDescription::ApplyToEntity(EntityId entity, EntityRegistry& entityRegistry)
 {
-	entityRegistry.AddComponent<PhysicsComponent>(entity, mMass, mFriction);
+	entityRegistry.AddComponent<PhysicsComponent>(entity, mMass, mFriction, glm::vec3{0, 0, 0});
 }
 
 void PhysicsDescription::ParseJSON(const nlohmann::json& json)

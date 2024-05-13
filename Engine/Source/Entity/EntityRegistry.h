@@ -88,6 +88,8 @@ public:
 		}
 	}
 
+	EnTTRegistry& GetRegistry() { return mRegistry; }
+
 	//auto view = registry.view<const position, velocity>();
 
 	// use a callback

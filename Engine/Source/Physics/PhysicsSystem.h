@@ -26,8 +26,6 @@ private:
 	std::unique_ptr<btSequentialImpulseConstraintSolver> mConstraintSolver;
 	std::unique_ptr<btDefaultCollisionConfiguration> mCollisionConfiguration;
 	std::unique_ptr<btDiscreteDynamicsWorld> mDynamicWorld;
-	//std::unique_ptr<btSoftBodyWorldInfo> mWorldInfo;
-	//PhysicsDebugDraw* debug_draw = nullptr;
 
 	// world properties
 	btVector3 mGravityConst = {0.0f, -9.81f, 0.0f};

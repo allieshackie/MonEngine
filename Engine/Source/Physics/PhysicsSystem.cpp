@@ -22,9 +22,10 @@ PhysicsSystem::PhysicsSystem(EngineContext& engineContext)
 	// setup
 	mDynamicWorld->setGravity(mGravityConst);
 
-	mPhysicsDebugDraw = std::make_unique<PhysicsDebugDraw>(engineContext);
-	mDynamicWorld->setDebugDrawer(mPhysicsDebugDraw.get());
-	mDynamicWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
+	// TODO: Uncomment to turn on debug draw
+	//mPhysicsDebugDraw = std::make_unique<PhysicsDebugDraw>(engineContext);
+	//mDynamicWorld->setDebugDrawer(mPhysicsDebugDraw.get());
+	//mDynamicWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
 }
 
 void PhysicsSystem::UpdateCollisionShapes(EntityRegistry& entityRegistry)
@@ -54,7 +55,10 @@ void PhysicsSystem::UpdateCollisionShapes(EntityRegistry& entityRegistry)
 			const btRigidBody::btRigidBodyConstructionInfo rbInfo(0, motionState, boxShape, localInertia);
 
 			staticCollider.mColliderIndex = mDynamicWorld->getNumCollisionObjects();
-			mDynamicWorld->addRigidBody(new btRigidBody(rbInfo));
+			auto rigidBody = new btRigidBody(rbInfo);
+			mDynamicWorld->addRigidBody(rigidBody);
+
+			staticCollider.mRigidBody = rigidBody;
 		}
 	});
 	// Dynamic rigidbody
@@ -81,7 +85,14 @@ void PhysicsSystem::UpdateCollisionShapes(EntityRegistry& entityRegistry)
 
 			collider.mColliderIndex = mDynamicWorld->getNumCollisionObjects();
 			collider.mIsDynamic = true;
-			mDynamicWorld->addRigidBody(new btRigidBody(rbInfo));
+
+			auto rigidBody = new btRigidBody(rbInfo);
+			rigidBody->setDamping(0.5f, 0.5f);
+			rigidBody->setAngularFactor(btVector3(0, 0, 0));
+
+			mDynamicWorld->addRigidBody(rigidBody);
+
+			collider.mRigidBody = rigidBody;
 		}
 	});
 }

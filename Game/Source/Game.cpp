@@ -18,20 +18,23 @@ int main()
 void Game::Init(EngineContext* engine)
 {
 	mEngine = engine;
-	mEngine->LoadFont("PixelLettersFull.ttf");
+	mMovementSystem = std::make_unique<MovementSystem>();
+	mPlayerSystem = std::make_unique<PlayerSystem>(mEngine->GetEntityRegistry(), mEngine->GetInputHandler());
+
+	// TODO: Re-add font, make sure to have font for gui
+	//mEngine->LoadFont("PixelLettersFull.ttf");
 	mEngine->SetBackgroundClearColor({0.1f, 0.1f, 0.1f});
 
-	GUISystem::LoadGUITheme();
+	// TODO: Data drive theming to make it easier to have different styles
+	//GUISystem::LoadGUITheme();
 	mEngine->LoadLevel("game.json");
 
 	mEngine->ToggleEditorMode(true);
-
-	mMovementSystem = std::make_unique<MovementSystem>();
 }
 
 void Game::Update(float dt) const
 {
-	mMovementSystem->Update(mEngine->GetInputHandler(), mEngine->GetEntityRegistry());
+	mMovementSystem->Update(mEngine->GetEntityRegistry());
 }
 
 void Game::Render()

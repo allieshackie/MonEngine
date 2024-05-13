@@ -1,28 +1,21 @@
+#include <glm/geometric.hpp>
 #include <glm/vec3.hpp>
 
 #include "Entity/EntityRegistry.h"
+#include "Entity/Components/CollisionComponent.h"
 #include "Entity/Components/PhysicsComponent.h"
 #include "Entity/Components/PlayerComponent.h"
-#include "Input/InputHandler.h"
 
 #include "MovementSystem.h"
 
-void MovementSystem::Update(InputHandler& inputHandler, EntityRegistry& registry)
+void MovementSystem::Update(EntityRegistry& registry)
 {
-	const auto playerView = registry.GetEnttRegistry().view<PlayerComponent, PhysicsComponent>();
-	playerView.each([=, &inputHandler](auto& player, auto& physics)
+	const auto playerView = registry.GetEnttRegistry().view<PlayerComponent, PhysicsComponent, CollisionComponent>();
+	playerView.each([=](auto& player, auto& physics, auto& collider)
 	{
-		// Register input for player 
-		if (!player.mRegistered)
-		{
-			_RegisterPlayerInputBindings(inputHandler, player);
-			player.mRegistered = true;
-		}
 		// Apply movement directions to physics component
-		else
-		{
-			_ApplyVelocityFromDirection(player, physics);
-		}
+		_ApplyVelocityFromDirection(player, physics);
+		_ApplyMovementForce(physics, collider);
 	});
 }
 
@@ -46,52 +39,28 @@ static void _ApplyVelocityFromDirection(const PlayerComponent& player, PhysicsCo
 		velocity.x += 1.0f;
 	}
 
+	if (glm::length(velocity) > 0.0f)
+	{
+		velocity = glm::normalize(velocity);
+	}
 	physics.mVelocity = velocity;
 }
 
-static void _RegisterPlayerInputBindings(InputHandler& inputHandler, PlayerComponent& player)
+static void _ApplyMovementForce(const PhysicsComponent& physics, const CollisionComponent& collider)
 {
-	// Forward
-	inputHandler.RegisterButtonDownHandler(LLGL::Key::W, [&player]()
+	if (collider.mRigidBody)
 	{
-		player.mMovementInput |= MovementInput::Forward;
-	});
+		const glm::vec3& velocity = physics.mVelocity;
+		if (glm::all(glm::equal(velocity, glm::vec3(0.0f))))
+		{
+			return;
+		}
 
-	inputHandler.RegisterButtonUpHandler(LLGL::Key::W, [&player]()
-	{
-		player.mMovementInput &= ~(MovementInput::Forward);
-	});
+		// Apply a force to the player's rigid body based on the calculated velocity
+		btVector3 bulletVelocity(velocity.x, velocity.y, velocity.z);
+		bulletVelocity *= 10.0f; // Multiply by a speed factor
 
-	// Back
-	inputHandler.RegisterButtonDownHandler(LLGL::Key::S, [&player]()
-	{
-		player.mMovementInput |= MovementInput::Backward;
-	});
-
-	inputHandler.RegisterButtonUpHandler(LLGL::Key::S, [&player]()
-	{
-		player.mMovementInput &= ~(MovementInput::Backward);
-	});
-
-	// Left
-	inputHandler.RegisterButtonDownHandler(LLGL::Key::A, [&player]()
-	{
-		player.mMovementInput |= MovementInput::Left;
-	});
-
-	inputHandler.RegisterButtonUpHandler(LLGL::Key::A, [&player]()
-	{
-		player.mMovementInput &= ~(MovementInput::Left);
-	});
-
-	// Right
-	inputHandler.RegisterButtonDownHandler(LLGL::Key::D, [&player]()
-	{
-		player.mMovementInput |= MovementInput::Right;
-	});
-
-	inputHandler.RegisterButtonUpHandler(LLGL::Key::D, [&player]()
-	{
-		player.mMovementInput &= ~(MovementInput::Right);
-	});
+		//collider.mRigidBody->applyCentralImpulse(bulletVelocity);
+		collider.mRigidBody->applyCentralForce(bulletVelocity);
+	}
 }
