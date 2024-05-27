@@ -27,7 +27,7 @@ public:
 
 	Camera& GetCamera() const { return *mCamera; }
 
-	const MapData& GetMapData() const { return *mMapData; }
+	const std::unique_ptr<MapData>& GetMapData() const { return mMapData; }
 	const std::vector<EntityData>& GetEntityDefinitions() const { return mEntityDefinitions; }
 	const std::vector<std::string>& GetScripts() const { return mScripts; }
 

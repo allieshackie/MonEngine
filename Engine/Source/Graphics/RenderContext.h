@@ -13,7 +13,6 @@ struct EntityId;
 class Camera;
 class EntityRegistry;
 class InputHandler;
-class MapRegistry;
 
 class RenderContext
 {
@@ -25,8 +24,7 @@ public:
 	~RenderContext();
 
 	void BeginFrame() const;
-	void Render(const Camera& camera, EntityRegistry& entityRegistry,
-	            MapRegistry& mapRegistry) const;
+	void Render(const Camera& camera, EntityRegistry& entityRegistry) const;
 	void EndFrame() const;
 	bool ProcessEvents() const;
 

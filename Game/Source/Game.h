@@ -1,6 +1,7 @@
 #pragma once
 #include "Core/GameInterface.h"
 #include "Entity/Systems/MovementSystem.h"
+#include "Entity/Systems/PlayerSystem.h"
 
 class Game : public GameInterface
 {
@@ -26,4 +27,5 @@ private:
 
 	// Systems
 	std::unique_ptr<MovementSystem> mMovementSystem;
+	std::unique_ptr<PlayerSystem> mPlayerSystem;
 };

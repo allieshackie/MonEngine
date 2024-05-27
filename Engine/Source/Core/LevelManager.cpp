@@ -36,7 +36,10 @@ void LevelManager::LoadLevel(const std::string& levelName, const EngineContext& 
 	auto level = std::make_unique<Level>(fullFileName);
 
 	// Create Map
-	mapRegistry.OpenMap(context, level->GetMapData());
+	if (level->GetMapData() != nullptr)
+	{
+		mapRegistry.OpenMap(context, *level->GetMapData());
+	}
 
 	for (const auto& entity : level->GetEntityDefinitions())
 	{
@@ -62,7 +65,7 @@ void LevelManager::_UnloadLevel(const EngineContext& context, MapRegistry& mapRe
                                 LuaSystem& luaSystem) const
 {
 	luaSystem.QueueClose();
-	mapRegistry.CloseMap(mCurrentLevel->GetMapData().name);
+	mapRegistry.CloseMap(mCurrentLevel->GetMapData()->name);
 
 	context.FlushEntities();
 }

@@ -113,9 +113,22 @@ target_include_directories(lua PUBLIC
     ${THIRD_PARTY_DIR}/Lua/src
 )
 
-# SDL + SDL Image 
-# find_package(SDL2 REQUIRED)
-# find_package(SDL2_image REQUIRED)
+## BULLET PHYSICS
+add_subdirectory(${THIRD_PARTY_DIR}/bullet3)
+set_property(TARGET Bullet2FileLoader PROPERTY FOLDER "ThirdParty/bullet3")
+set_property(TARGET Bullet3Collision PROPERTY FOLDER "ThirdParty/bullet3")
+set_property(TARGET Bullet3Common PROPERTY FOLDER "ThirdParty/bullet3")
+set_property(TARGET Bullet3Dynamics PROPERTY FOLDER "ThirdParty/bullet3")
+set_property(TARGET Bullet3Geometry PROPERTY FOLDER "ThirdParty/bullet3")
+set_property(TARGET Bullet3OpenCL_clew PROPERTY FOLDER "ThirdParty/bullet3")
+set_property(TARGET BulletCollision PROPERTY FOLDER "ThirdParty/bullet3")
+set_property(TARGET BulletDynamics PROPERTY FOLDER "ThirdParty/bullet3")
+set_property(TARGET BulletInverseDynamics PROPERTY FOLDER "ThirdParty/bullet3")
+set_property(TARGET BulletSoftBody PROPERTY FOLDER "ThirdParty/bullet3")
+set_property(TARGET LinearMath PROPERTY FOLDER "ThirdParty/bullet3")
+
+set (BULLET_LIBRARIES    "LinearMath;Bullet3Common;BulletInverseDynamics;BulletCollision;BulletDynamics;BulletSoftBody")
+set (BULLET_INCLUDE_DIRS ${THIRD_PARTY_DIR}/bullet3/src)
 
 # target_include_directories = Include Directories
 # target_link_libraries = Additional Dependencies (lib)

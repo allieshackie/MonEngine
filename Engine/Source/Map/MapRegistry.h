@@ -2,6 +2,7 @@
 
 class EngineContext;
 class Map;
+class PhysicsSystem;
 
 struct MapData;
 

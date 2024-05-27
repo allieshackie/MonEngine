@@ -77,7 +77,6 @@ void TextPipeline::_UpdateUniforms(LLGL::CommandBuffer& commandBuffer, const glm
 	// Update
 	auto model = glm::mat4(1.0f);
 	model = translate(model, pos);
-	model = translate(model, glm::vec3(0.5f * size.x, 0.5f * size.y, 0.0f));
 	model = scale(model, size);
 
 	const GUISettings settings = {pvMat * model};

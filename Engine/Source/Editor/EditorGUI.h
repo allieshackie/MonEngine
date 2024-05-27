@@ -1,24 +1,20 @@
 #pragma once
-#include "GUI/GUIBase.h"
 #include "MapEditor.h"
+#include "ObjectGUI.h"
 
-class EngineContext;
-class InputHandler;
-class LevelManager;
-class MapRegistry;
-class RenderContext;
+class EntityRegistry;
 
-class EditorGUI : public GUIBase
+class EditorGUI
 {
 public:
-	EditorGUI(EngineContext& engineContext, InputHandler& inputHandler, LevelManager& levelManager,
-	          MapRegistry& mapRegistry, RenderContext& renderContext);
+	EditorGUI();
 
-	void RenderGUI() override;
+	void Render(EntityRegistry& entityRegistry) const;
 
 private:
 	void _MainMenu(Camera& camera) const;
 
 	std::unique_ptr<MapEditor> mMapEditor;
-	InputHandler& mInputHandler;
+	std::unique_ptr<ObjectGUI> mObjectGUI;
+	//InputHandler& mInputHandler;
 };

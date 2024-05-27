@@ -1,5 +1,6 @@
 #pragma once
 #include <glm/vec3.hpp>
+#include <BulletDynamics/Dynamics/btRigidBody.h>
 
 enum class ColliderShapes : int
 {
@@ -12,4 +13,8 @@ struct CollisionComponent
 {
 	ColliderShapes mColliderShape = ColliderShapes::Box;
 	glm::vec3 mSize = {0, 0, 0};
+	int mColliderIndex = -1;
+	bool mIsDynamic = false;
+
+	btRigidBody* mRigidBody = nullptr;
 };

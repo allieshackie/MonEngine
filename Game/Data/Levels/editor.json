@@ -3,5 +3,17 @@
         "position": [0,0,10],
         "front": [0,0,-1],
         "up": [0,1,0]
-    }
+    },
+    "maps": [
+        {
+            "name": "ground_map.json",
+            "position": [0,-2,0],
+            "rotation": [-60,0,0],
+            "tile_size": 1,
+            "has_dimension": true
+        }
+    ],
+    "scripts": [
+        "editor.lua"
+    ]
 }

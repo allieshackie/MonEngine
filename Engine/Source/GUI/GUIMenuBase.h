@@ -25,7 +25,7 @@ public:
 	}
 
 protected:
-	void Impl_Render() const
+	virtual void Impl_Render() const
 	{
 		for (const auto& element : mElements)
 		{

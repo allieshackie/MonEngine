@@ -3,6 +3,7 @@
 #include "Core/EventListener.h"
 #include "Core/LevelManager.h"
 #include "Core/Timer.h"
+#include "Editor/EditorGUI.h"
 #include "Entity/EntityRegistry.h"
 #include "Entity/Descriptions/DescriptionFactory.h"
 #include "Graphics/RenderContext.h"
@@ -10,7 +11,6 @@
 #include "GUI/GUIBase.h"
 #include "Input/InputHandler.h"
 #include "Map/MapRegistry.h"
-#include "Physics/CollisionSystem.h"
 #include "Physics/PhysicsSystem.h"
 #include "Scripting/LuaSystem.h"
 
@@ -37,6 +37,7 @@ public:
 
 	void SetGUIMenu(std::unique_ptr<GUIBase> gui);
 	void LoadFont(const char* fontFileName) const;
+	void OpenEditorMenu();
 
 	EntityRegistry& GetEntityRegistry() const;
 	InputHandler& GetInputHandler() const;
@@ -90,12 +91,12 @@ private:
 	std::unique_ptr<LevelManager> mLevelManager;
 	std::unique_ptr<GUIBase> mGUIMenu;
 	std::unique_ptr<LuaSystem> mLuaSystem;
+	std::unique_ptr<EditorGUI> mEditorGUI;
 
 	std::unique_ptr<EntityRegistry> mEntityRegistry;
 	std::unique_ptr<EventPublisher> mEventPublisher;
 
 	// systems
-	std::unique_ptr<CollisionSystem> mCollisionSystem;
 	std::unique_ptr<MapRegistry> mMapRegistry;
 	std::unique_ptr<PhysicsSystem> mPhysicsSystem;
 

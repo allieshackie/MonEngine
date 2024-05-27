@@ -61,3 +61,18 @@ private:
 	std::vector<const char*> mItems;
 	std::function<void()> mOnChangeCallback = nullptr;
 };
+
+class GUISlider : public GUIElement
+{
+public:
+	GUISlider(const char* label, std::function<void()> onChange)
+		: mLabel(label), mOnChangeCallback(std::move(onChange))
+	{
+	}
+
+private:
+	const char* mLabel;
+	float mCurrentValue = 0;
+
+	std::function<void()> mOnChangeCallback = nullptr;
+};

@@ -61,7 +61,7 @@ void MapPipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvM
 	{
 		// Set resources
 		meshPipeline.SetPipeline(commandBuffer);
-		if (map.mGeneratedTextureId != -1) 
+		if (map.mGeneratedTextureId != -1)
 		{
 			commandBuffer.SetResourceHeap(*mMapMeshResourceHeap, map.mGeneratedTextureId);
 		}
@@ -80,13 +80,11 @@ void MapPipeline::_UpdateUniformsModel(LLGL::CommandBuffer& commandBuffer, glm::
 	// Update
 	auto model = glm::mat4(1.0f);
 	model = translate(model, pos);
-	model = translate(model, glm::vec3(0.5f * size.x, 0.5f * size.y, 0.0f));
 	// Apply rotation in ZXY order
 	model = rotate(model, glm::radians(rot.z), glm::vec3(0.0f, 0.0f, 1.0f));
 	model = rotate(model, glm::radians(rot.x), glm::vec3(1.0f, 0.0f, 0.0f));
 	model = rotate(model, glm::radians(rot.y), glm::vec3(0.0f, 1.0f, 0.0f));
 
-	model = translate(model, glm::vec3(-0.5f * size.x, -0.5f * size.y, 0.0f));
 	model = scale(model, size);
 
 	auto textureClip = glm::mat4(1.0f);

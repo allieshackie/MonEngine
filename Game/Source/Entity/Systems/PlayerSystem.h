@@ -1,25 +1,16 @@
 #pragma once
-#include <glm/vec3.hpp>
 #include "Entity/EntityRegistry.h"
+
+class InputHandler;
 
 class PlayerSystem
 {
 public:
-	PlayerSystem(EntityRegistry& entityRegistry);
-	~PlayerSystem() = default;
+	PlayerSystem(EntityRegistry& entityRegistry, InputHandler& inputHandler);
 
-	void SpawnPlayer(glm::vec3 spawnPoint);
-
-	glm::vec3 GetPlayerPosition() const;
-	void SetPlayerPosition(glm::vec3 newPosition) const;
+	void SpawnPlayer();
 
 private:
-	void _MoveForward(bool set) const;
-	void _MoveBackward(bool set) const;
-	void _MoveLeft(bool set) const;
-	void _MoveRight(bool set) const;
-
-	EntityId mPlayerEntity;
-
 	EntityRegistry& mEntityRegistry;
+	InputHandler& mInputHandler;
 };

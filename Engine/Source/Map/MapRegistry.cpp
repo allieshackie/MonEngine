@@ -81,6 +81,7 @@ bool MapRegistry::_ParseMapData(const MapData& mapData, EntityId entityId, Entit
 		static_cast<float>(columns) * mapData.tileSize,
 		static_cast<float>(rows) * mapData.tileSize, 1
 	};
+
 	entityReg.AddComponent<TransformComponent>(entityId, mapData.position, size, mapData.rotation);
 
 	if (mapData.hasDimension)
@@ -89,7 +90,7 @@ bool MapRegistry::_ParseMapData(const MapData& mapData, EntityId entityId, Entit
 		entityReg.AddComponent<MeshComponent>(entityId, "PlainBox.obj");
 	}
 
-	entityReg.AddComponent<CollisionComponent>(entityId, ColliderShapes::Box, size);
+	entityReg.AddComponent<CollisionComponent>(entityId, ColliderShapes::Box, size, -1, false);
 
 	return textureRows != 0 && textureColumns != 0;
 }

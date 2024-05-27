@@ -79,14 +79,15 @@ void MeshPipeline::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& command
 {
 	// Update
 	auto model = glm::mat4(1.0f);
+
+	// Translation matrix
 	model = glm::translate(model, transform.mPosition);
-	model = glm::translate(model, glm::vec3(0.5f * transform.mSize.x, 0.5f * transform.mSize.y, 0.0f));
+
 	// Apply rotation in ZXY order
 	model = glm::rotate(model, glm::radians(transform.mRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
 	model = glm::rotate(model, glm::radians(transform.mRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
 	model = glm::rotate(model, glm::radians(transform.mRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
 
-	model = glm::translate(model, glm::vec3(-0.5f * transform.mSize.x, -0.5f * transform.mSize.y, 0.0f));
 	model = glm::scale(model, transform.mSize);
 
 	const Settings settings = {pvMat * model, glm::mat4(1.0f), model};

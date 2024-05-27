@@ -1,14 +1,14 @@
 {
     "camera": {
-        "position": [0,0,10],
-        "front": [0,0,-1],
+        "position": [0,10,10],
+        "front": [0,0,0],
         "up": [0,1,0]
     },
     "maps": [
         {
             "name": "ground_map.json",
-            "position": [0,-2,0],
-            "rotation": [-68,0,0],
+            "position": [0,0,0],
+            "rotation": [-90,0,0],
             "tile_size": 1,
             "has_dimension": true
         }
@@ -16,7 +16,7 @@
     "entities": [
         {
             "name": "player",
-            "position": [0,2,0]
+            "position": [0,10,0]
         }
     ]
 }

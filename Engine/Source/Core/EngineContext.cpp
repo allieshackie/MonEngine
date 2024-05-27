@@ -31,8 +31,7 @@ void EngineContext::_Init(const LLGL::Extent2D screenSize, const LLGL::UTF8Strin
 
 	mLevelManager = std::make_unique<LevelManager>();
 
-	mCollisionSystem = std::make_unique<CollisionSystem>();
-	mPhysicsSystem = std::make_unique<PhysicsSystem>();
+	mPhysicsSystem = std::make_unique<PhysicsSystem>(*this);
 }
 
 void EngineContext::SetGUIMenu(std::unique_ptr<GUIBase> gui)
@@ -85,6 +84,9 @@ void EngineContext::Run(GameInterface* game) const
 	// Init current time
 	mTimer->mCurrentTime = Clock::now();
 
+	// TODO: Test to check how ground is added
+	mPhysicsSystem->UpdateCollisionShapes(*mEntityRegistry);
+
 	while (mRenderContext->ProcessEvents() && mRunning)
 	{
 		auto frameTime = Clock::now();
@@ -104,24 +106,29 @@ void EngineContext::Run(GameInterface* game) const
 		while (mTimer->mAccumulator >= deltaTime)
 		{
 			_FixedUpdate(mTimer->mDT);
-			game->Update(mTimer->mDT);
-			mTimer->mAccumulator -= deltaTime;
+			mTimer->mAccumulator -= mTimer->mDT; // TODO: should this subtract deltaTime or mTimer->mDT? 
 		}
 
+		game->Update(mTimer->mDT);
 		// TODO: Debug draw axis
 		//_DrawAxis();
 
 		mRenderContext->BeginFrame();
 
-		//GUISystem::GUIStartFrame();
-		//GUISystem::RenderMenus();
-		//GUISystem::GUIEndFrame();
-
 		game->Render();
 		if (const auto level = mLevelManager->GetCurrentLevel())
 		{
-			mRenderContext->Render(level->GetCamera(), *mEntityRegistry, *mMapRegistry);
+			mRenderContext->Render(level->GetCamera(), *mEntityRegistry);
 		}
+
+		// Render GUI last so menus draw on top
+		GUISystem::GUIStartFrame();
+		GUISystem::RenderMenus();
+		if (mEditorGUI != nullptr)
+		{
+			mEditorGUI->Render(*mEntityRegistry);
+		}
+		GUISystem::GUIEndFrame();
 
 		mRenderContext->EndFrame();
 
@@ -137,6 +144,11 @@ void EngineContext::Run(GameInterface* game) const
 void EngineContext::LoadFont(const char* fontFileName) const
 {
 	mRenderContext->LoadFont(fontFileName);
+}
+
+void EngineContext::OpenEditorMenu()
+{
+	mEditorGUI = std::make_unique<EditorGUI>();
 }
 
 EntityId EngineContext::CreateGameObject(const std::string& entityTemplateName) const
