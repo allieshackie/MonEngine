@@ -116,9 +116,10 @@ void EngineContext::Run(GameInterface* game) const
 		mRenderContext->BeginFrame();
 
 		game->Render();
-		if (const auto level = mLevelManager->GetCurrentLevel())
+
+		if (mLevelManager->GetCurrentLevel())
 		{
-			mRenderContext->Render(level->GetCamera(), *mEntityRegistry);
+			mRenderContext->Render(mLevelManager->GetCamera(), *mEntityRegistry);
 		}
 
 		// Render GUI last so menus draw on top
@@ -236,9 +237,9 @@ void EngineContext::ToggleEditorMode(bool toggle) const
 {
 	if (toggle)
 	{
-		if (const auto level = mLevelManager->GetCurrentLevel())
+		if (mLevelManager->GetCurrentLevel())
 		{
-			mInputHandler->AddEditorInputs(level->GetCamera());
+			mInputHandler->AddEditorInputs(mLevelManager->GetCamera());
 		}
 	}
 }

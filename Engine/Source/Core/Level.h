@@ -1,8 +1,5 @@
 #pragma once
-#include <nlohmann/json.hpp>
 #include <glm/vec3.hpp>
-
-#include "Camera.h"
 
 struct MapData
 {
@@ -19,41 +16,9 @@ struct EntityData
 	glm::vec3 position;
 };
 
-// TODO: Level definition, we'll need to save out level later
-class Level
+struct Level
 {
-public:
-	Level(const std::string& levelName);
-
-	Camera& GetCamera() const { return *mCamera; }
-
-	const std::unique_ptr<MapData>& GetMapData() const { return mMapData; }
-	const std::vector<EntityData>& GetEntityDefinitions() const { return mEntityDefinitions; }
-	const std::vector<std::string>& GetScripts() const { return mScripts; }
-
-private:
-	void _ParseJson(const nlohmann::json& json);
-
-	static constexpr char CAMERA_STRING[] = "camera";
-	static constexpr char POSITION_STRING[] = "position";
-	static constexpr char FRONT_STRING[] = "front";
-	static constexpr char UP_STRING[] = "up";
-
-	static constexpr char MAPS_STRING[] = "maps";
-	static constexpr char NAME_STRING[] = "name";
-	static constexpr char ROTATION_STRING[] = "rotation";
-	static constexpr char TILE_SIZE_STRING[] = "tile_size";
-	static constexpr char HAS_DIMENSION_STRING[] = "has_dimension";
-
-	static constexpr char ENTITIES_STRING[] = "entities";
-
-	static constexpr char SCRIPTS_STRING[] = "scripts";
-
-	// runtime data
-	std::unique_ptr<Camera> mCamera = nullptr;
-
-	// initialization data
-	std::unique_ptr<MapData> mMapData = nullptr;
+	MapData mMapData;
 	std::vector<EntityData> mEntityDefinitions;
 	std::vector<std::string> mScripts;
 };
