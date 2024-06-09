@@ -6,7 +6,6 @@
 #include "Graphics/Pipelines/ImmediatePipeline.h"
 #include "Graphics/Pipelines/MapPipeline.h"
 #include "Graphics/Pipelines/MeshPipeline.h"
-#include "Graphics/Pipelines/SpritePipeline.h"
 #include "Graphics/Pipelines/TextPipeline.h"
 
 struct EntityId;
@@ -63,7 +62,6 @@ private:
 
 	glm::mat4 mProjection = glm::identity<glm::mat4>();
 
-	std::unique_ptr<SpritePipeline> mSpritePipeline;
 	std::unique_ptr<MeshPipeline> mMeshPipeline;
 	std::unique_ptr<MapPipeline> mMapPipeline;
 	std::unique_ptr<ImmediatePipeline> mImmediatePipeline;

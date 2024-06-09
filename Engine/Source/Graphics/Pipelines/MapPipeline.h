@@ -6,7 +6,6 @@
 #include "Graphics/Core/Vertex.h"
 
 class MeshPipeline;
-class SpritePipeline;
 
 struct EntityId;
 struct MapComponent;
@@ -17,12 +16,10 @@ class EntityRegistry;
 class MapPipeline : public PipelineBase
 {
 public:
-	MapPipeline(const LLGL::RenderSystemPtr& renderSystem, LLGL::PipelineLayout& meshPipelineLayout,
-	            LLGL::PipelineLayout& spritePipelineLayout, LLGL::Buffer* meshConstantBuffer,
-	            LLGL::Buffer* spriteConstantBuffer);
+	MapPipeline(const LLGL::RenderSystemPtr& renderSystem, LLGL::Buffer* meshConstantBuffer);
 
 	void Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat, EntityRegistry& entityRegistry,
-	            MeshPipeline& meshPipeline, SpritePipeline& spritePipeline) const;
+	            MeshPipeline& meshPipeline) const;
 
 	void GenerateMapTexture(const LLGL::RenderSystemPtr& renderSystem, LLGL::CommandBuffer& commandBuffer,
 	                        EntityRegistry& entityRegistry, EntityId mapId);
@@ -41,8 +38,6 @@ private:
 	                            glm::vec4& clip) const;
 	glm::vec4 _GetClipForTile(const MapComponent& mapComponent, int index) const;
 
-	LLGL::ResourceHeap* mMapMeshResourceHeap = nullptr;
-	LLGL::ResourceHeap* mMapSpriteResourceHeap = nullptr;
 
 	LLGL::Buffer* mVertexBuffer = nullptr;
 	LLGL::Sampler* mSampler = nullptr;
@@ -59,9 +54,6 @@ private:
 
 	const LLGL::Extent2D mTextureSize = {512, 512};
 
-	LLGL::PipelineLayout& mMeshPipelineLayout;
-	LLGL::PipelineLayout& mSpritePipelineLayout;
-
+	LLGL::ResourceHeap* mMapMeshResourceHeap = nullptr;
 	LLGL::Buffer* mMeshConstantBuffer = nullptr;
-	LLGL::Buffer* mSpriteConstantBuffer = nullptr;
 };

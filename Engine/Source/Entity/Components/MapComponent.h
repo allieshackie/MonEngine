@@ -19,5 +19,4 @@ struct MapComponent
 	std::vector<int> mData;
 
 	float mTileSize = 0.0f;
-	bool mHasDimension = false;
 };

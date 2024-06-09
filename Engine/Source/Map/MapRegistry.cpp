@@ -86,8 +86,11 @@ bool MapRegistry::_ParseMapData(const MapData& mapData, EntityId entityId, Entit
 
 	if (mapData.hasDimension)
 	{
-		// TODO: Should maps be able to define different meshes?
 		entityReg.AddComponent<MeshComponent>(entityId, "PlainBox.obj");
+	}
+	else
+	{
+		entityReg.AddComponent<MeshComponent>(entityId, "Plane.obj");
 	}
 
 	entityReg.AddComponent<CollisionComponent>(entityId, ColliderShapes::Box, size, -1, false);

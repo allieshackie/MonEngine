@@ -4,7 +4,6 @@
 #include "Core/Camera.h"
 #include "Entity/EntityRegistry.h"
 #include "Input/InputHandler.h"
-#include "Map/MapRegistry.h"
 
 #include "RenderContext.h"
 
@@ -130,9 +129,8 @@ void RenderContext::Render(const Camera& camera, EntityRegistry& entityRegistry)
 {
 	const auto projectionViewMat = mProjection * camera.GetView();
 
-	mMapPipeline->Render(*mCommands, projectionViewMat, entityRegistry, *mMeshPipeline, *mSpritePipeline);
+	mMapPipeline->Render(*mCommands, projectionViewMat, entityRegistry, *mMeshPipeline);
 	mTextPipeline->Render(*mCommands, projectionViewMat);
-	mSpritePipeline->Render(*mCommands, projectionViewMat, entityRegistry);
 	mImmediatePipeline->Render(*mCommands, projectionViewMat);
 	mMeshPipeline->Render(*mCommands, projectionViewMat, entityRegistry);
 
@@ -246,14 +244,10 @@ void RenderContext::_CreateWindow(const LLGL::UTF8String& title, const std::shar
 
 void RenderContext::_CreatePipelines()
 {
-	mSpritePipeline = std::make_unique<SpritePipeline>(mRenderSystem);
 	mImmediatePipeline = std::make_unique<ImmediatePipeline>();
 	mTextPipeline = std::make_unique<TextPipeline>();
 	mMeshPipeline = std::make_unique<MeshPipeline>(mRenderSystem);
-	mMapPipeline = std::make_unique<MapPipeline>(mRenderSystem, mMeshPipeline->GetPipelineLayout(),
-	                                             mSpritePipeline->GetPipelineLayout(),
-	                                             mMeshPipeline->GetConstantBuffer(),
-	                                             mSpritePipeline->GetConstantBuffer());
+	mMapPipeline = std::make_unique<MapPipeline>(mRenderSystem, mMeshPipeline->GetConstantBuffer());
 
 	mImmediatePipeline->Init(mRenderSystem);
 	mTextPipeline->Init(mRenderSystem);
