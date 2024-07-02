@@ -2,21 +2,14 @@
 #include <glm/mat4x4.hpp>
 
 #include "PipelineBase.h"
+#include "Graphics/Core/Model.h"
 #include "Entity/Components/MeshComponent.h"
 
 class EntityRegistry;
-class Mesh;
 class RenderObject;
 class Shader;
 
 struct TransformComponent;
-
-struct MeshVBO
-{
-	LLGL::Buffer* mVertexBuffer = nullptr;
-	LLGL::Buffer* mIndexBuffer = nullptr;
-	int mNumIndices = 0;
-};
 
 class MeshPipeline : public PipelineBase
 {
@@ -35,9 +28,8 @@ public:
 	void SetResourceHeapTexture(LLGL::CommandBuffer& commands, int textureId) const;
 
 private:
-	int _SetMeshVBuffer(LLGL::CommandBuffer& commands, const MeshComponent& meshComponent);
+	void _RenderModel(LLGL::CommandBuffer& commands, const MeshComponent& meshComponent, glm::mat4 pvMat,
+	                  const TransformComponent& transform);
 
-	std::unordered_map<std::string, MeshVBO> mMeshVertexBuffers;
-
-	MeshVBO mTestMesh;
+	std::unordered_map<std::string, Model> mModelVertexBuffers;
 };
