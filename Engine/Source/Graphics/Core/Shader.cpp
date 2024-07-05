@@ -32,7 +32,29 @@ void Shader::LoadShaderProgram(LLGL::RenderSystem& renderer, const char* vertexF
 
 	mVertexShader = renderer.CreateShader(deviceVertShaderDesc);
 
+	if (auto report = mVertexShader->GetReport())
+	{
+		if (*report->GetText() != '\0')
+		{
+			if (report->HasErrors())
+				LLGL::Log::Errorf("%s", report->GetText());
+			else
+				LLGL::Log::Printf("%s", report->GetText());
+		}
+	}
+
 	auto deviceFragmentShaderDesc = LLGL::ShaderDescFromFile(LLGL::ShaderType::Fragment, fragmentFilePath);
 
 	mFragmentShader = renderer.CreateShader(deviceFragmentShaderDesc);
+
+	if (auto report = mFragmentShader->GetReport())
+	{
+		if (*report->GetText() != '\0')
+		{
+			if (report->HasErrors())
+				LLGL::Log::Errorf("%s", report->GetText());
+			else
+				LLGL::Log::Printf("%s", report->GetText());
+		}
+	}
 }
