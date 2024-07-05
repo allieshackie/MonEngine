@@ -32,7 +32,8 @@ MapPipeline::MapPipeline(const LLGL::RenderSystemPtr& renderSystem, LLGL::Buffer
 	);
 }
 
-void MapPipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat, EntityRegistry& entityRegistry,
+void MapPipeline::Render(LLGL::CommandBuffer& commandBuffer, const Camera& camera,
+                         const glm::mat4 projection, EntityRegistry& entityRegistry,
                          MeshPipeline& meshPipeline) const
 {
 	commandBuffer.SetPipelineState(*mPipeline);
@@ -40,9 +41,9 @@ void MapPipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvM
 	const auto map3DView = entityRegistry.GetEnttRegistry().view<
 		const MapComponent, const TransformComponent, const MeshComponent>();
 
-	map3DView.each([this, &commandBuffer, &pvMat, &meshPipeline](const MapComponent& map,
-	                                                             const TransformComponent& transform,
-	                                                             const MeshComponent& mesh)
+	map3DView.each([this, &commandBuffer, &camera, &projection, &meshPipeline](const MapComponent& map,
+	                                                                           const TransformComponent& transform,
+	                                                                           const MeshComponent& mesh)
 	{
 		// Set resources
 		meshPipeline.SetPipeline(commandBuffer);
@@ -55,12 +56,12 @@ void MapPipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvM
 			const auto textureId = ResourceManager::GetTextureId(map.mTexturePath);
 			meshPipeline.SetResourceHeapTexture(commandBuffer, textureId);
 		}
-		meshPipeline.RenderMap(commandBuffer, pvMat, mesh, transform);
+		meshPipeline.RenderMap(commandBuffer, camera, projection, mesh, transform);
 	});
 }
 
 void MapPipeline::_UpdateUniformsModel(LLGL::CommandBuffer& commandBuffer, glm::vec3 pos, glm::vec3 size, glm::vec3 rot,
-                                       glm::vec4 texClip) const
+                                       glm::vec4 texClip)
 {
 	// Update
 	auto model = glm::mat4(1.0f);
@@ -76,7 +77,11 @@ void MapPipeline::_UpdateUniformsModel(LLGL::CommandBuffer& commandBuffer, glm::
 	textureClip = translate(textureClip, glm::vec3(texClip.x, texClip.y, 0.0f));
 	textureClip = scale(textureClip, glm::vec3(texClip.z, texClip.w, 1.0f));
 
-	const Settings settings = {model, textureClip, glm::mat4()};
+	settings.model = model;
+	settings.view = glm::mat4(1.0f);
+	settings.projection = glm::mat4(1.0f);
+	settings.textureClip = textureClip;
+
 	commandBuffer.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
 }
 

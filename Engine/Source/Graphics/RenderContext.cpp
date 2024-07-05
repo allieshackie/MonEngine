@@ -129,10 +129,10 @@ void RenderContext::Render(const Camera& camera, EntityRegistry& entityRegistry)
 {
 	const auto projectionViewMat = mProjection * camera.GetView();
 
-	mMapPipeline->Render(*mCommands, projectionViewMat, entityRegistry, *mMeshPipeline);
+	mMapPipeline->Render(*mCommands, camera, mProjection, entityRegistry, *mMeshPipeline);
 	mTextPipeline->Render(*mCommands, projectionViewMat);
 	mImmediatePipeline->Render(*mCommands, projectionViewMat);
-	mMeshPipeline->Render(*mCommands, projectionViewMat, entityRegistry);
+	mMeshPipeline->Render(*mCommands, camera, mProjection, entityRegistry);
 
 	mTextPipeline->Release(mRenderSystem);
 }

@@ -29,11 +29,18 @@ protected:
 	struct Settings
 	{
 		// projection-view-model matrix
-		glm::mat4 pvmMat = glm::mat4();
+		glm::mat4 model = glm::mat4();
+		glm::mat4 view = glm::mat4();
+		glm::mat4 projection = glm::mat4();
 		// texture clip to render part of texture
 		glm::mat4 textureClip = glm::mat4();
-		// model only matrix
-		glm::mat4 mMat = glm::mat4();
+
+		glm::vec3 lightPos = {0, 0, 0};
+		float padding1 = 0.0f; // Padding for alignment
+		glm::vec3 viewPos = {0, 0, 0};
+		float padding2 = 0.0f; // Padding for alignment
+		glm::vec3 lightColor = {1.0, 1.0, 1.0};
+		float padding3 = 0.0f; // Padding for alignment
 	}
 	settings = {};
 };

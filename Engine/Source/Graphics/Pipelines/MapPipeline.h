@@ -5,6 +5,7 @@
 #include "PipelineBase.h"
 #include "Graphics/Core/Vertex.h"
 
+class Camera;
 class MeshPipeline;
 
 struct EntityId;
@@ -18,7 +19,8 @@ class MapPipeline : public PipelineBase
 public:
 	MapPipeline(const LLGL::RenderSystemPtr& renderSystem, LLGL::Buffer* meshConstantBuffer);
 
-	void Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat, EntityRegistry& entityRegistry,
+	void Render(LLGL::CommandBuffer& commandBuffer, const Camera& camera,
+	            const glm::mat4 projection, EntityRegistry& entityRegistry,
 	            MeshPipeline& meshPipeline) const;
 
 	void GenerateMapTexture(const LLGL::RenderSystemPtr& renderSystem, LLGL::CommandBuffer& commandBuffer,
@@ -28,7 +30,7 @@ private:
 	void _CreateMapResourceHeap(const LLGL::RenderSystemPtr& renderSystem);
 
 	void _UpdateUniformsModel(LLGL::CommandBuffer& commandBuffer, glm::vec3 pos, glm::vec3 size, glm::vec3 rot,
-	                          glm::vec4 texClip) const;
+	                          glm::vec4 texClip);
 
 	void _WriteMapTexture(LLGL::CommandBuffer& commandBuffer, LLGL::PipelineState* writePipeline,
 	                      LLGL::RenderTarget* writeTarget, LLGL::Texture* writtenTexture,
