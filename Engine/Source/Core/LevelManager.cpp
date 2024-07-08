@@ -154,6 +154,8 @@ void LevelManager::_ParseLevelJson(const std::string& levelName)
 		}
 	}
 
+	/*
+	 *
 	if (json.contains(LIGHTS_STRING))
 	{
 		for (auto& light : json[LIGHTS_STRING])
@@ -173,4 +175,5 @@ void LevelManager::_ParseLevelJson(const std::string& levelName)
 			mCurrentLevel->mLights.push_back(Light{posVec, colorVec, light[INTENSITY_STRING]});
 		}
 	}
+	 */
 }
