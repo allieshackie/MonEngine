@@ -9,7 +9,7 @@
 
 RenderContext::RenderContext(const LLGL::UTF8String& title, const LLGL::Extent2D screenSize,
                              const LLGL::ColorRGBAf backgroundColor, const std::shared_ptr<InputHandler>& inputHandler,
-                             bool usePerspective)
+                             EntityRegistry& entityRegistry, bool usePerspective)
 	: mBackgroundColor(backgroundColor), mUsePerspective(usePerspective)
 {
 	try
@@ -71,7 +71,7 @@ RenderContext::RenderContext(const LLGL::UTF8String& title, const LLGL::Extent2D
 	// NOTE: Projection update must occur after debug shader is initialized
 	UpdateProjection();
 
-	_CreatePipelines();
+	_CreatePipelines(entityRegistry);
 	_CreateWindow(title, inputHandler);
 }
 
@@ -129,10 +129,10 @@ void RenderContext::Render(const Camera& camera, EntityRegistry& entityRegistry)
 {
 	const auto projectionViewMat = mProjection * camera.GetView();
 
-	mMapPipeline->Render(*mCommands, camera, mProjection, entityRegistry, *mMeshPipeline);
+	mMapPipeline->Render(*mCommands, camera, mProjection, entityRegistry, mRenderSystem, *mMeshPipeline);
 	mTextPipeline->Render(*mCommands, projectionViewMat);
 	mImmediatePipeline->Render(*mCommands, projectionViewMat);
-	mMeshPipeline->Render(*mCommands, camera, mProjection, entityRegistry);
+	mMeshPipeline->Render(*mCommands, camera, mProjection, entityRegistry, mRenderSystem);
 
 	mTextPipeline->Release(mRenderSystem);
 }
@@ -242,11 +242,11 @@ void RenderContext::_CreateWindow(const LLGL::UTF8String& title, const std::shar
 	window.Show();
 }
 
-void RenderContext::_CreatePipelines()
+void RenderContext::_CreatePipelines(EntityRegistry& entityRegistry)
 {
 	mImmediatePipeline = std::make_unique<ImmediatePipeline>();
 	mTextPipeline = std::make_unique<TextPipeline>();
-	mMeshPipeline = std::make_unique<MeshPipeline>(mRenderSystem);
+	mMeshPipeline = std::make_unique<MeshPipeline>(mRenderSystem, entityRegistry);
 	mMapPipeline = std::make_unique<MapPipeline>(mRenderSystem, mMeshPipeline->GetConstantBuffer());
 
 	mImmediatePipeline->Init(mRenderSystem);

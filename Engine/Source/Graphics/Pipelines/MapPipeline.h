@@ -21,6 +21,7 @@ public:
 
 	void Render(LLGL::CommandBuffer& commandBuffer, const Camera& camera,
 	            const glm::mat4 projection, EntityRegistry& entityRegistry,
+	            const LLGL::RenderSystemPtr& renderSystem,
 	            MeshPipeline& meshPipeline) const;
 
 	void GenerateMapTexture(const LLGL::RenderSystemPtr& renderSystem, LLGL::CommandBuffer& commandBuffer,
@@ -58,4 +59,15 @@ private:
 
 	LLGL::ResourceHeap* mMapMeshResourceHeap = nullptr;
 	LLGL::Buffer* mMeshConstantBuffer = nullptr;
+
+	struct Settings
+	{
+		// projection-view-model matrix
+		glm::mat4 model = glm::mat4();
+		glm::mat4 view = glm::mat4();
+		glm::mat4 projection = glm::mat4();
+		// texture clip to render part of texture
+		glm::mat4 textureClip = glm::mat4();
+	}
+	settings = {};
 };

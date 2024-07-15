@@ -18,7 +18,7 @@ class RenderContext
 public:
 	RenderContext(const LLGL::UTF8String& title, const LLGL::Extent2D screenSize,
 	              const LLGL::ColorRGBAf backgroundColor, const std::shared_ptr<InputHandler>& inputHandler,
-	              bool usePerspective);
+	              EntityRegistry& entityRegistry, bool usePerspective);
 
 	~RenderContext();
 
@@ -51,7 +51,7 @@ public:
 
 private:
 	void _CreateWindow(const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler);
-	void _CreatePipelines();
+	void _CreatePipelines(EntityRegistry& entityRegistry);
 
 	static LLGL::Extent2D _ScaleResolution(const LLGL::Extent2D& res, float scale);
 
