@@ -46,8 +46,8 @@ void main()
     
     // specular
     vec3 viewDir = normalize(viewPos - vPosition);
-    vec3 reflectDir = reflect(-lightDir, norm);  
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+    vec3 halfwayDir = normalize(lightDir + viewDir);
+    float spec = pow(max(dot(norm, halfwayDir), 0.0), material.shininess);
     vec3 specular = material.specular.xyz * spec * light.color.xyz;  
 
     vec4 color = texture(colorMap, vTexCoord);
