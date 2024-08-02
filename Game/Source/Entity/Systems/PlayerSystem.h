@@ -8,7 +8,7 @@ class PlayerSystem
 public:
 	PlayerSystem(EntityRegistry& entityRegistry, InputHandler& inputHandler);
 
-	void SpawnPlayer();
+	void SpawnPlayer(EnTTRegistry& registry, EntityId entity);
 
 private:
 	EntityRegistry& mEntityRegistry;

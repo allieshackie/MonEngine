@@ -1,5 +1,5 @@
 {
-    "template_name": "pointLight", 
+    "template_name": "pointLightRed", 
     "components" : {
         "transform" : {
             "position": [0,0,0],
@@ -7,7 +7,7 @@
             "rotation": [0,0,0]
         },
         "light": {
-            "color": [0,0,1]
+            "color": [1,0,0]
         }
     }
 }

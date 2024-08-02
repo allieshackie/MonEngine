@@ -51,10 +51,6 @@ MeshPipeline::MeshPipeline(LLGL::RenderSystemPtr& renderSystem, EntityRegistry& 
 					"colorMapSampler", LLGL::StageFlags::FragmentStage, 3, LLGL::Parse("lod.bias=1")
 				}
 			};
-			layoutDesc.uniforms =
-			{
-				LLGL::UniformDescriptor{"viewPos", LLGL::UniformType::Float3}, // 0
-			};
 		}
 		InitPipeline(renderSystem, layoutDesc, LLGL::PrimitiveTopology::TriangleList);
 
@@ -62,7 +58,8 @@ MeshPipeline::MeshPipeline(LLGL::RenderSystemPtr& renderSystem, EntityRegistry& 
 		// Create light buffer
 		LLGL::BufferDescriptor lightBufferDesc;
 		{
-			lightBufferDesc.size = sizeof(LightUniform);
+			// Need to define max lights so that buffer is created with appropriate space
+			lightBufferDesc.size = sizeof(LightUniform) * MAX_LIGHTS;
 			lightBufferDesc.stride = sizeof(LightUniform);
 			lightBufferDesc.bindFlags = LLGL::BindFlags::Storage;
 			lightBufferDesc.cpuAccessFlags = LLGL::CPUAccessFlags::Write;
@@ -95,7 +92,6 @@ MeshPipeline::MeshPipeline(LLGL::RenderSystemPtr& renderSystem, EntityRegistry& 
 	}
 
 	entityRegistry.GetEnttRegistry().on_construct<LightComponent>().connect<&MeshPipeline::AddLight>(this);
-	entityRegistry.GetEnttRegistry().on_destroy<LightComponent>().connect<&MeshPipeline::RemoveLight>(this);
 }
 
 void MeshPipeline::Render(LLGL::CommandBuffer& commands, const Camera& camera,
@@ -114,6 +110,7 @@ void MeshPipeline::Render(LLGL::CommandBuffer& commands, const Camera& camera,
 		const TransformComponent, const MeshComponent, const SpriteComponent>(
 		entt::exclude<MapComponent>);
 
+	// Should either be a sprite or basic color
 	meshView.each([this, &commands, &camera, &renderSystem, &projection](const TransformComponent& transform,
 	                                                                     const MeshComponent& mesh,
 	                                                                     const SpriteComponent& sprite)
@@ -156,10 +153,10 @@ void MeshPipeline::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& command
 
 	model = glm::scale(model, transform.mSize);
 
-	int lightsSize = static_cast<int>(mLights.size());
-	if (lightsSize != mNumLights)
+	const auto lightsSize = mLights.size();
+	if (lightsSize != settings.numLights)
 	{
-		mNumLights = lightsSize;
+		settings.numLights = lightsSize;
 		UpdateLightBuffer(renderSystem);
 	}
 
@@ -168,7 +165,10 @@ void MeshPipeline::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& command
 	settings.projection = projection;
 	settings.textureClip = glm::mat4(1.0f);
 
-	commands.SetUniforms(0, &(camera.GetPosition()), sizeof(glm::vec3));
+	if (settings.viewPos != camera.GetPosition())
+	{
+		settings.viewPos = camera.GetPosition();
+	}
 	commands.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
 }
 
@@ -181,23 +181,6 @@ void MeshPipeline::SetResourceHeapTexture(LLGL::CommandBuffer& commands, int tex
 void MeshPipeline::AddLight(EnTTRegistry& registry, EntityId entity)
 {
 	mQueuedLightEntities.push_back(entity);
-}
-
-void MeshPipeline::RemoveLight(EnTTRegistry& registry, EntityId entity)
-{
-	const auto convertedEntity = static_cast<std::uint32_t>(entity);
-
-	for (auto it = mLights.begin(); it != mLights.end();)
-	{
-		if (it->entityId == convertedEntity)
-		{
-			it = mLights.erase(it); // Erase returns the next iterator
-		}
-		else
-		{
-			++it; // Increment iterator only if not erased 
-		}
-	}
 }
 
 void MeshPipeline::UpdateLightBuffer(const LLGL::RenderSystemPtr& renderSystem) const
@@ -219,8 +202,7 @@ void MeshPipeline::_ProcessLights(EntityRegistry& entityRegistry)
 		if (transform != nullptr)
 		{
 			mLights.push_back({
-				glm::vec4(transform->mPosition, 1.0f), glm::vec4(light.mColor, 1.0f), 1.0f,
-				static_cast<std::uint32_t>(*it)
+				transform->mPosition, 1.0f, glm::vec4(light.mColor, 1.0f)
 			});
 			it = mQueuedLightEntities.erase(it);
 		}

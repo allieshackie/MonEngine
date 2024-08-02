@@ -7,6 +7,8 @@
 #include "Graphics/Core/Model.h"
 #include "Graphics/Core/ResourceManager.h"
 
+#define MAX_LIGHTS 4
+
 class Camera;
 class EntityRegistry;
 class RenderObject;
@@ -34,7 +36,6 @@ public:
 
 	void UpdateLightBuffer(const LLGL::RenderSystemPtr& renderSystem) const;
 	void AddLight(EnTTRegistry& registry, EntityId entity);
-	void RemoveLight(EnTTRegistry& registry, EntityId entity);
 
 private:
 	void _RenderModel(LLGL::CommandBuffer& commands, const MeshComponent& meshComponent, const Camera& camera,
@@ -47,8 +48,6 @@ private:
 	LLGL::Buffer* mLightBuffer = nullptr;
 	LLGL::Buffer* mMaterialBuffer = nullptr;
 
-	int mNumLights = 0;
-
 	struct Settings
 	{
 		// projection-view-model matrix
@@ -57,10 +56,12 @@ private:
 		glm::mat4 projection = glm::mat4();
 		// texture clip to render part of texture
 		glm::mat4 textureClip = glm::mat4();
+		glm::vec3 viewPos = {0, 0, 0};
+		int numLights = 0;
 	}
 	settings = {};
 
-	struct Material
+	struct Material // TODO: Might need to be fixed for 16 byte alignment (emission could be vec3)
 	{
 		glm::vec4 ambient = {0, 0, 0, 0};
 		glm::vec4 diffuse = {0, 0, 0, 0};
@@ -79,11 +80,9 @@ private:
 
 	struct LightUniform
 	{
-		glm::vec4 position = {0, 0, 0, 0};
-		glm::vec4 color = {0, 0, 0, 0};
+		glm::vec3 position = {0, 0, 0};
 		float intensity = 1.0f;
-
-		std::uint32_t entityId;
+		glm::vec4 color = {0, 0, 0, 0};
 	};
 
 	std::vector<LightUniform> mLights;

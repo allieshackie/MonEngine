@@ -6,6 +6,8 @@ layout(std140) uniform Settings
     mat4 view;
     mat4 projection;
     mat4 textureClip;
+    vec3 viewPos;
+    int numLights;
 };
 
 in vec3 position;
