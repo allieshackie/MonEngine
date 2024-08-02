@@ -21,6 +21,10 @@
         {
             "name": "pointLight",
             "position": [0,0,0]
+        },
+        {
+            "name": "pointLightRed",
+            "position": [0,10,0]
         }
     ]
 }
