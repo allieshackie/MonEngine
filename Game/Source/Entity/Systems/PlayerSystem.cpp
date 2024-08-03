@@ -59,4 +59,15 @@ void PlayerSystem::SpawnPlayer(EnTTRegistry& registry, EntityId entity)
 	{
 		player.mMovementInput &= ~(MovementInput::Right);
 	});
+
+	// Jump
+	mInputHandler.RegisterButtonDownHandler(LLGL::Key::Space, [&player]()
+	{
+		player.mMovementInput |= MovementInput::Jump;
+	});
+
+	mInputHandler.RegisterButtonUpHandler(LLGL::Key::Space, [&player]()
+	{
+		player.mMovementInput &= ~(MovementInput::Jump);
+	});
 }

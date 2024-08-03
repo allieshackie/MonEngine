@@ -86,9 +86,6 @@ void EngineContext::Run(GameInterface* game) const
 	// Init current time
 	mTimer->mCurrentTime = Clock::now();
 
-	// TODO: Test to check how ground is added
-	mPhysicsSystem->UpdateCollisionShapes(*mEntityRegistry);
-
 	while (mRenderContext->ProcessEvents() && mRunning)
 	{
 		auto frameTime = Clock::now();

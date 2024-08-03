@@ -9,6 +9,7 @@ enum MovementInput
 	Right = 1 << 4,
 	Forward = 1 << 5,
 	Backward = 1 << 6,
+	Jump = 1 << 7,
 };
 
 struct PlayerComponent

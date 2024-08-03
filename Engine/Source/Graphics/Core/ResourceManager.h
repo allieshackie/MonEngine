@@ -13,8 +13,6 @@ public:
 	static std::vector<std::unique_ptr<Texture>> LoadAllTexturesFromFolder(
 		const LLGL::RenderSystemPtr& renderSystem);
 
-	static std::vector<Model> LoadAllModelsFromFolder();
-
 	static int GetTextureId(const std::string& textureName);
 
 	static bool CreateSimpleOpenGLTexture(const std::string& filename, GLuint* out_texture, int* out_width,

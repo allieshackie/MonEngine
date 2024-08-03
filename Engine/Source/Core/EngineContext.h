@@ -41,6 +41,7 @@ public:
 
 	EntityRegistry& GetEntityRegistry() const;
 	InputHandler& GetInputHandler() const;
+	PhysicsSystem& GetPhysicsSystem() const { return *mPhysicsSystem; }
 
 	EntityId CreateGameObject(const std::string& entityTemplateName) const;
 	template <typename Component>

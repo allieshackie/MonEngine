@@ -14,8 +14,10 @@ class PhysicsSystem
 public:
 	PhysicsSystem(EngineContext& engineContext);
 
-	void UpdateCollisionShapes(EntityRegistry& entityRegistry);
+	void RegisterCollider(EnTTRegistry& registry, EntityId entity);
 	void Update(float deltaTime, EntityRegistry& entityRegistry);
+
+	btDiscreteDynamicsWorld& GetDynamicWorld() const { return *mDynamicWorld; }
 
 private:
 	btQuaternion _ConvertDegreesToQuat(glm::vec3 rot);
