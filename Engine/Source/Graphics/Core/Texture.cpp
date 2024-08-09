@@ -42,6 +42,7 @@ bool Texture::_LoadFromFile(const LLGL::RenderSystemPtr& renderer, const std::st
 	// uncompressed texture
 	int texComponents = 0;
 
+	stbi_set_flip_vertically_on_load(true);
 	unsigned char* imageBuffer = stbi_load((path).c_str(), &mTextureWidth, &mTextureHeight, &texComponents, 0);
 	if (!imageBuffer)
 	{

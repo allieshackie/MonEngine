@@ -1,10 +1,14 @@
 #include <assimp/Importer.hpp>      // C++ importer interface
 #include <assimp/scene.h>           // Output data structure
 #include "assimp/postprocess.h"
+#include "LLGL/Utils/Utility.h"
 
-#include "Mesh.h"
+#include "Graphics/Core/Shader.h"
+#include "Graphics/Core/Vertex.h"
 
-Mesh::Mesh(const std::string& path, std::string fileName) : mId(std::move(fileName))
+#include "Model.h"
+
+Model::Model(const std::string& path, std::string fileName) : mId(std::move(fileName))
 {
 	// Create an instance of the Importer class
 	Assimp::Importer importer;
@@ -24,10 +28,26 @@ Mesh::Mesh(const std::string& path, std::string fileName) : mId(std::move(fileNa
 	}
 }
 
-void Mesh::_LoadObjModel(aiMesh* mesh)
+void Model::InitializeBuffers(const LLGL::RenderSystemPtr& renderSystem, const Shader& shader)
 {
-	std::vector<Vertex> vertices;
+	for (auto& mesh : mMeshes)
+	{
+		mesh.mVertexBuffer = renderSystem->CreateBuffer(
+			LLGL::VertexBufferDesc(static_cast<std::uint32_t>(mesh.mVertices.size() * sizeof(Vertex)),
+			                       shader.GetVertexFormat()), mesh.mVertices.data());
 
+		mesh.mIndexBuffer = renderSystem->CreateBuffer(
+			LLGL::IndexBufferDesc(static_cast<std::uint32_t>(mesh.mIndices.size() * sizeof(uint32_t)),
+			                      LLGL::Format::R32UInt),
+			mesh.mIndices.data());
+
+		mesh.mNumIndices = static_cast<int>(mesh.mIndices.size());
+	}
+}
+
+void Model::_LoadObjModel(aiMesh* mesh)
+{
+	MeshData meshData;
 	for (unsigned int i = 0; i < mesh->mNumVertices; ++i)
 	{
 		Vertex vertex;
@@ -53,7 +73,7 @@ void Mesh::_LoadObjModel(aiMesh* mesh)
 		vertex.normal.y = mesh->mNormals[i].y;
 		vertex.normal.z = mesh->mNormals[i].z;
 
-		mVertices.push_back(vertex);
+		meshData.mVertices.push_back(vertex);
 	}
 
 	// process indices
@@ -62,7 +82,9 @@ void Mesh::_LoadObjModel(aiMesh* mesh)
 		aiFace face = mesh->mFaces[i];
 		for (unsigned int j = 0; j < face.mNumIndices; j++)
 		{
-			mIndices.push_back(face.mIndices[j]);
+			meshData.mIndices.push_back(face.mIndices[j]);
 		}
 	}
+
+	mMeshes.push_back(meshData);
 }

@@ -1,4 +1,5 @@
 #include "Entity/Descriptions/CollisionDescription.h"
+#include "Entity/Descriptions/LightDescription.h"
 #include "Entity/Descriptions/MeshDescription.h"
 #include "Entity/Descriptions/PhysicsDescription.h"
 #include "Entity/Descriptions/PlayerDescription.h"
@@ -16,10 +17,6 @@ void EngineContext::_Init(const LLGL::Extent2D screenSize, const LLGL::UTF8Strin
 	mInputHandler->RegisterButtonUpHandler(LLGL::Key::Escape, [=]() { mRunning = false; });
 
 	mResourceManager = std::make_unique<ResourceManager>();
-	mRenderContext = std::make_unique<RenderContext>(title, screenSize, backgroundClearColor, mInputHandler,
-	                                                 usePerspective);
-	GUISystem::InitGUI(*mRenderContext);
-	mLuaSystem = std::make_unique<LuaSystem>();
 
 	mDescriptionFactory = std::make_unique<DescriptionFactory>();
 	_InitDescriptions();
@@ -29,6 +26,10 @@ void EngineContext::_Init(const LLGL::Extent2D screenSize, const LLGL::UTF8Strin
 	mMapRegistry = std::make_unique<MapRegistry>();
 	mTimer = std::make_unique<Timer>();
 
+	mRenderContext = std::make_unique<RenderContext>(title, screenSize, backgroundClearColor, mInputHandler,
+	                                                 *mEntityRegistry, usePerspective);
+	GUISystem::InitGUI(*mRenderContext);
+	mLuaSystem = std::make_unique<LuaSystem>();
 	mLevelManager = std::make_unique<LevelManager>();
 
 	mPhysicsSystem = std::make_unique<PhysicsSystem>(*this);
@@ -59,6 +60,7 @@ void EngineContext::_DrawAxis() const
 void EngineContext::_InitDescriptions() const
 {
 	mDescriptionFactory->RegisterDescription<CollisionDescription>(CollisionDescription::JsonName);
+	mDescriptionFactory->RegisterDescription<LightDescription>(LightDescription::JsonName);
 	mDescriptionFactory->RegisterDescription<MeshDescription>(MeshDescription::JsonName);
 	mDescriptionFactory->RegisterDescription<PhysicsDescription>(PhysicsDescription::JsonName);
 	mDescriptionFactory->RegisterDescription<PlayerDescription>(PlayerDescription::JsonName);
@@ -83,9 +85,6 @@ void EngineContext::Run(GameInterface* game) const
 {
 	// Init current time
 	mTimer->mCurrentTime = Clock::now();
-
-	// TODO: Test to check how ground is added
-	mPhysicsSystem->UpdateCollisionShapes(*mEntityRegistry);
 
 	while (mRenderContext->ProcessEvents() && mRunning)
 	{

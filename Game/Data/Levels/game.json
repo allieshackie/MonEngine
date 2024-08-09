@@ -17,6 +17,14 @@
         {
             "name": "player",
             "position": [0,10,0]
+        },
+        {
+            "name": "pointLight",
+            "position": [0,0,0]
+        },
+        {
+            "name": "pointLightRed",
+            "position": [0,10,0]
         }
     ]
 }

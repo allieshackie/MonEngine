@@ -12,53 +12,62 @@ PlayerSystem::PlayerSystem(EntityRegistry& entityRegistry, InputHandler& inputHa
 	mEntityRegistry.GetEnttRegistry().on_construct<PlayerComponent>().connect<&PlayerSystem::SpawnPlayer>(this);
 }
 
-void PlayerSystem::SpawnPlayer()
+void PlayerSystem::SpawnPlayer(EnTTRegistry& registry, EntityId entity)
 {
-	const auto view = mEntityRegistry.GetEnttRegistry().view<PlayerComponent>();
-	view.each([=](auto& player)
+	auto& player = registry.get<PlayerComponent>(entity);
+
+	// Forward
+	mInputHandler.RegisterButtonDownHandler(LLGL::Key::W, [&player]()
 	{
-		// Forward
-		mInputHandler.RegisterButtonDownHandler(LLGL::Key::W, [&player]()
-		{
-			player.mMovementInput |= MovementInput::Forward;
-		});
+		player.mMovementInput |= MovementInput::Forward;
+	});
 
-		mInputHandler.RegisterButtonUpHandler(LLGL::Key::W, [&player]()
-		{
-			player.mMovementInput &= ~(MovementInput::Forward);
-		});
+	mInputHandler.RegisterButtonUpHandler(LLGL::Key::W, [&player]()
+	{
+		player.mMovementInput &= ~(MovementInput::Forward);
+	});
 
-		// Back
-		mInputHandler.RegisterButtonDownHandler(LLGL::Key::S, [&player]()
-		{
-			player.mMovementInput |= MovementInput::Backward;
-		});
+	// Back
+	mInputHandler.RegisterButtonDownHandler(LLGL::Key::S, [&player]()
+	{
+		player.mMovementInput |= MovementInput::Backward;
+	});
 
-		mInputHandler.RegisterButtonUpHandler(LLGL::Key::S, [&player]()
-		{
-			player.mMovementInput &= ~(MovementInput::Backward);
-		});
+	mInputHandler.RegisterButtonUpHandler(LLGL::Key::S, [&player]()
+	{
+		player.mMovementInput &= ~(MovementInput::Backward);
+	});
 
-		// Left
-		mInputHandler.RegisterButtonDownHandler(LLGL::Key::A, [&player]()
-		{
-			player.mMovementInput |= MovementInput::Left;
-		});
+	// Left
+	mInputHandler.RegisterButtonDownHandler(LLGL::Key::A, [&player]()
+	{
+		player.mMovementInput |= MovementInput::Left;
+	});
 
-		mInputHandler.RegisterButtonUpHandler(LLGL::Key::A, [&player]()
-		{
-			player.mMovementInput &= ~(MovementInput::Left);
-		});
+	mInputHandler.RegisterButtonUpHandler(LLGL::Key::A, [&player]()
+	{
+		player.mMovementInput &= ~(MovementInput::Left);
+	});
 
-		// Right
-		mInputHandler.RegisterButtonDownHandler(LLGL::Key::D, [&player]()
-		{
-			player.mMovementInput |= MovementInput::Right;
-		});
+	// Right
+	mInputHandler.RegisterButtonDownHandler(LLGL::Key::D, [&player]()
+	{
+		player.mMovementInput |= MovementInput::Right;
+	});
 
-		mInputHandler.RegisterButtonUpHandler(LLGL::Key::D, [&player]()
-		{
-			player.mMovementInput &= ~(MovementInput::Right);
-		});
+	mInputHandler.RegisterButtonUpHandler(LLGL::Key::D, [&player]()
+	{
+		player.mMovementInput &= ~(MovementInput::Right);
+	});
+
+	// Jump
+	mInputHandler.RegisterButtonDownHandler(LLGL::Key::Space, [&player]()
+	{
+		player.mMovementInput |= MovementInput::Jump;
+	});
+
+	mInputHandler.RegisterButtonUpHandler(LLGL::Key::Space, [&player]()
+	{
+		player.mMovementInput &= ~(MovementInput::Jump);
 	});
 }

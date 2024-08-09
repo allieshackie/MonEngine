@@ -14,9 +14,53 @@
 #include "MapPipeline.h"
 
 MapPipeline::MapPipeline(const LLGL::RenderSystemPtr& renderSystem, LLGL::Buffer* meshConstantBuffer)
-	: PipelineBase(renderSystem, "sprite.vert", "sprite.frag"),
+	: PipelineBase(),
 	  mMeshConstantBuffer(meshConstantBuffer)
 {
+	// Initialization
+	{
+		InitConstantBuffer<Settings>(renderSystem, settings);
+
+		LLGL::VertexFormat vertexFormat;
+		vertexFormat.AppendAttribute({"position", LLGL::Format::RGB32Float, 0, 0, sizeof(Vertex), 0});
+		vertexFormat.AppendAttribute({"normal", LLGL::Format::RGB32Float, 1, 12, sizeof(Vertex), 0});
+		vertexFormat.AppendAttribute({"texCoord", LLGL::Format::RG32Float, 2, 24, sizeof(Vertex), 0});
+		InitShader(renderSystem, vertexFormat, "sprite.vert", "sprite.frag");
+		LLGL::PipelineLayoutDescriptor layoutDesc;
+		{
+			layoutDesc.heapBindings =
+			{
+				LLGL::BindingDescriptor{
+					"Settings", LLGL::ResourceType::Buffer, LLGL::BindFlags::ConstantBuffer,
+					LLGL::StageFlags::VertexStage, 0
+				},
+				LLGL::BindingDescriptor{
+					"colorMap", LLGL::ResourceType::Texture, LLGL::BindFlags::Sampled, LLGL::StageFlags::FragmentStage,
+					3
+				},
+				LLGL::BindingDescriptor{
+					LLGL::ResourceType::Sampler, 0, LLGL::StageFlags::FragmentStage, 3
+				},
+
+			};
+		}
+		InitPipeline(renderSystem, layoutDesc);
+
+		// Resource Heap
+		const auto textures = ResourceManager::LoadAllTexturesFromFolder(renderSystem);
+
+		std::vector<LLGL::ResourceViewDescriptor> resourceViews;
+		resourceViews.reserve(textures.size() * 3);
+
+		for (const auto& texture : textures)
+		{
+			resourceViews.emplace_back(mConstantBuffer);
+			resourceViews.emplace_back(&texture->GetTextureData());
+			resourceViews.emplace_back(&texture->GetSamplerData());
+		}
+		InitResourceHeap(renderSystem, resourceViews);
+	}
+
 	// Create nearest sampler
 	LLGL::SamplerDescriptor samplerDesc;
 	{
@@ -32,7 +76,9 @@ MapPipeline::MapPipeline(const LLGL::RenderSystemPtr& renderSystem, LLGL::Buffer
 	);
 }
 
-void MapPipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat, EntityRegistry& entityRegistry,
+void MapPipeline::Render(LLGL::CommandBuffer& commandBuffer, const Camera& camera,
+                         const glm::mat4 projection, EntityRegistry& entityRegistry,
+                         const LLGL::RenderSystemPtr& renderSystem,
                          MeshPipeline& meshPipeline) const
 {
 	commandBuffer.SetPipelineState(*mPipeline);
@@ -40,27 +86,27 @@ void MapPipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvM
 	const auto map3DView = entityRegistry.GetEnttRegistry().view<
 		const MapComponent, const TransformComponent, const MeshComponent>();
 
-	map3DView.each([this, &commandBuffer, &pvMat, &meshPipeline](const MapComponent& map,
-	                                                             const TransformComponent& transform,
-	                                                             const MeshComponent& mesh)
-	{
-		// Set resources
-		meshPipeline.SetPipeline(commandBuffer);
-		if (map.mGeneratedTextureId != -1)
+	map3DView.each([this, &commandBuffer, &camera, &renderSystem, &projection, &meshPipeline](const MapComponent& map,
+		const TransformComponent& transform,
+		const MeshComponent& mesh)
 		{
-			commandBuffer.SetResourceHeap(*mMapMeshResourceHeap, map.mGeneratedTextureId);
-		}
-		else
-		{
-			const auto textureId = ResourceManager::GetTextureId(map.mTexturePath);
-			meshPipeline.SetResourceHeapTexture(commandBuffer, textureId);
-		}
-		meshPipeline.RenderMap(commandBuffer, pvMat, mesh, transform);
-	});
+			// Set resources
+			meshPipeline.SetPipeline(commandBuffer);
+			if (map.mGeneratedTextureId != -1)
+			{
+				commandBuffer.SetResourceHeap(*mMapMeshResourceHeap, map.mGeneratedTextureId);
+			}
+			else
+			{
+				const auto textureId = ResourceManager::GetTextureId(map.mTexturePath);
+				meshPipeline.SetResourceHeapTexture(commandBuffer, textureId);
+			}
+			meshPipeline.RenderMap(commandBuffer, camera, renderSystem, projection, mesh, transform);
+		});
 }
 
 void MapPipeline::_UpdateUniformsModel(LLGL::CommandBuffer& commandBuffer, glm::vec3 pos, glm::vec3 size, glm::vec3 rot,
-                                       glm::vec4 texClip) const
+                                       glm::vec4 texClip)
 {
 	// Update
 	auto model = glm::mat4(1.0f);
@@ -76,7 +122,11 @@ void MapPipeline::_UpdateUniformsModel(LLGL::CommandBuffer& commandBuffer, glm::
 	textureClip = translate(textureClip, glm::vec3(texClip.x, texClip.y, 0.0f));
 	textureClip = scale(textureClip, glm::vec3(texClip.z, texClip.w, 1.0f));
 
-	const Settings settings = {model, textureClip, glm::mat4()};
+	settings.model = model;
+	settings.view = glm::mat4(1.0f);
+	settings.projection = glm::mat4(1.0f);
+	settings.textureClip = textureClip;
+
 	commandBuffer.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
 }
 

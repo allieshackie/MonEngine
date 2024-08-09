@@ -9,8 +9,6 @@ class Camera
 public:
 	Camera(glm::vec3 position, glm::vec3 front, glm::vec3 up);
 
-	glm::mat4 GetView() const;
-
 	void MoveLeft();
 	void MoveRight();
 	void MoveUp();
@@ -21,8 +19,9 @@ public:
 
 	void DebugUpdatePosition(glm::vec3 position);
 
-	glm::vec3 GetPosition() const;
-	glm::vec3 GetFront() const;
+	const glm::mat4& GetView() const { return mView; }
+	const glm::vec3& GetPosition() const { return mCameraPos; }
+	const glm::vec3& GetFront() const { return mCameraFront; }
 
 	void SetPosition(const glm::vec3 pos);
 	void SetFront(const glm::vec3 front);

@@ -1,22 +1,44 @@
 #include <glm/geometric.hpp>
 #include <glm/vec3.hpp>
+#include "BulletCollision/CollisionDispatch/btCollisionWorld.h"
 
 #include "Entity/EntityRegistry.h"
 #include "Entity/Components/CollisionComponent.h"
 #include "Entity/Components/PhysicsComponent.h"
 #include "Entity/Components/PlayerComponent.h"
+#include "Physics/PhysicsSystem.h"
 
 #include "MovementSystem.h"
 
-void MovementSystem::Update(EntityRegistry& registry)
+void MovementSystem::Update(EntityRegistry& registry, PhysicsSystem& physicsSystem)
 {
 	const auto playerView = registry.GetEnttRegistry().view<PlayerComponent, PhysicsComponent, CollisionComponent>();
-	playerView.each([=](auto& player, auto& physics, auto& collider)
+	playerView.each([=, &physicsSystem](auto& player, auto& physics, auto& collider)
 	{
+		_ApplyJump(collider, player, physicsSystem);
 		// Apply movement directions to physics component
 		_ApplyVelocityFromDirection(player, physics);
 		_ApplyMovementForce(physics, collider);
 	});
+}
+
+static void _ApplyJump(const CollisionComponent& collider, const PlayerComponent& player, PhysicsSystem& physicsSystem)
+{
+	if (player.mMovementInput & MovementInput::Jump)
+	{
+		// Check if player is on the ground (no double jumping yet)
+		btVector3 start = collider.mRigidBody->getWorldTransform().getOrigin();
+		btVector3 end = start - btVector3(0, 1.0, 0); // 1.0 units down
+
+		btCollisionWorld::ClosestRayResultCallback rayCallback(start, end);
+		physicsSystem.GetDynamicWorld().rayTest(start, end, rayCallback);
+
+		if (rayCallback.hasHit())
+		{
+			auto upwardImpulse = btVector3(0, 0.3f, 0);
+			collider.mRigidBody->applyCentralImpulse(upwardImpulse);
+		}
+	}
 }
 
 static void _ApplyVelocityFromDirection(const PlayerComponent& player, PhysicsComponent& physics)

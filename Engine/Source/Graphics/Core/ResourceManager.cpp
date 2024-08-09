@@ -78,16 +78,16 @@ std::vector<std::unique_ptr<Texture>> ResourceManager::LoadAllTexturesFromFolder
 	return textures;
 }
 
-std::vector<std::unique_ptr<Mesh>> ResourceManager::LoadAllMeshesFromFolder()
+std::vector<Model> LoadAllModelsFromFolder()
 {
-	std::vector<std::unique_ptr<Mesh>> meshes;
+	std::vector<Model> models;
 	for (const auto& entry : std::filesystem::directory_iterator(MODELS_FOLDER))
 	{
 		auto fullPath = entry.path().string();
-		meshes.push_back(std::make_unique<Mesh>(fullPath, entry.path().filename().string()));
+		models.emplace_back(fullPath, entry.path().filename().string());
 	}
 
-	return meshes;
+	return models;
 }
 
 int ResourceManager::GetTextureId(const std::string& textureName)

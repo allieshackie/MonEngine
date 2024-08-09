@@ -40,7 +40,7 @@ void EntityTemplateRegistry::RegisterEntityTemplates(const DescriptionFactory& d
 		std::vector<std::shared_ptr<DescriptionBase>> descriptions;
 		for (auto& [key, value] : json[COMPONENTS_STRING].items())
 		{
-			descriptions.push_back(descriptionFactory.CreateDescription(key, value));
+			descriptions.insert(descriptions.begin(), descriptionFactory.CreateDescription(key, value));
 		}
 
 		mEntityTemplates.insert({templateName, descriptions});

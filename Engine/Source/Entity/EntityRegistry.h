@@ -53,6 +53,13 @@ public:
 		return mRegistry.get<Component>(id);
 	}
 
+
+	template <typename Component>
+	Component* TryGetComponent(EntityId id)
+	{
+		return mRegistry.try_get<Component>(id);
+	}
+
 	template <typename Component, typename... Args>
 	void AddComponent(EntityId id, Args&&... args)
 	{

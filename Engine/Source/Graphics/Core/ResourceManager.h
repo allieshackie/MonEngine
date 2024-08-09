@@ -1,6 +1,6 @@
 #pragma once
 #include <LLGL/LLGL.h>
-#include "Mesh.h"
+#include "Model.h"
 #include "Texture.h"
 
 using GLuint = unsigned int;
@@ -12,8 +12,6 @@ public:
 
 	static std::vector<std::unique_ptr<Texture>> LoadAllTexturesFromFolder(
 		const LLGL::RenderSystemPtr& renderSystem);
-
-	static std::vector<std::unique_ptr<Mesh>> LoadAllMeshesFromFolder();
 
 	static int GetTextureId(const std::string& textureName);
 

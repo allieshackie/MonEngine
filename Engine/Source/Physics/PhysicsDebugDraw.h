@@ -3,6 +3,8 @@
 #include "LinearMath/btAlignedObjectArray.h"
 #include "LinearMath/btIDebugDraw.h"
 
+class EngineContext;
+
 struct MyDebugVec3
 {
 	MyDebugVec3(const btVector3& org)

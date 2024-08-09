@@ -154,7 +154,7 @@ void LevelManager::_ParseLevelJson(const std::string& levelName)
 		}
 	}
 
-	/* TODO: Lighting setup
+	/*
 	 *
 	if (json.contains(LIGHTS_STRING))
 	{

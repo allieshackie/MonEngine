@@ -26,43 +26,20 @@ PhysicsSystem::PhysicsSystem(EngineContext& engineContext)
 	//mPhysicsDebugDraw = std::make_unique<PhysicsDebugDraw>(engineContext);
 	//mDynamicWorld->setDebugDrawer(mPhysicsDebugDraw.get());
 	//mDynamicWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
+
+	engineContext.GetEntityRegistry().GetEnttRegistry().on_construct<CollisionComponent>().connect<&
+		PhysicsSystem::RegisterCollider>(this);
 }
 
-void PhysicsSystem::UpdateCollisionShapes(EntityRegistry& entityRegistry)
+void PhysicsSystem::RegisterCollider(EnTTRegistry& registry, EntityId entity)
 {
-	const auto staticView = entityRegistry.GetEnttRegistry().view<
-		CollisionComponent, TransformComponent>(entt::exclude<PhysicsComponent>);
-	const auto dynamicView = entityRegistry.GetEnttRegistry().view<
-		CollisionComponent, TransformComponent, PhysicsComponent>();
+	const auto& transform = registry.get<TransformComponent>(entity);
+	auto& collider = registry.get<CollisionComponent>(entity);
 
-	// Static RigidBody
-	staticView.each([=](auto& staticCollider, const auto& staticTransform)
-	{
-		if (staticCollider.mColliderShape == ColliderShapes::Box)
-		{
-			const auto& position = staticTransform.mPosition;
-			const auto& size = staticTransform.mSize;
-			const auto& rotation = staticTransform.mRotation;
-			const auto boxShape = new btBoxShape(btVector3{size.x, size.y, size.z});
+	const auto physics = registry.try_get<PhysicsComponent>(entity);
 
-			btTransform boxTransform;
-			boxTransform.setOrigin(btVector3{position.x, position.y, position.z});
-			boxTransform.setRotation(_ConvertDegreesToQuat(rotation));
-
-			const btVector3 localInertia(0, 0, 0);
-			const auto motionState = new btDefaultMotionState(boxTransform);
-
-			const btRigidBody::btRigidBodyConstructionInfo rbInfo(0, motionState, boxShape, localInertia);
-
-			staticCollider.mColliderIndex = mDynamicWorld->getNumCollisionObjects();
-			auto rigidBody = new btRigidBody(rbInfo);
-			mDynamicWorld->addRigidBody(rigidBody);
-
-			staticCollider.mRigidBody = rigidBody;
-		}
-	});
-	// Dynamic rigidbody
-	dynamicView.each([=](auto& collider, const auto& transform, auto& physics)
+	// If physics component exists, dynamic collider
+	if (physics != nullptr)
 	{
 		if (collider.mColliderShape == ColliderShapes::Box)
 		{
@@ -73,7 +50,7 @@ void PhysicsSystem::UpdateCollisionShapes(EntityRegistry& entityRegistry)
 
 			btTransform boxTransform;
 
-			btScalar mass(physics.mMass);
+			btScalar mass(physics->mMass);
 			btVector3 localInertia(0, 0, 0);
 			boxShape->calculateLocalInertia(mass, localInertia);
 
@@ -87,14 +64,39 @@ void PhysicsSystem::UpdateCollisionShapes(EntityRegistry& entityRegistry)
 			collider.mIsDynamic = true;
 
 			auto rigidBody = new btRigidBody(rbInfo);
-			rigidBody->setDamping(0.5f, 0.5f);
+			rigidBody->setDamping(0.6f, 0.5f);
 			rigidBody->setAngularFactor(btVector3(0, 0, 0));
 
 			mDynamicWorld->addRigidBody(rigidBody);
 
 			collider.mRigidBody = rigidBody;
 		}
-	});
+	}
+	else
+	{
+		if (collider.mColliderShape == ColliderShapes::Box)
+		{
+			const auto& position = transform.mPosition;
+			const auto& size = transform.mSize;
+			const auto& rotation = transform.mRotation;
+			const auto boxShape = new btBoxShape(btVector3{size.x, size.y, size.z});
+
+			btTransform boxTransform;
+			boxTransform.setOrigin(btVector3{position.x, position.y, position.z});
+			boxTransform.setRotation(_ConvertDegreesToQuat(rotation));
+
+			const btVector3 localInertia(0, 0, 0);
+			const auto motionState = new btDefaultMotionState(boxTransform);
+
+			const btRigidBody::btRigidBodyConstructionInfo rbInfo(0, motionState, boxShape, localInertia);
+
+			collider.mColliderIndex = mDynamicWorld->getNumCollisionObjects();
+			auto rigidBody = new btRigidBody(rbInfo);
+			mDynamicWorld->addRigidBody(rigidBody);
+
+			collider.mRigidBody = rigidBody;
+		}
+	}
 }
 
 void PhysicsSystem::Update(float deltaTime, EntityRegistry& entityRegistry)

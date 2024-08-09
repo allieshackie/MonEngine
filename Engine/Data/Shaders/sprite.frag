@@ -2,11 +2,11 @@
 
 layout(std140) uniform Settings 
 {
-    mat4 pvmMat;
+    mat4 model;
+    mat4 view;
+    mat4 projection;
     mat4 textureClip;
-    mat4 mMat;
 };
-
 uniform sampler2D colorMap;
 
 in vec2 vTexCoord;

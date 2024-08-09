@@ -1,39 +1,38 @@
 #pragma once
 #include <LLGL/LLGL.h>
 #include <glm/mat4x4.hpp>
+#include "LLGL/Utils/Utility.h"
 
 #include "Graphics/Core/Shader.h"
 
 class PipelineBase
 {
 public:
-	PipelineBase(const LLGL::RenderSystemPtr& renderSystem, const char* vertexFile, const char* fragmentFile,
-	             LLGL::PrimitiveTopology topology = LLGL::PrimitiveTopology::TriangleStrip);
+	PipelineBase() = default;
 
-	LLGL::PipelineLayout& GetPipelineLayout() const { return *mPipelineLayout; }
 	LLGL::Buffer* GetConstantBuffer() const { return mConstantBuffer; }
+	const Shader& GetShader() const { return *mShader; }
+
+	// Initialization Steps:
+	template <typename T>
+	void InitConstantBuffer(const LLGL::RenderSystemPtr& renderSystem, T& settings)
+	{
+		mConstantBuffer = renderSystem->CreateBuffer(LLGL::ConstantBufferDesc(sizeof(T)), &settings);
+	}
+
+	void InitShader(const LLGL::RenderSystemPtr& renderSystem, const LLGL::VertexFormat& vertexFormat,
+	                const char* vertexFile, const char* fragmentFile);
+	void InitPipeline(const LLGL::RenderSystemPtr& renderSystem,
+	                  const LLGL::PipelineLayoutDescriptor& pipelineLayoutDesc,
+	                  LLGL::PrimitiveTopology topology = LLGL::PrimitiveTopology::TriangleStrip);
+	void InitResourceHeap(const LLGL::RenderSystemPtr& renderSystem,
+	                      const std::vector<LLGL::ResourceViewDescriptor>& resourceViews);
 
 protected:
-	void _InitConstantBuffer(const LLGL::RenderSystemPtr& renderSystem);
-	void _InitShader(const LLGL::RenderSystemPtr& renderSystem, const char* vertexFile, const char* fragmentFile);
-	void _InitPipeline(const LLGL::RenderSystemPtr& renderSystem, LLGL::PrimitiveTopology topology);
-	void _InitResourceHeap(const LLGL::RenderSystemPtr& renderSystem);
-
 	LLGL::PipelineLayout* mPipelineLayout = nullptr;
 	LLGL::PipelineState* mPipeline = nullptr;
 	LLGL::ResourceHeap* mResourceHeap = nullptr;
 	std::unique_ptr<Shader> mShader = nullptr;
 
 	LLGL::Buffer* mConstantBuffer = nullptr;
-
-	struct Settings
-	{
-		// projection-view-model matrix
-		glm::mat4 pvmMat = glm::mat4();
-		// texture clip to render part of texture
-		glm::mat4 textureClip = glm::mat4();
-		// model only matrix
-		glm::mat4 mMat = glm::mat4();
-	}
-	settings = {};
 };

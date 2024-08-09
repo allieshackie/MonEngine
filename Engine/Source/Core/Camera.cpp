@@ -6,11 +6,6 @@ Camera::Camera(glm::vec3 position, glm::vec3 front, glm::vec3 up)
 	UpdateView();
 }
 
-glm::mat4 Camera::GetView() const
-{
-	return mView;
-}
-
 void Camera::MoveLeft()
 {
 	mCameraPos.x -= mCameraSpeed;
@@ -51,16 +46,6 @@ void Camera::DebugUpdatePosition(glm::vec3 position)
 {
 	mCameraPos = position;
 	UpdateView();
-}
-
-glm::vec3 Camera::GetPosition() const
-{
-	return mCameraPos;
-}
-
-glm::vec3 Camera::GetFront() const
-{
-	return mCameraFront;
 }
 
 void Camera::SetPosition(const glm::vec3 pos)
