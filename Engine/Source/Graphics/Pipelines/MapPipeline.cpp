@@ -13,7 +13,8 @@
 
 #include "MapPipeline.h"
 
-MapPipeline::MapPipeline(const LLGL::RenderSystemPtr& renderSystem, LLGL::Buffer* meshConstantBuffer)
+MapPipeline::MapPipeline(const LLGL::RenderSystemPtr& renderSystem, const ResourceManager& resourceManager,
+                         LLGL::Buffer* meshConstantBuffer)
 	: PipelineBase(),
 	  mMeshConstantBuffer(meshConstantBuffer)
 {
@@ -47,7 +48,7 @@ MapPipeline::MapPipeline(const LLGL::RenderSystemPtr& renderSystem, LLGL::Buffer
 		InitPipeline(renderSystem, layoutDesc);
 
 		// Resource Heap
-		const auto textures = ResourceManager::LoadAllTexturesFromFolder(renderSystem);
+		const auto& textures = resourceManager.GetTextures();
 
 		std::vector<LLGL::ResourceViewDescriptor> resourceViews;
 		resourceViews.reserve(textures.size() * 3);
@@ -79,6 +80,7 @@ MapPipeline::MapPipeline(const LLGL::RenderSystemPtr& renderSystem, LLGL::Buffer
 void MapPipeline::Render(LLGL::CommandBuffer& commandBuffer, const Camera& camera,
                          const glm::mat4 projection, EntityRegistry& entityRegistry,
                          const LLGL::RenderSystemPtr& renderSystem,
+                         ResourceManager& resourceManager,
                          MeshPipeline& meshPipeline) const
 {
 	commandBuffer.SetPipelineState(*mPipeline);
@@ -86,7 +88,8 @@ void MapPipeline::Render(LLGL::CommandBuffer& commandBuffer, const Camera& camer
 	const auto map3DView = entityRegistry.GetEnttRegistry().view<
 		const MapComponent, const TransformComponent, const MeshComponent>();
 
-	map3DView.each([this, &commandBuffer, &camera, &renderSystem, &projection, &meshPipeline](const MapComponent& map,
+	map3DView.each([this, &commandBuffer, &camera, &renderSystem, &resourceManager, &projection, &meshPipeline](
+		const MapComponent& map,
 		const TransformComponent& transform,
 		const MeshComponent& mesh)
 		{
@@ -98,10 +101,10 @@ void MapPipeline::Render(LLGL::CommandBuffer& commandBuffer, const Camera& camer
 			}
 			else
 			{
-				const auto textureId = ResourceManager::GetTextureId(map.mTexturePath);
-				meshPipeline.SetResourceHeapTexture(commandBuffer, textureId);
+				auto& texture = resourceManager.GetTexture(map.mTexturePath);
+				meshPipeline.SetResourceHeapTexture(commandBuffer, texture);
 			}
-			meshPipeline.RenderMap(commandBuffer, camera, renderSystem, projection, mesh, transform);
+			meshPipeline.RenderMap(commandBuffer, camera, renderSystem, resourceManager, projection, mesh, transform);
 		});
 }
 
@@ -151,7 +154,7 @@ void MapPipeline::_CreateMapResourceHeap(const LLGL::RenderSystemPtr& renderSyst
 
 void MapPipeline::GenerateMapTexture(const LLGL::RenderSystemPtr& renderSystem,
                                      LLGL::CommandBuffer& commandBuffer, EntityRegistry& entityRegistry,
-                                     EntityId mapId)
+                                     const ResourceManager& resourceManager, EntityId mapId)
 {
 	// Create Render Target
 	const auto texture = renderSystem->CreateTexture(
@@ -182,14 +185,15 @@ void MapPipeline::GenerateMapTexture(const LLGL::RenderSystemPtr& renderSystem,
 	}
 
 	const auto pipeline = renderSystem->CreatePipelineState(pipelineDesc);
-	_WriteMapTexture(commandBuffer, pipeline, renderTarget, texture, entityRegistry, mapId);
+	_WriteMapTexture(commandBuffer, pipeline, renderTarget, texture, entityRegistry, resourceManager, mapId);
 
 	_CreateMapResourceHeap(renderSystem);
 }
 
 void MapPipeline::_WriteMapTexture(LLGL::CommandBuffer& commandBuffer, LLGL::PipelineState* writePipeline,
                                    LLGL::RenderTarget* writeTarget, LLGL::Texture* writtenTexture,
-                                   EntityRegistry& entityRegistry, EntityId mapId)
+                                   EntityRegistry& entityRegistry, const ResourceManager& resourceManager,
+                                   EntityId mapId)
 {
 	auto& mapComponent = entityRegistry.GetComponent<MapComponent>(mapId);
 	const auto& transformComponent = entityRegistry.GetComponent<TransformComponent>(mapId);
@@ -204,7 +208,7 @@ void MapPipeline::_WriteMapTexture(LLGL::CommandBuffer& commandBuffer, LLGL::Pip
 		commandBuffer.SetPipelineState(*writePipeline);
 		commandBuffer.SetVertexBuffer(*mVertexBuffer);
 
-		const auto textureId = ResourceManager::GetTextureId(mapComponent.mTexturePath);
+		const auto textureId = resourceManager.GetTextureId(mapComponent.mTexturePath);
 		commandBuffer.SetResourceHeap(*mResourceHeap, textureId);
 
 		const auto& mapData = mapComponent.mData;

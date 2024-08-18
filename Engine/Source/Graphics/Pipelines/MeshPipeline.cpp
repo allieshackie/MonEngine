@@ -10,7 +10,8 @@
 
 #include "MeshPipeline.h"
 
-MeshPipeline::MeshPipeline(LLGL::RenderSystemPtr& renderSystem, EntityRegistry& entityRegistry) : PipelineBase()
+MeshPipeline::MeshPipeline(LLGL::RenderSystemPtr& renderSystem, EntityRegistry& entityRegistry,
+                           const ResourceManager& resourceManager) : PipelineBase()
 {
 	// Initialization
 	{
@@ -20,6 +21,9 @@ MeshPipeline::MeshPipeline(LLGL::RenderSystemPtr& renderSystem, EntityRegistry& 
 		vertexFormat.AppendAttribute({"position", LLGL::Format::RGB32Float, 0, 0, sizeof(Vertex), 0});
 		vertexFormat.AppendAttribute({"normal", LLGL::Format::RGB32Float, 1, 12, sizeof(Vertex), 0});
 		vertexFormat.AppendAttribute({"texCoord", LLGL::Format::RG32Float, 2, 24, sizeof(Vertex), 0});
+		vertexFormat.AppendAttribute({"boneIds", LLGL::Format::RGBA32SInt, 3, 32, sizeof(Vertex), 0});
+		vertexFormat.AppendAttribute({"weights", LLGL::Format::RGBA32Float, 4, 48, sizeof(Vertex), 0});
+
 		InitShader(renderSystem, vertexFormat, "mesh.vert", "mesh.frag");
 		LLGL::PipelineLayoutDescriptor layoutDesc;
 		{
@@ -77,26 +81,17 @@ MeshPipeline::MeshPipeline(LLGL::RenderSystemPtr& renderSystem, EntityRegistry& 
 
 		renderSystem->WriteBuffer(*mMaterialBuffer, 0, &(material), sizeof(Material));
 
-		mTextures = ResourceManager::LoadAllTexturesFromFolder(renderSystem);
-
 		std::vector<LLGL::ResourceViewDescriptor> resourceViews = {mConstantBuffer, mLightBuffer, mMaterialBuffer};
 		InitResourceHeap(renderSystem, resourceViews);
 	}
 
-	for (const auto& entry : std::filesystem::directory_iterator(MODELS_FOLDER))
-	{
-		auto fullPath = entry.path().string();
-		auto model = Model(fullPath, entry.path().filename().string());
-		model.InitializeBuffers(renderSystem, *mShader);
-		mModelVertexBuffers[model.GetId()] = model;
-	}
-
+	resourceManager.InitModelVertexBuffers(renderSystem, *mShader);
 	entityRegistry.GetEnttRegistry().on_construct<LightComponent>().connect<&MeshPipeline::AddLight>(this);
 }
 
 void MeshPipeline::Render(LLGL::CommandBuffer& commands, const Camera& camera,
                           const glm::mat4 projection, EntityRegistry& entityRegistry,
-                          const LLGL::RenderSystemPtr& renderSystem)
+                          ResourceManager& resourceManager, const LLGL::RenderSystemPtr& renderSystem)
 {
 	if (!mQueuedLightEntities.empty())
 	{
@@ -111,23 +106,25 @@ void MeshPipeline::Render(LLGL::CommandBuffer& commands, const Camera& camera,
 		entt::exclude<MapComponent>);
 
 	// Should either be a sprite or basic color
-	meshView.each([this, &commands, &camera, &renderSystem, &projection](const TransformComponent& transform,
-	                                                                     const MeshComponent& mesh,
-	                                                                     const SpriteComponent& sprite)
-	{
-		// Set resources
-		const auto textureId = ResourceManager::GetTextureId(sprite.mTexturePath);
-		commands.SetResourceHeap(*mResourceHeap);
-		commands.SetResource(0, mTextures[textureId]->GetTextureData());
-		_RenderModel(commands, mesh, camera, renderSystem, projection, transform);
-	});
+	meshView.each([this, &commands, &camera, &renderSystem, &resourceManager, &projection](
+		const TransformComponent& transform,
+		const MeshComponent& mesh,
+		const SpriteComponent& sprite)
+		{
+			// Set resources
+			auto& texture = resourceManager.GetTexture(sprite.mTexturePath);
+			commands.SetResourceHeap(*mResourceHeap);
+			commands.SetResource(0, texture);
+			_RenderModel(commands, mesh, camera, renderSystem, resourceManager, projection, transform);
+		});
 }
 
 void MeshPipeline::RenderMap(LLGL::CommandBuffer& commands, const Camera& camera,
-                             const LLGL::RenderSystemPtr& renderSystem, const glm::mat4 projection,
-                             const MeshComponent& meshComponent, const TransformComponent& transform)
+                             const LLGL::RenderSystemPtr& renderSystem, const ResourceManager& resourceManager,
+                             const glm::mat4 projection, const MeshComponent& meshComponent,
+                             const TransformComponent& transform)
 {
-	_RenderModel(commands, meshComponent, camera, renderSystem, projection, transform);
+	_RenderModel(commands, meshComponent, camera, renderSystem, resourceManager, projection, transform);
 }
 
 void MeshPipeline::SetPipeline(LLGL::CommandBuffer& commands) const
@@ -172,10 +169,10 @@ void MeshPipeline::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& command
 	commands.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
 }
 
-void MeshPipeline::SetResourceHeapTexture(LLGL::CommandBuffer& commands, int textureId) const
+void MeshPipeline::SetResourceHeapTexture(LLGL::CommandBuffer& commands, LLGL::Texture& texture) const
 {
 	commands.SetResourceHeap(*mResourceHeap);
-	commands.SetResource(0, mTextures[textureId]->GetTextureData());
+	commands.SetResource(0, texture);
 }
 
 void MeshPipeline::AddLight(EnTTRegistry& registry, EntityId entity)
@@ -215,18 +212,16 @@ void MeshPipeline::_ProcessLights(EntityRegistry& entityRegistry)
 }
 
 void MeshPipeline::_RenderModel(LLGL::CommandBuffer& commands, const MeshComponent& meshComponent, const Camera& camera,
-                                const LLGL::RenderSystemPtr& renderSystem,
+                                const LLGL::RenderSystemPtr& renderSystem, const ResourceManager& resourceManager,
                                 const glm::mat4 projection, const TransformComponent& transform)
 {
+	const auto model = resourceManager.GetModelFromId(meshComponent.mMeshPath);
 	UpdateProjectionViewModelUniform(commands, camera, renderSystem, projection, transform);
-	const auto model = mModelVertexBuffers.find(meshComponent.mMeshPath);
-	if (model != mModelVertexBuffers.end())
+
+	for (const auto& mesh : model.GetMeshes())
 	{
-		for (const auto& mesh : model->second.GetMeshes())
-		{
-			commands.SetVertexBuffer(*mesh.mVertexBuffer);
-			commands.SetIndexBuffer(*mesh.mIndexBuffer);
-			commands.DrawIndexed(mesh.mNumIndices, 0);
-		}
+		commands.SetVertexBuffer(*mesh.mVertexBuffer);
+		commands.SetIndexBuffer(*mesh.mIndexBuffer);
+		commands.DrawIndexed(mesh.mNumIndices, 0);
 	}
 }

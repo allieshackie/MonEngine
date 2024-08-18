@@ -5,6 +5,7 @@
 #include "Entity/Descriptions/PlayerDescription.h"
 #include "Entity/Descriptions/SpriteDescription.h"
 #include "Entity/Descriptions/TransformDescription.h"
+#include "Graphics/Core/Animator.h"
 #include "GUI/GUISystem.h"
 #include "GameInterface.h"
 
@@ -17,6 +18,7 @@ void EngineContext::_Init(const LLGL::Extent2D screenSize, const LLGL::UTF8Strin
 	mInputHandler->RegisterButtonUpHandler(LLGL::Key::Escape, [=]() { mRunning = false; });
 
 	mResourceManager = std::make_unique<ResourceManager>();
+	mAnimator = std::make_unique<Animator>();
 
 	mDescriptionFactory = std::make_unique<DescriptionFactory>();
 	_InitDescriptions();
@@ -26,13 +28,15 @@ void EngineContext::_Init(const LLGL::Extent2D screenSize, const LLGL::UTF8Strin
 	mMapRegistry = std::make_unique<MapRegistry>();
 	mTimer = std::make_unique<Timer>();
 
-	mRenderContext = std::make_unique<RenderContext>(title, screenSize, backgroundClearColor, mInputHandler,
-	                                                 *mEntityRegistry, usePerspective);
+	mRenderContext = std::make_unique<RenderContext>(screenSize, backgroundClearColor, usePerspective);
 	GUISystem::InitGUI(*mRenderContext);
 	mLuaSystem = std::make_unique<LuaSystem>();
 	mLevelManager = std::make_unique<LevelManager>();
 
 	mPhysicsSystem = std::make_unique<PhysicsSystem>(*this);
+
+	mResourceManager->LoadAllResources(mRenderContext->GetRenderSystem());
+	mRenderContext->InitPipelines(title, mInputHandler, *mEntityRegistry, *mResourceManager);
 }
 
 void EngineContext::SetGUIMenu(std::unique_ptr<GUIBase> gui)
@@ -109,6 +113,8 @@ void EngineContext::Run(GameInterface* game) const
 		}
 
 		game->Update(mTimer->mDT);
+
+		mAnimator->Update(mTimer->mDT, *mEntityRegistry, *mResourceManager);
 		// TODO: Debug draw axis
 		//_DrawAxis();
 
@@ -118,7 +124,7 @@ void EngineContext::Run(GameInterface* game) const
 
 		if (mLevelManager->GetCurrentLevel())
 		{
-			mRenderContext->Render(mLevelManager->GetCamera(), *mEntityRegistry);
+			mRenderContext->Render(mLevelManager->GetCamera(), *mEntityRegistry, *mResourceManager);
 		}
 
 		// Render GUI last so menus draw on top
@@ -188,7 +194,7 @@ const Level* EngineContext::GetLevel() const
 
 void EngineContext::GenerateMapTexture(EntityId mapId) const
 {
-	mRenderContext->GenerateMapTexture(*mEntityRegistry, mapId);
+	mRenderContext->GenerateMapTexture(*mEntityRegistry, *mResourceManager, mapId);
 }
 
 void EngineContext::DrawPoint(glm::vec3 position, float size, glm::vec4 color) const

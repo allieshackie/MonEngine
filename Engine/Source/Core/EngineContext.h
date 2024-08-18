@@ -88,6 +88,7 @@ private:
 	std::shared_ptr<InputHandler> mInputHandler;
 
 	std::unique_ptr<ResourceManager> mResourceManager;
+	std::unique_ptr<Animator> mAnimator;
 
 	std::unique_ptr<LevelManager> mLevelManager;
 	std::unique_ptr<GUIBase> mGUIMenu;

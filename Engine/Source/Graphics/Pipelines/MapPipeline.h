@@ -7,6 +7,7 @@
 
 class Camera;
 class MeshPipeline;
+class ResourceManager;
 
 struct EntityId;
 struct MapComponent;
@@ -17,15 +18,17 @@ class EntityRegistry;
 class MapPipeline : public PipelineBase
 {
 public:
-	MapPipeline(const LLGL::RenderSystemPtr& renderSystem, LLGL::Buffer* meshConstantBuffer);
+	MapPipeline(const LLGL::RenderSystemPtr& renderSystem, const ResourceManager& resourceManager,
+	            LLGL::Buffer* meshConstantBuffer);
 
 	void Render(LLGL::CommandBuffer& commandBuffer, const Camera& camera,
 	            const glm::mat4 projection, EntityRegistry& entityRegistry,
 	            const LLGL::RenderSystemPtr& renderSystem,
+	            ResourceManager& resourceManager,
 	            MeshPipeline& meshPipeline) const;
 
 	void GenerateMapTexture(const LLGL::RenderSystemPtr& renderSystem, LLGL::CommandBuffer& commandBuffer,
-	                        EntityRegistry& entityRegistry, EntityId mapId);
+	                        EntityRegistry& entityRegistry, const ResourceManager& resourceManager, EntityId mapId);
 
 private:
 	void _CreateMapResourceHeap(const LLGL::RenderSystemPtr& renderSystem);
@@ -35,7 +38,7 @@ private:
 
 	void _WriteMapTexture(LLGL::CommandBuffer& commandBuffer, LLGL::PipelineState* writePipeline,
 	                      LLGL::RenderTarget* writeTarget, LLGL::Texture* writtenTexture,
-	                      EntityRegistry& entityRegistry, EntityId mapId);
+	                      EntityRegistry& entityRegistry, const ResourceManager& resourceManager, EntityId mapId);
 
 	void _CalculateTileDrawData(const MapComponent& mapComponent, int tileIndex, glm::vec3& pos, glm::vec3& size,
 	                            glm::vec4& clip) const;

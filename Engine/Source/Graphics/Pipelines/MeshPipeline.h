@@ -9,6 +9,7 @@
 
 #define MAX_LIGHTS 4
 
+class Animator;
 class Camera;
 class EntityRegistry;
 class RenderObject;
@@ -19,12 +20,15 @@ struct TransformComponent;
 class MeshPipeline : public PipelineBase
 {
 public:
-	MeshPipeline(LLGL::RenderSystemPtr& renderSystem, EntityRegistry& entityRegistry);
+	MeshPipeline(LLGL::RenderSystemPtr& renderSystem, EntityRegistry& entityRegistry,
+	             const ResourceManager& resourceManager);
 
 	void Render(LLGL::CommandBuffer& commands, const Camera& camera, const glm::mat4 projection,
-	            EntityRegistry& entityRegistry, const LLGL::RenderSystemPtr& renderSystem);
+	            EntityRegistry& entityRegistry, ResourceManager& resourceManager,
+	            const LLGL::RenderSystemPtr& renderSystem);
 	void RenderMap(LLGL::CommandBuffer& commands, const Camera& camera, const LLGL::RenderSystemPtr& renderSystem,
-	               const glm::mat4 projection, const MeshComponent& meshComponent, const TransformComponent& transform);
+	               const ResourceManager& resourceManager, const glm::mat4 projection,
+	               const MeshComponent& meshComponent, const TransformComponent& transform);
 
 	void SetPipeline(LLGL::CommandBuffer& commands) const;
 
@@ -32,19 +36,18 @@ public:
 	                                      const LLGL::RenderSystemPtr& renderSystem, const glm::mat4 projection,
 	                                      const TransformComponent& transform);
 
-	void SetResourceHeapTexture(LLGL::CommandBuffer& commands, int textureId) const;
+	void SetResourceHeapTexture(LLGL::CommandBuffer& commands, LLGL::Texture& texture) const;
 
 	void UpdateLightBuffer(const LLGL::RenderSystemPtr& renderSystem) const;
 	void AddLight(EnTTRegistry& registry, EntityId entity);
 
 private:
 	void _RenderModel(LLGL::CommandBuffer& commands, const MeshComponent& meshComponent, const Camera& camera,
-	                  const LLGL::RenderSystemPtr& renderSystem,
+	                  const LLGL::RenderSystemPtr& renderSystem, const ResourceManager& resourceManager,
 	                  const glm::mat4 projection, const TransformComponent& transform);
 
 	void _ProcessLights(EntityRegistry& entityRegistry);
 
-	std::unordered_map<std::string, Model> mModelVertexBuffers;
 	LLGL::Buffer* mLightBuffer = nullptr;
 	LLGL::Buffer* mMaterialBuffer = nullptr;
 
@@ -86,7 +89,6 @@ private:
 	};
 
 	std::vector<LightUniform> mLights;
-	std::vector<std::unique_ptr<Texture>> mTextures;
 
 	std::vector<EntityId> mQueuedLightEntities;
 };
