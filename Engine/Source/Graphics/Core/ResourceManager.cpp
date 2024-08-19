@@ -1,8 +1,6 @@
 #include <glad/glad.h>
 #include <filesystem>
 
-#include "assimp/Importer.hpp"
-#include "assimp/postprocess.h"
 #include "assimp/scene.h"
 #include "Graphics/Util/stb_image.h"
 
@@ -115,21 +113,12 @@ void ResourceManager::_LoadAllTexturesFromFolder(const LLGL::RenderSystemPtr& re
 
 void ResourceManager::_LoadAllModels()
 {
-	// Create an instance of the Importer class
 	int modelId = 0;
-	Assimp::Importer importer;
 	for (const auto& entry : std::filesystem::directory_iterator(MODELS_FOLDER))
 	{
 		auto fullPath = entry.path().string();
-		const aiScene* scene = importer.ReadFile(fullPath,
-		                                         aiProcessPreset_TargetRealtime_Quality);
-		// Check if there was errors with 
-		if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
-		{
-			std::cout << importer.GetErrorString() << std::endl;
-		}
 
-		mModels.push_back(std::make_unique<Model>(scene, entry.path().filename().string()));
+		mModels.push_back(std::make_unique<Model>(fullPath, entry.path().filename().string()));
 
 		const size_t pos = fullPath.find(TEXTURES_FOLDER);
 

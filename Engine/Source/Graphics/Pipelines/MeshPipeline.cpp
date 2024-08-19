@@ -102,13 +102,13 @@ void MeshPipeline::Render(LLGL::CommandBuffer& commands, const Camera& camera,
 
 	// TODO: Sort the entities based on their mesh component file names
 	const auto meshView = entityRegistry.GetEnttRegistry().view<
-		const TransformComponent, const MeshComponent, const SpriteComponent>(
+		const TransformComponent, MeshComponent, const SpriteComponent>(
 		entt::exclude<MapComponent>);
 
 	// Should either be a sprite or basic color
 	meshView.each([this, &commands, &camera, &renderSystem, &resourceManager, &projection](
 		const TransformComponent& transform,
-		const MeshComponent& mesh,
+		MeshComponent& mesh,
 		const SpriteComponent& sprite)
 		{
 			// Set resources
@@ -121,7 +121,7 @@ void MeshPipeline::Render(LLGL::CommandBuffer& commands, const Camera& camera,
 
 void MeshPipeline::RenderMap(LLGL::CommandBuffer& commands, const Camera& camera,
                              const LLGL::RenderSystemPtr& renderSystem, const ResourceManager& resourceManager,
-                             const glm::mat4 projection, const MeshComponent& meshComponent,
+                             const glm::mat4 projection, MeshComponent& meshComponent,
                              const TransformComponent& transform)
 {
 	_RenderModel(commands, meshComponent, camera, renderSystem, resourceManager, projection, transform);
@@ -134,8 +134,8 @@ void MeshPipeline::SetPipeline(LLGL::CommandBuffer& commands) const
 
 void MeshPipeline::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& commands, const Camera& camera,
                                                     const LLGL::RenderSystemPtr& renderSystem,
-                                                    const glm::mat4 projection,
-                                                    const TransformComponent& transform)
+                                                    const glm::mat4 projection, const TransformComponent& transform,
+                                                    MeshComponent& mesh)
 {
 	// Update
 	auto model = glm::mat4(1.0f);
@@ -166,6 +166,12 @@ void MeshPipeline::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& command
 	{
 		settings.viewPos = camera.GetPosition();
 	}
+
+	for (int i = 0; i < mesh.mFinalTransforms.size(); i++)
+	{
+		settings.boneMatrices[i] = mesh.mFinalTransforms[i];
+	}
+
 	commands.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
 }
 
@@ -211,12 +217,12 @@ void MeshPipeline::_ProcessLights(EntityRegistry& entityRegistry)
 	}
 }
 
-void MeshPipeline::_RenderModel(LLGL::CommandBuffer& commands, const MeshComponent& meshComponent, const Camera& camera,
+void MeshPipeline::_RenderModel(LLGL::CommandBuffer& commands, MeshComponent& meshComponent, const Camera& camera,
                                 const LLGL::RenderSystemPtr& renderSystem, const ResourceManager& resourceManager,
                                 const glm::mat4 projection, const TransformComponent& transform)
 {
 	const auto model = resourceManager.GetModelFromId(meshComponent.mMeshPath);
-	UpdateProjectionViewModelUniform(commands, camera, renderSystem, projection, transform);
+	UpdateProjectionViewModelUniform(commands, camera, renderSystem, projection, transform, meshComponent);
 
 	for (const auto& mesh : model.GetMeshes())
 	{

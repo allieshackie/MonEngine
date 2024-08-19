@@ -8,6 +8,7 @@
 #include "Graphics/Core/ResourceManager.h"
 
 #define MAX_LIGHTS 4
+#define MAX_BONES 40
 
 class Animator;
 class Camera;
@@ -28,13 +29,13 @@ public:
 	            const LLGL::RenderSystemPtr& renderSystem);
 	void RenderMap(LLGL::CommandBuffer& commands, const Camera& camera, const LLGL::RenderSystemPtr& renderSystem,
 	               const ResourceManager& resourceManager, const glm::mat4 projection,
-	               const MeshComponent& meshComponent, const TransformComponent& transform);
+	               MeshComponent& meshComponent, const TransformComponent& transform);
 
 	void SetPipeline(LLGL::CommandBuffer& commands) const;
 
 	void UpdateProjectionViewModelUniform(LLGL::CommandBuffer& commands, const Camera& camera,
 	                                      const LLGL::RenderSystemPtr& renderSystem, const glm::mat4 projection,
-	                                      const TransformComponent& transform);
+	                                      const TransformComponent& transform, MeshComponent& mesh);
 
 	void SetResourceHeapTexture(LLGL::CommandBuffer& commands, LLGL::Texture& texture) const;
 
@@ -42,7 +43,7 @@ public:
 	void AddLight(EnTTRegistry& registry, EntityId entity);
 
 private:
-	void _RenderModel(LLGL::CommandBuffer& commands, const MeshComponent& meshComponent, const Camera& camera,
+	void _RenderModel(LLGL::CommandBuffer& commands, MeshComponent& meshComponent, const Camera& camera,
 	                  const LLGL::RenderSystemPtr& renderSystem, const ResourceManager& resourceManager,
 	                  const glm::mat4 projection, const TransformComponent& transform);
 
@@ -61,6 +62,7 @@ private:
 		glm::mat4 textureClip = glm::mat4();
 		glm::vec3 viewPos = {0, 0, 0};
 		int numLights = 0;
+		glm::mat4 boneMatrices[MAX_BONES];
 	}
 	settings = {};
 

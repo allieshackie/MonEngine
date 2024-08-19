@@ -86,12 +86,12 @@ void MapPipeline::Render(LLGL::CommandBuffer& commandBuffer, const Camera& camer
 	commandBuffer.SetPipelineState(*mPipeline);
 
 	const auto map3DView = entityRegistry.GetEnttRegistry().view<
-		const MapComponent, const TransformComponent, const MeshComponent>();
+		const MapComponent, const TransformComponent, MeshComponent>();
 
 	map3DView.each([this, &commandBuffer, &camera, &renderSystem, &resourceManager, &projection, &meshPipeline](
 		const MapComponent& map,
 		const TransformComponent& transform,
-		const MeshComponent& mesh)
+		MeshComponent& mesh)
 		{
 			// Set resources
 			meshPipeline.SetPipeline(commandBuffer);
