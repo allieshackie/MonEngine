@@ -12,49 +12,49 @@
 Model::Model(const std::string& fullPath, std::string fileName) : mId(std::move(fileName))
 {
 	Assimp::Importer importer;
-	mScene = importer.ReadFile(fullPath,
-	                           aiProcessPreset_TargetRealtime_Quality);
+	const auto scene = importer.ReadFile(fullPath,
+	                                     aiProcessPreset_TargetRealtime_Quality);
 	// Check if there was errors with 
-	if (!mScene || mScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !mScene->mRootNode)
+	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{
 		std::cout << importer.GetErrorString() << std::endl;
 	}
-	for (unsigned int i = 0; i < mScene->mNumMeshes; i++)
+	for (unsigned int i = 0; i < scene->mNumMeshes; i++)
 	{
-		_ProcessMesh(mScene->mMeshes[i]);
+		_ProcessMesh(scene->mMeshes[i]);
 	}
 
-	mRootNode = mScene->mRootNode;
-	mRootInverseTransform = AssimpGLM::ConvertMatrix(mScene->mRootNode->mTransformation.Inverse());
+	mRootNode = AssimpGLM::ConvertAiNode(scene->mRootNode);
+	mRootInverseTransform = AssimpGLM::ConvertMatrix(scene->mRootNode->mTransformation.Inverse());
 
-	_ProcessAnimations(mScene);
+	_ProcessAnimations(scene);
 
 	//TODO: aiReleaseImport when done with scene
 }
 
-void Model::InitializeBuffers(const LLGL::RenderSystemPtr& renderSystem, const Shader& shader)
+void Model::InitializeBuffers(const LLGL::RenderSystemPtr& renderSystem, const Shader& shader) const
 {
-	for (auto& mesh : mMeshes)
+	for (const auto mesh : mMeshes)
 	{
-		mesh.mVertexBuffer = renderSystem->CreateBuffer(
-			LLGL::VertexBufferDesc(static_cast<std::uint32_t>(mesh.mVertices.size() * sizeof(Vertex)),
-			                       shader.GetVertexFormat()), mesh.mVertices.data());
+		mesh->mVertexBuffer = renderSystem->CreateBuffer(
+			LLGL::VertexBufferDesc(static_cast<std::uint32_t>(mesh->mVertices.size() * sizeof(Vertex)),
+			                       shader.GetVertexFormat()), mesh->mVertices.data());
 
-		mesh.mIndexBuffer = renderSystem->CreateBuffer(
-			LLGL::IndexBufferDesc(static_cast<std::uint32_t>(mesh.mIndices.size() * sizeof(uint32_t)),
+		mesh->mIndexBuffer = renderSystem->CreateBuffer(
+			LLGL::IndexBufferDesc(static_cast<std::uint32_t>(mesh->mIndices.size() * sizeof(uint32_t)),
 			                      LLGL::Format::R32UInt),
-			mesh.mIndices.data());
+			mesh->mIndices.data());
 
-		mesh.mNumIndices = static_cast<int>(mesh.mIndices.size());
+		mesh->mNumIndices = static_cast<int>(mesh->mIndices.size());
 	}
 }
 
 const glm::mat4& Model::GetBoneOffset(int boneIndex) const
 {
-	return mBoneInfos[boneIndex].mOffset;
+	return mBoneInfos[boneIndex]->mOffset;
 }
 
-aiAnimation* Model::GetAnimation(const std::string& animationName)
+Animation* Model::GetAnimation(const std::string& animationName)
 {
 	auto it = mAnimations.find(animationName);
 	if (it != mAnimations.end())
@@ -77,7 +77,7 @@ int Model::GetBoneIndex(const std::string& boneName)
 
 void Model::_ProcessMesh(aiMesh* mesh)
 {
-	MeshData meshData;
+	auto meshData = new MeshData();
 
 	for (unsigned int i = 0; i < mesh->mNumVertices; i++)
 	{
@@ -103,7 +103,7 @@ void Model::_ProcessMesh(aiMesh* mesh)
 			vertex.weights[i] = 0.0f;
 		}
 
-		meshData.mVertices.push_back(vertex);
+		meshData->mVertices.push_back(vertex);
 	}
 
 	// process indices
@@ -112,18 +112,21 @@ void Model::_ProcessMesh(aiMesh* mesh)
 		const aiFace& face = mesh->mFaces[i];
 		for (unsigned int j = 0; j < face.mNumIndices; j++)
 		{
-			meshData.mIndices.push_back(face.mIndices[j]);
+			meshData->mIndices.push_back(face.mIndices[j]);
 		}
 	}
 
-	_ProcessBoneWeights(mesh, meshData.mVertices);
+	_ProcessBoneWeights(mesh, meshData->mVertices);
 
-	mMeshes.push_back(meshData);
+	mMeshes.push_back(std::move(meshData));
 }
 
 void Model::_ProcessBoneWeights(aiMesh* mesh, std::vector<Vertex>& vertices)
 {
-	mBoneInfos.resize(mesh->mNumBones);
+	if (mesh->mNumBones > 0)
+	{
+		mBoneInfos.resize(mesh->mNumBones);
+	}
 	for (int i = 0; i < mesh->mNumBones; i++)
 	{
 		int boneId = -1;
@@ -132,8 +135,8 @@ void Model::_ProcessBoneWeights(aiMesh* mesh, std::vector<Vertex>& vertices)
 		{
 			boneId = mBoneCount;
 
-			BoneInfo boneInfo = {boneId, AssimpGLM::ConvertMatrix(mesh->mBones[i]->mOffsetMatrix)};
-			mBoneInfos[boneId] = boneInfo;
+			auto boneInfo = new BoneInfo{boneId, AssimpGLM::ConvertMatrix(mesh->mBones[i]->mOffsetMatrix)};
+			mBoneInfos[boneId] = std::move(boneInfo);
 			mBoneNameToIndex[boneName] = boneId;
 			mBoneCount++;
 		}
@@ -185,5 +188,45 @@ void Model::_AddAnimation(aiAnimation* animation)
 		name = name.substr(pos + 1);
 	}
 
-	mAnimations[name] = animation;
+	auto newAnim = new Animation();
+	newAnim->mDuration = animation->mDuration;
+	newAnim->mTicksPerSecond = animation->mTicksPerSecond;
+
+	newAnim->mBoneAnimNodes.resize(animation->mNumChannels);
+	for (int i = 0; i < animation->mNumChannels; i++)
+	{
+		auto node = new AnimNode();
+		node->mName = animation->mChannels[i]->mNodeName.C_Str();
+		node->mNumPositions = animation->mChannels[i]->mNumPositionKeys;
+		node->mNumRotations = animation->mChannels[i]->mNumRotationKeys;
+		node->mNumScales = animation->mChannels[i]->mNumScalingKeys;
+
+		for (int j = 0; j < animation->mChannels[i]->mNumPositionKeys; j++)
+		{
+			node->mPositions.push_back({
+				AssimpGLM::ConvertVec(animation->mChannels[i]->mPositionKeys[j].mValue),
+				animation->mChannels[i]->mPositionKeys[j].mTime
+			});
+		}
+
+		for (int j = 0; j < animation->mChannels[i]->mNumRotationKeys; j++)
+		{
+			node->mRotations.push_back({
+				AssimpGLM::ConvertQuat(animation->mChannels[i]->mRotationKeys[j].mValue),
+				animation->mChannels[i]->mRotationKeys[j].mTime
+			});
+		}
+
+		for (int j = 0; j < animation->mChannels[i]->mNumScalingKeys; j++)
+		{
+			node->mScales.push_back({
+				AssimpGLM::ConvertVec(animation->mChannels[i]->mScalingKeys[j].mValue),
+				animation->mChannels[i]->mScalingKeys[j].mTime
+			});
+		}
+
+		newAnim->mBoneAnimNodes[i] = std::move(node);
+	}
+
+	mAnimations[name] = std::move(newAnim);
 }

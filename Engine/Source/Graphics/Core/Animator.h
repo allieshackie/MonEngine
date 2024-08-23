@@ -1,10 +1,9 @@
 #pragma once
 #include <glm/mat4x4.hpp>
 
-struct aiAnimation;
-struct aiScene;
-struct aiNodeAnim;
-struct aiNode;
+struct Animation;
+struct AnimNode;
+struct BoneNode;
 struct MeshComponent;
 
 class EntityRegistry;
@@ -18,17 +17,17 @@ public:
 	void Update(float timeStamp, EntityRegistry& entityRegistry, const ResourceManager& resourceManager);
 
 private:
-	void _UpdateBoneTransforms(float timeStamp, aiAnimation* animation, Model& model, MeshComponent& mesh);
-	void _ReadBoneHierarchy(float animationTime, aiAnimation* animation, Model& model, MeshComponent& mesh,
-	                        aiNode* node, const glm::mat4 parentTransform);
+	void _UpdateBoneTransforms(float timeStamp, Animation* animation, Model& model, MeshComponent& mesh);
+	void _ReadBoneHierarchy(float animationTime, Animation* animation, Model& model, MeshComponent& mesh,
+	                        BoneNode* node, const glm::mat4 parentTransform);
 
-	glm::mat4 _InterpolatePosition(double timeStamp, double ticksPerSecond, const aiNodeAnim& bone);
-	glm::mat4 _InterpolateRotation(double timeStamp, double ticksPerSecond, const aiNodeAnim& bone);
-	glm::mat4 _InterpolateScale(double timeStamp, double ticksPerSecond, const aiNodeAnim& bone);
+	glm::mat4 _InterpolatePosition(double timeStamp, double ticksPerSecond, const AnimNode& bone);
+	glm::mat4 _InterpolateRotation(double timeStamp, double ticksPerSecond, const AnimNode& bone);
+	glm::mat4 _InterpolateScale(double timeStamp, double ticksPerSecond, const AnimNode& bone);
 
-	int _GetPositionIndex(double timeStamp, const aiNodeAnim& bone);
-	int _GetRotationIndex(double timeStamp, const aiNodeAnim& bone);
-	int _GetScaleIndex(double timeStamp, const aiNodeAnim& bone);
+	int _GetPositionIndex(double timeStamp, const AnimNode& bone);
+	int _GetRotationIndex(double timeStamp, const AnimNode& bone);
+	int _GetScaleIndex(double timeStamp, const AnimNode& bone);
 
-	const aiNodeAnim* GetNodeAnim(const aiAnimation* animation, const std::string& boneName);
+	const AnimNode* GetNodeAnim(const Animation* animation, const std::string& boneName);
 };

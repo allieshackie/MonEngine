@@ -224,10 +224,10 @@ void MeshPipeline::_RenderModel(LLGL::CommandBuffer& commands, MeshComponent& me
 	const auto model = resourceManager.GetModelFromId(meshComponent.mMeshPath);
 	UpdateProjectionViewModelUniform(commands, camera, renderSystem, projection, transform, meshComponent);
 
-	for (const auto& mesh : model.GetMeshes())
+	for (const auto mesh : model.GetMeshes())
 	{
-		commands.SetVertexBuffer(*mesh.mVertexBuffer);
-		commands.SetIndexBuffer(*mesh.mIndexBuffer);
-		commands.DrawIndexed(mesh.mNumIndices, 0);
+		commands.SetVertexBuffer(*mesh->mVertexBuffer);
+		commands.SetIndexBuffer(*mesh->mIndexBuffer);
+		commands.DrawIndexed(mesh->mNumIndices, 0);
 	}
 }

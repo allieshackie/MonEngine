@@ -128,6 +128,6 @@ void ResourceManager::_LoadAllModels()
 			// Erase the substring from the original string
 			fullPath.erase(pos, std::strlen(TEXTURES_FOLDER));
 		}
-		mModelIds[fullPath] = modelId++;
+		mModelIds[entry.path().filename().string()] = modelId++;
 	}
 }

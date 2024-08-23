@@ -5,6 +5,13 @@
 
 struct aiNode;
 
+struct BoneNode
+{
+	std::string mId;
+	glm::mat4 mTransformation = glm::mat4(1.0f);
+	std::vector<BoneNode*> mChildren;
+};
+
 struct KeyframeVec
 {
 	glm::vec3 mData = {0, 0, 0};
@@ -17,8 +24,10 @@ struct KeyframeQuat
 	double mTimeStamp = 0.0;
 };
 
-struct BoneAnimNode
+struct AnimNode
 {
+	std::string mName;
+
 	std::vector<KeyframeVec> mPositions;
 	std::vector<KeyframeQuat> mRotations;
 	std::vector<KeyframeVec> mScales;
@@ -26,16 +35,11 @@ struct BoneAnimNode
 	int mNumPositions = 0;
 	int mNumRotations = 0;
 	int mNumScales = 0;
-
-	std::string mName;
-	glm::mat4 mLocalTransform = glm::mat4(1.0);
-	int mId = 0;
 };
 
 struct Animation
 {
 	double mDuration = 0.0;
 	double mTicksPerSecond = 0;
-	aiNode* mRootNode;
-	std::vector<BoneAnimNode> mBoneAnimNodes;
+	std::vector<AnimNode*> mBoneAnimNodes;
 };

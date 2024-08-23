@@ -5,6 +5,8 @@
 #include "assimp/quaternion.h"
 #include<glm/gtc/quaternion.hpp>
 
+#include "Graphics/Core/Animation.h"
+
 class AssimpGLM
 {
 public:
@@ -39,5 +41,20 @@ public:
 	static glm::quat ConvertQuat(const aiQuaternion& pOrientation)
 	{
 		return glm::quat{pOrientation.w, pOrientation.x, pOrientation.y, pOrientation.z};
+	}
+
+	static BoneNode* ConvertAiNode(const aiNode* node)
+	{
+		auto boneNode = new BoneNode();
+		boneNode->mId = node->mName.C_Str();
+		boneNode->mTransformation = ConvertMatrix(node->mTransformation);
+
+		boneNode->mChildren.resize(node->mNumChildren);
+		for (int i = 0; i < node->mNumChildren; i++)
+		{
+			boneNode->mChildren[i] = ConvertAiNode(node->mChildren[i]);
+		}
+
+		return boneNode;
 	}
 };

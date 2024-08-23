@@ -26,28 +26,20 @@ out vec2 vTexCoord;
 
 void main()
 {
-    vec4 totalPosition = vec4(0.0);
-    mat4 animatedModelMatrix = mat4(0.0);
-    for(int i = 0; i < MAX_BONE_INFLUENCE; i++) {
-        if (boneIds[i] == -1) {
-            continue;
-        }
-        if (boneIds[i] >= MAX_BONES) {
-            totalPosition = vec4(position, 1.0);
-            vNormal = mat3(transpose(inverse(model))) * normal;  
-            break;
-        }
+    vec3 transformedPosition = position;
+    vec3 transformedNormal = normal;
 
-        vec4 localPosition = boneMatrices[boneIds[i]] * vec4(position, 1.0);
-        totalPosition += localPosition * weights[i];
-        animatedModelMatrix += weights[i] * boneMatrices[boneIds[i]];
-    }
-
-    animatedModelMatrix = modelMatrix * animatedModelMatrix;
-
-    vNormal = mat3(transpose(inverse(animatedModelMatrix))) * normal;  
+    // mat4 boneTransform = weights[0] * boneMatrices[boneIds[0]];
+    // boneTransform += weights[1] * boneMatrices[boneIds[1]];
+    // boneTransform += weights[2] * boneMatrices[boneIds[2]];
+    // boneTransform += weights[3] * boneMatrices[boneIds[3]];
+    
+    // transformedPosition = vec3(boneTransform * vec4(position, 1.0));
+    // transformedNormal = mat3(transpose(inverse(boneTransform))) * normal;
+    
+    vNormal = transformedNormal;  
 	vTexCoord = texCoord;
 
-	vPosition = vec3(model * vec4(totalPosition, 1.0));
+	vPosition = vec3(model * vec4(transformedPosition, 1.0));
     gl_Position = projection * view * vec4(vPosition, 1.0);
 }
