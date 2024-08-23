@@ -52,7 +52,7 @@ private:
 	LLGL::Buffer* mLightBuffer = nullptr;
 	LLGL::Buffer* mMaterialBuffer = nullptr;
 
-	struct Settings
+	struct MeshSettings
 	{
 		// projection-view-model matrix
 		glm::mat4 model = glm::mat4();

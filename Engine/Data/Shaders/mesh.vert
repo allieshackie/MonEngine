@@ -3,7 +3,7 @@
 const int MAX_BONES = 40;
 const int MAX_BONE_INFLUENCE = 4;
 
-layout(std140) uniform Settings 
+layout(std140) uniform MeshSettings 
 {
     mat4 model;
     mat4 view;

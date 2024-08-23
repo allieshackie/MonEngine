@@ -63,7 +63,7 @@ private:
 	LLGL::ResourceHeap* mMapMeshResourceHeap = nullptr;
 	LLGL::Buffer* mMeshConstantBuffer = nullptr;
 
-	struct Settings
+	struct SpriteSettings
 	{
 		// projection-view-model matrix
 		glm::mat4 model = glm::mat4();

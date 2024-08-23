@@ -20,7 +20,7 @@ MapPipeline::MapPipeline(const LLGL::RenderSystemPtr& renderSystem, const Resour
 {
 	// Initialization
 	{
-		InitConstantBuffer<Settings>(renderSystem, settings);
+		InitConstantBuffer<SpriteSettings>(renderSystem, settings);
 
 		LLGL::VertexFormat vertexFormat;
 		vertexFormat.AppendAttribute({"position", LLGL::Format::RGB32Float, 0, 0, sizeof(Vertex), 0});

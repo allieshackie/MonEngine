@@ -15,7 +15,7 @@ MeshPipeline::MeshPipeline(LLGL::RenderSystemPtr& renderSystem, EntityRegistry& 
 {
 	// Initialization
 	{
-		InitConstantBuffer<Settings>(renderSystem, settings);
+		InitConstantBuffer<MeshSettings>(renderSystem, settings);
 
 		LLGL::VertexFormat vertexFormat;
 		vertexFormat.AppendAttribute({"position", LLGL::Format::RGB32Float, 0, 0, sizeof(Vertex), 0});

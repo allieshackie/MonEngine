@@ -1,6 +1,8 @@
 #version 460
 
-layout(std140) uniform Settings 
+const int MAX_BONES = 40;
+
+layout(std140) uniform MeshSettings 
 {
     mat4 model;
     mat4 view;
@@ -8,6 +10,7 @@ layout(std140) uniform Settings
     mat4 textureClip;
     vec3 viewPos;
     int numLights;
+    mat4 boneMatrices[MAX_BONES];
 };
 
 struct Material {
