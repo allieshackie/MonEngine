@@ -51,6 +51,7 @@ private:
 
 	LLGL::Buffer* mLightBuffer = nullptr;
 	LLGL::Buffer* mMaterialBuffer = nullptr;
+	LLGL::Buffer* mBoneBuffer = nullptr;
 
 	struct MeshSettings
 	{
@@ -60,11 +61,18 @@ private:
 		glm::mat4 projection = glm::mat4();
 		// texture clip to render part of texture
 		glm::mat4 textureClip = glm::mat4();
+		glm::vec4 hasBones = {0, 0, 0, 0};
+	}
+	meshSettings = {};
+
+	struct LightSettings
+	{
 		glm::vec3 viewPos = {0, 0, 0};
 		int numLights = 0;
-		glm::mat4 boneMatrices[MAX_BONES];
 	}
-	settings = {};
+	lightSettings = {};
+
+	LLGL::Buffer* mLightConstantBuffer = nullptr;
 
 	struct Material // TODO: Might need to be fixed for 16 byte alignment (emission could be vec3)
 	{

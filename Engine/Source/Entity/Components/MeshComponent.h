@@ -5,6 +5,7 @@ struct MeshComponent
 {
 	// data driven
 	std::string mMeshPath;
+	bool mHasBones = false;
 
 	// runtime
 	int mMeshId = 0;

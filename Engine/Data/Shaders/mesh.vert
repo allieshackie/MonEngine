@@ -9,8 +9,11 @@ layout(std140) uniform MeshSettings
     mat4 view;
     mat4 projection;
     mat4 textureClip;
-    vec3 viewPos;
-    int numLights;
+    vec4 hasBones;
+};
+
+layout(std430) buffer BoneBuffer
+{
     mat4 boneMatrices[MAX_BONES];
 };
 
@@ -26,20 +29,22 @@ out vec2 vTexCoord;
 
 void main()
 {
-    vec3 transformedPosition = position;
-    vec3 transformedNormal = normal;
+    if (hasBones[0] != 0) {
+        mat4 boneTransform = weights[0] * boneMatrices[boneIds[0]];
+        boneTransform += weights[1] * boneMatrices[boneIds[1]];
+        boneTransform += weights[2] * boneMatrices[boneIds[2]];
+        boneTransform += weights[3] * boneMatrices[boneIds[3]];
+        
+        vec3 transformedPosition = vec3(boneTransform * vec4(position, 1.0));
+        vec3 transformedNormal = mat3(transpose(inverse(boneTransform))) * normal;
+	    vPosition = vec3(model * vec4(transformedPosition, 1.0));
+        vNormal = transformedNormal;  
+    }
+    else {
+        vPosition = vec3(model * vec4(position, 1.0));
+        vNormal = mat3(transpose(inverse(model))) * normal;  
+    }
 
-    // mat4 boneTransform = weights[0] * boneMatrices[boneIds[0]];
-    // boneTransform += weights[1] * boneMatrices[boneIds[1]];
-    // boneTransform += weights[2] * boneMatrices[boneIds[2]];
-    // boneTransform += weights[3] * boneMatrices[boneIds[3]];
-    
-    // transformedPosition = vec3(boneTransform * vec4(position, 1.0));
-    // transformedNormal = mat3(transpose(inverse(boneTransform))) * normal;
-    
-    vNormal = transformedNormal;  
 	vTexCoord = texCoord;
-
-	vPosition = vec3(model * vec4(transformedPosition, 1.0));
     gl_Position = projection * view * vec4(vPosition, 1.0);
 }

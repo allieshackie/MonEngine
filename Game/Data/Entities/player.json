@@ -10,7 +10,8 @@
             "resource_path": "doge_uv.png"
         },
         "mesh": {
-            "mesh_path": "dogemage.fbx" 
+            "mesh_path": "dogemage.fbx",
+            "has_bones": true
         },
         "player": {},
         "rigidbody": {

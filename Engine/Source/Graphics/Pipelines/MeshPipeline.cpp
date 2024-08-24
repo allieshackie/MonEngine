@@ -15,7 +15,9 @@ MeshPipeline::MeshPipeline(LLGL::RenderSystemPtr& renderSystem, EntityRegistry& 
 {
 	// Initialization
 	{
-		InitConstantBuffer<MeshSettings>(renderSystem, settings);
+		InitConstantBuffer<MeshSettings>(renderSystem, meshSettings);
+		mLightConstantBuffer = renderSystem->CreateBuffer(LLGL::ConstantBufferDesc(sizeof(LightSettings)),
+		                                                  &lightSettings);
 
 		LLGL::VertexFormat vertexFormat;
 		vertexFormat.AppendAttribute({"position", LLGL::Format::RGB32Float, 0, 0, sizeof(Vertex), 0});
@@ -30,18 +32,27 @@ MeshPipeline::MeshPipeline(LLGL::RenderSystemPtr& renderSystem, EntityRegistry& 
 			layoutDesc.heapBindings =
 			{
 				LLGL::BindingDescriptor{
-					"Settings", LLGL::ResourceType::Buffer, LLGL::BindFlags::ConstantBuffer,
-					LLGL::StageFlags::VertexStage | LLGL::StageFlags::FragmentStage, 0
+					"MeshSettings", LLGL::ResourceType::Buffer, LLGL::BindFlags::ConstantBuffer,
+					LLGL::StageFlags::VertexStage, 0
+				},
+				LLGL::BindingDescriptor{
+					"LightSettings", LLGL::ResourceType::Buffer, LLGL::BindFlags::ConstantBuffer,
+					LLGL::StageFlags::FragmentStage, 1
+				},
+				LLGL::BindingDescriptor{
+					"BoneBuffer", LLGL::ResourceType::Buffer, LLGL::BindFlags::Storage,
+					LLGL::StageFlags::VertexStage,
+					2
 				},
 				LLGL::BindingDescriptor{
 					"LightBuffer", LLGL::ResourceType::Buffer, LLGL::BindFlags::Storage,
 					LLGL::StageFlags::FragmentStage,
-					1
+					3
 				},
 				LLGL::BindingDescriptor{
 					"MaterialBuffer", LLGL::ResourceType::Buffer, LLGL::BindFlags::Storage,
 					LLGL::StageFlags::FragmentStage,
-					2
+					4
 				},
 			};
 			layoutDesc.bindings = {
@@ -79,9 +90,20 @@ MeshPipeline::MeshPipeline(LLGL::RenderSystemPtr& renderSystem, EntityRegistry& 
 		}
 		mMaterialBuffer = renderSystem->CreateBuffer(materialBufferDesc);
 
+		LLGL::BufferDescriptor boneBufferDesc;
+		{
+			boneBufferDesc.size = sizeof(glm::mat4) * MAX_BONES;
+			boneBufferDesc.stride = sizeof(glm::mat4);
+			boneBufferDesc.bindFlags = LLGL::BindFlags::Storage;
+			boneBufferDesc.cpuAccessFlags = LLGL::CPUAccessFlags::Write;
+		}
+		mBoneBuffer = renderSystem->CreateBuffer(boneBufferDesc);
+
 		renderSystem->WriteBuffer(*mMaterialBuffer, 0, &(material), sizeof(Material));
 
-		std::vector<LLGL::ResourceViewDescriptor> resourceViews = {mConstantBuffer, mLightBuffer, mMaterialBuffer};
+		std::vector<LLGL::ResourceViewDescriptor> resourceViews = {
+			mConstantBuffer, mLightConstantBuffer, mBoneBuffer, mLightBuffer, mMaterialBuffer
+		};
 		InitResourceHeap(renderSystem, resourceViews);
 	}
 
@@ -150,29 +172,35 @@ void MeshPipeline::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& command
 
 	model = glm::scale(model, transform.mSize);
 
+	// Light Settings
 	const auto lightsSize = mLights.size();
-	if (lightsSize != settings.numLights)
+	if (lightsSize != lightSettings.numLights)
 	{
-		settings.numLights = lightsSize;
+		lightSettings.numLights = lightsSize;
 		UpdateLightBuffer(renderSystem);
 	}
-
-	settings.model = model;
-	settings.view = camera.GetView();
-	settings.projection = projection;
-	settings.textureClip = glm::mat4(1.0f);
-
-	if (settings.viewPos != camera.GetPosition())
+	if (lightSettings.viewPos != camera.GetPosition())
 	{
-		settings.viewPos = camera.GetPosition();
+		lightSettings.viewPos = camera.GetPosition();
 	}
 
-	for (int i = 0; i < mesh.mFinalTransforms.size(); i++)
+	// Mesh Settings
+	meshSettings.model = model;
+	meshSettings.view = camera.GetView();
+	meshSettings.projection = projection;
+	meshSettings.textureClip = glm::mat4(1.0f);
+	meshSettings.hasBones[0] = mesh.mHasBones;
+
+	std::uint64_t transformOffset = 0;
+	for (const auto& finalTransform : mesh.mFinalTransforms)
 	{
-		settings.boneMatrices[i] = mesh.mFinalTransforms[i];
+		renderSystem->WriteBuffer(*mBoneBuffer, transformOffset, &(finalTransform), sizeof(glm::mat4));
+		transformOffset += sizeof(glm::mat4);
 	}
 
-	commands.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
+
+	commands.UpdateBuffer(*mConstantBuffer, 0, &meshSettings, sizeof(meshSettings));
+	commands.UpdateBuffer(*mLightConstantBuffer, 0, &lightSettings, sizeof(lightSettings));
 }
 
 void MeshPipeline::SetResourceHeapTexture(LLGL::CommandBuffer& commands, LLGL::Texture& texture) const
