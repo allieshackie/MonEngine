@@ -72,7 +72,7 @@ int Model::GetBoneIndex(const std::string& boneName)
 		return it->second;
 	}
 
-	return 0;
+	return -1;
 }
 
 void Model::_ProcessMesh(aiMesh* mesh)
@@ -123,29 +123,26 @@ void Model::_ProcessMesh(aiMesh* mesh)
 
 void Model::_ProcessBoneWeights(aiMesh* mesh, std::vector<Vertex>& vertices)
 {
-	if (mesh->mNumBones > 0)
-	{
-		mBoneInfos.resize(mesh->mNumBones);
-	}
 	for (int i = 0; i < mesh->mNumBones; i++)
 	{
-		int boneId = -1;
+		// GetBoneId
+		int boneId = 0;
 		std::string boneName = mesh->mBones[i]->mName.C_Str();
 		if (mBoneNameToIndex.find(boneName) == mBoneNameToIndex.end())
 		{
-			boneId = mBoneCount;
-
-			auto boneInfo = new BoneInfo{boneId, AssimpGLM::ConvertMatrix(mesh->mBones[i]->mOffsetMatrix)};
-			mBoneInfos[boneId] = std::move(boneInfo);
+			boneId = static_cast<int>(mBoneNameToIndex.size());
 			mBoneNameToIndex[boneName] = boneId;
-			mBoneCount++;
 		}
 		else
 		{
 			boneId = mBoneNameToIndex[boneName];
 		}
 
-		assert(boneId != -1);
+		if (boneId == mBoneInfos.size())
+		{
+			auto boneInfo = new BoneInfo{boneId, AssimpGLM::ConvertMatrix(mesh->mBones[i]->mOffsetMatrix)};
+			mBoneInfos.push_back(std::move(boneInfo));
+		}
 
 		auto weights = mesh->mBones[i]->mWeights;
 		int numWeights = mesh->mBones[i]->mNumWeights;
@@ -154,7 +151,6 @@ void Model::_ProcessBoneWeights(aiMesh* mesh, std::vector<Vertex>& vertices)
 		{
 			int vertexId = weights[weightIndex].mVertexId;
 			float weight = weights[weightIndex].mWeight;
-			// TODO: When dealing with multiple meshes in a single scene, might need to do vertexId + last vertexId of previous mesh
 			auto& vertex = vertices[vertexId];
 			for (int j = 0; j < 4; ++j)
 			{

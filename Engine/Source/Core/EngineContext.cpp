@@ -37,6 +37,9 @@ void EngineContext::_Init(const LLGL::Extent2D screenSize, const LLGL::UTF8Strin
 
 	mResourceManager->LoadAllResources(mRenderContext->GetRenderSystem());
 	mRenderContext->InitPipelines(title, mInputHandler, *mEntityRegistry, *mResourceManager);
+
+	// TODO: Comment/uncomment for editor gui menu
+	//OpenEditorMenu();
 }
 
 void EngineContext::SetGUIMenu(std::unique_ptr<GUIBase> gui)
@@ -114,7 +117,7 @@ void EngineContext::Run(GameInterface* game) const
 
 		game->Update(mTimer->mDT);
 
-		mAnimator->Update(mTimer->mDT, *mEntityRegistry, *mResourceManager);
+		mAnimator->Update(deltaTime, *mEntityRegistry, *mResourceManager);
 		// TODO: Debug draw axis
 		//_DrawAxis();
 
@@ -130,9 +133,10 @@ void EngineContext::Run(GameInterface* game) const
 		// Render GUI last so menus draw on top
 		GUISystem::GUIStartFrame();
 		GUISystem::RenderMenus();
+		// GUISystem::RenderGuiElements();  DEBUG GUI MENU
 		if (mEditorGUI != nullptr)
 		{
-			mEditorGUI->Render(*mEntityRegistry);
+			mEditorGUI->Render(*mEntityRegistry, *mResourceManager);
 		}
 		GUISystem::GUIEndFrame();
 

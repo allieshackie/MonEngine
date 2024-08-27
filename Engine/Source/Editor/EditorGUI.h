@@ -3,13 +3,14 @@
 #include "ObjectGUI.h"
 
 class EntityRegistry;
+class ResourceManager;
 
 class EditorGUI
 {
 public:
 	EditorGUI();
 
-	void Render(EntityRegistry& entityRegistry) const;
+	void Render(EntityRegistry& entityRegistry, ResourceManager& resourceManager) const;
 
 private:
 	void _MainMenu(Camera& camera) const;

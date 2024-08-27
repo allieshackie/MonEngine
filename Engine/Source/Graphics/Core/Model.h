@@ -42,7 +42,9 @@ public:
 	Animation* GetAnimation(const std::string& animationName);
 	BoneNode* GetRootNode() const { return mRootNode; }
 	int GetBoneIndex(const std::string& boneName);
-	int GetBoneCount() const { return mBoneCount; }
+	int GetBoneCount() const { return static_cast<int>(mBoneNameToIndex.size()); }
+
+	const std::unordered_map<std::string, int>& GetBoneNamesToIndex() const { return mBoneNameToIndex; }
 
 private:
 	void _ProcessMesh(aiMesh* mesh);
@@ -57,7 +59,6 @@ private:
 
 	std::unordered_map<std::string, int> mBoneNameToIndex;
 	std::vector<BoneInfo*> mBoneInfos;
-	int mBoneCount = 0;
 
 	std::unordered_map<std::string, Animation*> mAnimations;
 

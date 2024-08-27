@@ -30,4 +30,6 @@ private:
 	int _GetScaleIndex(double timeStamp, const AnimNode& bone);
 
 	const AnimNode* GetNodeAnim(const Animation* animation, const std::string& boneName);
+
+	float mCurrentAnimationTime = 0;
 };

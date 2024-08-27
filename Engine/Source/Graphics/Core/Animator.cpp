@@ -28,8 +28,9 @@ void Animator::Update(float timeStamp, EntityRegistry& entityRegistry, const Res
 
 void Animator::_UpdateBoneTransforms(float timeStamp, Animation* animation, Model& model, MeshComponent& mesh)
 {
-	float timeInTicks = (timeStamp / 1000.0f) * static_cast<float>(animation->mTicksPerSecond);
-	float animationTime = fmod(timeInTicks, animation->mDuration);
+	float timeInTicks = timeStamp * static_cast<float>(animation->mTicksPerSecond);
+	mCurrentAnimationTime += timeInTicks;
+	float animationTime = fmod(mCurrentAnimationTime, animation->mDuration);
 
 	auto identityMat = glm::mat4(1.0f);
 	_ReadBoneHierarchy(animationTime, animation, model, mesh, model.GetRootNode(), identityMat);
@@ -38,6 +39,12 @@ void Animator::_UpdateBoneTransforms(float timeStamp, Animation* animation, Mode
 void Animator::_ReadBoneHierarchy(float animationTime, Animation* animation, Model& model, MeshComponent& mesh,
                                   BoneNode* node, const glm::mat4 parentTransform)
 {
+	// TODO: Move this somewhere that makes sense
+	if (mesh.mFinalTransforms.empty())
+	{
+		mesh.mFinalTransforms.resize(model.GetBoneCount());
+	}
+
 	glm::mat4 transform = node->mTransformation;
 
 	const auto nodeAnim = GetNodeAnim(animation, node->mId);
@@ -51,20 +58,15 @@ void Animator::_ReadBoneHierarchy(float animationTime, Animation* animation, Mod
 
 	glm::mat4 globalTransform = parentTransform * transform;
 
-	int boneIndex = model.GetBoneIndex(node->mId);
-
-	// TODO: Move this somewhere that makes sense
-	if (mesh.mFinalTransforms.empty())
+	if (int boneIndex = model.GetBoneIndex(node->mId); boneIndex != -1)
 	{
-		mesh.mFinalTransforms.resize(model.GetBoneCount());
+		mesh.mFinalTransforms[boneIndex] = model.GetRootInverseTransform() * globalTransform * model.
+			GetBoneOffset(boneIndex);
 	}
-	mesh.mFinalTransforms[boneIndex] = model.GetRootInverseTransform() * globalTransform * model.
-		GetBoneOffset(boneIndex);
 
-
-	for (int i = 0; i < node->mChildren.size(); i++)
+	for (const auto child : node->mChildren)
 	{
-		_ReadBoneHierarchy(animationTime, animation, model, mesh, node->mChildren[i], globalTransform);
+		_ReadBoneHierarchy(animationTime, animation, model, mesh, child, globalTransform);
 	}
 }
 
@@ -82,7 +84,7 @@ glm::mat4 Animator::_InterpolatePosition(double timeStamp, double ticksPerSecond
 	double t2 = bone.mPositions[nextPositionIndex].mTimeStamp;
 
 	double deltaTime = t2 - t1;
-	auto factor = static_cast<float>((ticksPerSecond - t1) / deltaTime);
+	auto factor = static_cast<float>((timeStamp - t1) / deltaTime);
 
 	auto firstPos = bone.mPositions[positionIndex].mData;
 	auto nextPos = bone.mPositions[nextPositionIndex].mData;
@@ -104,7 +106,7 @@ glm::mat4 Animator::_InterpolateRotation(double timeStamp, double ticksPerSecond
 	double t2 = bone.mRotations[nextRotationIndex].mTimeStamp;
 
 	double deltaTime = t2 - t1;
-	auto factor = static_cast<float>((ticksPerSecond - t1) / deltaTime);
+	auto factor = static_cast<float>((timeStamp - t1) / deltaTime);
 
 	auto firstRot = bone.mRotations[rotationIndex].mData;
 	auto nextRot = bone.mRotations[nextRotationIndex].mData;
@@ -126,7 +128,7 @@ glm::mat4 Animator::_InterpolateScale(double timeStamp, double ticksPerSecond, c
 	double t2 = bone.mScales[nextScaleIndex].mTimeStamp;
 
 	double deltaTime = t2 - t1;
-	auto factor = static_cast<float>((ticksPerSecond - t1) / deltaTime);
+	auto factor = static_cast<float>((timeStamp - t1) / deltaTime);
 
 	auto firstScale = bone.mScales[scaleIndex].mData;
 	auto nextScale = bone.mScales[nextScaleIndex].mData;

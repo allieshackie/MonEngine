@@ -11,9 +11,9 @@ EditorGUI::EditorGUI()
 	mObjectGUI = std::make_unique<ObjectGUI>();
 }
 
-void EditorGUI::Render(EntityRegistry& entityRegistry) const
+void EditorGUI::Render(EntityRegistry& entityRegistry, ResourceManager& resourceManager) const
 {
-	mObjectGUI->RenderGUI(entityRegistry);
+	mObjectGUI->RenderGUI(entityRegistry, resourceManager);
 	// TODO: How can the camera be addressed?
 	/*
 	 *

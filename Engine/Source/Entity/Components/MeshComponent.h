@@ -9,6 +9,9 @@ struct MeshComponent
 
 	// runtime
 	int mMeshId = 0;
-	std::string mCurrentAnimation = "Walk";
+	std::string mCurrentAnimation = "Simple";
 	std::vector<glm::mat4> mFinalTransforms;
+
+	// debug runtime
+	int mCurrentBoneIndex = 0;
 };

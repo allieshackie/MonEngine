@@ -35,6 +35,7 @@ layout(std430) buffer MaterialBuffer
 in vec3 vPosition;
 in vec3 vNormal;
 in vec2 vTexCoord;
+in vec4 vTestColor;
 
 out vec4 fragColor;
 
@@ -53,6 +54,8 @@ void main()
     }
 
     fragColor = vec4(result * color.rgb, 1.0);
+    // DEBUG BONE WEIGHT
+    //fragColor = vTestColor;
 }
 
 vec3 CalcPointLight(LightUniform light, vec3 normal, vec3 fragPos, vec3 viewDir)

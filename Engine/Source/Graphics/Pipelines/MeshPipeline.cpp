@@ -191,6 +191,8 @@ void MeshPipeline::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& command
 	meshSettings.textureClip = glm::mat4(1.0f);
 	meshSettings.hasBones[0] = mesh.mHasBones;
 
+	meshSettings.hasBones[1] = mesh.mCurrentBoneIndex;
+
 	std::uint64_t transformOffset = 0;
 	for (const auto& finalTransform : mesh.mFinalTransforms)
 	{
