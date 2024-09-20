@@ -1,6 +1,7 @@
 #pragma once
 #include <glm/ext/matrix_float4x4.hpp>
 
+#include <random>
 #include "assimp/matrix4x4.h"
 #include "assimp/quaternion.h"
 #include<glm/gtc/quaternion.hpp>
@@ -35,12 +36,12 @@ public:
 
 	static glm::vec3 ConvertVec(const aiVector3D& vec)
 	{
-		return glm::vec3{vec.x, vec.y, vec.z};
+		return {vec.x, vec.y, vec.z};
 	}
 
 	static glm::quat ConvertQuat(const aiQuaternion& pOrientation)
 	{
-		return glm::quat{pOrientation.w, pOrientation.x, pOrientation.y, pOrientation.z};
+		return {pOrientation.w, pOrientation.x, pOrientation.y, pOrientation.z};
 	}
 
 	static BoneNode* ConvertAiNode(const aiNode* node)
@@ -56,5 +57,18 @@ public:
 		}
 
 		return boneNode;
+	}
+
+	static glm::vec4 _GenerateRandomColor()
+	{
+		// Create a random number generator
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_real_distribution<> dis(0.0, 1.0);
+
+		return {
+			static_cast<float>(dis(gen)), static_cast<float>(dis(gen)), static_cast<float>(dis(gen)),
+			1.0f
+		};
 	}
 };

@@ -137,7 +137,8 @@ void RenderContext::Render(const Camera& camera, EntityRegistry& entityRegistry,
 	                     *mMeshPipeline);
 	mMeshPipeline->Render(*mCommands, camera, mProjection, entityRegistry, resourceManager, mRenderSystem);
 	//mTextPipeline->Render(*mCommands, projectionViewMat);
-	//mImmediatePipeline->Render(*mCommands, projectionViewMat); // TODO: debug shader is loading in for some meshes for some reason? Timing maybe?
+	//mImmediatePipeline->Render(*mCommands, projectionViewMat);
+	// TODO: debug shader is loading in for some meshes for some reason? Timing maybe?
 
 	//mTextPipeline->Release(mRenderSystem);
 }

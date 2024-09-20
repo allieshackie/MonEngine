@@ -26,7 +26,7 @@ void Game::Init(EngineContext* engine)
 	mEngine->SetBackgroundClearColor({0.1f, 0.1f, 0.1f});
 
 	// TODO: Data drive theming to make it easier to have different styles
-	GUISystem::LoadGUITheme();
+	//GUISystem::LoadGUITheme();
 	mEngine->LoadLevel("game.json");
 
 	mEngine->ToggleEditorMode(true);

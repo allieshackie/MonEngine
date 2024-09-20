@@ -1,6 +1,6 @@
 #version 460
 
-const int MAX_BONES = 40;
+const int MAX_BONES = 100;
 const int MAX_BONE_INFLUENCE = 4;
 
 // Colors corresponding to bone IDs
@@ -36,20 +36,27 @@ out vec4 vTestColor;
 
 void main()
 {
-    if (hasBones[0] != 0) {
+    if (hasBones[0] != 0 && boneIds[0] != -1) {
         mat4 boneTransform = weights[0] * boneMatrices[boneIds[0]];
-        boneTransform += weights[1] * boneMatrices[boneIds[1]];
-        boneTransform += weights[2] * boneMatrices[boneIds[2]];
-        boneTransform += weights[3] * boneMatrices[boneIds[3]];
+        if (boneIds[1] != -1) {
+            boneTransform += weights[1] * boneMatrices[boneIds[1]];
+        }
+        if (boneIds[2] != -1) {
+            boneTransform += weights[2] * boneMatrices[boneIds[2]];
+        }
+        if (boneIds[3] != -1) {
+            boneTransform += weights[3] * boneMatrices[boneIds[3]];
+        }
         
-        vec3 transformedPosition = vec3(boneTransform * vec4(position, 1.0));
-        vec3 transformedNormal = mat3(transpose(inverse(boneTransform))) * normal;
-	    vPosition = vec3(model * vec4(transformedPosition, 1.0));
-        vNormal = transformedNormal;  
-
+	    vPosition = vec3(model * (boneTransform * vec4(position, 1.0)));
+        vNormal = normalize(mat3(transpose(inverse(boneTransform))) * normal);  
+        
         //DEBUG BONE WEIGHT 
-        /*
         bool found = false;
+        /*
+        vPosition = vec3(model * vec4(position, 1.0));
+        vNormal = mat3(transpose(inverse(model))) * normal;  
+        
         vec4 weightColor;
         for (int i = 0 ; i < 4; i++) {
             if (boneIds[i] == hasBones[1]) {
@@ -65,15 +72,16 @@ void main()
                 break;
             }
         }
+        */
 
         if (!found) {
             vTestColor = vec4(0.5, 0.5, 0.5, 1.0);
         }
-        */
     }
     else {
         vPosition = vec3(model * vec4(position, 1.0));
         vNormal = mat3(transpose(inverse(model))) * normal;  
+        vTestColor = vec4(1.0, 0, 0, 1.0);
     }
 
 	vTexCoord = texCoord;

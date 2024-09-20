@@ -14,7 +14,8 @@
 #include "Physics/PhysicsSystem.h"
 #include "Scripting/LuaSystem.h"
 
-struct MapComponent;
+struct BoneNode;
+
 class GameInterface;
 
 class EngineContext
@@ -79,7 +80,11 @@ private:
 	void _InitDescriptions() const;
 
 	void _FixedUpdate(float dt) const;
+
+	// Debug
 	void _DrawAxis() const;
+	void _RenderModelBones(const Model& model, const MeshComponent& mesh, const BoneNode* node,
+	                       const glm::mat4 parentTransform) const;
 
 	std::unique_ptr<DescriptionFactory> mDescriptionFactory;
 	std::unique_ptr<RenderContext> mRenderContext;

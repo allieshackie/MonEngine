@@ -7,6 +7,7 @@
 #include "Entity/Components/MapComponent.h"
 #include "Entity/Components/SpriteComponent.h"
 #include "Entity/Components/TransformComponent.h"
+#include "Graphics/Core/Animation.h"
 
 #include "MeshPipeline.h"
 
@@ -157,7 +158,7 @@ void MeshPipeline::SetPipeline(LLGL::CommandBuffer& commands) const
 void MeshPipeline::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& commands, const Camera& camera,
                                                     const LLGL::RenderSystemPtr& renderSystem,
                                                     const glm::mat4 projection, const TransformComponent& transform,
-                                                    MeshComponent& mesh)
+                                                    MeshComponent& mesh, const Model& meshModel)
 {
 	// Update
 	auto model = glm::mat4(1.0f);
@@ -194,9 +195,9 @@ void MeshPipeline::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& command
 	meshSettings.hasBones[1] = mesh.mCurrentBoneIndex;
 
 	std::uint64_t transformOffset = 0;
-	for (const auto& finalTransform : mesh.mFinalTransforms)
+	for (const auto& boneInfo : meshModel.GetBoneInfos())
 	{
-		renderSystem->WriteBuffer(*mBoneBuffer, transformOffset, &(finalTransform), sizeof(glm::mat4));
+		renderSystem->WriteBuffer(*mBoneBuffer, transformOffset, &(boneInfo->mFinalTransform), sizeof(glm::mat4));
 		transformOffset += sizeof(glm::mat4);
 	}
 
@@ -251,8 +252,8 @@ void MeshPipeline::_RenderModel(LLGL::CommandBuffer& commands, MeshComponent& me
                                 const LLGL::RenderSystemPtr& renderSystem, const ResourceManager& resourceManager,
                                 const glm::mat4 projection, const TransformComponent& transform)
 {
-	const auto model = resourceManager.GetModelFromId(meshComponent.mMeshPath);
-	UpdateProjectionViewModelUniform(commands, camera, renderSystem, projection, transform, meshComponent);
+	const auto& model = resourceManager.GetModelFromId(meshComponent.mMeshPath);
+	UpdateProjectionViewModelUniform(commands, camera, renderSystem, projection, transform, meshComponent, model);
 
 	for (const auto mesh : model.GetMeshes())
 	{

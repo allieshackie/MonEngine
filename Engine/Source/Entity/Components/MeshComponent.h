@@ -1,5 +1,4 @@
 #pragma once
-#include <glm/ext/matrix_float4x4.hpp>
 
 struct MeshComponent
 {
@@ -9,8 +8,7 @@ struct MeshComponent
 
 	// runtime
 	int mMeshId = 0;
-	std::string mCurrentAnimation = "Simple";
-	std::vector<glm::mat4> mFinalTransforms;
+	std::string mCurrentAnimation = "mixamo.com";
 
 	// debug runtime
 	int mCurrentBoneIndex = 0;

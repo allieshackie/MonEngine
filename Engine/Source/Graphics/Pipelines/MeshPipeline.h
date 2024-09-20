@@ -8,7 +8,7 @@
 #include "Graphics/Core/ResourceManager.h"
 
 #define MAX_LIGHTS 4
-#define MAX_BONES 40
+#define MAX_BONES 100
 
 class Animator;
 class Camera;
@@ -35,7 +35,8 @@ public:
 
 	void UpdateProjectionViewModelUniform(LLGL::CommandBuffer& commands, const Camera& camera,
 	                                      const LLGL::RenderSystemPtr& renderSystem, const glm::mat4 projection,
-	                                      const TransformComponent& transform, MeshComponent& mesh);
+	                                      const TransformComponent& transform, MeshComponent& mesh,
+	                                      const Model& meshModel);
 
 	void SetResourceHeapTexture(LLGL::CommandBuffer& commands, LLGL::Texture& texture) const;
 
