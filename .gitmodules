@@ -23,3 +23,6 @@
 [submodule "ThirdParty/bullet3"]
 	path = ThirdParty/bullet3
 	url = https://github.com/bulletphysics/bullet3
+[submodule "ThirdParty/tinygltf"]
+	path = ThirdParty/tinygltf
+	url = https://github.com/syoyo/tinygltf
