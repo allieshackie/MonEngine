@@ -1,45 +1,42 @@
 #pragma once
-#include <glm/vec3.hpp>
-#include <glm/ext/quaternion_float.hpp>
+#include <glm/mat4x4.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <vector>
 
-struct aiNode;
-
-struct BoneNode
+struct JointNode
 {
 	std::string mId;
 	glm::mat4 mTransformation = glm::mat4(1.0f);
-	std::vector<BoneNode*> mChildren;
+	// Convert bone from world space to bone space
+	glm::mat4 mInverseBindMatrix = glm::mat4(1.0f);
+
+	std::vector<int> mChildren;
 };
 
 struct KeyframeVec
 {
 	glm::vec3 mData = {0, 0, 0};
-	double mTimeStamp = 0.0;
+	float mTimeStamp = 0.0f;
 };
 
 struct KeyframeQuat
 {
 	glm::quat mData;
-	double mTimeStamp = 0.0;
+	float mTimeStamp = 0.0f;
 };
 
 struct AnimNode
 {
-	std::string mName;
+	int mNodeIndex = -1;
 
 	std::vector<KeyframeVec> mPositions;
 	std::vector<KeyframeQuat> mRotations;
 	std::vector<KeyframeVec> mScales;
-
-	int mNumPositions = 0;
-	int mNumRotations = 0;
-	int mNumScales = 0;
 };
 
 struct Animation
 {
-	double mDuration = 0.0;
-	double mTicksPerSecond = 0;
-	std::vector<AnimNode*> mBoneAnimNodes;
+	float mStartFrameTime = 0.0f;
+	float mEndFrameTime = 0.0f;
+	std::vector<AnimNode*> mAnimNodes;
 };

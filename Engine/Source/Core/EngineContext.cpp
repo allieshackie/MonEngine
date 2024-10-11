@@ -19,7 +19,6 @@ void EngineContext::_Init(const LLGL::Extent2D screenSize, const LLGL::UTF8Strin
 	mInputHandler->RegisterButtonUpHandler(LLGL::Key::Escape, [=]() { mRunning = false; });
 
 	mResourceManager = std::make_unique<ResourceManager>();
-	mAnimator = std::make_unique<Animator>();
 
 	mDescriptionFactory = std::make_unique<DescriptionFactory>();
 	_InitDescriptions();
@@ -29,6 +28,7 @@ void EngineContext::_Init(const LLGL::Extent2D screenSize, const LLGL::UTF8Strin
 	mMapRegistry = std::make_unique<MapRegistry>();
 	mTimer = std::make_unique<Timer>();
 
+	mAnimator = std::make_unique<Animator>(*mEntityRegistry, *mResourceManager);
 	mRenderContext = std::make_unique<RenderContext>(screenSize, backgroundClearColor, usePerspective);
 	GUISystem::InitGUI(*mRenderContext);
 	mLuaSystem = std::make_unique<LuaSystem>();
@@ -70,29 +70,28 @@ void EngineContext::_DrawAxis() const
 	DrawBox({0, 0, 1}, {0.1f, 0.1f, 1.0f}, {0, 0, 255, 1});
 }
 
-void EngineContext::_RenderModelBones(const Model& model, const MeshComponent& mesh, const BoneNode* node,
+void EngineContext::_RenderModelBones(Model& model, const MeshComponent& mesh, int nodeIndex,
                                       const glm::mat4 parentTransform) const
 {
-	glm::mat4 globalTransform = parentTransform * node->mTransformation;
-	if (int boneIndex = model.GetBoneIndex(node->mId); boneIndex != -1)
+	auto& node = model.GetJointNodeAt(nodeIndex);
+	glm::mat4 globalTransform = parentTransform * node.mTransformation;
+	auto bonePosition = glm::vec3(globalTransform[3]);
+	auto parentPosition = glm::vec3(parentTransform[3]);
+
+	// Default length for visualization purposes
+	float defaultLength = 1.0f; // Adjust this as needed
+	glm::vec3 direction = glm::normalize(bonePosition - parentPosition) * defaultLength;
+	glm::vec3 endPosition = bonePosition + direction;
+
+	glm::vec4 color = {1, 1, 1, 1};
+	if (strcmp(node.mId.c_str(), "Head") == 0)
 	{
-		auto bonePosition = glm::vec3(globalTransform[3]);
-		auto parentPosition = glm::vec3(parentTransform[3]);
-
-		// Default length for visualization purposes
-		float defaultLength = 20.0f; // Adjust this as needed
-		glm::vec3 direction = glm::normalize(bonePosition - parentPosition) * defaultLength;
-		glm::vec3 endPosition = bonePosition + direction;
-
-		glm::vec4 color = {1, 1, 1, 1};
-		if (strcmp(node->mId.c_str(), "mixamorig:LeftLeg") == 0)
-		{
-			color = {1, 0, 0, 1};
-		}
-
-		DrawLine(bonePosition, endPosition, color);
+		color = {1, 0, 0, 1};
 	}
-	for (const auto child : node->mChildren)
+
+	DrawLine(bonePosition, endPosition, color);
+
+	for (const auto child : node.mChildren)
 	{
 		_RenderModelBones(model, mesh, child, globalTransform);
 	}
@@ -154,6 +153,7 @@ void EngineContext::Run(GameInterface* game) const
 		mAnimator->Update(deltaTime, *mEntityRegistry, *mResourceManager);
 
 		// TODO: Debug draw model bones
+
 		/*
 		 *
 		const auto meshView = mEntityRegistry->GetEnttRegistry().view<const MeshComponent>(entt::exclude<MapComponent>);
@@ -161,13 +161,14 @@ void EngineContext::Run(GameInterface* game) const
 		// Should either be a sprite or basic color
 		meshView.each([=](const MeshComponent& mesh)
 		{
-			const auto model = mResourceManager->GetModelFromId(mesh.mMeshPath);
-			_RenderModelBones(model, mesh, model.GetRootNode(), glm::mat4(1.0f));
+			auto model = mResourceManager->GetModelFromId(mesh.mMeshPath);
+			_RenderModelBones(model, mesh, model.GetRootNodeIndex(), glm::mat4(1.0f));
 		});
+
 		 */
 
 		// TODO: Debug draw axis
-		_DrawAxis();
+		//_DrawAxis();
 
 		mRenderContext->BeginFrame();
 

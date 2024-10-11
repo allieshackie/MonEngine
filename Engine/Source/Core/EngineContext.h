@@ -14,7 +14,7 @@
 #include "Physics/PhysicsSystem.h"
 #include "Scripting/LuaSystem.h"
 
-struct BoneNode;
+struct JointNode;
 
 class GameInterface;
 
@@ -83,7 +83,7 @@ private:
 
 	// Debug
 	void _DrawAxis() const;
-	void _RenderModelBones(const Model& model, const MeshComponent& mesh, const BoneNode* node,
+	void _RenderModelBones(Model& model, const MeshComponent& mesh, int nodeIndex,
 	                       const glm::mat4 parentTransform) const;
 
 	std::unique_ptr<DescriptionFactory> mDescriptionFactory;

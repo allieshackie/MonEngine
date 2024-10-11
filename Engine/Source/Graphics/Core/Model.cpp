@@ -1,51 +1,41 @@
-#include "assimp/postprocess.h"
-#include <assimp/scene.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include "LLGL/Utils/Utility.h"
 
 #include "Graphics/Core/Shader.h"
 #include "Graphics/Core/Vertex.h"
-#include "Util/AssimpGLM.h"
+#include "Util/gltfHelpers.h"
 
 #include "Model.h"
 
 Model::Model(const std::string& fullPath, std::string fileName) : mId(std::move(fileName))
 {
-	mImporter = new Assimp::Importer();
-	mScene = mImporter->ReadFile(fullPath,
-	                             aiProcessPreset_TargetRealtime_Quality);
-	// Check if there was errors with 
-	if (!mScene || mScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !mScene->mRootNode)
+	tinygltf::TinyGLTF gltf_ctx;
+	std::string err;
+	std::string warn;
+
+	tinygltf::Model model;
+
+	bool result = gltf_ctx.LoadASCIIFromFile(&model, &err, &warn, fullPath);
+
+	if (!warn.empty())
 	{
-		std::cout << mImporter->GetErrorString() << std::endl;
+		printf("Warn: %s\n", warn.c_str());
 	}
 
-	if (mScene->mNumAnimations > 0)
+	if (!err.empty())
 	{
-		mRootNode = AssimpGLM::ConvertAiNode(mScene->mRootNode);
-		mGlobalInverseTransform = AssimpGLM::ConvertMatrix(mScene->mRootNode->mTransformation.Inverse());
+		printf("Err: %s\n", err.c_str());
 	}
 
-	int totalVertices = 0;
-	int totalIndices = 0;
-
-	// CountVerticesAndIndices
-	for (unsigned int i = 0; i < mScene->mNumMeshes; i++)
+	if (!result)
 	{
-		auto meshData = new MeshData();
-		meshData->mNumIndices = mScene->mMeshes[i]->mNumFaces * 3;
-		meshData->mBaseVertex = totalVertices;
-		meshData->mBaseIndex = totalIndices;
-
-		totalVertices += mScene->mMeshes[i]->mNumVertices;
-		totalIndices += meshData->mNumIndices;
-
-		mMeshes.push_back(meshData);
+		printf("Failed to parse glTF\n");
 	}
 
-	for (unsigned int i = 0; i < mScene->mNumMeshes; i++)
-	{
-		_ProcessMesh(i, mScene->mMeshes[i]);
-	}
+	_ProcessMeshes(model);
+	_ProcessJointData(model);
+	_ProcessAnimations(model);
 }
 
 void Model::InitializeBuffers(const LLGL::RenderSystemPtr& renderSystem, const Shader& shader) const
@@ -65,117 +55,278 @@ void Model::InitializeBuffers(const LLGL::RenderSystemPtr& renderSystem, const S
 	}
 }
 
-const glm::mat4& Model::GetBoneOffset(int boneIndex) const
+JointNode& Model::GetJointNodeAt(int nodeIndex)
 {
-	return mBoneInfos[boneIndex]->mOffset;
+	return mJointNodes.at(nodeIndex);
 }
 
-aiAnimation* Model::GetAnimation(const std::string& animationName) const
+const Animation* Model::GetAnimation(const std::string& name) const
 {
-	for (int i = 0; i < mScene->mNumAnimations; i++)
+	for (const auto& entry : mAnimations)
 	{
-		if (strcmp(mScene->mAnimations[i]->mName.C_Str(), animationName.c_str()) == 0)
+		if (entry.first == name)
 		{
-			return mScene->mAnimations[i];
+			return entry.second;
 		}
 	}
 
 	return nullptr;
 }
 
-int Model::GetBoneIndex(const std::string& boneName) const
+void Model::_ProcessMeshes(tinygltf::Model& model)
 {
-	if (auto it = mBoneNameToIndex.find(boneName); it != mBoneNameToIndex.end())
+	for (unsigned int i = 0; i < model.meshes.size(); i++)
 	{
-		return it->second;
-	}
+		const auto& mesh = model.meshes[i];
 
-	return -1;
-}
+		auto meshData = new MeshData();
+		meshData->mName = mesh.name;
 
-void Model::_ProcessMesh(unsigned int meshIndex, aiMesh* mesh)
-{
-	auto& meshData = mMeshes[meshIndex];
-	for (unsigned int i = 0; i < mesh->mNumVertices; i++)
-	{
-		Vertex vertex;
-		// process vertex positions, normals and texture coordinates
-		vertex.position = AssimpGLM::ConvertVec(mesh->mVertices[i]);
-		vertex.normal = AssimpGLM::ConvertVec(mesh->mNormals[i]);
-
-		// UVs coordinates
-		if (mesh->mTextureCoords[0])
+		for (const auto& primitive : mesh.primitives)
 		{
-			vertex.texCoord.x = mesh->mTextureCoords[0][i].x;
-			vertex.texCoord.y = mesh->mTextureCoords[0][i].y;
-		}
-		else
-		{
-			vertex.texCoord = glm::vec2(0.0f, 0.0f);
-		}
-
-		for (int i = 0; i < 4; i++)
-		{
-			vertex.boneIds[i] = -1;
-			vertex.weights[i] = 0.0f;
-		}
-
-		meshData->mVertices.push_back(vertex);
-	}
-
-	// LoadMeshBones
-	_ProcessBoneWeights(mesh, meshData->mVertices);
-
-	// process indices
-	for (unsigned int i = 0; i < mesh->mNumFaces; i++)
-	{
-		const aiFace& face = mesh->mFaces[i];
-		for (unsigned int j = 0; j < face.mNumIndices; j++)
-		{
-			meshData->mIndices.push_back(face.mIndices[j]);
-		}
-	}
-}
-
-void Model::_ProcessBoneWeights(aiMesh* mesh, std::vector<Vertex>& vertices)
-{
-	for (int i = 0; i < mesh->mNumBones; i++)
-	{
-		// GetBoneId
-		int boneId = 0;
-		std::string boneName = mesh->mBones[i]->mName.C_Str();
-		if (mBoneNameToIndex.find(boneName) == mBoneNameToIndex.end())
-		{
-			boneId = static_cast<int>(mBoneNameToIndex.size());
-			mBoneNameToIndex[boneName] = boneId;
-		}
-		else
-		{
-			boneId = mBoneNameToIndex[boneName];
-		}
-
-		if (boneId == mBoneInfos.size())
-		{
-			auto info = new BoneInfo();
-			info->mOffset = AssimpGLM::ConvertMatrix(mesh->mBones[i]->mOffsetMatrix);
-			mBoneInfos.push_back(std::move(info));
-		}
-
-		auto weights = mesh->mBones[i]->mWeights;
-
-		for (unsigned int weightIndex = 0; weightIndex < mesh->mBones[i]->mNumWeights; ++weightIndex)
-		{
-			float weight = weights[weightIndex].mWeight;
-			auto& vertex = vertices[weights[weightIndex].mVertexId];
-			for (int j = 0; j < 4; ++j)
+			const float* positions = nullptr;
+			int posCount = 0;
+			if (const auto& it = primitive.attributes.find("POSITION"); it != primitive.attributes.end())
 			{
-				if (vertex.weights[j] == 0.0f)
+				positions = gltfHelpers::GetgltfBuffer<const float*>(model, it->second, posCount);
+			}
+
+			// Retrieve normals (if they exist)
+			const float* normals = nullptr;
+			if (const auto& it = primitive.attributes.find("NORMAL"); it != primitive.attributes.end())
+			{
+				normals = gltfHelpers::GetgltfBuffer<const float*>(model, it->second);
+			}
+
+			// Retrieve texture coordinates (if they exist)
+			const float* texCoords = nullptr;
+			if (const auto& it = primitive.attributes.find("TEXCOORD_0"); it != primitive.attributes.end())
+			{
+				texCoords = gltfHelpers::GetgltfBuffer<const float*>(model, it->second);
+			}
+
+			// Retrieve bone IDs (JOINTS_0)
+			const unsigned char* joints = nullptr;
+			if (const auto& it = primitive.attributes.find("JOINTS_0"); it != primitive.attributes.end())
+			{
+				joints = gltfHelpers::GetgltfBuffer<const unsigned char*>(model, it->second);
+			}
+
+			// Retrieve bone weights (WEIGHTS_0)
+			const float* weights = nullptr;
+			if (const auto& it = primitive.attributes.find("WEIGHTS_0"); it != primitive.attributes.end())
+			{
+				weights = gltfHelpers::GetgltfBuffer<const float*>(model, it->second);
+			}
+
+			meshData->mVertices.resize(posCount);
+			for (int vertId = 0; vertId < posCount; vertId++)
+			{
+				// Position
+				meshData->mVertices[vertId].position = glm::make_vec3(&positions[vertId * VEC3_STEP]);
+
+				// Normal (optional)
+				if (normals)
 				{
-					vertex.weights[j] = weight;
-					vertex.boneIds[j] = boneId;
-					break;
+					meshData->mVertices[vertId].normal = glm::make_vec3(&normals[vertId * VEC3_STEP]);
+				}
+				else
+				{
+					meshData->mVertices[vertId].normal = glm::vec3(0.0f, 0.0f, 0.0f); // Default if no normal provided
+				}
+
+				// Texture coordinates (optional)
+				if (texCoords)
+				{
+					// Subtract 1 on y axis to flip the coords
+					meshData->mVertices[vertId].texCoord = glm::make_vec2(&texCoords[vertId * VEC2_STEP]);
+				}
+				else
+				{
+					meshData->mVertices[vertId].texCoord = glm::vec2(0.0f, 0.0f); // Default if no tex coords provided
+				}
+
+				// Bone IDs (optional)
+				if (joints)
+				{
+					auto jointVec = glm::make_vec4(&joints[vertId * VEC4_STEP]);
+					meshData->mVertices[vertId].boneIds[0] = model.skins[0].joints[jointVec[0]];
+					meshData->mVertices[vertId].boneIds[1] = model.skins[0].joints[jointVec[1]];
+					meshData->mVertices[vertId].boneIds[2] = model.skins[0].joints[jointVec[2]];
+					meshData->mVertices[vertId].boneIds[3] = model.skins[0].joints[jointVec[3]];
+				}
+				else
+				{
+					// Default to no bone influence
+					for (int j = 0; j < 4; ++j)
+					{
+						meshData->mVertices[vertId].boneIds[j] = -1;
+					}
+				}
+
+				// Weights (optional)
+				if (weights)
+				{
+					auto weightVec = glm::make_vec4(&weights[vertId * VEC4_STEP]);
+					meshData->mVertices[vertId].weights[0] = weightVec[0];
+					meshData->mVertices[vertId].weights[1] = weightVec[1];
+					meshData->mVertices[vertId].weights[2] = weightVec[2];
+					meshData->mVertices[vertId].weights[3] = weightVec[3];
+				}
+				else
+				{
+					// Default to no bone weight
+					for (int j = 0; j < 4; ++j)
+					{
+						meshData->mVertices[vertId].weights[j] = 0.0f;
+					}
+				}
+			}
+
+			// Indices
+			if (primitive.indices != -1)
+			{
+				int indicesCount = 0;
+				const auto indices = gltfHelpers::GetgltfBuffer<const unsigned short
+					*>(model, primitive.indices, indicesCount);
+
+				meshData->mIndices.resize(indicesCount);
+				for (int index = 0; index < indicesCount; ++index)
+				{
+					meshData->mIndices[index] = indices[index];
 				}
 			}
 		}
+
+		mMeshes.push_back(std::move(meshData));
+	}
+}
+
+void Model::_ProcessJointData(const tinygltf::Model& model)
+{
+	for (const tinygltf::Skin& skin : model.skins)
+	{
+		// Get a pointer to the raw matrix data
+		int matrixByteOffset = 0;
+		const auto matrixData = gltfHelpers::GetgltfBuffer<const float*>(
+			model, skin.inverseBindMatrices, matrixByteOffset);
+
+		mRootNodeIndex = skin.joints[0];
+
+		// Loop over each bone node (joint) in the skin
+		for (size_t i = 0; i < skin.joints.size(); ++i)
+		{
+			int nodeIndex = skin.joints[i];
+			const tinygltf::Node& node = model.nodes[nodeIndex];
+
+			JointNode joint;
+			joint.mId = node.name;
+			joint.mTransformation = gltfHelpers::GetNodeTransform(node);
+			joint.mInverseBindMatrix = glm::make_mat4(&matrixData[i * 16]);
+
+			mBoneNameToIndex[node.name] = nodeIndex;
+
+			// Add children if the node has any
+			for (int child : node.children)
+			{
+				joint.mChildren.push_back(child);
+			}
+
+			// Store the bone info in the map (using node index as the key)
+			mJointNodes[nodeIndex] = joint;
+		}
+	}
+}
+
+void Model::_ProcessAnimations(const tinygltf::Model& model)
+{
+	for (const auto& animation : model.animations)
+	{
+		auto modelAnim = new Animation();
+		for (const auto& channel : animation.channels)
+		{
+			const auto& sampler = animation.samplers[channel.sampler];
+
+			bool newNode = false;
+
+			AnimNode* animNode = nullptr;
+			for (const auto node : modelAnim->mAnimNodes)
+			{
+				if (node->mNodeIndex == channel.target_node)
+				{
+					animNode = node;
+					break;
+				}
+			}
+
+			if (animNode == nullptr)
+			{
+				animNode = new AnimNode();
+				animNode->mNodeIndex = channel.target_node;
+				newNode = true;
+			}
+
+			// Get keyframe times (timestamps)
+			int keyframeCount = 0;
+			const auto keyframeTimes = gltfHelpers::GetgltfBuffer<const float*>(model, sampler.input, keyframeCount);
+
+			if (channel.target_path == "translation")
+			{
+				const auto positions = gltfHelpers::GetgltfBuffer<const float*>(model, sampler.output);
+
+				for (int i = 0; i < keyframeCount; ++i)
+				{
+					KeyframeVec keyframe;
+					keyframe.mData = {
+						positions[VEC3_STEP * i], positions[VEC3_STEP * i + 1], positions[VEC3_STEP * i + 2]
+					};
+					keyframe.mTimeStamp = keyframeTimes[i];
+					animNode->mPositions.push_back(keyframe);
+				}
+			}
+			else if (channel.target_path == "rotation")
+			{
+				const auto rotations = gltfHelpers::GetgltfBuffer<const float*>(model, sampler.output);
+
+				for (int i = 0; i < keyframeCount; ++i)
+				{
+					KeyframeQuat keyframe;
+					keyframe.mData = {
+						glm::normalize(glm::quat(
+							rotations[VEC4_STEP * i + 3], rotations[VEC4_STEP * i], rotations[VEC4_STEP * i + 1],
+							rotations[VEC4_STEP * i + 2]))
+					};
+					keyframe.mTimeStamp = keyframeTimes[i];
+					animNode->mRotations.push_back(keyframe);
+				}
+			}
+			else if (channel.target_path == "scale")
+			{
+				const auto scales = gltfHelpers::GetgltfBuffer<const float*>(model, sampler.output);
+
+				for (int i = 0; i < keyframeCount; ++i)
+				{
+					KeyframeVec keyframe;
+					keyframe.mData = {scales[VEC3_STEP * i], scales[VEC3_STEP * i + 1], scales[VEC3_STEP * i + 2]};
+					keyframe.mTimeStamp = keyframeTimes[i];
+					animNode->mScales.push_back(keyframe);
+				}
+			}
+
+			// Update the animation's start and end frame times
+			modelAnim->mStartFrameTime = keyframeTimes[0];
+			for (int i = 0; i < keyframeCount; ++i)
+			{
+				modelAnim->mStartFrameTime = std::min(modelAnim->mStartFrameTime, keyframeTimes[i]);
+				modelAnim->mEndFrameTime = std::max(modelAnim->mEndFrameTime, keyframeTimes[i]);
+			}
+
+			if (newNode)
+			{
+				modelAnim->mAnimNodes.push_back(std::move(animNode));
+			}
+		}
+
+		mAnimations[animation.name] = std::move(modelAnim);
 	}
 }
