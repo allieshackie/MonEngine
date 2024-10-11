@@ -50,6 +50,7 @@ target_link_libraries(
     glad
     lua
     assimp
+    tinygltf
     ${BULLET_LIBRARIES}
 )
 
