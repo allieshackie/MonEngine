@@ -34,22 +34,26 @@ out vec3 vNormal;
 out vec2 vTexCoord;
 out vec4 vTestColor;
 
+vec3 applyBoneTransform(vec4 pos) {
+    vec3 result = vec3(0.0);
+    for (int i = 0; i < MAX_BONE_INFLUENCE; i++) {
+        if (boneIds[i] != -1) {
+            mat4 boneTransform = boneMatrices[boneIds[i]];
+            result += vec3(weights[i] * (boneTransform * pos));
+        }
+    }
+
+    return result;
+}
+
 void main()
 {
-    if (hasBones[0] != 0 && boneIds[0] != -1) {
-        mat4 boneTransform = weights[0] * boneMatrices[boneIds[0]];
-        if (boneIds[1] != -1) {
-            boneTransform += weights[1] * boneMatrices[boneIds[1]];
-        }
-        if (boneIds[2] != -1) {
-            boneTransform += weights[2] * boneMatrices[boneIds[2]];
-        }
-        if (boneIds[3] != -1) {
-            boneTransform += weights[3] * boneMatrices[boneIds[3]];
-        }
+    if (hasBones[0] != 0) {
+        vec3 transformedPos = applyBoneTransform(vec4(position, 1.0));
+        vec3 transformedNormal = normalize(applyBoneTransform(vec4(normal, 0.0)));
         
-	    vPosition = vec3(model * (boneTransform * vec4(position, 1.0)));
-        vNormal = normalize(mat3(transpose(inverse(boneTransform))) * normal);  
+	    vPosition = vec3(model * vec4(transformedPos, 1.0));
+        vNormal = normalize(mat3(transpose(inverse(model))) * transformedNormal); 
         
         //DEBUG BONE WEIGHT 
         bool found = false;

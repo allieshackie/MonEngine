@@ -1,10 +1,9 @@
 #pragma once
 #include <glm/mat4x4.hpp>
+#include <glm/gtx/quaternion.hpp>
 
-struct aiAnimation;
-struct aiNodeAnim;
+#include "Animation.h"
 
-struct BoneNode;
 struct MeshComponent;
 
 class EntityRegistry;
@@ -14,23 +13,25 @@ class ResourceManager;
 class Animator
 {
 public:
+	Animator(EntityRegistry& entityRegistry, ResourceManager& resourceManager);
 	// Interpolate bone positions
 	void Update(float deltaTime, EntityRegistry& entityRegistry, const ResourceManager& resourceManager);
 
 private:
-	void _UpdateBoneTransforms(float deltaTime, aiAnimation* animation, Model& model, MeshComponent& mesh);
-	void _ReadBoneHierarchy(float animationTime, aiAnimation* animation, Model& model, MeshComponent& mesh,
-	                        BoneNode* node, const glm::mat4 parentTransform);
+	void _UpdateAnimation(float deltaTime, const Animation* animation, Model& model, MeshComponent& mesh);
+	void _UpdateJointHierarchy(float animationTime, Model& model, MeshComponent& mesh, const Animation* animation,
+	                           int nodeIndex, const glm::mat4 parentTransform);
 
-	glm::mat4 _InterpolatePosition(double timeStamp, const aiNodeAnim& bone);
-	glm::mat4 _InterpolateRotation(double timeStamp, const aiNodeAnim& bone);
-	glm::mat4 _InterpolateScale(double timeStamp, const aiNodeAnim& bone);
+	glm::mat4 _InterpolatePosition(float animationTime, const AnimNode* nodeData) const;
+	glm::mat4 _InterpolateRotation(float animationTime, const AnimNode* nodeData) const;
+	glm::mat4 _InterpolateScale(float animationTime, const AnimNode* nodeData) const;
 
-	int _GetPositionIndex(double timeStamp, const aiNodeAnim& bone);
-	int _GetRotationIndex(double timeStamp, const aiNodeAnim& bone);
-	int _GetScaleIndex(double timeStamp, const aiNodeAnim& bone);
+	glm::vec3 _InterpolateVec3(float animationTime, const std::vector<KeyframeVec>& keyframes) const;
+	glm::quat _InterpolateQuat(float animationTime, const std::vector<KeyframeQuat>& keyframes) const;
 
-	const aiNodeAnim* GetNodeAnim(const aiAnimation* animation, const std::string& boneName);
+	const AnimNode* GetAnimNode(const Animation* animation, int nodeId);
 
 	float mCurrentAnimationTime = 0;
+
+	ResourceManager& mResourceManager;
 };
