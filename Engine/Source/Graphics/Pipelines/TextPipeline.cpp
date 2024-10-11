@@ -1,7 +1,9 @@
+#ifndef STB_TRUETYPE_IMPLEMENTATION
 #define STB_TRUETYPE_IMPLEMENTATION
 #include "Graphics/Util/stb_truetype.h"
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "Graphics/Util/stb_image_write.h"
+#endif
+
+#include <stb_image_write.h>
 
 #include <imgui.h>
 #include <iomanip>

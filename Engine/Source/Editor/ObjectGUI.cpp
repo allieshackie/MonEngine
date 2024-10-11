@@ -50,7 +50,7 @@ void ObjectGUI::RenderGUI(EntityRegistry& entityRegistry, ResourceManager& resou
 			}
 			if (ImGui::Combo("Bones", &currentSelection, items.data(), items.size()))
 			{
-				mesh.mCurrentBoneIndex = boneNamesToIndex.at(keys[currentSelection]);
+				mesh.mCurrentBoneIndex = boneNamesToIndex.find(keys[currentSelection])->second;
 			}
 		});
 	}

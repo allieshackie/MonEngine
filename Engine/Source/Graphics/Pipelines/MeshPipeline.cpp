@@ -195,12 +195,11 @@ void MeshPipeline::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& command
 	meshSettings.hasBones[1] = mesh.mCurrentBoneIndex;
 
 	std::uint64_t transformOffset = 0;
-	for (const auto& boneInfo : meshModel.GetBoneInfos())
+	for (const auto& finalTransform : mesh.mFinalTransforms)
 	{
-		renderSystem->WriteBuffer(*mBoneBuffer, transformOffset, &(boneInfo->mFinalTransform), sizeof(glm::mat4));
+		renderSystem->WriteBuffer(*mBoneBuffer, transformOffset, &(finalTransform), sizeof(glm::mat4));
 		transformOffset += sizeof(glm::mat4);
 	}
-
 
 	commands.UpdateBuffer(*mConstantBuffer, 0, &meshSettings, sizeof(meshSettings));
 	commands.UpdateBuffer(*mLightConstantBuffer, 0, &lightSettings, sizeof(lightSettings));

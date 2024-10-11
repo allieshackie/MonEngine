@@ -2,7 +2,7 @@
 #include <filesystem>
 
 #include "assimp/scene.h"
-#include "Graphics/Util/stb_image.h"
+#include <stb_image.h>
 
 #include "ResourceManager.h"
 

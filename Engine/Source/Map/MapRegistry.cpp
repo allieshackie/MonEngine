@@ -86,11 +86,11 @@ bool MapRegistry::_ParseMapData(const MapData& mapData, EntityId entityId, Entit
 
 	if (mapData.hasDimension)
 	{
-		entityReg.AddComponent<MeshComponent>(entityId, "PlainBox.obj");
+		entityReg.AddComponent<MeshComponent>(entityId, "PlainBox.gltf");
 	}
 	else
 	{
-		entityReg.AddComponent<MeshComponent>(entityId, "Plane.obj");
+		entityReg.AddComponent<MeshComponent>(entityId, "Plane.gltf");
 	}
 
 	entityReg.AddComponent<CollisionComponent>(entityId, ColliderShapes::Box, size, -1, false);
