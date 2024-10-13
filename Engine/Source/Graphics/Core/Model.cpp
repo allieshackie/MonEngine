@@ -36,6 +36,8 @@ Model::Model(const std::string& fullPath, std::string fileName) : mId(std::move(
 	_ProcessMeshes(model);
 	_ProcessJointData(model);
 	_ProcessAnimations(model);
+
+	mNumNodes = model.nodes.size();
 }
 
 void Model::InitializeBuffers(const LLGL::RenderSystemPtr& renderSystem, const Shader& shader) const
@@ -55,9 +57,16 @@ void Model::InitializeBuffers(const LLGL::RenderSystemPtr& renderSystem, const S
 	}
 }
 
-JointNode& Model::GetJointNodeAt(int nodeIndex)
+JointNode* Model::GetJointNodeAt(int nodeIndex) const
 {
-	return mJointNodes.at(nodeIndex);
+	for (auto node : mJointNodes)
+	{
+		if (node.first == nodeIndex)
+		{
+			return node.second;
+		}
+	}
+	return nullptr;
 }
 
 const Animation* Model::GetAnimation(const std::string& name) const
@@ -138,8 +147,8 @@ void Model::_ProcessMeshes(tinygltf::Model& model)
 				// Texture coordinates (optional)
 				if (texCoords)
 				{
-					// Subtract 1 on y axis to flip the coords
 					meshData->mVertices[vertId].texCoord = glm::make_vec2(&texCoords[vertId * VEC2_STEP]);
+					meshData->mVertices[vertId].texCoord.y = 1.0f - meshData->mVertices[vertId].texCoord.y;
 				}
 				else
 				{
@@ -219,17 +228,17 @@ void Model::_ProcessJointData(const tinygltf::Model& model)
 			int nodeIndex = skin.joints[i];
 			const tinygltf::Node& node = model.nodes[nodeIndex];
 
-			JointNode joint;
-			joint.mId = node.name;
-			joint.mTransformation = gltfHelpers::GetNodeTransform(node);
-			joint.mInverseBindMatrix = glm::make_mat4(&matrixData[i * 16]);
+			auto joint = new JointNode();
+			joint->mId = node.name;
+			joint->mTransformation = gltfHelpers::GetNodeTransform(node);
+			joint->mInverseBindMatrix = glm::make_mat4(&matrixData[i * 16]);
 
 			mBoneNameToIndex[node.name] = nodeIndex;
 
 			// Add children if the node has any
 			for (int child : node.children)
 			{
-				joint.mChildren.push_back(child);
+				joint->mChildren.push_back(child);
 			}
 
 			// Store the bone info in the map (using node index as the key)

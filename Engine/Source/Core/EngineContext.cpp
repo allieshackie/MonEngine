@@ -73,8 +73,14 @@ void EngineContext::_DrawAxis() const
 void EngineContext::_RenderModelBones(Model& model, const MeshComponent& mesh, int nodeIndex,
                                       const glm::mat4 parentTransform) const
 {
-	auto& node = model.GetJointNodeAt(nodeIndex);
-	glm::mat4 globalTransform = parentTransform * node.mTransformation;
+	const auto node = model.GetJointNodeAt(nodeIndex);
+
+	if (node == nullptr)
+	{
+		return;
+	}
+
+	glm::mat4 globalTransform = parentTransform * node->mTransformation;
 	auto bonePosition = glm::vec3(globalTransform[3]);
 	auto parentPosition = glm::vec3(parentTransform[3]);
 
@@ -84,14 +90,14 @@ void EngineContext::_RenderModelBones(Model& model, const MeshComponent& mesh, i
 	glm::vec3 endPosition = bonePosition + direction;
 
 	glm::vec4 color = {1, 1, 1, 1};
-	if (strcmp(node.mId.c_str(), "Head") == 0)
+	if (strcmp(node->mId.c_str(), "Head") == 0)
 	{
 		color = {1, 0, 0, 1};
 	}
 
 	DrawLine(bonePosition, endPosition, color);
 
-	for (const auto child : node.mChildren)
+	for (const auto child : node->mChildren)
 	{
 		_RenderModelBones(model, mesh, child, globalTransform);
 	}

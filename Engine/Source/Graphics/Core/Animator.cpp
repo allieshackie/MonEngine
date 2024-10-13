@@ -48,8 +48,14 @@ void Animator::_UpdateJointHierarchy(float animationTime, Model& model, MeshComp
 		mesh.mFinalTransforms.resize(model.GetNumJoints());
 	}
 
-	const JointNode& jointNode = model.GetJointNodeAt(nodeIndex);
-	glm::mat4 transform = jointNode.mTransformation;
+	const auto jointNode = model.GetJointNodeAt(nodeIndex);
+
+	if (jointNode == nullptr)
+	{
+		return;
+	}
+
+	glm::mat4 transform = jointNode->mTransformation;
 
 	const auto nodeAnim = GetAnimNode(animation, nodeIndex);
 
@@ -63,9 +69,9 @@ void Animator::_UpdateJointHierarchy(float animationTime, Model& model, MeshComp
 
 	glm::mat4 globalTransform = parentTransform * transform;
 
-	mesh.mFinalTransforms[nodeIndex] = globalTransform * jointNode.mInverseBindMatrix;
+	mesh.mFinalTransforms[nodeIndex] = globalTransform * jointNode->mInverseBindMatrix;
 
-	for (const auto child : jointNode.mChildren)
+	for (const auto child : jointNode->mChildren)
 	{
 		_UpdateJointHierarchy(animationTime, model, mesh, animation, child, globalTransform);
 	}

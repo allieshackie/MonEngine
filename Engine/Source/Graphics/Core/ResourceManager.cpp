@@ -1,7 +1,5 @@
 #include <glad/glad.h>
 #include <filesystem>
-
-#include "assimp/scene.h"
 #include <stb_image.h>
 
 #include "ResourceManager.h"

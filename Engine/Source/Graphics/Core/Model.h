@@ -34,8 +34,8 @@ public:
 	int GetRootNodeIndex() const { return mRootNodeIndex; }
 	const std::vector<MeshData*>& GetMeshes() const { return mMeshes; }
 
-	JointNode& GetJointNodeAt(int nodeIndex);
-	size_t GetNumJoints() const { return mBoneNameToIndex.size(); }
+	JointNode* GetJointNodeAt(int nodeIndex) const;
+	size_t GetNumJoints() const { return mNumNodes; }
 
 	const Animation* GetAnimation(const std::string& name) const;
 
@@ -53,6 +53,7 @@ private:
 	std::unordered_map<std::string, int> mBoneNameToIndex;
 	std::unordered_map<std::string, Animation*> mAnimations;
 
-	std::unordered_map<int, JointNode> mJointNodes;
+	std::unordered_map<int, JointNode*> mJointNodes;
 	int mRootNodeIndex = 0;
+	size_t mNumNodes = 0;
 };
