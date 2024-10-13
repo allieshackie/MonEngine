@@ -17,9 +17,6 @@
 [submodule "ThirdParty/GaussianLib"]
 	path = ThirdParty/GaussianLib
 	url = https://github.com/LukasBanana/GaussianLib
-[submodule "ThirdParty/assimp"]
-	path = ThirdParty/assimp
-	url = https://github.com/assimp/assimp.git
 [submodule "ThirdParty/bullet3"]
 	path = ThirdParty/bullet3
 	url = https://github.com/bulletphysics/bullet3
