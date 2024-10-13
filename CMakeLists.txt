@@ -93,13 +93,11 @@ target_include_directories(imgui PUBLIC
     ${THIRD_PARTY_DIR}/imgui
 )
 
-## ASSIMP
-add_subdirectory(${THIRD_PARTY_DIR}/assimp)
+## TINYGLTF
+add_subdirectory(${THIRD_PARTY_DIR}/tinygltf)
 
-set_property(TARGET assimp PROPERTY FOLDER "ThirdParty")
-set_property(TARGET unit PROPERTY FOLDER "ThirdParty")
-set_property(TARGET UpdateAssimpLibsDebugSymbolsAndDLLs PROPERTY FOLDER "ThirdParty")
-set_property(TARGET zlibstatic PROPERTY FOLDER "ThirdParty")
+set_property(TARGET tinygltf PROPERTY FOLDER "ThirdParty")
+set_property(TARGET loader_example PROPERTY FOLDER "ThirdParty")
 
 ## LUA
 file(GLOB_RECURSE LUA_SOURCES "${THIRD_PARTY_DIR}/Lua/src/*.c")

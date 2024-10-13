@@ -49,7 +49,6 @@ target_link_libraries(
     imgui
     glad
     lua
-    assimp
     tinygltf
     ${BULLET_LIBRARIES}
 )
