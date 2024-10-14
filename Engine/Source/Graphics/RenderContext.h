@@ -16,14 +16,15 @@ class InputHandler;
 class RenderContext
 {
 public:
-	RenderContext(const LLGL::UTF8String& title, const LLGL::Extent2D screenSize,
-	              const LLGL::ColorRGBAf backgroundColor, const std::shared_ptr<InputHandler>& inputHandler,
-	              EntityRegistry& entityRegistry, bool usePerspective);
+	RenderContext(const LLGL::Extent2D screenSize, const LLGL::ColorRGBAf backgroundColor, bool usePerspective);
 
 	~RenderContext();
 
+	void InitPipelines(const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler,
+	                   EntityRegistry& entityRegistry, const ResourceManager& resourceManager);
+
 	void BeginFrame() const;
-	void Render(const Camera& camera, EntityRegistry& entityRegistry) const;
+	void Render(const Camera& camera, EntityRegistry& entityRegistry, ResourceManager& resourceManager) const;
 	void EndFrame() const;
 	bool ProcessEvents() const;
 
@@ -47,11 +48,14 @@ public:
 
 	void ResizeBuffers(const LLGL::Extent2D& size) const;
 
-	void GenerateMapTexture(EntityRegistry& entityRegistry, EntityId mapId) const;
+	void GenerateMapTexture(EntityRegistry& entityRegistry, const ResourceManager& resourceManager,
+	                        EntityId mapId) const;
+
+	const LLGL::RenderSystemPtr& GetRenderSystem() const { return mRenderSystem; }
 
 private:
 	void _CreateWindow(const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler);
-	void _CreatePipelines(EntityRegistry& entityRegistry);
+	void _CreatePipelines(EntityRegistry& entityRegistry, const ResourceManager& resourceManager);
 
 	static LLGL::Extent2D _ScaleResolution(const LLGL::Extent2D& res, float scale);
 

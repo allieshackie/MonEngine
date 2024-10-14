@@ -1,7 +1,7 @@
 // GLSL shader version 1.30 (for OpenGL 3.1)
 #version 460
 
-layout(std140) uniform Settings 
+layout(std140) uniform SpriteSettings 
 {
     mat4 model;
     mat4 view;

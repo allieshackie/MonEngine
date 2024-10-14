@@ -14,7 +14,8 @@
 #include "Physics/PhysicsSystem.h"
 #include "Scripting/LuaSystem.h"
 
-struct MapComponent;
+struct JointNode;
+
 class GameInterface;
 
 class EngineContext
@@ -46,6 +47,8 @@ public:
 	EntityId CreateGameObject(const std::string& entityTemplateName) const;
 	template <typename Component>
 	Component& GetComponent(EntityId id) const;
+	template <typename Component>
+	Component* TryGetComponent(EntityId id) const;
 	void FlushEntities() const;
 
 	const std::vector<const char*>& GetLevelNames() const;
@@ -79,7 +82,11 @@ private:
 	void _InitDescriptions() const;
 
 	void _FixedUpdate(float dt) const;
+
+	// Debug
 	void _DrawAxis() const;
+	void _RenderModelBones(Model& model, const MeshComponent& mesh, int nodeIndex,
+	                       const glm::mat4 parentTransform) const;
 
 	std::unique_ptr<DescriptionFactory> mDescriptionFactory;
 	std::unique_ptr<RenderContext> mRenderContext;
@@ -88,6 +95,7 @@ private:
 	std::shared_ptr<InputHandler> mInputHandler;
 
 	std::unique_ptr<ResourceManager> mResourceManager;
+	std::unique_ptr<Animator> mAnimator;
 
 	std::unique_ptr<LevelManager> mLevelManager;
 	std::unique_ptr<GUIBase> mGUIMenu;
@@ -109,4 +117,10 @@ template <typename Component>
 inline Component& EngineContext::GetComponent(EntityId id) const
 {
 	return mEntityRegistry->GetComponent<Component>(id);
+}
+
+template <typename Component>
+inline Component* EngineContext::TryGetComponent(EntityId id) const
+{
+	return mEntityRegistry->TryGetComponent<Component>(id);
 }

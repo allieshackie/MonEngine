@@ -1,11 +1,7 @@
 #version 460
 
-layout(std140) uniform Settings 
+layout(std140) uniform LightSettings 
 {
-    mat4 model;
-    mat4 view;
-    mat4 projection;
-    mat4 textureClip;
     vec3 viewPos;
     int numLights;
 };
@@ -39,6 +35,7 @@ layout(std430) buffer MaterialBuffer
 in vec3 vPosition;
 in vec3 vNormal;
 in vec2 vTexCoord;
+in vec4 vTestColor;
 
 out vec4 fragColor;
 
@@ -57,6 +54,10 @@ void main()
     }
 
     fragColor = vec4(result * color.rgb, 1.0);
+    // Debug: Show bone weight
+    //fragColor = vTestColor;
+    // Debug: Show UV color coords
+    //fragColor = vec4(vTexCoord, 0.0, 1.0);  // Show UVs as colors
 }
 
 vec3 CalcPointLight(LightUniform light, vec3 normal, vec3 fragPos, vec3 viewDir)

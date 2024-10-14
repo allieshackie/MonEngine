@@ -7,37 +7,53 @@
 #include "Entity/Components/MapComponent.h"
 #include "Entity/Components/SpriteComponent.h"
 #include "Entity/Components/TransformComponent.h"
+#include "Graphics/Core/Animation.h"
 
 #include "MeshPipeline.h"
 
-MeshPipeline::MeshPipeline(LLGL::RenderSystemPtr& renderSystem, EntityRegistry& entityRegistry) : PipelineBase()
+MeshPipeline::MeshPipeline(LLGL::RenderSystemPtr& renderSystem, EntityRegistry& entityRegistry,
+                           const ResourceManager& resourceManager) : PipelineBase()
 {
 	// Initialization
 	{
-		InitConstantBuffer<Settings>(renderSystem, settings);
+		InitConstantBuffer<MeshSettings>(renderSystem, meshSettings);
+		mLightConstantBuffer = renderSystem->CreateBuffer(LLGL::ConstantBufferDesc(sizeof(LightSettings)),
+		                                                  &lightSettings);
 
 		LLGL::VertexFormat vertexFormat;
 		vertexFormat.AppendAttribute({"position", LLGL::Format::RGB32Float, 0, 0, sizeof(Vertex), 0});
 		vertexFormat.AppendAttribute({"normal", LLGL::Format::RGB32Float, 1, 12, sizeof(Vertex), 0});
 		vertexFormat.AppendAttribute({"texCoord", LLGL::Format::RG32Float, 2, 24, sizeof(Vertex), 0});
+		vertexFormat.AppendAttribute({"boneIds", LLGL::Format::RGBA32SInt, 3, 32, sizeof(Vertex), 0});
+		vertexFormat.AppendAttribute({"weights", LLGL::Format::RGBA32Float, 4, 48, sizeof(Vertex), 0});
+
 		InitShader(renderSystem, vertexFormat, "mesh.vert", "mesh.frag");
 		LLGL::PipelineLayoutDescriptor layoutDesc;
 		{
 			layoutDesc.heapBindings =
 			{
 				LLGL::BindingDescriptor{
-					"Settings", LLGL::ResourceType::Buffer, LLGL::BindFlags::ConstantBuffer,
-					LLGL::StageFlags::VertexStage | LLGL::StageFlags::FragmentStage, 0
+					"MeshSettings", LLGL::ResourceType::Buffer, LLGL::BindFlags::ConstantBuffer,
+					LLGL::StageFlags::VertexStage, 0
+				},
+				LLGL::BindingDescriptor{
+					"LightSettings", LLGL::ResourceType::Buffer, LLGL::BindFlags::ConstantBuffer,
+					LLGL::StageFlags::FragmentStage, 1
+				},
+				LLGL::BindingDescriptor{
+					"BoneBuffer", LLGL::ResourceType::Buffer, LLGL::BindFlags::Storage,
+					LLGL::StageFlags::VertexStage,
+					2
 				},
 				LLGL::BindingDescriptor{
 					"LightBuffer", LLGL::ResourceType::Buffer, LLGL::BindFlags::Storage,
 					LLGL::StageFlags::FragmentStage,
-					1
+					3
 				},
 				LLGL::BindingDescriptor{
 					"MaterialBuffer", LLGL::ResourceType::Buffer, LLGL::BindFlags::Storage,
 					LLGL::StageFlags::FragmentStage,
-					2
+					4
 				},
 			};
 			layoutDesc.bindings = {
@@ -75,28 +91,30 @@ MeshPipeline::MeshPipeline(LLGL::RenderSystemPtr& renderSystem, EntityRegistry& 
 		}
 		mMaterialBuffer = renderSystem->CreateBuffer(materialBufferDesc);
 
+		LLGL::BufferDescriptor boneBufferDesc;
+		{
+			boneBufferDesc.size = sizeof(glm::mat4) * MAX_BONES;
+			boneBufferDesc.stride = sizeof(glm::mat4);
+			boneBufferDesc.bindFlags = LLGL::BindFlags::Storage;
+			boneBufferDesc.cpuAccessFlags = LLGL::CPUAccessFlags::Write;
+		}
+		mBoneBuffer = renderSystem->CreateBuffer(boneBufferDesc);
+
 		renderSystem->WriteBuffer(*mMaterialBuffer, 0, &(material), sizeof(Material));
 
-		mTextures = ResourceManager::LoadAllTexturesFromFolder(renderSystem);
-
-		std::vector<LLGL::ResourceViewDescriptor> resourceViews = {mConstantBuffer, mLightBuffer, mMaterialBuffer};
+		std::vector<LLGL::ResourceViewDescriptor> resourceViews = {
+			mConstantBuffer, mLightConstantBuffer, mBoneBuffer, mLightBuffer, mMaterialBuffer
+		};
 		InitResourceHeap(renderSystem, resourceViews);
 	}
 
-	for (const auto& entry : std::filesystem::directory_iterator(MODELS_FOLDER))
-	{
-		auto fullPath = entry.path().string();
-		auto model = Model(fullPath, entry.path().filename().string());
-		model.InitializeBuffers(renderSystem, *mShader);
-		mModelVertexBuffers[model.GetId()] = model;
-	}
-
+	resourceManager.InitModelVertexBuffers(renderSystem, *mShader);
 	entityRegistry.GetEnttRegistry().on_construct<LightComponent>().connect<&MeshPipeline::AddLight>(this);
 }
 
 void MeshPipeline::Render(LLGL::CommandBuffer& commands, const Camera& camera,
                           const glm::mat4 projection, EntityRegistry& entityRegistry,
-                          const LLGL::RenderSystemPtr& renderSystem)
+                          ResourceManager& resourceManager, const LLGL::RenderSystemPtr& renderSystem)
 {
 	if (!mQueuedLightEntities.empty())
 	{
@@ -107,27 +125,31 @@ void MeshPipeline::Render(LLGL::CommandBuffer& commands, const Camera& camera,
 
 	// TODO: Sort the entities based on their mesh component file names
 	const auto meshView = entityRegistry.GetEnttRegistry().view<
-		const TransformComponent, const MeshComponent, const SpriteComponent>(
+		const TransformComponent, MeshComponent, const SpriteComponent>(
 		entt::exclude<MapComponent>);
 
 	// Should either be a sprite or basic color
-	meshView.each([this, &commands, &camera, &renderSystem, &projection](const TransformComponent& transform,
-	                                                                     const MeshComponent& mesh,
-	                                                                     const SpriteComponent& sprite)
-	{
-		// Set resources
-		const auto textureId = ResourceManager::GetTextureId(sprite.mTexturePath);
-		commands.SetResourceHeap(*mResourceHeap);
-		commands.SetResource(0, mTextures[textureId]->GetTextureData());
-		_RenderModel(commands, mesh, camera, renderSystem, projection, transform);
-	});
+	meshView.each([this, &commands, &camera, &renderSystem, &resourceManager, &projection](
+		const TransformComponent& transform,
+		MeshComponent& mesh,
+		const SpriteComponent& sprite)
+		{
+			// Set resources
+			auto& texture = resourceManager.GetTexture(sprite.mTexturePath);
+			auto& sampler = resourceManager.GetSampler(sprite.mTexturePath);
+			commands.SetResourceHeap(*mResourceHeap);
+			commands.SetResource(0, texture);
+			commands.SetResource(1, sampler);
+			_RenderModel(commands, mesh, camera, renderSystem, resourceManager, projection, transform);
+		});
 }
 
 void MeshPipeline::RenderMap(LLGL::CommandBuffer& commands, const Camera& camera,
-                             const LLGL::RenderSystemPtr& renderSystem, const glm::mat4 projection,
-                             const MeshComponent& meshComponent, const TransformComponent& transform)
+                             const LLGL::RenderSystemPtr& renderSystem, const ResourceManager& resourceManager,
+                             const glm::mat4 projection, MeshComponent& meshComponent,
+                             const TransformComponent& transform)
 {
-	_RenderModel(commands, meshComponent, camera, renderSystem, projection, transform);
+	_RenderModel(commands, meshComponent, camera, renderSystem, resourceManager, projection, transform);
 }
 
 void MeshPipeline::SetPipeline(LLGL::CommandBuffer& commands) const
@@ -137,8 +159,8 @@ void MeshPipeline::SetPipeline(LLGL::CommandBuffer& commands) const
 
 void MeshPipeline::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& commands, const Camera& camera,
                                                     const LLGL::RenderSystemPtr& renderSystem,
-                                                    const glm::mat4 projection,
-                                                    const TransformComponent& transform)
+                                                    const glm::mat4 projection, const TransformComponent& transform,
+                                                    MeshComponent& mesh, const Model& meshModel)
 {
 	// Update
 	auto model = glm::mat4(1.0f);
@@ -153,29 +175,42 @@ void MeshPipeline::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& command
 
 	model = glm::scale(model, transform.mSize);
 
+	// Light Settings
 	const auto lightsSize = mLights.size();
-	if (lightsSize != settings.numLights)
+	if (lightsSize != lightSettings.numLights)
 	{
-		settings.numLights = lightsSize;
+		lightSettings.numLights = lightsSize;
 		UpdateLightBuffer(renderSystem);
 	}
-
-	settings.model = model;
-	settings.view = camera.GetView();
-	settings.projection = projection;
-	settings.textureClip = glm::mat4(1.0f);
-
-	if (settings.viewPos != camera.GetPosition())
+	if (lightSettings.viewPos != camera.GetPosition())
 	{
-		settings.viewPos = camera.GetPosition();
+		lightSettings.viewPos = camera.GetPosition();
 	}
-	commands.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
+
+	// Mesh Settings
+	meshSettings.model = model;
+	meshSettings.view = camera.GetView();
+	meshSettings.projection = projection;
+	meshSettings.textureClip = glm::mat4(1.0f);
+	meshSettings.hasBones[0] = mesh.mHasBones;
+
+	meshSettings.hasBones[1] = mesh.mCurrentBoneIndex;
+
+	std::uint64_t transformOffset = 0;
+	for (const auto& finalTransform : mesh.mFinalTransforms)
+	{
+		renderSystem->WriteBuffer(*mBoneBuffer, transformOffset, &(finalTransform), sizeof(glm::mat4));
+		transformOffset += sizeof(glm::mat4);
+	}
+
+	commands.UpdateBuffer(*mConstantBuffer, 0, &meshSettings, sizeof(meshSettings));
+	commands.UpdateBuffer(*mLightConstantBuffer, 0, &lightSettings, sizeof(lightSettings));
 }
 
-void MeshPipeline::SetResourceHeapTexture(LLGL::CommandBuffer& commands, int textureId) const
+void MeshPipeline::SetResourceHeapTexture(LLGL::CommandBuffer& commands, LLGL::Texture& texture) const
 {
 	commands.SetResourceHeap(*mResourceHeap);
-	commands.SetResource(0, mTextures[textureId]->GetTextureData());
+	commands.SetResource(0, texture);
 }
 
 void MeshPipeline::AddLight(EnTTRegistry& registry, EntityId entity)
@@ -214,19 +249,17 @@ void MeshPipeline::_ProcessLights(EntityRegistry& entityRegistry)
 	}
 }
 
-void MeshPipeline::_RenderModel(LLGL::CommandBuffer& commands, const MeshComponent& meshComponent, const Camera& camera,
-                                const LLGL::RenderSystemPtr& renderSystem,
+void MeshPipeline::_RenderModel(LLGL::CommandBuffer& commands, MeshComponent& meshComponent, const Camera& camera,
+                                const LLGL::RenderSystemPtr& renderSystem, const ResourceManager& resourceManager,
                                 const glm::mat4 projection, const TransformComponent& transform)
 {
-	UpdateProjectionViewModelUniform(commands, camera, renderSystem, projection, transform);
-	const auto model = mModelVertexBuffers.find(meshComponent.mMeshPath);
-	if (model != mModelVertexBuffers.end())
+	const auto& model = resourceManager.GetModelFromId(meshComponent.mMeshPath);
+	UpdateProjectionViewModelUniform(commands, camera, renderSystem, projection, transform, meshComponent, model);
+
+	for (const auto mesh : model.GetMeshes())
 	{
-		for (const auto& mesh : model->second.GetMeshes())
-		{
-			commands.SetVertexBuffer(*mesh.mVertexBuffer);
-			commands.SetIndexBuffer(*mesh.mIndexBuffer);
-			commands.DrawIndexed(mesh.mNumIndices, 0);
-		}
+		commands.SetVertexBuffer(*mesh->mVertexBuffer);
+		commands.SetIndexBuffer(*mesh->mIndexBuffer);
+		commands.DrawIndexed(mesh->mNumIndices, 0);
 	}
 }

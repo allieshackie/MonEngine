@@ -7,9 +7,8 @@
 
 #include "RenderContext.h"
 
-RenderContext::RenderContext(const LLGL::UTF8String& title, const LLGL::Extent2D screenSize,
-                             const LLGL::ColorRGBAf backgroundColor, const std::shared_ptr<InputHandler>& inputHandler,
-                             EntityRegistry& entityRegistry, bool usePerspective)
+RenderContext::RenderContext(const LLGL::Extent2D screenSize, const LLGL::ColorRGBAf backgroundColor,
+                             bool usePerspective)
 	: mBackgroundColor(backgroundColor), mUsePerspective(usePerspective)
 {
 	try
@@ -70,9 +69,6 @@ RenderContext::RenderContext(const LLGL::UTF8String& title, const LLGL::Extent2D
 
 	// NOTE: Projection update must occur after debug shader is initialized
 	UpdateProjection();
-
-	_CreatePipelines(entityRegistry);
-	_CreateWindow(title, inputHandler);
 }
 
 RenderContext::~RenderContext()
@@ -84,6 +80,13 @@ RenderContext::~RenderContext()
 	mCommands = nullptr;
 
 	mImmediatePipeline->Release(mRenderSystem);
+}
+
+void RenderContext::InitPipelines(const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler,
+                                  EntityRegistry& entityRegistry, const ResourceManager& resourceManager)
+{
+	_CreatePipelines(entityRegistry, resourceManager);
+	_CreateWindow(title, inputHandler);
 }
 
 void RenderContext::LoadFont(const char* fontFileName) const
@@ -125,16 +128,19 @@ void RenderContext::BeginFrame() const
 	mCommands->BeginRenderPass(*mSwapChain);
 }
 
-void RenderContext::Render(const Camera& camera, EntityRegistry& entityRegistry) const
+void RenderContext::Render(const Camera& camera, EntityRegistry& entityRegistry,
+                           ResourceManager& resourceManager) const
 {
 	const auto projectionViewMat = mProjection * camera.GetView();
 
-	mMapPipeline->Render(*mCommands, camera, mProjection, entityRegistry, mRenderSystem, *mMeshPipeline);
-	mTextPipeline->Render(*mCommands, projectionViewMat);
+	mMapPipeline->Render(*mCommands, camera, mProjection, entityRegistry, mRenderSystem, resourceManager,
+	                     *mMeshPipeline);
+	mMeshPipeline->Render(*mCommands, camera, mProjection, entityRegistry, resourceManager, mRenderSystem);
+	//mTextPipeline->Render(*mCommands, projectionViewMat);
 	mImmediatePipeline->Render(*mCommands, projectionViewMat);
-	mMeshPipeline->Render(*mCommands, camera, mProjection, entityRegistry, mRenderSystem);
+	// TODO: debug shader is loading in for some meshes for some reason? Timing maybe?
 
-	mTextPipeline->Release(mRenderSystem);
+	//mTextPipeline->Release(mRenderSystem);
 }
 
 void RenderContext::EndFrame() const
@@ -217,9 +223,10 @@ void RenderContext::ResizeBuffers(const LLGL::Extent2D& size) const
 	mSwapChain->ResizeBuffers(size);
 }
 
-void RenderContext::GenerateMapTexture(EntityRegistry& entityRegistry, EntityId mapId) const
+void RenderContext::GenerateMapTexture(EntityRegistry& entityRegistry, const ResourceManager& resourceManager,
+                                       EntityId mapId) const
 {
-	mMapPipeline->GenerateMapTexture(mRenderSystem, *mCommands, entityRegistry, mapId);
+	mMapPipeline->GenerateMapTexture(mRenderSystem, *mCommands, entityRegistry, resourceManager, mapId);
 }
 
 void RenderContext::_CreateWindow(const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler)
@@ -242,12 +249,12 @@ void RenderContext::_CreateWindow(const LLGL::UTF8String& title, const std::shar
 	window.Show();
 }
 
-void RenderContext::_CreatePipelines(EntityRegistry& entityRegistry)
+void RenderContext::_CreatePipelines(EntityRegistry& entityRegistry, const ResourceManager& resourceManager)
 {
 	mImmediatePipeline = std::make_unique<ImmediatePipeline>();
 	mTextPipeline = std::make_unique<TextPipeline>();
-	mMeshPipeline = std::make_unique<MeshPipeline>(mRenderSystem, entityRegistry);
-	mMapPipeline = std::make_unique<MapPipeline>(mRenderSystem, mMeshPipeline->GetConstantBuffer());
+	mMeshPipeline = std::make_unique<MeshPipeline>(mRenderSystem, entityRegistry, resourceManager);
+	mMapPipeline = std::make_unique<MapPipeline>(mRenderSystem, resourceManager, mMeshPipeline->GetConstantBuffer());
 
 	mImmediatePipeline->Init(mRenderSystem);
 	mTextPipeline->Init(mRenderSystem);

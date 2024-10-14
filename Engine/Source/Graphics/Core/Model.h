@@ -1,14 +1,19 @@
 #pragma once
-#include "Vertex.h"
-#include "LLGL/RenderSystem.h"
+#include <tiny_gltf.h>
 
-struct aiMesh;
+#include "LLGL/RenderSystem.h"
+#include "Animation.h"
+#include "Vertex.h"
+
+#define VEC2_STEP 2
+#define VEC3_STEP 3
+#define VEC4_STEP 4
 
 class Shader;
 
 struct MeshData
 {
-	std::uint32_t mNumVertices = 0;
+	std::string mName;
 	std::uint32_t mNumIndices = 0;
 
 	std::vector<Vertex> mVertices;
@@ -21,20 +26,34 @@ struct MeshData
 class Model
 {
 public:
-	Model() = default;
-	Model(const std::string& path, std::string fileName);
-	Model(const Model& other) = default;
+	Model(const std::string& fullPath, std::string fileName);
+
+	void InitializeBuffers(const LLGL::RenderSystemPtr& renderSystem, const Shader& shader) const;
 
 	const std::string& GetId() const { return mId; }
+	int GetRootNodeIndex() const { return mRootNodeIndex; }
+	const std::vector<MeshData*>& GetMeshes() const { return mMeshes; }
 
-	std::vector<MeshData> GetMeshes() const { return mMeshes; }
+	JointNode* GetJointNodeAt(int nodeIndex) const;
+	size_t GetNumJoints() const { return mNumNodes; }
 
-	void InitializeBuffers(const LLGL::RenderSystemPtr& renderSystem, const Shader& shader);
+	const Animation* GetAnimation(const std::string& name) const;
+
+	// TODO: For Debug GUI
+	const std::unordered_map<std::string, int>& GetBoneNamesToIndex() const { return mBoneNameToIndex; }
 
 private:
-	void _LoadObjModel(aiMesh* mesh);
+	void _ProcessMeshes(tinygltf::Model& model);
+	void _ProcessJointData(const tinygltf::Model& model);
+	void _ProcessAnimations(const tinygltf::Model& model);
 
 	std::string mId;
+	std::vector<MeshData*> mMeshes;
 
-	std::vector<MeshData> mMeshes;
+	std::unordered_map<std::string, int> mBoneNameToIndex;
+	std::unordered_map<std::string, Animation*> mAnimations;
+
+	std::unordered_map<int, JointNode*> mJointNodes;
+	int mRootNodeIndex = 0;
+	size_t mNumNodes = 0;
 };

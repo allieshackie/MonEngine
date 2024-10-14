@@ -1,29 +1,38 @@
 #pragma once
 #include <LLGL/LLGL.h>
+
 #include "Model.h"
 #include "Texture.h"
 
 using GLuint = unsigned int;
+
+class Animator;
 
 class ResourceManager
 {
 public:
 	ResourceManager() = default;
 
-	static std::vector<std::unique_ptr<Texture>> LoadAllTexturesFromFolder(
-		const LLGL::RenderSystemPtr& renderSystem);
+	void LoadAllResources(const LLGL::RenderSystemPtr& renderSystem);
+	void InitModelVertexBuffers(const LLGL::RenderSystemPtr& renderSystem, const Shader& shader) const;
 
-	static int GetTextureId(const std::string& textureName);
+	const std::vector<std::unique_ptr<Texture>>& GetTextures() const { return mTextures; }
+	int GetTextureId(const std::string& textureName) const;
+	LLGL::Texture& GetTexture(const std::string& textureName);
+	LLGL::Sampler& GetSampler(const std::string& textureName);
+
+	Model& GetModelFromId(const std::string& modelName) const;
 
 	static bool CreateSimpleOpenGLTexture(const std::string& filename, GLuint* out_texture, int* out_width,
 	                                      int* out_height);
 
 private:
-	static std::unique_ptr<Texture> _LoadTexture(const LLGL::RenderSystemPtr& renderSystem,
-	                                             const std::string& filePath);
+	void _LoadAllTexturesFromFolder(const LLGL::RenderSystemPtr& renderSystem);
+	void _LoadAllModels();
 
-	static std::unordered_map<std::string, int> mTextureIds;
+	std::unordered_map<std::string, int> mModelIds;
+	std::vector<std::unique_ptr<Model>> mModels;
 
-	static std::vector<Vertex> mMapCubeVertices;
-	static std::vector<std::uint32_t> mMapCubeIndices;
+	std::unordered_map<std::string, int> mTextureIds;
+	std::vector<std::unique_ptr<Texture>> mTextures;
 };

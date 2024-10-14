@@ -22,6 +22,8 @@ public:
 
 private:
 	static constexpr char MESH_PATH_STRING[] = "mesh_path";
+	static constexpr char HAS_BONES_STRING[] = "has_bones";
 
 	std::string mMeshPath;
+	bool mHasBones = false;
 };

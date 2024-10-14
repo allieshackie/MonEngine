@@ -1,7 +1,8 @@
-#include "FileSystem.h"
 #include "Core/EngineContext.h"
+#include "Entity/Components/CollisionComponent.h"
 #include "Entity/Components/TransformComponent.h"
 #include "Map/MapRegistry.h"
+#include "Util/FileSystem.h"
 
 #include "LevelManager.h"
 
@@ -52,6 +53,10 @@ void LevelManager::LoadLevel(const std::string& levelName, const EngineContext& 
 		const auto entityId = context.CreateGameObject(entity.name);
 		auto& transformComponent = context.GetComponent<TransformComponent>(entityId);
 		transformComponent.mPosition = entity.position;
+		if (const auto collider = context.TryGetComponent<CollisionComponent>(entityId); collider != nullptr)
+		{
+			collider->mInitialized = true;
+		}
 	}
 
 	for (const auto& script : mCurrentLevel->mScripts)

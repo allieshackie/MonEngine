@@ -8,7 +8,9 @@
 #include "Graphics/Core/ResourceManager.h"
 
 #define MAX_LIGHTS 4
+#define MAX_BONES 100
 
+class Animator;
 class Camera;
 class EntityRegistry;
 class RenderObject;
@@ -19,36 +21,40 @@ struct TransformComponent;
 class MeshPipeline : public PipelineBase
 {
 public:
-	MeshPipeline(LLGL::RenderSystemPtr& renderSystem, EntityRegistry& entityRegistry);
+	MeshPipeline(LLGL::RenderSystemPtr& renderSystem, EntityRegistry& entityRegistry,
+	             const ResourceManager& resourceManager);
 
 	void Render(LLGL::CommandBuffer& commands, const Camera& camera, const glm::mat4 projection,
-	            EntityRegistry& entityRegistry, const LLGL::RenderSystemPtr& renderSystem);
+	            EntityRegistry& entityRegistry, ResourceManager& resourceManager,
+	            const LLGL::RenderSystemPtr& renderSystem);
 	void RenderMap(LLGL::CommandBuffer& commands, const Camera& camera, const LLGL::RenderSystemPtr& renderSystem,
-	               const glm::mat4 projection, const MeshComponent& meshComponent, const TransformComponent& transform);
+	               const ResourceManager& resourceManager, const glm::mat4 projection,
+	               MeshComponent& meshComponent, const TransformComponent& transform);
 
 	void SetPipeline(LLGL::CommandBuffer& commands) const;
 
 	void UpdateProjectionViewModelUniform(LLGL::CommandBuffer& commands, const Camera& camera,
 	                                      const LLGL::RenderSystemPtr& renderSystem, const glm::mat4 projection,
-	                                      const TransformComponent& transform);
+	                                      const TransformComponent& transform, MeshComponent& mesh,
+	                                      const Model& meshModel);
 
-	void SetResourceHeapTexture(LLGL::CommandBuffer& commands, int textureId) const;
+	void SetResourceHeapTexture(LLGL::CommandBuffer& commands, LLGL::Texture& texture) const;
 
 	void UpdateLightBuffer(const LLGL::RenderSystemPtr& renderSystem) const;
 	void AddLight(EnTTRegistry& registry, EntityId entity);
 
 private:
-	void _RenderModel(LLGL::CommandBuffer& commands, const MeshComponent& meshComponent, const Camera& camera,
-	                  const LLGL::RenderSystemPtr& renderSystem,
+	void _RenderModel(LLGL::CommandBuffer& commands, MeshComponent& meshComponent, const Camera& camera,
+	                  const LLGL::RenderSystemPtr& renderSystem, const ResourceManager& resourceManager,
 	                  const glm::mat4 projection, const TransformComponent& transform);
 
 	void _ProcessLights(EntityRegistry& entityRegistry);
 
-	std::unordered_map<std::string, Model> mModelVertexBuffers;
 	LLGL::Buffer* mLightBuffer = nullptr;
 	LLGL::Buffer* mMaterialBuffer = nullptr;
+	LLGL::Buffer* mBoneBuffer = nullptr;
 
-	struct Settings
+	struct MeshSettings
 	{
 		// projection-view-model matrix
 		glm::mat4 model = glm::mat4();
@@ -56,10 +62,18 @@ private:
 		glm::mat4 projection = glm::mat4();
 		// texture clip to render part of texture
 		glm::mat4 textureClip = glm::mat4();
+		glm::vec4 hasBones = {0, 0, 0, 0};
+	}
+	meshSettings = {};
+
+	struct LightSettings
+	{
 		glm::vec3 viewPos = {0, 0, 0};
 		int numLights = 0;
 	}
-	settings = {};
+	lightSettings = {};
+
+	LLGL::Buffer* mLightConstantBuffer = nullptr;
 
 	struct Material // TODO: Might need to be fixed for 16 byte alignment (emission could be vec3)
 	{
@@ -86,7 +100,6 @@ private:
 	};
 
 	std::vector<LightUniform> mLights;
-	std::vector<std::unique_ptr<Texture>> mTextures;
 
 	std::vector<EntityId> mQueuedLightEntities;
 };

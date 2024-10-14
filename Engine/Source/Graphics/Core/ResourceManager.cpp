@@ -1,96 +1,24 @@
 #include <glad/glad.h>
 #include <filesystem>
-
-#include "Graphics/Util/stb_image.h"
+#include <stb_image.h>
 
 #include "ResourceManager.h"
 
-std::unordered_map<std::string, int> ResourceManager::mTextureIds;
-
-std::vector<Vertex> ResourceManager::mMapCubeVertices = {
-	//   x   y   z      nx  ny  nz      u  v
-	// front
-	{{-1, -1, -1}, {0, 0, -1}, {0, 1}},
-	{{-1, 1, -1}, {0, 0, -1}, {0, 0}},
-	{{1, 1, -1}, {0, 0, -1}, {1, 0}},
-	{{1, -1, -1}, {0, 0, -1}, {1, 1}},
-
-	// right
-	{{1, -1, -1}, {+1, 0, 0}, {0, 1}},
-	{{1, 1, -1}, {+1, 0, 0}, {0, 0}},
-	{{1, 1, 1}, {+1, 0, 0}, {1, 0}},
-	{{1, -1, 1}, {+1, 0, 0}, {1, 1}},
-
-	// left
-	{{-1, -1, 1}, {-1, 0, 0}, {0, 1}},
-	{{-1, 1, 1}, {-1, 0, 0}, {0, 0}},
-	{{-1, 1, -1}, {-1, 0, 0}, {1, 0}},
-	{{-1, -1, -1}, {-1, 0, 0}, {1, 1}},
-
-	// top
-	{{-1, 1, -1}, {0, +1, 0}, {0, 1}},
-	{{-1, 1, 1}, {0, +1, 0}, {0, 0}},
-	{{1, 1, 1}, {0, +1, 0}, {1, 0}},
-	{{1, 1, -1}, {0, +1, 0}, {1, 1}},
-
-	// bottom
-	{{-1, -1, 1}, {0, -1, 0}, {0, 1}},
-	{{-1, -1, -1}, {0, -1, 0}, {0, 0}},
-	{{1, -1, -1}, {0, -1, 0}, {1, 0}},
-	{{1, -1, 1}, {0, -1, 0}, {1, 1}},
-
-	// back
-	{{1, -1, 1}, {0, 0, +1}, {0, 1}},
-	{{1, 1, 1}, {0, 0, +1}, {0, 0}},
-	{{-1, 1, 1}, {0, 0, +1}, {1, 0}},
-	{{-1, -1, 1}, {0, 0, +1}, {1, 1}},
-};
-std::vector<std::uint32_t> ResourceManager::mMapCubeIndices = {
-	0, 1, 2, 0, 2, 3, // front
-	4, 5, 6, 4, 6, 7, // right
-	8, 9, 10, 8, 10, 11, // left
-	12, 13, 14, 12, 14, 15, // top
-	16, 17, 18, 16, 18, 19, // bottom
-	20, 21, 22, 20, 22, 23, // back
-};
-
-std::vector<std::unique_ptr<Texture>> ResourceManager::LoadAllTexturesFromFolder(
-	const LLGL::RenderSystemPtr& renderSystem)
+void ResourceManager::LoadAllResources(const LLGL::RenderSystemPtr& renderSystem)
 {
-	std::vector<std::unique_ptr<Texture>> textures;
-	int textureId = 0;
-	for (const auto& entry : std::filesystem::directory_iterator(TEXTURES_FOLDER))
-	{
-		auto fullPath = entry.path().string();
-		textures.push_back(_LoadTexture(renderSystem, fullPath));
-
-		const size_t pos = fullPath.find(TEXTURES_FOLDER);
-
-		// Check if the substring was found
-		if (pos != std::string::npos)
-		{
-			// Erase the substring from the original string
-			fullPath.erase(pos, std::strlen(TEXTURES_FOLDER));
-		}
-		mTextureIds[fullPath] = textureId++;
-	}
-
-	return textures;
+	_LoadAllTexturesFromFolder(renderSystem);
+	_LoadAllModels();
 }
 
-std::vector<Model> LoadAllModelsFromFolder()
+void ResourceManager::InitModelVertexBuffers(const LLGL::RenderSystemPtr& renderSystem, const Shader& shader) const
 {
-	std::vector<Model> models;
-	for (const auto& entry : std::filesystem::directory_iterator(MODELS_FOLDER))
+	for (auto& model : mModels)
 	{
-		auto fullPath = entry.path().string();
-		models.emplace_back(fullPath, entry.path().filename().string());
+		model->InitializeBuffers(renderSystem, shader);
 	}
-
-	return models;
 }
 
-int ResourceManager::GetTextureId(const std::string& textureName)
+int ResourceManager::GetTextureId(const std::string& textureName) const
 {
 	const auto it = mTextureIds.find(textureName);
 	if (it != mTextureIds.end())
@@ -101,10 +29,37 @@ int ResourceManager::GetTextureId(const std::string& textureName)
 	return -1;
 }
 
-std::unique_ptr<Texture> ResourceManager::_LoadTexture(const LLGL::RenderSystemPtr& renderSystem,
-                                                       const std::string& filePath)
+LLGL::Texture& ResourceManager::GetTexture(const std::string& textureName)
 {
-	return std::make_unique<Texture>(renderSystem, filePath);
+	const auto it = mTextureIds.find(textureName);
+	if (it != mTextureIds.end())
+	{
+		return mTextures[it->second]->GetTextureData();
+	}
+
+	return mTextures[0]->GetTextureData();
+}
+
+LLGL::Sampler& ResourceManager::GetSampler(const std::string& textureName)
+{
+	const auto it = mTextureIds.find(textureName);
+	if (it != mTextureIds.end())
+	{
+		return mTextures[it->second]->GetSamplerData();
+	}
+
+	return mTextures[0]->GetSamplerData();
+}
+
+Model& ResourceManager::GetModelFromId(const std::string& modelName) const
+{
+	const auto it = mModelIds.find(modelName);
+	if (it != mModelIds.end())
+	{
+		return *mModels[it->second];
+	}
+
+	return *mModels[0];
 }
 
 // Simple helper function to load an image into a OpenGL texture with common settings
@@ -143,4 +98,45 @@ bool ResourceManager::CreateSimpleOpenGLTexture(const std::string& filename, GLu
 	*out_height = image_height;
 
 	return true;
+}
+
+void ResourceManager::_LoadAllTexturesFromFolder(const LLGL::RenderSystemPtr& renderSystem)
+{
+	int textureId = 0;
+	for (const auto& entry : std::filesystem::directory_iterator(TEXTURES_FOLDER))
+	{
+		auto fullPath = entry.path().string();
+		mTextures.push_back(std::make_unique<Texture>(renderSystem, fullPath));
+
+		const size_t pos = fullPath.find(TEXTURES_FOLDER);
+
+		// Check if the substring was found
+		if (pos != std::string::npos)
+		{
+			// Erase the substring from the original string
+			fullPath.erase(pos, std::strlen(TEXTURES_FOLDER));
+		}
+		mTextureIds[fullPath] = textureId++;
+	}
+}
+
+void ResourceManager::_LoadAllModels()
+{
+	int modelId = 0;
+	for (const auto& entry : std::filesystem::directory_iterator(MODELS_FOLDER))
+	{
+		auto fullPath = entry.path().string();
+
+		mModels.push_back(std::make_unique<Model>(fullPath, entry.path().filename().string()));
+
+		const size_t pos = fullPath.find(TEXTURES_FOLDER);
+
+		// Check if the substring was found
+		if (pos != std::string::npos)
+		{
+			// Erase the substring from the original string
+			fullPath.erase(pos, std::strlen(TEXTURES_FOLDER));
+		}
+		mModelIds[entry.path().filename().string()] = modelId++;
+	}
 }

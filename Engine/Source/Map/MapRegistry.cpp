@@ -1,9 +1,9 @@
 #include "Core/EngineContext.h"
-#include "Core/FileSystem.h"
 #include "Entity/EntityRegistry.h"
 #include "Entity/Components/CollisionComponent.h"
 #include "Entity/Components/MapComponent.h"
 #include "Entity/Components/TransformComponent.h"
+#include "Util/FileSystem.h"
 
 #include "MapRegistry.h"
 
@@ -86,14 +86,14 @@ bool MapRegistry::_ParseMapData(const MapData& mapData, EntityId entityId, Entit
 
 	if (mapData.hasDimension)
 	{
-		entityReg.AddComponent<MeshComponent>(entityId, "PlainBox.obj");
+		entityReg.AddComponent<MeshComponent>(entityId, "PlainBox.gltf");
 	}
 	else
 	{
-		entityReg.AddComponent<MeshComponent>(entityId, "Plane.obj");
+		entityReg.AddComponent<MeshComponent>(entityId, "Plane.gltf");
 	}
 
-	entityReg.AddComponent<CollisionComponent>(entityId, ColliderShapes::Box, size, -1, false);
+	entityReg.AddComponent<CollisionComponent>(entityId, ColliderShapes::Box, size, -1, false, nullptr, true);
 
 	return textureRows != 0 && textureColumns != 0;
 }
