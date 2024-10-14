@@ -54,8 +54,10 @@ void main()
     }
 
     fragColor = vec4(result * color.rgb, 1.0);
-    // DEBUG BONE WEIGHT
+    // Debug: Show bone weight
     //fragColor = vTestColor;
+    // Debug: Show UV color coords
+    //fragColor = vec4(vTexCoord, 0.0, 1.0);  // Show UVs as colors
 }
 
 vec3 CalcPointLight(LightUniform light, vec3 normal, vec3 fragPos, vec3 viewDir)
