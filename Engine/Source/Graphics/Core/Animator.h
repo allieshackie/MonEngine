@@ -29,6 +29,8 @@ private:
 	glm::vec3 _InterpolateVec3(float animationTime, const std::vector<KeyframeVec>& keyframes) const;
 	glm::quat _InterpolateQuat(float animationTime, const std::vector<KeyframeQuat>& keyframes) const;
 
+	void _SetJointMatrixCount(EnTTRegistry& registry, EntityId entity) const;
+
 	const AnimNode* GetAnimNode(const Animation* animation, int nodeId);
 
 	float mCurrentAnimationTime = 0;

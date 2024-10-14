@@ -151,7 +151,7 @@ void EngineContext::Run(GameInterface* game) const
 		while (mTimer->mAccumulator >= deltaTime)
 		{
 			_FixedUpdate(mTimer->mDT);
-			mTimer->mAccumulator -= mTimer->mDT; // TODO: should this subtract deltaTime or mTimer->mDT? 
+			mTimer->mAccumulator -= mTimer->mDT;
 		}
 
 		game->Update(mTimer->mDT);

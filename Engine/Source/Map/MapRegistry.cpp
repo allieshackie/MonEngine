@@ -93,7 +93,7 @@ bool MapRegistry::_ParseMapData(const MapData& mapData, EntityId entityId, Entit
 		entityReg.AddComponent<MeshComponent>(entityId, "Plane.gltf");
 	}
 
-	entityReg.AddComponent<CollisionComponent>(entityId, ColliderShapes::Box, size, -1, false);
+	entityReg.AddComponent<CollisionComponent>(entityId, ColliderShapes::Box, size, -1, false, nullptr, true);
 
 	return textureRows != 0 && textureColumns != 0;
 }

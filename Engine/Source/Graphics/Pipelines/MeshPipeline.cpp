@@ -136,8 +136,10 @@ void MeshPipeline::Render(LLGL::CommandBuffer& commands, const Camera& camera,
 		{
 			// Set resources
 			auto& texture = resourceManager.GetTexture(sprite.mTexturePath);
+			auto& sampler = resourceManager.GetSampler(sprite.mTexturePath);
 			commands.SetResourceHeap(*mResourceHeap);
 			commands.SetResource(0, texture);
+			commands.SetResource(1, sampler);
 			_RenderModel(commands, mesh, camera, renderSystem, resourceManager, projection, transform);
 		});
 }

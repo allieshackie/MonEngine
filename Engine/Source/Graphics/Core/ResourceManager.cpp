@@ -40,6 +40,17 @@ LLGL::Texture& ResourceManager::GetTexture(const std::string& textureName)
 	return mTextures[0]->GetTextureData();
 }
 
+LLGL::Sampler& ResourceManager::GetSampler(const std::string& textureName)
+{
+	const auto it = mTextureIds.find(textureName);
+	if (it != mTextureIds.end())
+	{
+		return mTextures[it->second]->GetSamplerData();
+	}
+
+	return mTextures[0]->GetSamplerData();
+}
+
 Model& ResourceManager::GetModelFromId(const std::string& modelName) const
 {
 	const auto it = mModelIds.find(modelName);

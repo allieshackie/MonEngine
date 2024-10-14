@@ -47,6 +47,8 @@ public:
 	EntityId CreateGameObject(const std::string& entityTemplateName) const;
 	template <typename Component>
 	Component& GetComponent(EntityId id) const;
+	template <typename Component>
+	Component* TryGetComponent(EntityId id) const;
 	void FlushEntities() const;
 
 	const std::vector<const char*>& GetLevelNames() const;
@@ -115,4 +117,10 @@ template <typename Component>
 inline Component& EngineContext::GetComponent(EntityId id) const
 {
 	return mEntityRegistry->GetComponent<Component>(id);
+}
+
+template <typename Component>
+inline Component* EngineContext::TryGetComponent(EntityId id) const
+{
+	return mEntityRegistry->TryGetComponent<Component>(id);
 }

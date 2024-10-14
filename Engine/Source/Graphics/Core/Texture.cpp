@@ -55,12 +55,9 @@ bool Texture::_LoadFromFile(const LLGL::RenderSystemPtr& renderer, const std::st
 	{
 		// Set color format depending on alpha channel
 		imageDesc.format = (texComponents == 4 ? LLGL::ImageFormat::RGBA : LLGL::ImageFormat::RGB);
-
 		// Set image data type (unsigned char = 8 bit unsigned int)
 		imageDesc.dataType = LLGL::DataType::UInt8;
-
 		imageDesc.data = imageBuffer;
-
 		imageDesc.dataSize = mTextureWidth * mTextureHeight * texComponents;
 	}
 
@@ -68,12 +65,9 @@ bool Texture::_LoadFromFile(const LLGL::RenderSystemPtr& renderer, const std::st
 		LLGL::TextureDescriptor texDesc;
 		{
 			texDesc.type = LLGL::TextureType::Texture2D;
-
 			// texture hardware format: RGBA with normalize 8-bit unsigned char 
 			texDesc.format = LLGL::Format::BGRA8UNorm;
-
 			texDesc.extent = {static_cast<uint32_t>(mTextureWidth), static_cast<uint32_t>(mTextureHeight), 1u};
-
 			// Generate all Mip map levels for texture (creates multiple sizes to be used for lower res)
 			texDesc.miscFlags = LLGL::MiscFlags::GenerateMips;
 		}
@@ -97,12 +91,9 @@ bool Texture::_CreateRGBAFromData(const LLGL::RenderSystemPtr& renderer, const u
 	{
 		// Set color format depending on alpha channel
 		imageDesc.format = LLGL::ImageFormat::RGB; // ImageFormat::RGB
-
 		// Set image data type (unsigned char = 8 bit unsigned int)
 		imageDesc.dataType = LLGL::DataType::UInt8;
-
 		imageDesc.data = imageData;
-
 		// TODO: * 4 for alpha channel as well? 
 		imageDesc.dataSize = mTextureWidth * mTextureHeight * 3;
 	}
@@ -111,12 +102,9 @@ bool Texture::_CreateRGBAFromData(const LLGL::RenderSystemPtr& renderer, const u
 		LLGL::TextureDescriptor texDesc;
 		{
 			texDesc.type = LLGL::TextureType::Texture2D;
-
 			// texture hardware format: RGBA with normalize 8-bit unsigned char
 			texDesc.format = LLGL::Format::RGBA8UNorm;
-
 			texDesc.extent = {static_cast<uint32_t>(mTextureWidth), static_cast<uint32_t>(mTextureHeight), 1u};
-
 			// Generate all Mip map levels for texture (creates multiple sizes to be used for lower res)
 			texDesc.miscFlags = LLGL::MiscFlags::GenerateMips;
 		}
@@ -141,12 +129,9 @@ bool Texture::_CreateSingleChannelTextureFromData(const LLGL::RenderSystemPtr& r
 	{
 		// Set color format depending on alpha channel
 		imageDesc.format = formatAttribs.format;
-
 		// Set image data type (unsigned char = 8 bit unsigned int)
 		imageDesc.dataType = LLGL::DataType::UInt8;
-
 		imageDesc.data = imageData;
-
 		imageDesc.dataSize = static_cast<std::size_t>(mTextureWidth * mTextureHeight * 4);
 	}
 
@@ -154,13 +139,11 @@ bool Texture::_CreateSingleChannelTextureFromData(const LLGL::RenderSystemPtr& r
 		LLGL::TextureDescriptor texDesc;
 		{
 			texDesc.type = LLGL::TextureType::Texture2D;
-
 			// texture hardware format: R with normalize 8-bit unsigned char
 			texDesc.format = LLGL::Format::A8UNorm;
-
 			texDesc.extent = {static_cast<uint32_t>(mTextureWidth), static_cast<uint32_t>(mTextureHeight), 1u};
-
 			texDesc.bindFlags = LLGL::BindFlags::Sampled | LLGL::BindFlags::ColorAttachment;
+			texDesc.mipLevels = 1;
 		}
 
 		mTexture = renderer->CreateTexture(texDesc, &imageDesc);
@@ -173,5 +156,18 @@ bool Texture::_CreateSingleChannelTextureFromData(const LLGL::RenderSystemPtr& r
 void Texture::_CreateSampler(const LLGL::RenderSystemPtr& renderer)
 {
 	// Set sampler filters to have different effects
-	mSampler = renderer->CreateSampler(LLGL::SamplerDescriptor{});
+	LLGL::SamplerDescriptor samplerDesc;
+	{
+		//samplerDesc.minFilter = LLGL::SamplerFilter::Linear;
+		//samplerDesc.magFilter = LLGL::SamplerFilter::Linear;
+		samplerDesc.addressModeU = LLGL::SamplerAddressMode::Repeat;
+		samplerDesc.addressModeV = LLGL::SamplerAddressMode::Repeat;
+		samplerDesc.maxAnisotropy = 8.0f;
+		samplerDesc.mipMapEnabled = true;
+		samplerDesc.minFilter = LLGL::SamplerFilter::Nearest;
+		samplerDesc.magFilter = LLGL::SamplerFilter::Nearest;
+		samplerDesc.minLOD = 4;
+		samplerDesc.maxLOD = 4;
+	}
+	mSampler = renderer->CreateSampler(samplerDesc);
 }

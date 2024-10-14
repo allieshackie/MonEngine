@@ -15,6 +15,8 @@ public:
 	PhysicsSystem(EngineContext& engineContext);
 
 	void RegisterCollider(EnTTRegistry& registry, EntityId entity);
+	void AddEntityToInitialize(EnTTRegistry& registry, EntityId entity);
+
 	void Update(float deltaTime, EntityRegistry& entityRegistry);
 
 	btDiscreteDynamicsWorld& GetDynamicWorld() const { return *mDynamicWorld; }
@@ -33,4 +35,5 @@ private:
 	btVector3 mGravityConst = {0.0f, -9.81f, 0.0f};
 
 	std::unique_ptr<PhysicsDebugDraw> mPhysicsDebugDraw;
+	std::vector<EntityId> mEntitiesToInitialize;
 };

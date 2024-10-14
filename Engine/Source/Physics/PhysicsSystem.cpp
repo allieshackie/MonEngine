@@ -28,7 +28,7 @@ PhysicsSystem::PhysicsSystem(EngineContext& engineContext)
 	//mDynamicWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
 
 	engineContext.GetEntityRegistry().GetEnttRegistry().on_construct<CollisionComponent>().connect<&
-		PhysicsSystem::RegisterCollider>(this);
+		PhysicsSystem::AddEntityToInitialize>(this);
 }
 
 void PhysicsSystem::RegisterCollider(EnTTRegistry& registry, EntityId entity)
@@ -49,12 +49,15 @@ void PhysicsSystem::RegisterCollider(EnTTRegistry& registry, EntityId entity)
 			auto boxShape = new btBoxShape({size.x, size.y, size.z});
 
 			btTransform boxTransform;
+			boxTransform.setIdentity();
 
 			btScalar mass(physics->mMass);
 			btVector3 localInertia(0, 0, 0);
 			boxShape->calculateLocalInertia(mass, localInertia);
 
-			boxTransform.setOrigin(btVector3{position.x, position.y, position.z});
+			// Set the initial position and rotation
+			// TODO: Get proper model size, size is currently "scale"
+			boxTransform.setOrigin(btVector3{position.x, position.y + size.y, position.z});
 			boxTransform.setRotation(_ConvertDegreesToQuat(rotation));
 
 			auto motionState = new btDefaultMotionState(boxTransform);
@@ -66,9 +69,7 @@ void PhysicsSystem::RegisterCollider(EnTTRegistry& registry, EntityId entity)
 			auto rigidBody = new btRigidBody(rbInfo);
 			rigidBody->setDamping(0.6f, 0.5f);
 			rigidBody->setAngularFactor(btVector3(0, 0, 0));
-
 			mDynamicWorld->addRigidBody(rigidBody);
-
 			collider.mRigidBody = rigidBody;
 		}
 	}
@@ -82,12 +83,14 @@ void PhysicsSystem::RegisterCollider(EnTTRegistry& registry, EntityId entity)
 			const auto boxShape = new btBoxShape(btVector3{size.x, size.y, size.z});
 
 			btTransform boxTransform;
+			boxTransform.setIdentity();
+
+			const btVector3 localInertia(0, 0, 0);
+
 			boxTransform.setOrigin(btVector3{position.x, position.y, position.z});
 			boxTransform.setRotation(_ConvertDegreesToQuat(rotation));
 
-			const btVector3 localInertia(0, 0, 0);
 			const auto motionState = new btDefaultMotionState(boxTransform);
-
 			const btRigidBody::btRigidBodyConstructionInfo rbInfo(0, motionState, boxShape, localInertia);
 
 			collider.mColliderIndex = mDynamicWorld->getNumCollisionObjects();
@@ -101,25 +104,40 @@ void PhysicsSystem::RegisterCollider(EnTTRegistry& registry, EntityId entity)
 
 void PhysicsSystem::Update(float deltaTime, EntityRegistry& entityRegistry)
 {
-	mDynamicWorld->stepSimulation(deltaTime);
+	for (auto it = mEntitiesToInitialize.begin(); it != mEntitiesToInitialize.end();)
+	{
+		const auto& collider = entityRegistry.GetComponent<CollisionComponent>(*it);
+		if (collider.mInitialized)
+		{
+			RegisterCollider(entityRegistry.GetEnttRegistry(), *it);
+			it = mEntitiesToInitialize.erase(it);
+		}
+		else
+		{
+			// Move to the next element
+			++it;
+		}
+	}
+
+	mDynamicWorld->stepSimulation(deltaTime, 10, 1.0f / 60.0f);
 	mDynamicWorld->debugDrawWorld();
 
 	const auto view = entityRegistry.GetEnttRegistry().view<CollisionComponent, TransformComponent>();
-	view.each([=](const auto& collider, auto& transform)
+	view.each([=](auto& collider, auto& transform)
 	{
-		if (collider.mIsDynamic)
+		if (collider.mIsDynamic && collider.mRigidBody != nullptr)
 		{
-			int collisionIndex = collider.mColliderIndex;
+			const auto& size = transform.mSize;
+			btRigidBody* body = collider.mRigidBody;
 
-			if (collisionIndex < mDynamicWorld->getNumCollisionObjects())
-			{
-				btCollisionObject* obj = mDynamicWorld->getCollisionObjectArray()[collisionIndex];
-				btVector3 pos = obj->getWorldTransform().getOrigin();
-				btQuaternion orn = obj->getWorldTransform().getRotation();
+			btTransform worldTransform;
+			body->getMotionState()->getWorldTransform(worldTransform);
 
-				transform.mPosition = {pos.x(), pos.y(), pos.z()};
-				transform.mRotation = _ConvertQuatToRadians(orn);
-			}
+			btVector3 pos = worldTransform.getOrigin();
+			btQuaternion orn = worldTransform.getRotation();
+
+			transform.mPosition = {pos.x(), pos.y() - size.y, pos.z()};
+			transform.mRotation = _ConvertQuatToRadians(orn);
 		}
 	});
 }
@@ -139,4 +157,9 @@ glm::vec3 PhysicsSystem::_ConvertQuatToRadians(btQuaternion quat)
 	quat.getEulerZYX(radians.z, radians.y, radians.x);
 	const auto degreeConversion = glm::degrees(radians);
 	return degreeConversion;
+}
+
+void PhysicsSystem::AddEntityToInitialize(EnTTRegistry& registry, EntityId entity)
+{
+	mEntitiesToInitialize.push_back(entity);
 }

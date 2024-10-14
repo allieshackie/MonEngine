@@ -8,7 +8,7 @@
 
 Animator::Animator(EntityRegistry& entityRegistry, ResourceManager& resourceManager) : mResourceManager(resourceManager)
 {
-	//entityRegistry.GetEnttRegistry().on_construct<MeshComponent>().connect<&Animator::_SetJointMatrixCount>(this);
+	entityRegistry.GetEnttRegistry().on_construct<MeshComponent>().connect<&Animator::_SetJointMatrixCount>(this);
 }
 
 void Animator::Update(float deltaTime, EntityRegistry& entityRegistry, const ResourceManager& resourceManager)
@@ -43,11 +43,6 @@ void Animator::_UpdateAnimation(float deltaTime, const Animation* animation, Mod
 void Animator::_UpdateJointHierarchy(float animationTime, Model& model, MeshComponent& mesh, const Animation* animation,
                                      int nodeIndex, const glm::mat4 parentTransform)
 {
-	if (mesh.mFinalTransforms.empty())
-	{
-		mesh.mFinalTransforms.resize(model.GetNumJoints());
-	}
-
 	const auto jointNode = model.GetJointNodeAt(nodeIndex);
 
 	if (jointNode == nullptr)
@@ -96,22 +91,19 @@ glm::vec3 Animator::_InterpolateVec3(float animationTime, const std::vector<Keyf
 {
 	if (keyframes.empty())
 	{
-		return glm::vec3(1.0f); // Return identity if no keyframes
+		return glm::vec3(1.0f);
 	}
 
-	// Find the two keyframes to interpolate between
 	for (size_t i = 0; i < keyframes.size() - 1; ++i)
 	{
 		if (animationTime < keyframes[i + 1].mTimeStamp)
 		{
-			// Linear interpolation
 			float t = (animationTime - keyframes[i].mTimeStamp) / (keyframes[i + 1].mTimeStamp - keyframes[i].
 				mTimeStamp);
 			return glm::mix(keyframes[i].mData, keyframes[i + 1].mData, t);
 		}
 	}
 
-	// Return the last keyframe's value if beyond the last keyframe
 	return keyframes.back().mData;
 }
 
@@ -119,21 +111,19 @@ glm::quat Animator::_InterpolateQuat(float animationTime, const std::vector<Keyf
 {
 	if (keyframes.empty())
 	{
-		return {1.0f, 0.0f, 0.0f, 0.0f}; // Return identity if no keyframes
+		return {1.0f, 0.0f, 0.0f, 0.0f};
 	}
 
 	for (size_t i = 0; i < keyframes.size() - 1; ++i)
 	{
 		if (animationTime < keyframes[i + 1].mTimeStamp)
 		{
-			// Spherical linear interpolation (slerp)
 			float t = (animationTime - keyframes[i].mTimeStamp) / (keyframes[i + 1].mTimeStamp - keyframes[i].
 				mTimeStamp);
 			return glm::slerp(keyframes[i].mData, keyframes[i + 1].mData, t);
 		}
 	}
 
-	// Return the last keyframe's rotation if beyond the last keyframe
 	return keyframes.back().mData;
 }
 
@@ -150,13 +140,13 @@ const AnimNode* Animator::GetAnimNode(const Animation* animation, int nodeId)
 	return nullptr;
 }
 
-/*
- *
-void Animator::_SetJointMatrixCount(EnTTRegistry& registry, EntityId entity)
+void Animator::_SetJointMatrixCount(EnTTRegistry& registry, EntityId entity) const
 {
 	auto& mesh = registry.get<MeshComponent>(entity);
 	const auto& model = mResourceManager.GetModelFromId(mesh.mMeshPath);
 
-	mesh.mFinalTransforms.resize(model.GetNumJoints());
+	if (mesh.mHasBones)
+	{
+		mesh.mFinalTransforms.resize(model.GetNumJoints());
+	}
 }
- */

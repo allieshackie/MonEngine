@@ -2,15 +2,15 @@
     "template_name": "player", 
     "components" : {
         "transform" : {
-            "position": [0,10,0],
-            "size": [0.5,0.5,0.5],
-            "rotation": [-90,0,0]
+            "position": [0,0,0],
+            "size": [1,1,1],
+            "rotation": [0,0,0]
         },
         "sprite": {
             "resource_path": "doge_uv.png"
         },
         "mesh": {
-            "mesh_path": "dogemage.fbx",
+            "mesh_path": "dogemage_fixed.gltf",
             "has_bones": true
         },
         "player": {},

@@ -17,4 +17,6 @@ struct CollisionComponent
 	bool mIsDynamic = false;
 
 	btRigidBody* mRigidBody = nullptr;
+	bool mInitialized = false;
+	float mSimulateTimeout = 5.0f;
 };

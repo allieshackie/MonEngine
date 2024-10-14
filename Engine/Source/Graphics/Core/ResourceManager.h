@@ -19,6 +19,7 @@ public:
 	const std::vector<std::unique_ptr<Texture>>& GetTextures() const { return mTextures; }
 	int GetTextureId(const std::string& textureName) const;
 	LLGL::Texture& GetTexture(const std::string& textureName);
+	LLGL::Sampler& GetSampler(const std::string& textureName);
 
 	Model& GetModelFromId(const std::string& modelName) const;
 
