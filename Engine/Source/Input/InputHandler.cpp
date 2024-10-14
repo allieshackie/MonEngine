@@ -30,6 +30,12 @@ void InputHandler::RegisterButtonDownHandler(LLGL::Key keyCode, const std::funct
 	}
 }
 
+void InputHandler::RegisterButtonHoldHandler(LLGL::Key keyCode, const std::function<void()>& onHold,
+                                             const std::function<void()>& onRelease)
+{
+	mButtonHoldHandlers[keyCode].push_back({onHold, onRelease});
+}
+
 void InputHandler::RegisterMouseMoveHandler(const std::function<void(LLGL::Offset2D)>& callback)
 {
 	mMouseMoveCallbacks.push_back(callback);
@@ -51,14 +57,36 @@ void InputHandler::AddEditorInputs(Camera& camera)
 	// If the mCameraFront remains the same, this will result in the
 	// camera view angling.  We can adjust the mCameraFront.xy to match the
 	// camera position so that the view will not angle
-	RegisterButtonUpHandler(LLGL::Key::Up, [&camera]() { camera.MoveUp(); });
-	RegisterButtonUpHandler(LLGL::Key::Down, [&camera]() { camera.MoveDown(); });
-	RegisterButtonUpHandler(LLGL::Key::Left, [&camera]() { camera.MoveLeft(); });
-	RegisterButtonUpHandler(LLGL::Key::Right, [&camera]() { camera.MoveRight(); });
+	RegisterButtonHoldHandler(LLGL::Key::Up, [&camera]() { camera.MoveUp(); }, []()
+	{
+	});
+	RegisterButtonHoldHandler(LLGL::Key::Down, [&camera]() { camera.MoveDown(); }, []()
+	{
+	});
+	RegisterButtonHoldHandler(LLGL::Key::Left, [&camera]() { camera.MoveLeft(); }, []()
+	{
+	});
+	RegisterButtonHoldHandler(LLGL::Key::Right, [&camera]() { camera.MoveRight(); }, []()
+	{
+	});
 
 	// Handlers for handling the camera zoom
 	RegisterZoomInHandler([&camera]() { camera.ZoomIn(); });
 	RegisterZoomOutHandler([&camera]() { camera.ZoomOut(); });
+}
+
+void InputHandler::Update()
+{
+	for (auto keyCode : mKeysHeld)
+	{
+		if (mButtonHoldHandlers.find(keyCode) != mButtonHoldHandlers.end())
+		{
+			for (auto& handler : mButtonHoldHandlers[keyCode])
+			{
+				handler.onHold(); // Call the hold function while the key is held down
+			}
+		}
+	}
 }
 
 void InputHandler::OnKeyDown(LLGL::Window& sender, LLGL::Key keyCode)
@@ -70,6 +98,18 @@ void InputHandler::OnKeyDown(LLGL::Window& sender, LLGL::Key keyCode)
 	else
 	{
 		_handleKeyDown(keyCode);
+
+		if (mButtonHoldHandlers.find(keyCode) != mButtonHoldHandlers.end())
+		{
+			if (mKeysHeld.find(keyCode) == mKeysHeld.end())
+			{
+				// First press, invoke the hold function
+				for (auto& handler : mButtonHoldHandlers[keyCode])
+					handler.onHold();
+			}
+			// Add key to the set of held keys
+			mKeysHeld.insert(keyCode);
+		}
 	}
 }
 
@@ -82,6 +122,17 @@ void InputHandler::OnKeyUp(LLGL::Window& sender, LLGL::Key keyCode)
 	else
 	{
 		_handleKeyUp(keyCode);
+
+		if (mButtonHoldHandlers.find(keyCode) != mButtonHoldHandlers.end() && mKeysHeld.find(keyCode) != mKeysHeld.
+			end())
+		{
+			// Call the release function
+			for (auto& handler : mButtonHoldHandlers[keyCode])
+				handler.onRelease();
+
+			// Remove the key from the held keys set
+			mKeysHeld.erase(keyCode);
+		}
 	}
 }
 

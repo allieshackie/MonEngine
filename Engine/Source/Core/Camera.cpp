@@ -32,13 +32,13 @@ void Camera::MoveDown()
 
 void Camera::ZoomIn()
 {
-	mCameraPos.z += 0.3f;
+	mCameraPos.z += 0.5f;
 	UpdateView();
 }
 
 void Camera::ZoomOut()
 {
-	mCameraPos.z -= 0.3f;
+	mCameraPos.z -= 0.5f;
 	UpdateView();
 }
 

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <queue>
+#include <unordered_set>
+
 #include "LLGL/Window.h"
 
 class Camera;
@@ -43,7 +45,7 @@ class InputHandler : public LLGL::Window::EventListener
 public:
 	void RegisterButtonUpHandler(LLGL::Key keyCode, const std::function<void()>& callback);
 	void RegisterButtonDownHandler(LLGL::Key keyCode, const std::function<void()>& callback);
-	void RegisterButtonHoldHandler(LLGL::Key keyCode, const std::function<void()>& onPress,
+	void RegisterButtonHoldHandler(LLGL::Key keyCode, const std::function<void()>& onHold,
 	                               const std::function<void()>& onRelease);
 
 	void RegisterMouseMoveHandler(const std::function<void(LLGL::Offset2D)>& callback);
@@ -51,6 +53,8 @@ public:
 	void RegisterZoomOutHandler(const std::function<void()>& callback);
 
 	void AddEditorInputs(Camera& camera);
+
+	void Update();
 
 protected:
 	void OnKeyDown(LLGL::Window& sender, LLGL::Key keyCode) override;
@@ -75,6 +79,7 @@ private:
 	std::vector<std::function<void(InputEvent)>> mMouseScrollCallbacks;
 	std::function<void()> mZoomInCallback;
 	std::function<void()> mZoomOutCallback;
+	std::unordered_set<LLGL::Key> mKeysHeld;
 
 	LLGL::Offset2D mCurrentMousePos = {0, 0};
 };

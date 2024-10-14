@@ -154,6 +154,7 @@ void EngineContext::Run(GameInterface* game) const
 			mTimer->mAccumulator -= mTimer->mDT;
 		}
 
+		mInputHandler->Update();
 		game->Update(mTimer->mDT);
 
 		mAnimator->Update(deltaTime, *mEntityRegistry, *mResourceManager);
