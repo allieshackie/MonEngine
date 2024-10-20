@@ -12,7 +12,7 @@ PlayerSystem::PlayerSystem(EntityRegistry& entityRegistry, InputHandler& inputHa
 	mEntityRegistry.GetEnttRegistry().on_construct<PlayerComponent>().connect<&PlayerSystem::SpawnPlayer>(this);
 }
 
-void PlayerSystem::SpawnPlayer(EnTTRegistry& registry, EntityId entity)
+void PlayerSystem::SpawnPlayer(EnTTRegistry& registry, EntityId entity) const
 {
 	auto& player = registry.get<PlayerComponent>(entity);
 

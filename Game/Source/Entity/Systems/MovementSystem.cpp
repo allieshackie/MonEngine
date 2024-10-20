@@ -4,6 +4,7 @@
 
 #include "Entity/EntityRegistry.h"
 #include "Entity/Components/CollisionComponent.h"
+#include "Entity/Components/MeshComponent.h"
 #include "Entity/Components/PhysicsComponent.h"
 #include "Entity/Components/PlayerComponent.h"
 #include "Physics/PhysicsSystem.h"
@@ -12,13 +13,16 @@
 
 void MovementSystem::Update(EntityRegistry& registry, PhysicsSystem& physicsSystem)
 {
-	const auto playerView = registry.GetEnttRegistry().view<PlayerComponent, PhysicsComponent, CollisionComponent>();
-	playerView.each([=, &physicsSystem](auto& player, auto& physics, auto& collider)
+	const auto playerView = registry.GetEnttRegistry().view<
+		PlayerComponent, MeshComponent, PhysicsComponent, CollisionComponent>();
+	playerView.each([=, &physicsSystem](const auto& player, auto& mesh, auto& physics, const auto& collider)
 	{
 		_ApplyJump(collider, player, physicsSystem);
 		// Apply movement directions to physics component
 		_ApplyVelocityFromDirection(player, physics);
 		_ApplyMovementForce(physics, collider);
+
+		_UpdateMovementAnim(mesh, physics);
 	});
 }
 
@@ -84,5 +88,27 @@ static void _ApplyMovementForce(const PhysicsComponent& physics, const Collision
 
 		//collider.mRigidBody->applyCentralImpulse(bulletVelocity);
 		collider.mRigidBody->applyCentralForce(bulletVelocity);
+	}
+}
+
+static void _UpdateMovementAnim(MeshComponent& mesh, const PhysicsComponent& physics)
+{
+	if (glm::length(physics.mVelocity) > 0.0f)
+	{
+		if (mesh.mCurrentAnimState != AnimationStates::WALKING)
+		{
+			mesh.mPrevAnimState = mesh.mCurrentAnimState;
+			mesh.mCurrentAnimState = AnimationStates::WALKING;
+			mesh.mBlendFactor = 0.0f;
+		}
+	}
+	else
+	{
+		if (mesh.mCurrentAnimState != AnimationStates::IDLE)
+		{
+			mesh.mPrevAnimState = mesh.mCurrentAnimState;
+			mesh.mCurrentAnimState = AnimationStates::IDLE;
+			mesh.mBlendFactor = 0.0f;
+		}
 	}
 }

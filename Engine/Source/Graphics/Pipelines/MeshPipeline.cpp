@@ -7,7 +7,7 @@
 #include "Entity/Components/MapComponent.h"
 #include "Entity/Components/SpriteComponent.h"
 #include "Entity/Components/TransformComponent.h"
-#include "Graphics/Core/Animation.h"
+#include "Graphics/Animation/Animation.h"
 
 #include "MeshPipeline.h"
 

@@ -2,6 +2,7 @@
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <vector>
+#include <map>
 
 struct JointNode
 {
@@ -39,4 +40,16 @@ struct Animation
 	float mStartFrameTime = 0.0f;
 	float mEndFrameTime = 0.0f;
 	std::vector<AnimNode*> mAnimNodes;
+};
+
+enum AnimationStates
+{
+	NONE,
+	IDLE,
+	WALKING
+};
+
+inline std::map<std::string, AnimationStates> ANIM_NAMES = {
+	{"Idle", AnimationStates::IDLE},
+	{"Walk", AnimationStates::WALKING},
 };

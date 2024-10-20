@@ -59,24 +59,19 @@ void Model::InitializeBuffers(const LLGL::RenderSystemPtr& renderSystem, const S
 
 JointNode* Model::GetJointNodeAt(int nodeIndex) const
 {
-	for (auto node : mJointNodes)
+	if (const auto it = mJointNodes.find(nodeIndex); it != mJointNodes.end())
 	{
-		if (node.first == nodeIndex)
-		{
-			return node.second;
-		}
+		return it->second;
 	}
+
 	return nullptr;
 }
 
-const Animation* Model::GetAnimation(const std::string& name) const
+const Animation* Model::GetAnimation(AnimationStates state) const
 {
-	for (const auto& entry : mAnimations)
+	if (const auto it = mAnimations.find(state); it != mAnimations.end())
 	{
-		if (entry.first == name)
-		{
-			return entry.second;
-		}
+		return it->second;
 	}
 
 	return nullptr;
@@ -336,6 +331,9 @@ void Model::_ProcessAnimations(const tinygltf::Model& model)
 			}
 		}
 
-		mAnimations[animation.name] = std::move(modelAnim);
+		if (const auto it = ANIM_NAMES.find(animation.name); it != ANIM_NAMES.end())
+		{
+			mAnimations[it->second] = std::move(modelAnim);
+		}
 	}
 }

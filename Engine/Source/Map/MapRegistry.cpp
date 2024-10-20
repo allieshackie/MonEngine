@@ -76,13 +76,7 @@ bool MapRegistry::_ParseMapData(const MapData& mapData, EntityId entityId, Entit
 	entityReg.AddComponent<MapComponent>(entityId, mapData.name, -1, rows, columns, textureDimension, texturePath,
 	                                     textureRows, textureColumns, dataPath, data);
 
-	// TODO: This is only accounting for 2D maps, need to have the size of the 3D mesh if its overridden
-	auto size = glm::vec3{
-		static_cast<float>(columns) * mapData.tileSize,
-		static_cast<float>(rows) * mapData.tileSize, 1
-	};
-
-	entityReg.AddComponent<TransformComponent>(entityId, mapData.position, size, mapData.rotation);
+	entityReg.AddComponent<TransformComponent>(entityId, mapData.position, mapData.size, mapData.rotation);
 
 	if (mapData.hasDimension)
 	{
@@ -93,7 +87,7 @@ bool MapRegistry::_ParseMapData(const MapData& mapData, EntityId entityId, Entit
 		entityReg.AddComponent<MeshComponent>(entityId, "Plane.gltf");
 	}
 
-	entityReg.AddComponent<CollisionComponent>(entityId, ColliderShapes::Box, size, -1, false, nullptr, true);
+	entityReg.AddComponent<CollisionComponent>(entityId, ColliderShapes::Box, mapData.size, -1, false, nullptr, true);
 
 	return textureRows != 0 && textureColumns != 0;
 }

@@ -4,7 +4,7 @@
 #include <tiny_gltf.h>
 #include<glm/gtc/quaternion.hpp>
 
-#include "Graphics/Core/Animation.h"
+#include "Graphics/Animation/Animation.h"
 
 namespace gltfHelpers
 {

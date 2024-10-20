@@ -18,9 +18,9 @@ public:
 	void Update(float deltaTime, EntityRegistry& entityRegistry, const ResourceManager& resourceManager);
 
 private:
-	void _UpdateAnimation(float deltaTime, const Animation* animation, Model& model, MeshComponent& mesh);
-	void _UpdateJointHierarchy(float animationTime, Model& model, MeshComponent& mesh, const Animation* animation,
-	                           int nodeIndex, const glm::mat4 parentTransform);
+	void _UpdateAnimation(float deltaTime, Model& model, MeshComponent& mesh);
+	void _UpdateJointHierarchy(Model& model, MeshComponent& mesh, const Animation* animation,
+	                           const Animation* prevAnimation, int nodeIndex, const glm::mat4 parentTransform);
 
 	glm::mat4 _InterpolatePosition(float animationTime, const AnimNode* nodeData) const;
 	glm::mat4 _InterpolateRotation(float animationTime, const AnimNode* nodeData) const;
@@ -29,11 +29,14 @@ private:
 	glm::vec3 _InterpolateVec3(float animationTime, const std::vector<KeyframeVec>& keyframes) const;
 	glm::quat _InterpolateQuat(float animationTime, const std::vector<KeyframeQuat>& keyframes) const;
 
+	glm::mat4 _InterpolateMatrices(const glm::mat4& matA, const glm::mat4& matB, float blendFactor) const;
+
 	void _SetJointMatrixCount(EnTTRegistry& registry, EntityId entity) const;
 
 	const AnimNode* GetAnimNode(const Animation* animation, int nodeId);
 
-	float mCurrentAnimationTime = 0;
+	float mPrevAnimationTime = 0.0f;
+	float mCurrentAnimationTime = 0.0f;
 
 	ResourceManager& mResourceManager;
 };

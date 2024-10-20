@@ -2,7 +2,7 @@
 #include <tiny_gltf.h>
 
 #include "LLGL/RenderSystem.h"
-#include "Animation.h"
+#include "Graphics/Animation/Animation.h"
 #include "Vertex.h"
 
 #define VEC2_STEP 2
@@ -37,7 +37,7 @@ public:
 	JointNode* GetJointNodeAt(int nodeIndex) const;
 	size_t GetNumJoints() const { return mNumNodes; }
 
-	const Animation* GetAnimation(const std::string& name) const;
+	const Animation* GetAnimation(AnimationStates state) const;
 
 	// TODO: For Debug GUI
 	const std::unordered_map<std::string, int>& GetBoneNamesToIndex() const { return mBoneNameToIndex; }
@@ -51,7 +51,7 @@ private:
 	std::vector<MeshData*> mMeshes;
 
 	std::unordered_map<std::string, int> mBoneNameToIndex;
-	std::unordered_map<std::string, Animation*> mAnimations;
+	std::unordered_map<AnimationStates, Animation*> mAnimations;
 
 	std::unordered_map<int, JointNode*> mJointNodes;
 	int mRootNodeIndex = 0;
