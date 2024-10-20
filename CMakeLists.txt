@@ -36,6 +36,7 @@ if(${MON_DEV_BUILD_SANDBOX} OR ${MON_DEV_BUILD_GAME})
   add_compile_definitions(BUILD_GAME)
   # Macros must be defined before subdirectories are added
   # ============== MACROS ===============
+  add_compile_definitions(ANIMATIONS_FOLDER="${CMAKE_BINARY_DIR}/Data/Animations/")
   add_compile_definitions(ENTITIES_FOLDER="${CMAKE_BINARY_DIR}/Data/Entities/")
   add_compile_definitions(FONTS_FOLDER="${CMAKE_BINARY_DIR}/Data/Fonts/")
   add_compile_definitions(LEVELS_FOLDER="${CMAKE_BINARY_DIR}/Data/Levels/")
