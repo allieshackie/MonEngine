@@ -41,6 +41,7 @@ private:
 	static constexpr char MAPS_STRING[] = "maps";
 	static constexpr char NAME_STRING[] = "name";
 	static constexpr char ROTATION_STRING[] = "rotation";
+	static constexpr char SIZE_STRING[] = "size";
 	static constexpr char TILE_SIZE_STRING[] = "tile_size";
 	static constexpr char HAS_DIMENSION_STRING[] = "has_dimension";
 

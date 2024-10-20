@@ -1,5 +1,6 @@
 #pragma once
 #include <glm/mat4x4.hpp>
+#include "Graphics/Animation/Animation.h"
 
 struct MeshComponent
 {
@@ -9,8 +10,10 @@ struct MeshComponent
 
 	// runtime
 	int mMeshId = 0;
-	std::string mCurrentAnimation = "Walk";
 	std::vector<glm::mat4> mFinalTransforms;
+	AnimationStates mPrevAnimState = AnimationStates::NONE;
+	AnimationStates mCurrentAnimState = AnimationStates::IDLE;
+	float mBlendFactor = 1.0f;
 
 	// debug runtime
 	int mCurrentBoneIndex = 0;

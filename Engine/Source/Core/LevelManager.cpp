@@ -108,29 +108,36 @@ void LevelManager::_ParseLevelJson(const std::string& levelName)
 	{
 		for (auto& mapData : json[MAPS_STRING])
 		{
-			const auto& mapName = mapData[NAME_STRING];
+			mCurrentLevel->mMapData.name = mapData[NAME_STRING];
 
 			const auto& mapPos = mapData[POSITION_STRING];
 			assert(mapPos.size() == 3);
-			auto mapPosVec = glm::vec3(mapPos[0], mapPos[1], mapPos[2]);
+			mCurrentLevel->mMapData.position = glm::vec3(mapPos[0], mapPos[1], mapPos[2]);
 
 			const auto& mapRotation = mapData[ROTATION_STRING];
 			assert(mapRotation.size() == 3);
-			auto mapRotationVec = glm::vec3(mapRotation[0], mapRotation[1], mapRotation[2]);
+			mCurrentLevel->mMapData.rotation = glm::vec3(mapRotation[0], mapRotation[1], mapRotation[2]);
 
-			float mapTileSize = mapData[TILE_SIZE_STRING];
+			const auto& mapSize = mapData[SIZE_STRING];
+			assert(mapSize.size() == 3);
+			mCurrentLevel->mMapData.size = glm::vec3(mapSize[0], mapSize[1], mapSize[2]);
 
-			bool hasDimension = false;
-			if (mapData.contains(HAS_DIMENSION_STRING))
+			if (mapData.contains(TILE_SIZE_STRING))
 			{
-				hasDimension = mapData[HAS_DIMENSION_STRING];
+				mCurrentLevel->mMapData.tileSize = mapData[TILE_SIZE_STRING];
 			}
 
-			mCurrentLevel->mMapData.name = mapName;
-			mCurrentLevel->mMapData.position = mapPosVec;
-			mCurrentLevel->mMapData.rotation = mapRotationVec;
-			mCurrentLevel->mMapData.tileSize = mapTileSize;
-			mCurrentLevel->mMapData.hasDimension = hasDimension;
+			if (mapData.contains(COLOR_STRING))
+			{
+				const auto& mapColor = mapData[COLOR_STRING];
+				assert(mapColor.size() == 4);
+				mCurrentLevel->mMapData.color = glm::vec4(mapColor[0], mapColor[1], mapColor[2], mapColor[3]);
+			}
+
+			if (mapData.contains(HAS_DIMENSION_STRING))
+			{
+				mCurrentLevel->mMapData.hasDimension = mapData[HAS_DIMENSION_STRING];
+			}
 		}
 	}
 

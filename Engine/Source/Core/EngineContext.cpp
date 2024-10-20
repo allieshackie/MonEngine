@@ -1,4 +1,5 @@
 #include "Entity/Components/MapComponent.h"
+#include "Entity/Descriptions/AnimationDescription.h"
 #include "Entity/Descriptions/CollisionDescription.h"
 #include "Entity/Descriptions/LightDescription.h"
 #include "Entity/Descriptions/MeshDescription.h"
@@ -6,7 +7,7 @@
 #include "Entity/Descriptions/PlayerDescription.h"
 #include "Entity/Descriptions/SpriteDescription.h"
 #include "Entity/Descriptions/TransformDescription.h"
-#include "Graphics/Core/Animator.h"
+#include "Graphics/Animation/Animator.h"
 #include "GUI/GUISystem.h"
 #include "GameInterface.h"
 
@@ -105,6 +106,7 @@ void EngineContext::_RenderModelBones(Model& model, const MeshComponent& mesh, i
 
 void EngineContext::_InitDescriptions() const
 {
+	mDescriptionFactory->RegisterDescription<AnimationDescription>(AnimationDescription::JsonName);
 	mDescriptionFactory->RegisterDescription<CollisionDescription>(CollisionDescription::JsonName);
 	mDescriptionFactory->RegisterDescription<LightDescription>(LightDescription::JsonName);
 	mDescriptionFactory->RegisterDescription<MeshDescription>(MeshDescription::JsonName);
