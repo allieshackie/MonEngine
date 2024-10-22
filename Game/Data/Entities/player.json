@@ -20,6 +20,7 @@
         "collider": {
             "collider_shape": 0, // Box collider
             "size": [1,1,1]
-        }
+        },
+        "animation": "doge_anims.json"
     }
 }
