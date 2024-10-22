@@ -23,10 +23,14 @@ public:
 	static constexpr char JsonName[] = "animation";
 
 private:
+	static constexpr char ANIMATIONS_STRING[] = "animations";
+
 	static constexpr char LIST_STRING[] = "transitions";
 	static constexpr char TO_STRING[] = "to";
 	static constexpr char FROM_STRING[] = "from";
-	static constexpr char TRANSITION_TIME_STRING[] = "transitionTime";
+	static constexpr char TRANSITION_TIME_STRING[] = "transition_time";
+	static constexpr char TARGETED_BLEND_TIME_STRING[] = "targeted_blend_time";
 
-	std::vector<AnimInfo> mInfos;
+	std::unordered_map<std::string, AnimationStates> mAnimations;
+	std::vector<AnimTransition> mTransitions;
 };

@@ -1,8 +1,10 @@
 #include <glm/geometric.hpp>
 #include <glm/vec3.hpp>
+#include <glm/gtx/quaternion.hpp>
 #include "BulletCollision/CollisionDispatch/btCollisionWorld.h"
 
 #include "Entity/EntityRegistry.h"
+#include "Entity/Components/AnimationComponent.h"
 #include "Entity/Components/CollisionComponent.h"
 #include "Entity/Components/MeshComponent.h"
 #include "Entity/Components/PhysicsComponent.h"
@@ -11,18 +13,22 @@
 
 #include "MovementSystem.h"
 
+glm::vec3 rotateAxis(0.0f, 1.0f, 0.0f);
+
 void MovementSystem::Update(EntityRegistry& registry, PhysicsSystem& physicsSystem)
 {
 	const auto playerView = registry.GetEnttRegistry().view<
-		PlayerComponent, MeshComponent, PhysicsComponent, CollisionComponent>();
-	playerView.each([=, &physicsSystem](const auto& player, auto& mesh, auto& physics, const auto& collider)
+		PlayerComponent, AnimationComponent, PhysicsComponent, CollisionComponent>();
+	playerView.each([=, &physicsSystem](const auto& player, auto& anim, auto& physics, const auto& collider)
 	{
 		_ApplyJump(collider, player, physicsSystem);
 		// Apply movement directions to physics component
 		_ApplyVelocityFromDirection(player, physics);
 		_ApplyMovementForce(physics, collider);
 
-		_UpdateMovementAnim(mesh, physics);
+		_UpdateMovementAnim(anim, physics);
+
+		//printf("Player speed: %f\n", glm::length(physics.mVelocity));
 	});
 }
 
@@ -86,29 +92,30 @@ static void _ApplyMovementForce(const PhysicsComponent& physics, const Collision
 		btVector3 bulletVelocity(velocity.x, velocity.y, velocity.z);
 		bulletVelocity *= 10.0f; // Multiply by a speed factor
 
-		//collider.mRigidBody->applyCentralImpulse(bulletVelocity);
+		collider.mRigidBody->activate();
 		collider.mRigidBody->applyCentralForce(bulletVelocity);
+
+		glm::vec3 direction = glm::normalize(glm::vec3(velocity.x, 0.0f, velocity.z));
+		float yaw = std::atan2(direction.x, direction.z);
+		glm::quat targetRotation = glm::angleAxis(yaw, glm::vec3(0.0f, 1.0f, 0.0f));
+		btTransform transform = collider.mRigidBody->getWorldTransform();
+		btQuaternion currentRotation = transform.getRotation();
+		glm::quat currentQuat(currentRotation.w(), currentRotation.x(), currentRotation.y(), currentRotation.z());
+		glm::quat newRotation = glm::slerp(currentQuat, targetRotation, 0.1f);
+		btQuaternion bulletRotation(newRotation.x, newRotation.y, newRotation.z, newRotation.w);
+		transform.setRotation(bulletRotation);
+		collider.mRigidBody->setWorldTransform(transform);
 	}
 }
 
-static void _UpdateMovementAnim(MeshComponent& mesh, const PhysicsComponent& physics)
+static void _UpdateMovementAnim(AnimationComponent& anim, const PhysicsComponent& physics)
 {
 	if (glm::length(physics.mVelocity) > 0.0f)
 	{
-		if (mesh.mCurrentAnimState != AnimationStates::WALKING)
-		{
-			mesh.mPrevAnimState = mesh.mCurrentAnimState;
-			mesh.mCurrentAnimState = AnimationStates::WALKING;
-			mesh.mBlendFactor = 0.0f;
-		}
+		anim.TryTriggerAnimation(AnimationStates::WALKING);
 	}
 	else
 	{
-		if (mesh.mCurrentAnimState != AnimationStates::IDLE)
-		{
-			mesh.mPrevAnimState = mesh.mCurrentAnimState;
-			mesh.mCurrentAnimState = AnimationStates::IDLE;
-			mesh.mBlendFactor = 0.0f;
-		}
+		anim.TryTriggerAnimation(AnimationStates::IDLE);
 	}
 }

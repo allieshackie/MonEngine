@@ -11,9 +11,6 @@ struct MeshComponent
 	// runtime
 	int mMeshId = 0;
 	std::vector<glm::mat4> mFinalTransforms;
-	AnimationStates mPrevAnimState = AnimationStates::NONE;
-	AnimationStates mCurrentAnimState = AnimationStates::IDLE;
-	float mBlendFactor = 1.0f;
 
 	// debug runtime
 	int mCurrentBoneIndex = 0;

@@ -1,5 +1,5 @@
 #include "Entity/EntityRegistry.h"
-#include "Entity/Components/MapComponent.h"
+#include "Entity/Components/AnimationComponent.h"
 #include "Entity/Components/MeshComponent.h"
 #include "Graphics/Core/ResourceManager.h"
 #include "Util/gltfHelpers.h"
@@ -13,32 +13,27 @@ Animator::Animator(EntityRegistry& entityRegistry, ResourceManager& resourceMana
 
 void Animator::Update(float deltaTime, EntityRegistry& entityRegistry, const ResourceManager& resourceManager)
 {
-	const auto meshView = entityRegistry.GetEnttRegistry().view<MeshComponent>(entt::exclude<MapComponent>);
+	const auto meshView = entityRegistry.GetEnttRegistry().view<AnimationComponent, MeshComponent>();
 
-	meshView.each([this, &resourceManager, &deltaTime](MeshComponent& mesh)
+	meshView.each([this, &resourceManager, &deltaTime](AnimationComponent& anim, MeshComponent& mesh)
 	{
 		auto& model = resourceManager.GetModelFromId(mesh.mMeshPath);
-		_UpdateAnimation(deltaTime, model, mesh);
+		_UpdateAnimation(deltaTime, model, anim, mesh);
 	});
 }
 
-void Animator::_UpdateAnimation(float deltaTime, Model& model, MeshComponent& mesh)
+void Animator::_UpdateAnimation(float deltaTime, Model& model, AnimationComponent& animComp, MeshComponent& mesh)
 {
+	const auto animation = model.GetAnimation(animComp.mCurrentAnimState);
+	const auto prevAnimation = model.GetAnimation(animComp.mPrevAnimState);
+
 	mCurrentAnimationTime += deltaTime;
-	auto animation = model.GetAnimation(mesh.mCurrentAnimState);
-	auto prevAnimation = model.GetAnimation(mesh.mPrevAnimState);
-
-	if (mesh.mBlendFactor < 1.0f)
+	if (animComp.mUpdated)
 	{
-		// Update the blend factor over a fixed duration, regardless of animation length
-		mesh.mBlendFactor += deltaTime / 5.0f;
-		mesh.mBlendFactor = std::min(mesh.mBlendFactor, 1.0f); // Clamp to 1.0 when blend is done
-
-		if (mesh.mBlendFactor >= 1.0f)
-		{
-			mesh.mPrevAnimState = AnimationStates::NONE;
-		}
+		_ApplyBlendTime(animComp);
+		animComp.mUpdated = false;
 	}
+	_UpdateBlend(deltaTime, animComp);
 
 	if (animation != nullptr)
 	{
@@ -56,12 +51,39 @@ void Animator::_UpdateAnimation(float deltaTime, Model& model, MeshComponent& me
 		}
 	}
 
-	_UpdateJointHierarchy(model, mesh, animation, prevAnimation, model.GetRootNodeIndex(),
+	_UpdateJointHierarchy(model, animComp, mesh, animation, prevAnimation, model.GetRootNodeIndex(),
 	                      glm::mat4(1.0f));
 }
 
-void Animator::_UpdateJointHierarchy(Model& model, MeshComponent& mesh, const Animation* animation,
-                                     const Animation* prevAnimation, int nodeIndex, const glm::mat4 parentTransform)
+void Animator::_UpdateBlend(float deltaTime, AnimationComponent& animComp)
+{
+	if (animComp.mBlendFactor < 1.0f)
+	{
+		float transitionTime = 1.0f;
+		for (const auto& transition : animComp.mTransitions)
+		{
+			if (transition.mTransitionFrom == animComp.mPrevAnimState && transition.mTransitionTo == animComp.
+				mCurrentAnimState)
+			{
+				transitionTime = transition.mTransitionTime;
+			}
+		}
+
+		// Update the blend factor over a fixed duration, regardless of animation length
+		animComp.mBlendFactor += deltaTime / transitionTime;
+		animComp.mBlendFactor = std::min(animComp.mBlendFactor, 1.0f); // Clamp to 1.0 when blend is done
+
+		if (animComp.mBlendFactor >= 1.0f)
+		{
+			animComp.mPrevAnimState = AnimationStates::NONE;
+			mPrevAnimationTime = 0.0f;
+		}
+	}
+}
+
+void Animator::_UpdateJointHierarchy(Model& model, AnimationComponent& animComp, MeshComponent& mesh,
+                                     const Animation* animation, const Animation* prevAnimation, int nodeIndex,
+                                     const glm::mat4 parentTransform)
 {
 	const auto jointNode = model.GetJointNodeAt(nodeIndex);
 
@@ -95,7 +117,7 @@ void Animator::_UpdateJointHierarchy(Model& model, MeshComponent& mesh, const An
 					_InterpolateRotation(mPrevAnimationTime, nodeAnim) *
 					_InterpolateScale(mPrevAnimationTime, nodeAnim);
 
-				transform = _InterpolateMatrices(prevTransform, transform, mesh.mBlendFactor);
+				transform = _InterpolateMatrices(prevTransform, transform, animComp.mBlendFactor);
 			}
 		}
 	}
@@ -106,7 +128,7 @@ void Animator::_UpdateJointHierarchy(Model& model, MeshComponent& mesh, const An
 
 	for (const auto child : jointNode->mChildren)
 	{
-		_UpdateJointHierarchy(model, mesh, animation, prevAnimation, child, globalTransform);
+		_UpdateJointHierarchy(model, animComp, mesh, animation, prevAnimation, child, globalTransform);
 	}
 }
 
@@ -204,6 +226,19 @@ const AnimNode* Animator::GetAnimNode(const Animation* animation, int nodeId)
 	}
 
 	return nullptr;
+}
+
+void Animator::_ApplyBlendTime(const AnimationComponent& animComp)
+{
+	for (const auto& transition : animComp.mTransitions)
+	{
+		if (transition.mTransitionFrom == animComp.mPrevAnimState && transition.mTransitionTo == animComp.
+			mCurrentAnimState)
+		{
+			mCurrentAnimationTime = transition.mTargetedBlendTime;
+			mPrevAnimationTime = transition.mTargetedBlendTime;
+		}
+	}
 }
 
 void Animator::_SetJointMatrixCount(EnTTRegistry& registry, EntityId entity) const

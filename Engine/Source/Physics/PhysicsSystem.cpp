@@ -23,9 +23,9 @@ PhysicsSystem::PhysicsSystem(EngineContext& engineContext)
 	mDynamicWorld->setGravity(mGravityConst);
 
 	// TODO: Uncomment to turn on debug draw
-	//mPhysicsDebugDraw = std::make_unique<PhysicsDebugDraw>(engineContext);
-	//mDynamicWorld->setDebugDrawer(mPhysicsDebugDraw.get());
-	//mDynamicWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
+	mPhysicsDebugDraw = std::make_unique<PhysicsDebugDraw>(engineContext);
+	mDynamicWorld->setDebugDrawer(mPhysicsDebugDraw.get());
+	mDynamicWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
 
 	engineContext.GetEntityRegistry().GetEnttRegistry().on_construct<CollisionComponent>().connect<&
 		PhysicsSystem::AddEntityToInitialize>(this);

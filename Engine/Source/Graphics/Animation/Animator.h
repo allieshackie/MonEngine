@@ -18,9 +18,11 @@ public:
 	void Update(float deltaTime, EntityRegistry& entityRegistry, const ResourceManager& resourceManager);
 
 private:
-	void _UpdateAnimation(float deltaTime, Model& model, MeshComponent& mesh);
-	void _UpdateJointHierarchy(Model& model, MeshComponent& mesh, const Animation* animation,
-	                           const Animation* prevAnimation, int nodeIndex, const glm::mat4 parentTransform);
+	void _UpdateAnimation(float deltaTime, Model& model, AnimationComponent& animComp, MeshComponent& mesh);
+	void _UpdateBlend(float deltaTime, AnimationComponent& animComp);
+	void _UpdateJointHierarchy(Model& model, AnimationComponent& animComp, MeshComponent& mesh,
+	                           const Animation* animation, const Animation* prevAnimation, int nodeIndex,
+	                           const glm::mat4 parentTransform);
 
 	glm::mat4 _InterpolatePosition(float animationTime, const AnimNode* nodeData) const;
 	glm::mat4 _InterpolateRotation(float animationTime, const AnimNode* nodeData) const;
@@ -31,6 +33,7 @@ private:
 
 	glm::mat4 _InterpolateMatrices(const glm::mat4& matA, const glm::mat4& matB, float blendFactor) const;
 
+	void _ApplyBlendTime(const AnimationComponent& animComp);
 	void _SetJointMatrixCount(EnTTRegistry& registry, EntityId entity) const;
 
 	const AnimNode* GetAnimNode(const Animation* animation, int nodeId);
