@@ -60,7 +60,7 @@ target_include_directories(
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Source
     ${THIRD_PARTY_DIR}/bullet3/src
-    ${PROJECT_SOURCE_DIR}/Engine/Lib/cereal
+    ${THIRD_PARTY_DIR}/cereal/include/
 )
 
 # target_include_directories = Include Directories
