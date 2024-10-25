@@ -27,8 +27,6 @@ void MovementSystem::Update(EntityRegistry& registry, PhysicsSystem& physicsSyst
 		_ApplyMovementForce(physics, collider);
 
 		_UpdateMovementAnim(anim, physics);
-
-		//printf("Player speed: %f\n", glm::length(physics.mVelocity));
 	});
 }
 
@@ -45,7 +43,7 @@ static void _ApplyJump(const CollisionComponent& collider, const PlayerComponent
 
 		if (rayCallback.hasHit())
 		{
-			auto upwardImpulse = btVector3(0, 0.3f, 0);
+			auto upwardImpulse = btVector3(0, 6.0f, 0);
 			collider.mRigidBody->applyCentralImpulse(upwardImpulse);
 		}
 	}

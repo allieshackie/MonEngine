@@ -23,9 +23,9 @@ PhysicsSystem::PhysicsSystem(EngineContext& engineContext)
 	mDynamicWorld->setGravity(mGravityConst);
 
 	// TODO: Uncomment to turn on debug draw
-	mPhysicsDebugDraw = std::make_unique<PhysicsDebugDraw>(engineContext);
-	mDynamicWorld->setDebugDrawer(mPhysicsDebugDraw.get());
-	mDynamicWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
+	//mPhysicsDebugDraw = std::make_unique<PhysicsDebugDraw>(engineContext);
+	//mDynamicWorld->setDebugDrawer(mPhysicsDebugDraw.get());
+	//mDynamicWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
 
 	engineContext.GetEntityRegistry().GetEnttRegistry().on_construct<CollisionComponent>().connect<&
 		PhysicsSystem::AddEntityToInitialize>(this);
@@ -67,7 +67,7 @@ void PhysicsSystem::RegisterCollider(EnTTRegistry& registry, EntityId entity)
 			collider.mIsDynamic = true;
 
 			auto rigidBody = new btRigidBody(rbInfo);
-			rigidBody->setDamping(0.6f, 0.5f);
+			rigidBody->setDamping(0.8f, 0.6f);
 			rigidBody->setAngularFactor(btVector3(0, 0, 0));
 			mDynamicWorld->addRigidBody(rigidBody);
 			collider.mRigidBody = rigidBody;
