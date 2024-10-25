@@ -23,3 +23,6 @@
 [submodule "ThirdParty/tinygltf"]
 	path = ThirdParty/tinygltf
 	url = https://github.com/syoyo/tinygltf
+[submodule "ThirdParty/cereal"]
+	path = ThirdParty/cereal
+	url = https://github.com/USCiLab/cereal
