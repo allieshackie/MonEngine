@@ -7,7 +7,10 @@
             "rotation": [0,0,0]
         },
         "light": {
-            "color": [1,0,0],
+            "ambient": [1,0,0,1],
+            "diffuse": [1,0,0,1],
+            "specular": [1,0,0,1],
+            "intensity": 1.0,
             "light_type": 0
         }
     }

@@ -1,5 +1,5 @@
 #pragma once
-#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 
 enum class LightType
 {
@@ -9,6 +9,9 @@ enum class LightType
 
 struct LightComponent
 {
-	glm::vec3 mColor = {0, 0, 0};
+	glm::vec4 mAmbient = {0, 0, 0, 0};
+	glm::vec4 mDiffuse = {0, 0, 0, 0};
+	glm::vec4 mSpecular = {0, 0, 0, 0};
+	float mIntensity = 1.0f;
 	LightType mLightType = LightType::POINT;
 };

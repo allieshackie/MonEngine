@@ -95,9 +95,11 @@ private:
 
 	struct LightUniform
 	{
+		glm::vec4 ambient = {0, 0, 0, 0};
+		glm::vec4 diffuse = {0, 0, 0, 0};
+		glm::vec4 specular = {0, 0, 0, 0};
 		glm::vec3 position = {0, 0, 0};
 		float intensity = 1.0f;
-		glm::vec4 color = {0, 0, 0, 0};
 		glm::vec4 lightType = {0, 0, 0, 0};
 	};
 

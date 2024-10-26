@@ -236,7 +236,8 @@ void MeshPipeline::_ProcessLights(EntityRegistry& entityRegistry)
 		if (transform != nullptr)
 		{
 			mLights.push_back({
-				transform->mPosition, 1.0f, glm::vec4(light.mColor, 1.0f), {static_cast<int>(light.mLightType), 0, 0, 0}
+				light.mAmbient, light.mDiffuse, light.mSpecular, transform->mPosition, light.mIntensity,
+				{static_cast<int>(light.mLightType), 0, 0, 0}
 			});
 			it = mQueuedLightEntities.erase(it);
 		}

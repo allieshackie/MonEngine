@@ -22,9 +22,15 @@ public:
 	static constexpr char JsonName[] = "light";
 
 private:
-	static constexpr char COLOR_STRING[] = "color";
+	static constexpr char AMBIENT_STRING[] = "ambient";
+	static constexpr char DIFFUSE_STRING[] = "diffuse";
+	static constexpr char SPECULAR_STRING[] = "specular";
+	static constexpr char INTENSITY_STRING[] = "intensity";
 	static constexpr char LIGHT_TYPE_STRING[] = "light_type";
 
-	glm::vec3 mColor = {0, 0, 0};
+	glm::vec4 mAmbient = {0, 0, 0, 0};
+	glm::vec4 mDiffuse = {0, 0, 0, 0};
+	glm::vec4 mSpecular = {0, 0, 0, 0};
+	float mIntensity = 1.0f;
 	int mLightType = 0;
 };

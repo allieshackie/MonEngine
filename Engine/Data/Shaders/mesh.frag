@@ -17,9 +17,11 @@ struct Material
 
 struct LightUniform 
 {
+    vec4 ambient;
+    vec4 diffuse;
+    vec4 specular;
     vec3 position; 
     float intensity;
-    vec4 color;
     vec4 lightType;
 };
 
@@ -81,26 +83,26 @@ vec3 CalcPointLight(LightUniform light, vec3 normal, vec3 fragPos, vec3 viewDir)
     float distance = length(light.position - fragPos);
     float attenuation = 1.0 / (1.0 + 0.09 * distance + 0.032 * (distance * distance));    
     // combine results
-    vec3 ambient = light.color.xyz * material.diffuse.xyz;
-    vec3 diffuse = light.color.xyz * diff * material.diffuse.xyz;
-    vec3 specular = light.color.xyz * spec * material.specular.xyz;
-    return attenuation * (ambient + diffuse + specular) + material.emission.xyz;
+    vec3 ambient = light.ambient.xyz * material.diffuse.xyz;
+    vec3 diffuse = light.diffuse.xyz * diff * material.diffuse.xyz;
+    vec3 specular = light.specular.xyz * spec * material.specular.xyz;
+    return (attenuation * (ambient + diffuse + specular) * light.intensity) + material.emission.xyz;
 }
 
 vec3 CalcDirectionalLight(LightUniform light, vec3 normal, vec3 fragPos, vec3 viewDir)
 {
     // ambient
-    vec3 ambient = light.color.xyz * material.diffuse.xyz;
+    vec3 ambient = light.ambient.xyz * material.diffuse.xyz;
   	
     // diffuse 
     vec3 lightDir = normalize(-light.position);  
     float diff = max(dot(normal, lightDir), 0.0);
-    vec3 diffuse = light.color.xyz * diff * material.diffuse.xyz;
+    vec3 diffuse = light.diffuse.xyz * diff * material.diffuse.xyz;
     
     // specular
     vec3 reflectDir = reflect(-lightDir, normal);  
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-    vec3 specular = light.color.xyz * spec * material.specular.xyz;
+    vec3 specular = light.specular.xyz * spec * material.specular.xyz;
         
-    return ambient + diffuse + specular;
+    return (ambient + diffuse + specular) * light.intensity;
 }
