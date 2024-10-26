@@ -23,6 +23,8 @@ public:
 
 private:
 	static constexpr char COLOR_STRING[] = "color";
+	static constexpr char LIGHT_TYPE_STRING[] = "light_type";
 
 	glm::vec3 mColor = {0, 0, 0};
+	int mLightType = 0;
 };

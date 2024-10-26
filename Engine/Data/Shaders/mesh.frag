@@ -6,7 +6,8 @@ layout(std140) uniform LightSettings
     int numLights;
 };
 
-struct Material {
+struct Material 
+{
     vec4 ambient;
     vec4 diffuse;
     vec4 specular;
@@ -14,10 +15,12 @@ struct Material {
     float shininess;
 };
 
-struct LightUniform {
+struct LightUniform 
+{
     vec3 position; 
     float intensity;
     vec4 color;
+    vec4 lightType;
 };
 
 uniform sampler2D colorMap;
@@ -40,6 +43,7 @@ in vec4 vTestColor;
 out vec4 fragColor;
 
 vec3 CalcPointLight(LightUniform light, vec3 normal, vec3 fragPos, vec3 viewDir);
+vec3 CalcDirectionalLight(LightUniform light, vec3 normal, vec3 fragPos, vec3 viewDir);
 
 void main()
 {
@@ -50,7 +54,12 @@ void main()
     vec3 result = vec3(0.0);
 
     for(int i = 0; i < numLights; i++) {
-        result += CalcPointLight(lights[i], norm, vPosition, viewDir);  
+        if (lights[i].lightType[0] == 0) {
+            result += CalcPointLight(lights[i], norm, vPosition, viewDir);  
+        }
+        else {
+            result += CalcDirectionalLight(lights[i], norm, vPosition, viewDir);  
+        }
     }
 
     fragColor = vec4(result * color.rgb, 1.0);
@@ -76,4 +85,22 @@ vec3 CalcPointLight(LightUniform light, vec3 normal, vec3 fragPos, vec3 viewDir)
     vec3 diffuse = light.color.xyz * diff * material.diffuse.xyz;
     vec3 specular = light.color.xyz * spec * material.specular.xyz;
     return attenuation * (ambient + diffuse + specular) + material.emission.xyz;
+}
+
+vec3 CalcDirectionalLight(LightUniform light, vec3 normal, vec3 fragPos, vec3 viewDir)
+{
+    // ambient
+    vec3 ambient = light.color.xyz * material.diffuse.xyz;
+  	
+    // diffuse 
+    vec3 lightDir = normalize(-light.position);  
+    float diff = max(dot(normal, lightDir), 0.0);
+    vec3 diffuse = light.color.xyz * diff * material.diffuse.xyz;
+    
+    // specular
+    vec3 reflectDir = reflect(-lightDir, normal);  
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+    vec3 specular = light.color.xyz * spec * material.specular.xyz;
+        
+    return ambient + diffuse + specular;
 }

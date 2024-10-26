@@ -3,6 +3,7 @@
 
 #include "PipelineBase.h"
 #include "Entity/EntityRegistry.h"
+#include "Entity/Components/LightComponent.h"
 #include "Entity/Components/MeshComponent.h"
 #include "Graphics/Core/Model.h"
 #include "Graphics/Core/ResourceManager.h"
@@ -97,6 +98,7 @@ private:
 		glm::vec3 position = {0, 0, 0};
 		float intensity = 1.0f;
 		glm::vec4 color = {0, 0, 0, 0};
+		glm::vec4 lightType = {0, 0, 0, 0};
 	};
 
 	std::vector<LightUniform> mLights;

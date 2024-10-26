@@ -34,7 +34,30 @@ out vec3 vNormal;
 out vec2 vTexCoord;
 out vec4 vTestColor;
 
-vec3 applyBoneTransform(vec4 pos) {
+void debugShowBoneWeights(bool found) 
+{
+    vPosition = vec3(model * vec4(position, 1.0));
+    vNormal = mat3(transpose(inverse(model))) * normal;  
+    
+    vec4 weightColor;
+    for (int i = 0 ; i < 4; i++) {
+        if (boneIds[i] == hasBones[1]) {
+            if (weights[i] >= 0.7) {
+                weightColor = vec4(1.0, 0.0, 0.0, 1.0) * weights[i];
+            } else if (weights[i] >= 0.4 && weights[i] <= 0.6) {
+                weightColor = vec4(0.0, 1.0, 0.0, 1.0) * weights[i];
+            } else if (weights[i] >= 0.1) {
+                weightColor = vec4(1.0, 1.0, 0.0, 1.0) * weights[i];
+            }
+            vTestColor = vec4(weightColor.xyz, 1.0);
+            found = true;
+            break;
+        }
+    }
+}
+
+vec3 applyBoneTransform(vec4 pos) 
+{
     vec3 result = vec3(0.0);
     for (int i = 0; i < MAX_BONE_INFLUENCE; i++) {
         if (boneIds[i] != -1) {
@@ -57,26 +80,7 @@ void main()
         
         //DEBUG BONE WEIGHT 
         bool found = false;
-        /*
-        vPosition = vec3(model * vec4(position, 1.0));
-        vNormal = mat3(transpose(inverse(model))) * normal;  
-        
-        vec4 weightColor;
-        for (int i = 0 ; i < 4; i++) {
-            if (boneIds[i] == hasBones[1]) {
-                if (weights[i] >= 0.7) {
-                    weightColor = vec4(1.0, 0.0, 0.0, 1.0) * weights[i];
-                } else if (weights[i] >= 0.4 && weights[i] <= 0.6) {
-                    weightColor = vec4(0.0, 1.0, 0.0, 1.0) * weights[i];
-                } else if (weights[i] >= 0.1) {
-                    weightColor = vec4(1.0, 1.0, 0.0, 1.0) * weights[i];
-                }
-                vTestColor = vec4(weightColor.xyz, 1.0);
-                found = true;
-                break;
-            }
-        }
-        */
+        //debugShowBoneWeights(found);
 
         if (!found) {
             vTestColor = vec4(0.5, 0.5, 0.5, 1.0);

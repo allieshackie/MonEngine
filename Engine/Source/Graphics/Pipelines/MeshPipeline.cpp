@@ -3,7 +3,6 @@
 #include "LLGL/Utils/Parse.h"
 
 #include "Core/Camera.h"
-#include "Entity/Components/LightComponent.h"
 #include "Entity/Components/MapComponent.h"
 #include "Entity/Components/SpriteComponent.h"
 #include "Entity/Components/TransformComponent.h"
@@ -237,7 +236,7 @@ void MeshPipeline::_ProcessLights(EntityRegistry& entityRegistry)
 		if (transform != nullptr)
 		{
 			mLights.push_back({
-				transform->mPosition, 1.0f, glm::vec4(light.mColor, 1.0f)
+				transform->mPosition, 1.0f, glm::vec4(light.mColor, 1.0f), {static_cast<int>(light.mLightType), 0, 0, 0}
 			});
 			it = mQueuedLightEntities.erase(it);
 		}
