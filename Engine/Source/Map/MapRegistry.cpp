@@ -73,21 +73,22 @@ bool MapRegistry::_ParseMapData(const MapData& mapData, EntityId entityId, Entit
 		data.emplace_back(std::stoi(str));
 	}
 
-	entityReg.AddComponent<MapComponent>(entityId, mapData.name, -1, rows, columns, textureDimension, texturePath,
-	                                     textureRows, textureColumns, dataPath, data);
+	entityReg.AddComponentWithArgs<MapComponent>(entityId, mapData.name, rows, columns, textureDimension,
+	                                             texturePath, textureRows, textureColumns, dataPath, data);
 
-	entityReg.AddComponent<TransformComponent>(entityId, mapData.position, mapData.size, mapData.rotation);
+	entityReg.AddComponentWithArgs<TransformComponent>(entityId, mapData.position, mapData.size, mapData.rotation);
 
 	if (mapData.hasDimension)
 	{
-		entityReg.AddComponent<MeshComponent>(entityId, "PlainBox.gltf");
+		entityReg.AddComponentWithArgs<MeshComponent>(entityId, "PlainBox.gltf");
 	}
 	else
 	{
-		entityReg.AddComponent<MeshComponent>(entityId, "Plane.gltf");
+		entityReg.AddComponentWithArgs<MeshComponent>(entityId, "Plane.gltf");
 	}
 
-	entityReg.AddComponent<CollisionComponent>(entityId, ColliderShapes::Box, mapData.size, -1, false, nullptr, true);
+	entityReg.AddComponentWithArgs<CollisionComponent>(entityId, ColliderShapes::BOX, mapData.size, false, -1, nullptr,
+	                                                   true);
 
 	return textureRows != 0 && textureColumns != 0;
 }

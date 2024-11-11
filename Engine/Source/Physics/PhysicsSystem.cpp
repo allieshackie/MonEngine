@@ -41,7 +41,7 @@ void PhysicsSystem::RegisterCollider(EnTTRegistry& registry, EntityId entity)
 	// If physics component exists, dynamic collider
 	if (physics != nullptr)
 	{
-		if (collider.mColliderShape == ColliderShapes::Box)
+		if (collider.mColliderShape == ColliderShapes::BOX)
 		{
 			const auto& position = transform.mPosition;
 			const auto& size = transform.mSize;
@@ -75,7 +75,7 @@ void PhysicsSystem::RegisterCollider(EnTTRegistry& registry, EntityId entity)
 	}
 	else
 	{
-		if (collider.mColliderShape == ColliderShapes::Box)
+		if (collider.mColliderShape == ColliderShapes::BOX)
 		{
 			const auto& position = transform.mPosition;
 			const auto& size = transform.mSize;

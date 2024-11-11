@@ -1,6 +1,7 @@
 #pragma once
 #include <glm/mat4x4.hpp>
 #include <glm/gtx/quaternion.hpp>
+#include "Entity/Components/AnimationComponent.h"
 
 #include "Animation.h"
 

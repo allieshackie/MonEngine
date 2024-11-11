@@ -53,3 +53,29 @@ inline std::map<std::string, AnimationStates> ANIM_NAMES = {
 	{"Idle", AnimationStates::IDLE},
 	{"Walk", AnimationStates::WALKING},
 };
+
+inline std::map<AnimationStates, std::string> ANIM_STRINGS = {
+	{AnimationStates::IDLE, "Idle"},
+	{AnimationStates::WALKING, "Walk"},
+};
+
+inline std::string ToAnimString(AnimationStates state)
+{
+	switch (state)
+	{
+	case AnimationStates::NONE: return "None";
+	case AnimationStates::IDLE: return "Idle";
+	case AnimationStates::WALKING: return "Walk";
+	// add cases for other states...
+	default: throw std::invalid_argument("Unknown AnimationState");
+	}
+}
+
+inline AnimationStates FromAnimString(const std::string& str)
+{
+	if (str == "None") return AnimationStates::NONE;
+	if (str == "Idle") return AnimationStates::IDLE;
+	if (str == "Walk") return AnimationStates::WALKING;
+	// add other string-to-enum mappings...
+	throw std::invalid_argument("Unknown AnimationState: " + str);
+}

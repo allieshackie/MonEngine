@@ -1,5 +1,4 @@
-#include <filesystem>
-#include <nlohmann/json.hpp>
+#include <cereal/archives/json.hpp>
 
 #include "Descriptions/DescriptionFactory.h"
 #include "Util/FileSystem.h"
@@ -22,27 +21,18 @@ const std::vector<std::shared_ptr<DescriptionBase>>& EntityTemplateRegistry::Get
 
 void EntityTemplateRegistry::RegisterEntityTemplates(const DescriptionFactory& descriptionFactory)
 {
-	std::vector<char*> fileNames;
 	for (const auto& entry : fs::directory_iterator(ENTITIES_FOLDER))
 	{
-		fileNames.push_back(_strdup(entry.path().filename().string().c_str()));
-	}
+		std::string fullFileName = entry.path().string();
+		const auto entityJson = FileSystem::ReadJson(fullFileName);
 
-	for (const auto fileName : fileNames)
-	{
-		// parse and serialize JSON
-		std::string fullFileName = ENTITIES_FOLDER;
-		fullFileName += fileName;
+		std::string templateName = entityJson[TEMPLATE_NAME_STRING];
 
-		auto json = FileSystem::ReadJson(fullFileName);
-
-		std::string templateName = json[TEMPLATE_NAME_STRING];
 		std::vector<std::shared_ptr<DescriptionBase>> descriptions;
-		for (auto& [key, value] : json[COMPONENTS_STRING].items())
+		for (const auto& [key, value] : entityJson[COMPONENTS_STRING].items())
 		{
-			descriptions.insert(descriptions.begin(), descriptionFactory.CreateDescription(key, value));
+			descriptions.push_back(descriptionFactory.CreateDescription(key, value.dump()));
 		}
-
 		mEntityTemplates.insert({templateName, descriptions});
 	}
 }

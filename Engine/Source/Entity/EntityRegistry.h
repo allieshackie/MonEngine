@@ -61,9 +61,16 @@ public:
 	}
 
 	template <typename Component, typename... Args>
-	void AddComponent(EntityId id, Args&&... args)
+	void AddComponentWithArgs(EntityId id, Args&&... args)
 	{
 		mRegistry.emplace<Component>(id, std::forward<Args>(args)...);
+		mEventPublisher.Notify("component_added", id, typeid(Component));
+	}
+
+	template <typename Component>
+	void AddComponent(EntityId id, Component component)
+	{
+		mRegistry.emplace<Component>(id, component);
 		mEventPublisher.Notify("component_added", id, typeid(Component));
 	}
 
