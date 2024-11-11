@@ -1,38 +1,22 @@
-#include "AnimationDescription.h"
+#include "Entity/Components/AnimationComponent.h"
 
-#include "Util/FileSystem.h"
+#include "AnimationDescription.h"
 
 void AnimationDescription::ApplyToEntity(EntityId entity, EntityRegistry& entityRegistry)
 {
-	entityRegistry.AddComponent<AnimationComponent>(entity, mAnimations, mTransitions);
-}
+	std::istringstream jsonStream(mJson);
 
-void AnimationDescription::ParseJSON(const nlohmann::json& json)
-{
-	std::string fullMapPath = ANIMATIONS_FOLDER;
-	fullMapPath.append(json);
-
-	const auto animJson = FileSystem::ReadJson(fullMapPath);
-
-	assert(animJson.contains(ANIMATIONS_STRING));
-	for (const auto& anim : animJson[ANIMATIONS_STRING])
+	AnimationComponent anim;
+	try
 	{
-		// Each item in the array is a single key-value pair
-		for (const auto& [key, value] : anim.items())
-		{
-			mAnimations[key] = value;
-		}
+		cereal::JSONInputArchive archive(jsonStream);
+		anim.serialize(archive);
+	}
+	catch (const cereal::Exception& e)
+	{
+		std::cerr << "AnimationComponent deserialization error: " << e.what() << std::endl;
+		assert(false);
 	}
 
-	if (animJson.contains(LIST_STRING))
-	{
-		for (const auto& item : animJson[LIST_STRING])
-		{
-			AnimTransition t = {
-				mAnimations[item[FROM_STRING]], mAnimations[item[TO_STRING]], item[TRANSITION_TIME_STRING],
-				item[TARGETED_BLEND_TIME_STRING]
-			};
-			mTransitions.push_back(t);
-		}
-	}
+	entityRegistry.AddComponent<AnimationComponent>(entity, anim);
 }

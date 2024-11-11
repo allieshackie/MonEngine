@@ -1,9 +1,4 @@
 #pragma once
-#include <glm/vec3.hpp>
-
-#include "Entity/EntityRegistry.h"
-#include "Entity/Components/CollisionComponent.h"
-
 #include "Entity/Descriptions/DescriptionBase.h"
 
 class CollisionDescription : public DescriptionBase
@@ -20,14 +15,6 @@ public:
 	~CollisionDescription() override = default;
 
 	void ApplyToEntity(EntityId entity, EntityRegistry& entityRegistry) override;
-	void ParseJSON(const nlohmann::json& json) override;
 
 	static constexpr char JsonName[] = "collider";
-
-private:
-	static constexpr char COLLIDER_SHAPE_STRING[] = "collider_shape";
-	static constexpr char SIZE_STRING[] = "size";
-
-	ColliderShapes mColliderShape = ColliderShapes::Box;
-	glm::vec3 mSize = {0, 0, 0};
 };

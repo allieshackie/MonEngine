@@ -16,14 +16,6 @@ public:
 	~PhysicsDescription() override = default;
 
 	void ApplyToEntity(EntityId entity, EntityRegistry& entityRegistry) override;
-	void ParseJSON(const nlohmann::json& json) override;
 
 	static constexpr char JsonName[] = "rigidbody";
-
-private:
-	static constexpr char MASS_STRING[] = "mass";
-	static constexpr char FRICTION_STRING[] = "friction";
-
-	float mMass = 0.0f;
-	float mFriction = 1.0f;
 };

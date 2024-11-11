@@ -1,5 +1,5 @@
 #pragma once
-
+#include <json.hpp>
 #include "DescriptionBase.h"
 
 class DescriptionFactory
@@ -15,14 +15,14 @@ public:
 	}
 
 	std::shared_ptr<DescriptionBase> CreateDescription(const std::string& descriptionName,
-	                                                   const nlohmann::json& json) const
+	                                                   const std::string& json) const
 	{
 		const auto it = mDescriptionRegistry.find(descriptionName);
 		if (it != mDescriptionRegistry.end())
 		{
 			// Call the creation function to create a new component
 			auto description = it->second();
-			description->ParseJSON(json);
+			description->SaveJson(json);
 			return description;
 		}
 

@@ -1,17 +1,22 @@
+#include "Entity/Components/CollisionComponent.h"
+
 #include "CollisionDescription.h"
 
 void CollisionDescription::ApplyToEntity(EntityId entity, EntityRegistry& entityRegistry)
 {
-	entityRegistry.AddComponent<CollisionComponent>(entity, mColliderShape, mSize, -1, false);
-}
+	std::istringstream jsonStream(mJson);
 
-void CollisionDescription::ParseJSON(const nlohmann::json& json)
-{
-	assert(json.contains(COLLIDER_SHAPE_STRING));
-	mColliderShape = json[COLLIDER_SHAPE_STRING];
+	CollisionComponent collider;
+	try
+	{
+		cereal::JSONInputArchive archive(jsonStream);
+		collider.serialize(archive);
+	}
+	catch (const cereal::Exception& e)
+	{
+		std::cerr << "CollisionComponent deserialization error: " << e.what() << std::endl;
+		assert(false);
+	}
 
-	assert(json.contains(SIZE_STRING));
-	auto& size = json[SIZE_STRING];
-	assert(size.size() == 3);
-	mSize = glm::vec3(size[0], size[1], size[2]);
+	entityRegistry.AddComponent<CollisionComponent>(entity, collider);
 }

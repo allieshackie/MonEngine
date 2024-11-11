@@ -4,16 +4,19 @@
 
 void MeshDescription::ApplyToEntity(EntityId entity, EntityRegistry& entityRegistry)
 {
-	entityRegistry.AddComponent<MeshComponent>(entity, mMeshPath, mHasBones);
-}
+	std::istringstream jsonStream(mJson);
+	MeshComponent mesh;
 
-void MeshDescription::ParseJSON(const nlohmann::json& json)
-{
-	assert(json.contains(MESH_PATH_STRING));
-	mMeshPath = json[MESH_PATH_STRING];
-
-	if (json.contains(HAS_BONES_STRING))
+	try
 	{
-		mHasBones = json[HAS_BONES_STRING];
+		cereal::JSONInputArchive archive(jsonStream);
+		mesh.serialize(archive);
 	}
+	catch (const cereal::Exception& e)
+	{
+		std::cerr << "MeshComponent deserialization error: " << e.what() << std::endl;
+		assert(false);
+	}
+
+	entityRegistry.AddComponent<MeshComponent>(entity, mesh);
 }

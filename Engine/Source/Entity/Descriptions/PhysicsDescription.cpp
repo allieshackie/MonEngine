@@ -1,21 +1,22 @@
-#include <nlohmann/json.hpp>
-#include "Entity/EntityRegistry.h"
 #include "Entity/Components/PhysicsComponent.h"
 
 #include "PhysicsDescription.h"
 
 void PhysicsDescription::ApplyToEntity(EntityId entity, EntityRegistry& entityRegistry)
 {
-	entityRegistry.AddComponent<PhysicsComponent>(entity, mMass, mFriction, glm::vec3{0, 0, 0});
-}
+	std::istringstream jsonStream(mJson);
+	PhysicsComponent physics;
 
-void PhysicsDescription::ParseJSON(const nlohmann::json& json)
-{
-	assert(json.contains(MASS_STRING));
-	mMass = json[MASS_STRING];
-
-	if (json.contains(FRICTION_STRING))
+	try
 	{
-		mFriction = json[FRICTION_STRING];
+		cereal::JSONInputArchive archive(jsonStream);
+		physics.serialize(archive);
 	}
+	catch (const cereal::Exception& e)
+	{
+		std::cerr << "PhysicsComponent deserialization error: " << e.what() << std::endl;
+		assert(false);
+	}
+
+	entityRegistry.AddComponent<PhysicsComponent>(entity, physics);
 }
