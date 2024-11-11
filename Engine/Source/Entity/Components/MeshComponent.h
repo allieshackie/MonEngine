@@ -1,6 +1,6 @@
 #pragma once
 #include <glm/mat4x4.hpp>
-#include "Graphics/Animation/Animation.h"
+#include "Util/SerialUtil.h"
 
 struct MeshComponent
 {
@@ -14,4 +14,11 @@ struct MeshComponent
 
 	// debug runtime
 	int mCurrentBoneIndex = 0;
+
+	template <class Archive>
+	void serialize(Archive& archive)
+	{
+		archive(cereal::make_nvp("mesh_path", mMeshPath),
+		        cereal::make_nvp("has_bones", mHasBones));
+	}
 };
