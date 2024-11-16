@@ -24,7 +24,7 @@ private:
 	void _UnloadLevel(const EngineContext& context, MapRegistry& mapRegistry,
 	                  LuaSystem& luaSystem) const;
 
-	void _ParseLevelJson(const std::string& levelName);
+	void _ParseLevelJson(const std::string& levelName, const EngineContext& context);
 
 	std::unique_ptr<Level> mCurrentLevel = nullptr;
 	std::unique_ptr<Camera> mCamera = nullptr;

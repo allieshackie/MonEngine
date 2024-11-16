@@ -34,7 +34,7 @@ void LevelManager::LoadLevel(const std::string& levelName, const EngineContext& 
 	std::string fullFileName = LEVELS_FOLDER;
 	fullFileName.append(levelName);
 
-	_ParseLevelJson(fullFileName);
+	_ParseLevelJson(fullFileName, context);
 
 	if (mCurrentLevel == nullptr)
 	{
@@ -83,7 +83,7 @@ void LevelManager::_UnloadLevel(const EngineContext& context, MapRegistry& mapRe
 	context.FlushEntities();
 }
 
-void LevelManager::_ParseLevelJson(const std::string& levelName)
+void LevelManager::_ParseLevelJson(const std::string& levelName, const EngineContext& context)
 {
 	mCurrentLevel = std::make_unique<Level>();
 	const auto json = FileSystem::ReadJson(levelName);
@@ -102,7 +102,7 @@ void LevelManager::_ParseLevelJson(const std::string& levelName)
 	assert(up.size() == 3);
 	auto upVec = glm::vec3(up[0], up[1], up[2]);
 
-	mCamera = std::make_unique<Camera>(positionVec, frontVec, upVec);
+	mCamera = std::make_unique<Camera>(context.GetEntityRegistry(), positionVec, frontVec, upVec);
 
 	if (json.contains(MAPS_STRING))
 	{

@@ -34,7 +34,7 @@ void Game::Init(EngineContext* engine)
 
 void Game::Update(float dt) const
 {
-	mMovementSystem->Update(mEngine->GetEntityRegistry(), mEngine->GetPhysicsSystem());
+	mMovementSystem->Update(mEngine->GetEntityRegistry(), mEngine->GetPhysicsSystem(), mEngine->GetCamera());
 }
 
 void Game::Render()

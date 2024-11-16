@@ -158,6 +158,7 @@ void EngineContext::Run(GameInterface* game) const
 
 		mInputHandler->Update();
 		game->Update(mTimer->mDT);
+		mLevelManager->GetCamera().Update(*mEntityRegistry);
 
 		mAnimator->Update(deltaTime, *mEntityRegistry, *mResourceManager);
 
@@ -232,6 +233,11 @@ EntityRegistry& EngineContext::GetEntityRegistry() const
 InputHandler& EngineContext::GetInputHandler() const
 {
 	return *mInputHandler;
+}
+
+Camera& EngineContext::GetCamera() const
+{
+	return mLevelManager->GetCamera();
 }
 
 void EngineContext::FlushEntities() const
