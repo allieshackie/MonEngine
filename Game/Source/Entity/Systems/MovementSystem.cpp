@@ -3,10 +3,10 @@
 #include <glm/gtx/quaternion.hpp>
 #include "BulletCollision/CollisionDispatch/btCollisionWorld.h"
 
+#include "Core/Camera.h"
 #include "Entity/EntityRegistry.h"
 #include "Entity/Components/AnimationComponent.h"
 #include "Entity/Components/CollisionComponent.h"
-#include "Entity/Components/MeshComponent.h"
 #include "Entity/Components/PhysicsComponent.h"
 #include "Entity/Components/PlayerComponent.h"
 #include "Physics/PhysicsSystem.h"
@@ -15,15 +15,15 @@
 
 glm::vec3 rotateAxis(0.0f, 1.0f, 0.0f);
 
-void MovementSystem::Update(EntityRegistry& registry, PhysicsSystem& physicsSystem)
+void MovementSystem::Update(EntityRegistry& registry, PhysicsSystem& physicsSystem, const Camera& camera)
 {
 	const auto playerView = registry.GetEnttRegistry().view<
 		PlayerComponent, AnimationComponent, PhysicsComponent, CollisionComponent>();
-	playerView.each([=, &physicsSystem](const auto& player, auto& anim, auto& physics, const auto& collider)
+	playerView.each([=, &physicsSystem, &camera](const auto& player, auto& anim, auto& physics, const auto& collider)
 	{
 		_ApplyJump(collider, player, physicsSystem);
 		// Apply movement directions to physics component
-		_ApplyVelocityFromDirection(player, physics);
+		_ApplyVelocityFromDirection(player, physics, camera);
 		_ApplyMovementForce(physics, collider);
 
 		_UpdateMovementAnim(anim, physics);
@@ -49,24 +49,24 @@ static void _ApplyJump(const CollisionComponent& collider, const PlayerComponent
 	}
 }
 
-static void _ApplyVelocityFromDirection(const PlayerComponent& player, PhysicsComponent& physics)
+static void _ApplyVelocityFromDirection(const PlayerComponent& player, PhysicsComponent& physics, const Camera& camera)
 {
 	glm::vec3 velocity(0.0f, 0.0f, 0.0f);
 	if (player.mMovementInput & MovementInput::Forward)
 	{
-		velocity.z -= 1.0f;
+		velocity += glm::normalize(camera.GetFront());
 	}
 	if (player.mMovementInput & MovementInput::Backward)
 	{
-		velocity.z += 1.0f;
+		velocity -= glm::normalize(camera.GetFront());
 	}
 	if (player.mMovementInput & MovementInput::Left)
 	{
-		velocity.x -= 1.0f;
+		velocity -= camera.GetRight();
 	}
 	if (player.mMovementInput & MovementInput::Right)
 	{
-		velocity.x += 1.0f;
+		velocity += camera.GetRight();
 	}
 
 	if (glm::length(velocity) > 0.0f)
