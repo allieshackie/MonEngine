@@ -90,18 +90,16 @@ static void _ApplyMovementForce(const PhysicsComponent& physics, const Collision
 		btVector3 bulletVelocity(velocity.x, velocity.y, velocity.z);
 		bulletVelocity *= 10.0f; // Multiply by a speed factor
 
-		collider.mRigidBody->activate();
-		collider.mRigidBody->applyCentralForce(bulletVelocity);
-
+		btTransform transform = collider.mRigidBody->getWorldTransform();
 		glm::vec3 direction = glm::normalize(glm::vec3(velocity.x, 0.0f, velocity.z));
 		float yaw = std::atan2(direction.x, direction.z);
-		glm::quat targetRotation = glm::angleAxis(yaw, glm::vec3(0.0f, 1.0f, 0.0f));
-		btTransform transform = collider.mRigidBody->getWorldTransform();
-		btQuaternion currentRotation = transform.getRotation();
-		glm::quat currentQuat(currentRotation.w(), currentRotation.x(), currentRotation.y(), currentRotation.z());
-		glm::quat newRotation = glm::slerp(currentQuat, targetRotation, 0.1f);
-		btQuaternion bulletRotation(newRotation.x, newRotation.y, newRotation.z, newRotation.w);
-		transform.setRotation(bulletRotation);
+
+		auto targetRotation = btQuaternion({0.0f, 1.0f, 0.0f}, yaw);
+		auto newRotation = transform.getRotation().slerp(targetRotation, 0.1f);
+		transform.setRotation(newRotation);
+
+		collider.mRigidBody->activate();
+		collider.mRigidBody->applyCentralForce(bulletVelocity);
 		collider.mRigidBody->setWorldTransform(transform);
 	}
 }
