@@ -15,7 +15,9 @@
             "mesh_path": "dogemage_fixed.gltf",
             "has_bones": true
         },
-        "player": {},
+        "player": {
+            "camera_target": true
+        },
         "rigidbody": {
             "mass": 1.0,
             "friction": 1.0

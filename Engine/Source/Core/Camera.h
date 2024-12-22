@@ -27,6 +27,7 @@ public:
 	const glm::vec3& GetFront() const { return mCameraFront; }
 	const glm::vec3& GetRight() const { return mCameraRight; }
 
+	void ToggleFollowCam() { mFollowCam = !mFollowCam; }
 	void SetPosition(const glm::vec3 pos);
 	void SetFront(const glm::vec3 front);
 	void SetUp(const glm::vec3 up);

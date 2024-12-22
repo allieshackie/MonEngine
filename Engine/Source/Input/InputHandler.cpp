@@ -69,6 +69,9 @@ void InputHandler::AddEditorInputs(Camera& camera)
 	RegisterButtonHoldHandler(LLGL::Key::Right, [&camera]() { camera.MoveRight(); }, []()
 	{
 	});
+	RegisterButtonHoldHandler(LLGL::Key::D0, [&camera]() { camera.ToggleFollowCam(); }, []()
+	{
+	});
 
 	// Handlers for handling the camera zoom
 	RegisterZoomInHandler([&camera]() { camera.ZoomIn(); });

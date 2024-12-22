@@ -25,7 +25,6 @@ void MovementSystem::Update(EntityRegistry& registry, PhysicsSystem& physicsSyst
 		// Apply movement directions to physics component
 		_ApplyVelocityFromDirection(player, physics, camera);
 		_ApplyMovementForce(physics, collider);
-
 		_UpdateMovementAnim(anim, physics);
 	});
 }
@@ -90,13 +89,31 @@ static void _ApplyMovementForce(const PhysicsComponent& physics, const Collision
 		btVector3 bulletVelocity(velocity.x, velocity.y, velocity.z);
 		bulletVelocity *= 10.0f; // Multiply by a speed factor
 
+		system("cls");
+
 		btTransform transform = collider.mRigidBody->getWorldTransform();
 		glm::vec3 direction = glm::normalize(glm::vec3(velocity.x, 0.0f, velocity.z));
+		printf("Direction: %f, %f, %f\n", direction.x, direction.y, direction.z);
+
+		// Check if the player is moving backward
+		if (direction.z < 0.0f)
+		{
+			direction.x *= -1;
+		}
+
 		float yaw = std::atan2(direction.x, direction.z);
+		printf("Yaw: %f\n", yaw);
+
+		btQuaternion currentRotation = transform.getRotation();
+		printf("Current Rotation: %f, %f, %f, %f\n", currentRotation.x(), currentRotation.y(), currentRotation.z(),
+		       currentRotation.w());
 
 		auto targetRotation = btQuaternion({0.0f, 1.0f, 0.0f}, yaw);
-		auto newRotation = transform.getRotation().slerp(targetRotation, 0.1f);
-		transform.setRotation(newRotation);
+		printf("Target Rotation: %f, %f, %f, %f", targetRotation.x(), targetRotation.y(), targetRotation.z(),
+		       targetRotation.w());
+
+		//auto newRotation = currentRotation.slerp(targetRotation, 0.1f);
+		transform.setRotation(targetRotation);
 
 		collider.mRigidBody->activate();
 		collider.mRigidBody->applyCentralForce(bulletVelocity);
