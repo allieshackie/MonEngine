@@ -1,5 +1,4 @@
 #pragma once
-#include <array>
 #include "Util/SerialUtil.h"
 
 struct MapComponent
@@ -9,7 +8,7 @@ struct MapComponent
 	int mRows = 0;
 	int mColumns = 0;
 
-	std::array<uint32_t, 2> mTextureSize = {0, 0};
+	glm::vec2 mTextureSize = {0, 0};
 
 	std::string mTexturePath;
 	int mTextureMapRows = 0;

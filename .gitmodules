@@ -5,9 +5,6 @@
 [submodule "ThirdParty/entt"]
 	path = ThirdParty/entt
 	url = https://github.com/skypjack/entt
-[submodule "ThirdParty/json"]
-	path = ThirdParty/json
-	url = https://github.com/nlohmann/json
 [submodule "ThirdParty/LLGL"]
 	path = ThirdParty/LLGL
 	url = https://github.com/LukasBanana/LLGL
@@ -26,3 +23,6 @@
 [submodule "ThirdParty/cereal"]
 	path = ThirdParty/cereal
 	url = https://github.com/USCiLab/cereal
+[submodule "ThirdParty/json"]
+	path = ThirdParty/json
+	url = https://github.com/nlohmann/json

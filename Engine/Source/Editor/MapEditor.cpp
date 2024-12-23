@@ -1,5 +1,4 @@
 #include <filesystem>
-#include <nlohmann/json.hpp>
 #include "imgui.h"
 #include "Core/Camera.h"
 #include "Core/LevelManager.h"
@@ -101,7 +100,7 @@ void MapEditor::_NewMapMenu(bool* p_open, Camera& camera)
 		if (ImGui::Button("Create"))
 		{
 			// Create map json file
-			nlohmann::json mapJsonData;
+			//nlohmann::json mapJsonData;
 			//mapJsonData[MapHelpers::ID_STRING] = id;
 			//mapJsonData[MapHelpers::ROWS_STRING] = rows;
 			//mapJsonData[MapHelpers::COLUMNS_STRING] = columns;
@@ -115,7 +114,7 @@ void MapEditor::_NewMapMenu(bool* p_open, Camera& camera)
 			std::string mapJson = MAPS_FOLDER;
 			mapJson.append(fileName).append(".json");
 			std::ofstream mapWrite(mapJson);
-			mapWrite << mapJsonData;
+			//mapWrite << mapJsonData;
 			mapWrite.close();
 
 			std::string mapTxt = MAPS_FOLDER;
