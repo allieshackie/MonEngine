@@ -2,7 +2,7 @@
 
 #include "CollisionDescription.h"
 
-void CollisionDescription::ApplyToEntity(EntityId entity, EntityRegistry& entityRegistry)
+void CollisionDescription::ApplyToEntity(Entity* entity, entt::registry& registry)
 {
 	std::istringstream jsonStream(mJson);
 
@@ -18,5 +18,5 @@ void CollisionDescription::ApplyToEntity(EntityId entity, EntityRegistry& entity
 		assert(false);
 	}
 
-	entityRegistry.AddComponent<CollisionComponent>(entity, collider);
+	entity->AddComponent<CollisionComponent>(collider);
 }

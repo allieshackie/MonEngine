@@ -2,7 +2,7 @@
 
 #include "PhysicsDescription.h"
 
-void PhysicsDescription::ApplyToEntity(EntityId entity, EntityRegistry& entityRegistry)
+void PhysicsDescription::ApplyToEntity(Entity* entity, entt::registry& registry)
 {
 	std::istringstream jsonStream(mJson);
 	PhysicsComponent physics;
@@ -18,5 +18,5 @@ void PhysicsDescription::ApplyToEntity(EntityId entity, EntityRegistry& entityRe
 		assert(false);
 	}
 
-	entityRegistry.AddComponent<PhysicsComponent>(entity, physics);
+	entity->AddComponent<PhysicsComponent>(physics);
 }

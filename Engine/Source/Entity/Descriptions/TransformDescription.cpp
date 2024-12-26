@@ -2,7 +2,7 @@
 
 #include "TransformDescription.h"
 
-void TransformDescription::ApplyToEntity(EntityId entity, EntityRegistry& entityRegistry)
+void TransformDescription::ApplyToEntity(Entity* entity, entt::registry& registry)
 {
 	std::istringstream jsonStream(mJson);
 	TransformComponent transform;
@@ -18,5 +18,5 @@ void TransformDescription::ApplyToEntity(EntityId entity, EntityRegistry& entity
 		assert(false);
 	}
 
-	entityRegistry.AddComponent<TransformComponent>(entity, transform);
+	entity->AddComponent<TransformComponent>(transform);
 }

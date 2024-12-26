@@ -2,8 +2,8 @@
 
 #include "PlayerDescription.h"
 
-void PlayerDescription::ApplyToEntity(EntityId entity, EntityRegistry& entityRegistry)
+void PlayerDescription::ApplyToEntity(Entity* entity, entt::registry& registry)
 {
 	PlayerComponent player;
-	entityRegistry.AddComponent<PlayerComponent>(entity, player);
+	entity->AddComponent<PlayerComponent>(player);
 }

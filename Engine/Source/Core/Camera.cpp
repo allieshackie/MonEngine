@@ -3,19 +3,19 @@
 
 #include "Camera.h"
 
-Camera::Camera(EntityRegistry& entityRegistry, glm::vec3 position, glm::vec3 front, glm::vec3 up)
+Camera::Camera(SceneManager& sceneManager, glm::vec3 position, glm::vec3 front, glm::vec3 up)
 	: mCameraPos(position), mCameraFront(front), mCameraUp(up)
 {
 	UpdateView();
 
-	entityRegistry.GetEnttRegistry().on_construct<PlayerComponent>().connect<&Camera::SetLookTarget>(this);
+	sceneManager.GetEnttRegistry().on_construct<PlayerComponent>().connect < &Camera::SetLookTarget > (this);
 }
 
-void Camera::Update(EntityRegistry& entityRegistry)
+void Camera::Update(SceneManager& sceneManager)
 {
 	if (mFollowCam)
 	{
-		const auto& transform = entityRegistry.GetComponent<TransformComponent>(mCameraTargetEntity);
+		const auto& transform = sceneManager.GetComponent<TransformComponent>(mCameraTargetEntity);
 		if (transform.mPosition != mCameraPos)
 		{
 			mCameraPos = transform.mPosition;
@@ -103,9 +103,9 @@ void Camera::UpdateRight()
 	}
 }
 
-void Camera::SetLookTarget(EnTTRegistry& registry, EntityId entity)
+void Camera::SetLookTarget(entt::registry& registry, entt::entity id)
 {
-	mCameraTargetEntity = entity;
+	mCameraTargetEntity = id;
 	mFollowCam = true;
 }
 

@@ -2,7 +2,7 @@
 
 #include "MeshDescription.h"
 
-void MeshDescription::ApplyToEntity(EntityId entity, EntityRegistry& entityRegistry)
+void MeshDescription::ApplyToEntity(Entity* entity, entt::registry& registry)
 {
 	std::istringstream jsonStream(mJson);
 	MeshComponent mesh;
@@ -18,5 +18,5 @@ void MeshDescription::ApplyToEntity(EntityId entity, EntityRegistry& entityRegis
 		assert(false);
 	}
 
-	entityRegistry.AddComponent<MeshComponent>(entity, mesh);
+	entity->AddComponent<MeshComponent>(mesh);
 }

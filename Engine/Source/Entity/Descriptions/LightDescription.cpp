@@ -2,7 +2,7 @@
 
 #include "LightDescription.h"
 
-void LightDescription::ApplyToEntity(EntityId entity, EntityRegistry& entityRegistry)
+void LightDescription::ApplyToEntity(Entity* entity, entt::registry& registry)
 {
 	std::istringstream jsonStream(mJson);
 	LightComponent light;
@@ -18,5 +18,5 @@ void LightDescription::ApplyToEntity(EntityId entity, EntityRegistry& entityRegi
 		assert(false);
 	}
 
-	entityRegistry.AddComponent<LightComponent>(entity, light);
+	entity->AddComponent<LightComponent>(light);
 }

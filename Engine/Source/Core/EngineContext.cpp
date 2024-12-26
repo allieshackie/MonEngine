@@ -25,20 +25,19 @@ void EngineContext::_Init(const LLGL::Extent2D screenSize, const LLGL::UTF8Strin
 	_InitDescriptions();
 
 	mEventPublisher = std::make_unique<EventPublisher>();
-	mEntityRegistry = std::make_unique<EntityRegistry>(*mDescriptionFactory, *mEventPublisher);
 	mMapRegistry = std::make_unique<MapRegistry>();
 	mTimer = std::make_unique<Timer>();
 
-	mAnimator = std::make_unique<Animator>(*mEntityRegistry, *mResourceManager);
+	mAnimator = std::make_unique<Animator>(*mSceneManager, *mResourceManager);
 	mRenderContext = std::make_unique<RenderContext>(screenSize, backgroundClearColor, usePerspective);
 	GUISystem::InitGUI(*mRenderContext);
 	mLuaSystem = std::make_unique<LuaSystem>();
-	mLevelManager = std::make_unique<LevelManager>();
+	mSceneManager = std::make_unique<SceneManager>(*mDescriptionFactory);
 
 	mPhysicsSystem = std::make_unique<PhysicsSystem>(*this);
 
 	mResourceManager->LoadAllResources(mRenderContext->GetRenderSystem());
-	mRenderContext->InitPipelines(title, mInputHandler, *mEntityRegistry, *mResourceManager);
+	mRenderContext->InitPipelines(title, mInputHandler, *mSceneManager, *mResourceManager);
 
 	// TODO: Comment/uncomment for editor gui menu
 	OpenEditorMenu();
@@ -118,7 +117,7 @@ void EngineContext::_InitDescriptions() const
 
 void EngineContext::_FixedUpdate(float dt) const
 {
-	mPhysicsSystem->Update(dt, *mEntityRegistry);
+	mPhysicsSystem->Update(dt, *mSceneManager);
 }
 
 EngineContext::EngineContext(GameInterface* game, const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
@@ -158,9 +157,9 @@ void EngineContext::Run(GameInterface* game) const
 
 		mInputHandler->Update();
 		game->Update(mTimer->mDT);
-		mLevelManager->GetCamera().Update(*mEntityRegistry);
+		mSceneManager->GetCamera().Update(*mSceneManager);
 
-		mAnimator->Update(deltaTime, *mEntityRegistry, *mResourceManager);
+		mAnimator->Update(deltaTime, *mSceneManager, *mResourceManager);
 
 		// TODO: Debug draw model bones
 
@@ -184,9 +183,9 @@ void EngineContext::Run(GameInterface* game) const
 
 		game->Render();
 
-		if (mLevelManager->GetCurrentLevel())
+		if (mSceneManager->GetCurrentScene())
 		{
-			mRenderContext->Render(mLevelManager->GetCamera(), *mEntityRegistry, *mResourceManager);
+			mRenderContext->Render(mSceneManager->GetCamera(), *mSceneManager, *mResourceManager);
 		}
 
 		// Render GUI last so menus draw on top
@@ -195,7 +194,7 @@ void EngineContext::Run(GameInterface* game) const
 		// GUISystem::RenderGuiElements();  DEBUG GUI MENU
 		if (mEditorGUI != nullptr)
 		{
-			mEditorGUI->Render(*mEntityRegistry, *mResourceManager);
+			mEditorGUI->Render(*mSceneManager, *mResourceManager);
 		}
 		GUISystem::GUIEndFrame();
 
@@ -220,16 +219,6 @@ void EngineContext::OpenEditorMenu()
 	mEditorGUI = std::make_unique<EditorGUI>();
 }
 
-EntityId EngineContext::CreateGameObject(const std::string& entityTemplateName) const
-{
-	return mEntityRegistry->CreateEntityFromTemplate(entityTemplateName.c_str());
-}
-
-EntityRegistry& EngineContext::GetEntityRegistry() const
-{
-	return *mEntityRegistry;
-}
-
 InputHandler& EngineContext::GetInputHandler() const
 {
 	return *mInputHandler;
@@ -237,32 +226,27 @@ InputHandler& EngineContext::GetInputHandler() const
 
 Camera& EngineContext::GetCamera() const
 {
-	return mLevelManager->GetCamera();
+	return mSceneManager->GetCamera();
 }
 
-void EngineContext::FlushEntities() const
+const std::vector<const char*>& EngineContext::GetSceneNames() const
 {
-	mEntityRegistry->FlushEntities();
+	return mSceneManager->GetSceneNames();
 }
 
-const std::vector<const char*>& EngineContext::GetLevelNames() const
+void EngineContext::LoadScene(const char* SceneName) const
 {
-	return mLevelManager->GetLevelNames();
+	mSceneManager->LoadScene(SceneName, *this, *mMapRegistry, *mLuaSystem);
 }
 
-void EngineContext::LoadLevel(const char* levelName) const
+const MonScene* EngineContext::GetScene() const
 {
-	mLevelManager->LoadLevel(levelName, *this, *mMapRegistry, *mLuaSystem);
+	return mSceneManager->GetCurrentScene();
 }
 
-const Level* EngineContext::GetLevel() const
+void EngineContext::GenerateMapTexture(entt::entity mapId) const
 {
-	return mLevelManager->GetCurrentLevel();
-}
-
-void EngineContext::GenerateMapTexture(EntityId mapId) const
-{
-	mRenderContext->GenerateMapTexture(*mEntityRegistry, *mResourceManager, mapId);
+	mRenderContext->GenerateMapTexture(*mSceneManager, *mResourceManager, mapId);
 }
 
 void EngineContext::DrawPoint(glm::vec3 position, float size, glm::vec4 color) const
@@ -310,9 +294,9 @@ void EngineContext::ToggleEditorMode(bool toggle) const
 {
 	if (toggle)
 	{
-		if (mLevelManager->GetCurrentLevel())
+		if (mSceneManager->GetCurrentScene())
 		{
-			mInputHandler->AddEditorInputs(mLevelManager->GetCamera());
+			mInputHandler->AddEditorInputs(mSceneManager->GetCamera());
 		}
 	}
 }

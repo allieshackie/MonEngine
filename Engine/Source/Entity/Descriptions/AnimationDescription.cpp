@@ -2,7 +2,7 @@
 
 #include "AnimationDescription.h"
 
-void AnimationDescription::ApplyToEntity(EntityId entity, EntityRegistry& entityRegistry)
+void AnimationDescription::ApplyToEntity(Entity* entity, entt::registry& registry)
 {
 	std::istringstream jsonStream(mJson);
 
@@ -18,5 +18,5 @@ void AnimationDescription::ApplyToEntity(EntityId entity, EntityRegistry& entity
 		assert(false);
 	}
 
-	entityRegistry.AddComponent<AnimationComponent>(entity, anim);
+	entity->AddComponent<AnimationComponent>(anim);
 }

@@ -1,14 +1,14 @@
 #include <filesystem>
 #include "imgui.h"
 #include "Core/Camera.h"
-#include "Core/LevelManager.h"
+#include "Core/SceneManager.h"
 #include "Graphics/RenderContext.h"
 #include "Graphics/Core/ResourceManager.h"
 #include "Map/MapRegistry.h"
 
 #include "MapEditor.h"
 
-MapEditor::MapEditor(const EngineContext& engineContext, InputHandler& inputHandler, LevelManager& levelManager,
+MapEditor::MapEditor(const EngineContext& engineContext, InputHandler& inputHandler, SceneManager& sceneManager,
                      MapRegistry& mapRegistry, RenderContext& renderContext)
 	: mInputHandler(inputHandler), mMapRegistry(mapRegistry), mRenderContext(renderContext)
 {

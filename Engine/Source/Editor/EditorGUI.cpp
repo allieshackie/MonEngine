@@ -1,7 +1,7 @@
 #include "imgui.h"
 #include <filesystem>
 
-#include "Core/LevelManager.h"
+#include "Core/SceneManager.h"
 
 #include "EditorGUI.h"
 

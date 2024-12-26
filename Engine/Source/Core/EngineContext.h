@@ -1,10 +1,9 @@
 #pragma once
 
 #include "Core/EventListener.h"
-#include "Core/LevelManager.h"
+#include "Core/SceneManager.h"
 #include "Core/Timer.h"
 #include "Editor/EditorGUI.h"
-#include "Entity/EntityRegistry.h"
 #include "Entity/Descriptions/DescriptionFactory.h"
 #include "Graphics/RenderContext.h"
 #include "Graphics/Core/ResourceManager.h"
@@ -23,7 +22,8 @@ class EngineContext
 public:
 	EngineContext(GameInterface* game, const LLGL::Extent2D screenSize = {800, 600},
 	              const LLGL::UTF8String& title = "MonDev",
-	              const LLGL::ColorRGBAf backgroundClearColor = {0.0f, 0.0f, 0.0f, 1.0f}, bool usePerspective = true);
+	              const LLGL::ColorRGBAf backgroundClearColor = {0.0f, 0.0f, 0.0f, 1.0f},
+	              bool usePerspective = true);
 	virtual ~EngineContext() = default;
 
 	// Since we define a destructor, rule of 5 states that we should define
@@ -40,24 +40,20 @@ public:
 	void LoadFont(const char* fontFileName) const;
 	void OpenEditorMenu();
 
+	// ========= SYSTEM GETTERS ============
 	EntityRegistry& GetEntityRegistry() const;
 	InputHandler& GetInputHandler() const;
 	PhysicsSystem& GetPhysicsSystem() const { return *mPhysicsSystem; }
 	Camera& GetCamera() const;
 
-	EntityId CreateGameObject(const std::string& entityTemplateName) const;
-	template <typename Component>
-	Component& GetComponent(EntityId id) const;
-	template <typename Component>
-	Component* TryGetComponent(EntityId id) const;
-	void FlushEntities() const;
-
-	const std::vector<const char*>& GetLevelNames() const;
-	void LoadLevel(const char* levelName) const;
-	const Level* GetLevel() const;
+	// ========= SCENE MANAGER ============
+	const std::vector<const char*>& GetSceneNames() const;
+	void LoadScene(const char* sceneName) const;
+	const MonScene* GetScene() const;
 
 	void GenerateMapTexture(EntityId mapId) const;
 
+	// ========= RENDER CONTEXT ============
 	void DrawPoint(glm::vec3 position, float size, glm::vec4 color) const;
 	void DrawLine(glm::vec3 from, glm::vec3 to, glm::vec4 color) const;
 	void DrawBox(glm::vec3 position, glm::vec3 size, glm::vec4 color, bool filled = true) const;
@@ -98,12 +94,11 @@ private:
 	std::unique_ptr<ResourceManager> mResourceManager;
 	std::unique_ptr<Animator> mAnimator;
 
-	std::unique_ptr<LevelManager> mLevelManager;
+	std::unique_ptr<SceneManager> mSceneManager;
 	std::unique_ptr<GUIBase> mGUIMenu;
 	std::unique_ptr<LuaSystem> mLuaSystem;
 	std::unique_ptr<EditorGUI> mEditorGUI;
 
-	std::unique_ptr<EntityRegistry> mEntityRegistry;
 	std::unique_ptr<EventPublisher> mEventPublisher;
 
 	// systems
@@ -113,15 +108,3 @@ private:
 	bool mRunning = true;
 	bool mDebugDraw = false;
 };
-
-template <typename Component>
-inline Component& EngineContext::GetComponent(EntityId id) const
-{
-	return mEntityRegistry->GetComponent<Component>(id);
-}
-
-template <typename Component>
-inline Component* EngineContext::TryGetComponent(EntityId id) const
-{
-	return mEntityRegistry->TryGetComponent<Component>(id);
-}

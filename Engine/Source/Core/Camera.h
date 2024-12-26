@@ -1,18 +1,18 @@
 #pragma once
+#include <entt/entity/entity.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/geometric.hpp>
 #include <glm/vec3.hpp>
 #include <glm/ext/matrix_transform.hpp>
-#include "Entity/EntityRegistry.h"
 
-class EntityRegistry;
+class SceneManager;
 
 class Camera
 {
 public:
-	Camera(EntityRegistry& entityRegistry, glm::vec3 position, glm::vec3 front, glm::vec3 up);
+	Camera(SceneManager& entityRegistry, glm::vec3 position, glm::vec3 front, glm::vec3 up);
 
-	void Update(EntityRegistry& entityRegistry);
+	void Update(SceneManager& entityRegistry);
 
 	void MoveLeft();
 	void MoveRight();
@@ -32,12 +32,12 @@ public:
 	void SetFront(const glm::vec3 front);
 	void SetUp(const glm::vec3 up);
 	void UpdateRight();
-	void SetLookTarget(EnTTRegistry& registry, EntityId entity);
+	void SetLookTarget(entt::registry& registry, entt::entity id);
 
 	void UpdateView();
 
 private:
-	EntityId mCameraTargetEntity = -1;
+	entt::entity mCameraTargetEntity{entt::null};
 	glm::vec3 mCameraTarget = {0.0f, 0.0f, 0.0f};
 	glm::vec3 mCameraFollowOffset = {0.0f, 10.0f, -20.0f};
 	glm::vec3 mCameraLookOffset = {0.0f, 6.0f, -1.0f};

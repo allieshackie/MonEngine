@@ -12,7 +12,7 @@
 #include "LLGL/Utils/Utility.h"
 
 #include "Core/Camera.h"
-#include "Core/LevelManager.h"
+#include "Core/SceneManager.h"
 #include "Graphics/Core/Shader.h"
 #include "Graphics/Core/Texture.h"
 #include "Util/FileSystem.h"

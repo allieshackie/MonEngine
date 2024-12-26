@@ -44,12 +44,12 @@ void Mon::Lua::BindEngineContext(lua_State* state, const EngineContext& engine)
 	luaL_newmetatable(state, Engine::EngineTableName);
 
 	// Add the getValue method to the metatable
-	lua_pushcfunction(state, Mon::Engine::LoadLevel);
-	lua_setfield(state, -2, "LoadLevel");
+	lua_pushcfunction(state, Mon::Engine::LoadScene);
+	lua_setfield(state, -2, "LoadScene");
 
 	// Add the getValue method to the metatable
-	lua_pushcfunction(state, Mon::Engine::GetLevelNames);
-	lua_setfield(state, -2, "GetLevelNames");
+	lua_pushcfunction(state, Mon::Engine::GetSceneNames);
+	lua_setfield(state, -2, "GetSceneNames");
 
 	// Add the getValue method to the metatable
 	lua_pushcfunction(state, Mon::Engine::OpenEditorMenu);
@@ -356,38 +356,38 @@ int Mon::UI::Impl_GetCurrentItem(lua_State* L)
 	return 0;
 }
 
-int Mon::Engine::LoadLevel(lua_State* L)
+int Mon::Engine::LoadScene(lua_State* L)
 {
 	auto userdata = static_cast<EngineContext**>(luaL_checkudata(L, 1, EngineTableName));
 	if (*userdata)
 	{
 		const char* label = luaL_checkstring(L, 2);
-		(*userdata)->LoadLevel(label);
+		(*userdata)->LoadScene(label);
 	}
 
 	return 0;
 }
 
-int Mon::Engine::GetLevelNames(lua_State* L)
+int Mon::Engine::GetSceneNames(lua_State* L)
 {
 	auto userdata = static_cast<EngineContext**>(luaL_checkudata(L, 1, EngineTableName));
 	if (*userdata)
 	{
-		const auto& levelNames = (*userdata)->GetLevelNames();
-		// Create a Lua table to store the level names
+		const auto& SceneNames = (*userdata)->GetSceneNames();
+		// Create a Lua table to store the Scene names
 		lua_newtable(L);
 
 		// Iterate through the vector and push each string onto the Lua stack
-		for (size_t i = 0; i < levelNames.size(); ++i)
+		for (size_t i = 0; i < SceneNames.size(); ++i)
 		{
 			// Push the string onto the Lua stack
-			lua_pushstring(L, levelNames[i]);
+			lua_pushstring(L, SceneNames[i]);
 
 			// Set the element at index i+1 in the Lua table
 			lua_rawseti(L, -2, static_cast<int>(i + 1));
 		}
 
-		// Return the Lua table containing the level names
+		// Return the Lua table containing the Scene names
 		return 1;
 	}
 

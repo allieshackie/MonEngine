@@ -64,8 +64,8 @@ namespace Mon
 	namespace Engine
 	{
 		inline const char* EngineTableName = "EngineMetaTable";
-		int LoadLevel(lua_State* L);
-		int GetLevelNames(lua_State* L);
+		int LoadScene(lua_State* L);
+		int GetSceneNames(lua_State* L);
 		int OpenEditorMenu(lua_State* L);
 	}
 }

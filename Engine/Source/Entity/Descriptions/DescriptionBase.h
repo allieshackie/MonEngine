@@ -1,5 +1,5 @@
 #pragma once
-#include "Entity/EntityRegistry.h"
+#include "Entity/Entity.h"
 
 class DescriptionBase
 {
@@ -14,7 +14,7 @@ public:
 
 	virtual ~DescriptionBase() = default;
 
-	virtual void ApplyToEntity(EntityId entity, EntityRegistry& entityRegistry) = 0;
+	virtual void ApplyToEntity(Entity* entity, entt::registry& registry) = 0;
 
 	void SaveJson(const std::string& jsonFrag)
 	{

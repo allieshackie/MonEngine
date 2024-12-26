@@ -14,7 +14,7 @@ public:
 
 	~LightDescription() override = default;
 
-	void ApplyToEntity(EntityId entity, EntityRegistry& entityRegistry) override;
+	void ApplyToEntity(Entity* entity, entt::registry& registry) override = 0;
 
 	static constexpr char JsonName[] = "light";
 };

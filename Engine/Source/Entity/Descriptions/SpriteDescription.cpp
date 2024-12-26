@@ -3,7 +3,7 @@
 
 #include "SpriteDescription.h"
 
-void SpriteDescription::ApplyToEntity(EntityId entity, EntityRegistry& entityRegistry)
+void SpriteDescription::ApplyToEntity(Entity* entity, entt::registry& registry)
 {
 	std::istringstream jsonStream(mJson);
 	SpriteComponent sprite;
@@ -19,5 +19,5 @@ void SpriteDescription::ApplyToEntity(EntityId entity, EntityRegistry& entityReg
 		assert(false);
 	}
 
-	entityRegistry.AddComponent<SpriteComponent>(entity, sprite);
+	entity->AddComponent<SpriteComponent>(sprite);
 }

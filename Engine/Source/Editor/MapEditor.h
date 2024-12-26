@@ -5,7 +5,7 @@
 class Camera;
 class EngineContext;
 class InputHandler;
-class LevelManager;
+class SceneManager;
 class MapRegistry;
 class Map;
 class RenderContext;
@@ -15,7 +15,7 @@ using GLuint = unsigned int;
 class MapEditor
 {
 public:
-	MapEditor(const EngineContext& engineContext, InputHandler& inputHandler, LevelManager& levelManager,
+	MapEditor(const EngineContext& engineContext, InputHandler& inputHandler, SceneManager& sceneManager,
 	          MapRegistry& mapRegistry, RenderContext& renderContext);
 
 	void RenderGUI(Camera& camera);
