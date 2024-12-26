@@ -27,7 +27,7 @@ void Game::Init(EngineContext* engine)
 
 	// TODO: Data drive theming to make it easier to have different styles
 	//GUISystem::LoadGUITheme();
-	mEngine->LoadLevel("game.json");
+	mEngine->LoadScene("game.json");
 
 	mEngine->ToggleEditorMode(true);
 }

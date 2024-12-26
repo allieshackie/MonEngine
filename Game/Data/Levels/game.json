@@ -4,16 +4,14 @@
         "front": [0,0,1],
         "up": [0,1,0]
     },
-    "maps": [
-        {
-            "name": "ground_map.json",
-            "position": [0,0,0],
-            "size": [20, 1, 20],
-            "rotation": [0,0,0],
-            "tile_size": 1,
-            "has_dimension": true
-        }
-    ],
+    "maps": {
+        "name": "ground_map.json",
+        "position": [0,0,0],
+        "size": [20, 1, 20],
+        "rotation": [0,0,0],
+        "tile_size": 1,
+        "has_dimension": true
+    },
     "entities": [
         {
             "name": "player",

@@ -3,7 +3,9 @@
     "rows": 4,
     "columns": 10,
     "texture_data": {
-        "texture_path": "ground_tileset_01.png"
+        "texture_path": "ground_tileset_01.png",
+        "rows": 0,
+        "columns": 0
     },
     "data_path": "ground_map.txt",
     "texture_size": [512, 256]

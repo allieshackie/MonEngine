@@ -87,4 +87,43 @@ namespace cereal
 		archive(stateStr);
 		state = COLLIDER_NAMES[stateStr];
 	}
+
+	// Optionally load an NVP if its name equals to the current node's name
+	// Loading members should be done in the same order they were saved
+	// return true if NVP found
+	template <class Archive, class T>
+	bool make_optional_nvp(Archive& ar, const char* name, T&& value)
+	{
+		const auto node_name = ar.getNodeName();
+
+		// if names are equal
+		if (node_name != nullptr &&
+			strcmp(name, node_name) == 0)
+		{
+			ar(make_nvp(name, std::forward<T>(value))); // load the NVP. Advances to the next node
+			return true;
+		}
+
+		return false;
+	}
+
+	template <class Archive, class T>
+	void make_optional_nvp(OutputArchive<Archive>& ar, const char* name, T&& value)
+	{
+		ar(make_nvp(name, std::forward<T>(value)));
+	}
+
+	// Saves NVP if predicate is true. Useful for avoiding splitting into save & load if also saving optionally.
+	template <class Archive, class T, class Predicate>
+	void make_optional_nvp(OutputArchive<Archive>& ar, const char* name, T&& value, Predicate predicate)
+	{
+		if (predicate())
+			ar(make_nvp(name, std::forward<T>(value)));
+	}
+
+	template <class Archive, class T, class Predicate>
+	bool make_optional_nvp(Archive& ar, const char* name, T&& value, Predicate predicate)
+	{
+		return make_optional_nvp(ar, name, std::forward<T>(value));
+	}
 } // namespace cereal
