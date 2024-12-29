@@ -1,16 +1,18 @@
 #pragma once
-#include "Entity/EntityRegistry.h"
 
+class Entity;
 class InputHandler;
+class MonScene;
 
 class PlayerSystem
 {
 public:
-	PlayerSystem(EntityRegistry& entityRegistry, InputHandler& inputHandler);
+	PlayerSystem(InputHandler& inputHandler);
 
-	void SpawnPlayer(EnTTRegistry& registry, EntityId entity) const;
+	void SpawnPlayer(Entity* entity) const;
+
+	void SetSceneCallbacks(const MonScene* scene) const;
 
 private:
-	EntityRegistry& mEntityRegistry;
 	InputHandler& mInputHandler;
 };

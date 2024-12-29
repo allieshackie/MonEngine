@@ -1,6 +1,7 @@
 #pragma once
 
 class EngineContext;
+class MonScene;
 
 class GameInterface
 {
@@ -24,4 +25,5 @@ public:
 	virtual void Render() = 0;
 
 	virtual void RegisterEntityDescriptions() const = 0;
+	virtual void SetSceneCallbacks(const MonScene* scene) const = 0;
 };

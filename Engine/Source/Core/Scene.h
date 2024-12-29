@@ -1,9 +1,11 @@
 #pragma once
 #include <glm/vec3.hpp>
-#include <entt/entt.hpp>
+#include "Core/Camera.h"
+#include "EventListener.h"
 #include "Util/SerialUtil.h"
 
 class Camera;
+class EntityTemplateRegistry;
 
 struct MapData
 {
@@ -81,15 +83,29 @@ struct EntityData
 	}
 };
 
-struct MonScene
+class MonScene
 {
-	MapData mMapData;
-	CameraData mCameraData;
-	std::vector<EntityData> mEntityDefinitions;
-	std::vector<std::string> mScripts;
+public:
+	MonScene();
 
-	std::unique_ptr<Camera> mCamera = nullptr;
-	entt::registry mRegistry;
+	const MapData& GetMapData() const { return mMapData; }
+	const CameraData& GetCameraData() const { return mCameraData; }
+	const std::vector<EntityData>& GetEntityDefinitions() const { return mEntityDefinitions; }
+	const std::vector<std::string>& GetScripts() const { return mScripts; }
+	Camera& GetCamera() const { return *mCamera; }
+	entt::registry& GetRegistry() { return mRegistry; }
+	EventPublisher& GetEventPublisher() const { return *mEventPublisher; }
+	Entity* GetEntityForId(entt::entity id);
+
+	void CreateCamera();
+	Entity& CreateEntityFromTemplate(const char* templateName, EntityTemplateRegistry& templateRegistry);
+	Entity& CreateEntity();
+	void RemoveEntity(const entt::entity id);
+	void FlushEntities();
+	template <typename Component>
+	void ConnectOnConstruct(EventFunc& handler) const;
+	template <typename Component>
+	void ConnectOnDestroy(EventFunc& handler) const;
 
 	template <class Archive>
 	void save(Archive& ar) const
@@ -110,4 +126,27 @@ struct MonScene
 		cereal::make_optional_nvp(ar, "entities", mEntityDefinitions);
 		cereal::make_optional_nvp(ar, "scripts", mScripts);
 	}
+
+private:
+	MapData mMapData;
+	CameraData mCameraData;
+	std::vector<EntityData> mEntityDefinitions;
+	std::vector<std::string> mScripts;
+
+	std::unique_ptr<Camera> mCamera = nullptr;
+	entt::registry mRegistry;
+	std::unordered_map<entt::entity, Entity*> mEntityMap;
+	std::unique_ptr<EventPublisher> mEventPublisher;
 };
+
+template <typename Component>
+void MonScene::ConnectOnConstruct(EventFunc& handler) const
+{
+	mEventPublisher->AddListener<Component>("on_construct", handler);
+}
+
+template <typename Component>
+void MonScene::ConnectOnDestroy(EventFunc& handler) const
+{
+	mEventPublisher->AddListener<Component>("on_destroy", handler);
+}

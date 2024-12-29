@@ -1,8 +1,9 @@
 #pragma once
 #include "Util/SerialUtil.h"
 
-class EngineContext;
+class Entity;
 class Map;
+class MonScene;
 class PhysicsSystem;
 
 struct MapData;
@@ -48,9 +49,9 @@ struct TempMapReg
 class MapRegistry
 {
 public:
-	void OpenMap(const EngineContext& context, const MapData& mapData) const;
+	void OpenMap(MonScene* scene, const MapData& mapData) const;
 	void CloseMap(const std::string& mapId);
 
 private:
-	bool _ParseMapData(const MapData& mapData, EntityId entityId, EntityRegistry& entityReg) const;
+	bool _ParseMapData(const MapData& mapData, Entity& entity) const;
 };

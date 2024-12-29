@@ -6,14 +6,13 @@
 #include "Graphics/Core/Vertex.h"
 
 class Camera;
+class Entity;
 class MeshPipeline;
 class ResourceManager;
+class MonScene;
 
-struct EntityId;
 struct MapComponent;
 struct TransformComponent;
-
-class EntityRegistry;
 
 class MapPipeline : public PipelineBase
 {
@@ -22,13 +21,13 @@ public:
 	            LLGL::Buffer* meshConstantBuffer);
 
 	void Render(LLGL::CommandBuffer& commandBuffer, const Camera& camera,
-	            const glm::mat4 projection, EntityRegistry& entityRegistry,
+	            const glm::mat4 projection, MonScene* scene,
 	            const LLGL::RenderSystemPtr& renderSystem,
 	            ResourceManager& resourceManager,
 	            MeshPipeline& meshPipeline) const;
 
 	void GenerateMapTexture(const LLGL::RenderSystemPtr& renderSystem, LLGL::CommandBuffer& commandBuffer,
-	                        EntityRegistry& entityRegistry, const ResourceManager& resourceManager, EntityId mapId);
+	                        const ResourceManager& resourceManager, Entity* mapEntity);
 
 private:
 	void _CreateMapResourceHeap(const LLGL::RenderSystemPtr& renderSystem);
@@ -38,7 +37,7 @@ private:
 
 	void _WriteMapTexture(LLGL::CommandBuffer& commandBuffer, LLGL::PipelineState* writePipeline,
 	                      LLGL::RenderTarget* writeTarget, LLGL::Texture* writtenTexture,
-	                      EntityRegistry& entityRegistry, const ResourceManager& resourceManager, EntityId mapId);
+	                      const ResourceManager& resourceManager, Entity* mapEntity);
 
 	void _CalculateTileDrawData(const MapComponent& mapComponent, int tileIndex, glm::vec3& pos, glm::vec3& size,
 	                            glm::vec4& clip) const;

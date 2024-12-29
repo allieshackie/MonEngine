@@ -1,21 +1,20 @@
 #pragma once
 
 class CollisionSystem;
-class EntityRegistry;
+class MonScene;
 class MapSystem;
 
 class MapCollisionSystem
 {
 public:
-	MapCollisionSystem(CollisionSystem& collisionSystem, EntityRegistry& entityRegistry, MapSystem& mapSystem);
+	MapCollisionSystem(CollisionSystem& collisionSystem, MapSystem& mapSystem);
 	~MapCollisionSystem() = default;
 
-	void Update();
+	void Update(MonScene* scene);
 
 private:
 	void _CheckForCollision();
 
 	CollisionSystem& mCollisionSystem;
-	EntityRegistry& mEntityRegistry;
 	MapSystem& mMapSystem;
 };

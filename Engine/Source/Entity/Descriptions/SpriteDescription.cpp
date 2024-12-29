@@ -5,12 +5,10 @@
 
 void SpriteDescription::ApplyToEntity(Entity* entity, entt::registry& registry)
 {
-	std::istringstream jsonStream(mJson);
 	SpriteComponent sprite;
-
 	try
 	{
-		cereal::JSONInputArchive archive(jsonStream);
+		auto archive = FileSystem::CreateArchive(mJson);
 		sprite.serialize(archive);
 	}
 	catch (const cereal::Exception& e)

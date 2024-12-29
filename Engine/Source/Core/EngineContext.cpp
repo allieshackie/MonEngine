@@ -28,16 +28,16 @@ void EngineContext::_Init(const LLGL::Extent2D screenSize, const LLGL::UTF8Strin
 	mMapRegistry = std::make_unique<MapRegistry>();
 	mTimer = std::make_unique<Timer>();
 
-	mAnimator = std::make_unique<Animator>(*mSceneManager, *mResourceManager);
+	mAnimator = std::make_unique<Animator>(*mResourceManager);
 	mRenderContext = std::make_unique<RenderContext>(screenSize, backgroundClearColor, usePerspective);
 	GUISystem::InitGUI(*mRenderContext);
 	mLuaSystem = std::make_unique<LuaSystem>();
 	mSceneManager = std::make_unique<SceneManager>(*mDescriptionFactory);
 
-	mPhysicsSystem = std::make_unique<PhysicsSystem>(*this);
+	mPhysicsSystem = std::make_unique<PhysicsSystem>();
 
 	mResourceManager->LoadAllResources(mRenderContext->GetRenderSystem());
-	mRenderContext->InitPipelines(title, mInputHandler, *mSceneManager, *mResourceManager);
+	mRenderContext->InitPipelines(title, mInputHandler, *mResourceManager);
 
 	// TODO: Comment/uncomment for editor gui menu
 	OpenEditorMenu();
@@ -117,7 +117,7 @@ void EngineContext::_InitDescriptions() const
 
 void EngineContext::_FixedUpdate(float dt) const
 {
-	mPhysicsSystem->Update(dt, *mSceneManager);
+	mPhysicsSystem->Update(dt, mSceneManager->GetCurrentScene());
 }
 
 EngineContext::EngineContext(GameInterface* game, const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
@@ -128,7 +128,7 @@ EngineContext::EngineContext(GameInterface* game, const LLGL::Extent2D screenSiz
 	game->RegisterEntityDescriptions();
 }
 
-void EngineContext::Run(GameInterface* game) const
+void EngineContext::Run(GameInterface* game)
 {
 	// Init current time
 	mTimer->mCurrentTime = Clock::now();
@@ -155,11 +155,16 @@ void EngineContext::Run(GameInterface* game) const
 			mTimer->mAccumulator -= mTimer->mDT;
 		}
 
+		if (mSceneUpdate)
+		{
+			SetSceneCallbacks(mSceneManager->GetCurrentScene(), game);
+		}
+
 		mInputHandler->Update();
 		game->Update(mTimer->mDT);
-		mSceneManager->GetCamera().Update(*mSceneManager);
+		mSceneManager->GetCamera().Update();
 
-		mAnimator->Update(deltaTime, *mSceneManager, *mResourceManager);
+		mAnimator->Update(deltaTime, mSceneManager->GetCurrentScene(), *mResourceManager);
 
 		// TODO: Debug draw model bones
 
@@ -185,7 +190,7 @@ void EngineContext::Run(GameInterface* game) const
 
 		if (mSceneManager->GetCurrentScene())
 		{
-			mRenderContext->Render(mSceneManager->GetCamera(), *mSceneManager, *mResourceManager);
+			mRenderContext->Render(mSceneManager->GetCamera(), mSceneManager->GetCurrentScene(), *mResourceManager);
 		}
 
 		// Render GUI last so menus draw on top
@@ -194,7 +199,7 @@ void EngineContext::Run(GameInterface* game) const
 		// GUISystem::RenderGuiElements();  DEBUG GUI MENU
 		if (mEditorGUI != nullptr)
 		{
-			mEditorGUI->Render(*mSceneManager, *mResourceManager);
+			mEditorGUI->Render(mSceneManager->GetCurrentScene(), *mResourceManager);
 		}
 		GUISystem::GUIEndFrame();
 
@@ -219,6 +224,20 @@ void EngineContext::OpenEditorMenu()
 	mEditorGUI = std::make_unique<EditorGUI>();
 }
 
+void EngineContext::SetSceneCallbacks(const MonScene* scene, const GameInterface* game)
+{
+	if (scene != nullptr)
+	{
+		// loading new scene means setting up callbacks for various systems
+		mAnimator->SetSceneCallbacks(scene);
+		mPhysicsSystem->SetSceneCallbacks(scene);
+		mRenderContext->SetSceneCallbacks(scene);
+		game->SetSceneCallbacks(scene);
+	}
+
+	mSceneUpdate = false;
+}
+
 InputHandler& EngineContext::GetInputHandler() const
 {
 	return *mInputHandler;
@@ -234,19 +253,21 @@ const std::vector<const char*>& EngineContext::GetSceneNames() const
 	return mSceneManager->GetSceneNames();
 }
 
-void EngineContext::LoadScene(const char* SceneName) const
+void EngineContext::LoadScene(const char* sceneName)
 {
-	mSceneManager->LoadScene(SceneName, *this, *mMapRegistry, *mLuaSystem);
+	mSceneManager->LoadScene(sceneName, *this, *mMapRegistry, *mLuaSystem);
+
+	mSceneUpdate = true;
 }
 
-const MonScene* EngineContext::GetScene() const
+MonScene* EngineContext::GetScene() const
 {
 	return mSceneManager->GetCurrentScene();
 }
 
-void EngineContext::GenerateMapTexture(entt::entity mapId) const
+void EngineContext::GenerateMapTexture(Entity* mapEntity) const
 {
-	mRenderContext->GenerateMapTexture(*mSceneManager, *mResourceManager, mapId);
+	mRenderContext->GenerateMapTexture(*mResourceManager, mapEntity);
 }
 
 void EngineContext::DrawPoint(glm::vec3 position, float size, glm::vec4 color) const

@@ -8,9 +8,9 @@
 #include "Graphics/Pipelines/MeshPipeline.h"
 #include "Graphics/Pipelines/TextPipeline.h"
 
-struct EntityId;
 class Camera;
-class EntityRegistry;
+class Entity;
+class MonScene;
 class InputHandler;
 
 class RenderContext
@@ -21,10 +21,10 @@ public:
 	~RenderContext();
 
 	void InitPipelines(const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler,
-	                   EntityRegistry& entityRegistry, const ResourceManager& resourceManager);
+	                   const ResourceManager& resourceManager);
 
 	void BeginFrame() const;
-	void Render(const Camera& camera, EntityRegistry& entityRegistry, ResourceManager& resourceManager) const;
+	void Render(const Camera& camera, MonScene* scene, ResourceManager& resourceManager) const;
 	void EndFrame() const;
 	bool ProcessEvents() const;
 
@@ -48,14 +48,15 @@ public:
 
 	void ResizeBuffers(const LLGL::Extent2D& size) const;
 
-	void GenerateMapTexture(EntityRegistry& entityRegistry, const ResourceManager& resourceManager,
-	                        EntityId mapId) const;
+	void GenerateMapTexture(const ResourceManager& resourceManager, Entity* mapEntity) const;
 
 	const LLGL::RenderSystemPtr& GetRenderSystem() const { return mRenderSystem; }
 
+	void SetSceneCallbacks(const MonScene* scene) const;
+
 private:
 	void _CreateWindow(const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler);
-	void _CreatePipelines(EntityRegistry& entityRegistry, const ResourceManager& resourceManager);
+	void _CreatePipelines(const ResourceManager& resourceManager);
 
 	static LLGL::Extent2D _ScaleResolution(const LLGL::Extent2D& res, float scale);
 

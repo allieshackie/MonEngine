@@ -1,8 +1,6 @@
 #pragma once
 #include "DescriptionBase.h"
 
-#include "Entity/EntityRegistry.h"
-
 class AnimationDescription : public DescriptionBase
 {
 public:
@@ -16,7 +14,7 @@ public:
 
 	~AnimationDescription() override = default;
 
-	void ApplyToEntity(Entity* entity, entt::registry& registry) override = 0;
+	void ApplyToEntity(Entity* entity, entt::registry& registry) override;
 
 	static constexpr char JsonName[] = "animation";
 };

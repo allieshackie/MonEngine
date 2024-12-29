@@ -2,8 +2,8 @@
 
 #include "InteractiveDescription.h"
 
-void InteractiveDescription::ApplyToEntity(EntityId entity, EntityRegistry& entityRegistry)
+void InteractiveDescription::ApplyToEntity(Entity* entity, entt::registry& registry)
 {
 	InteractiveComponent interactive;
-	entityRegistry.AddComponent<InteractiveComponent>(entity, interactive);
+	entity->AddComponent<InteractiveComponent>(interactive);
 }

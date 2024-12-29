@@ -2,7 +2,6 @@
 #include <glm/mat4x4.hpp>
 
 #include "PipelineBase.h"
-#include "Entity/EntityRegistry.h"
 #include "Entity/Components/LightComponent.h"
 #include "Entity/Components/MeshComponent.h"
 #include "Graphics/Core/Model.h"
@@ -13,7 +12,8 @@
 
 class Animator;
 class Camera;
-class EntityRegistry;
+class Entity;
+class MonScene;
 class RenderObject;
 class Shader;
 
@@ -22,11 +22,10 @@ struct TransformComponent;
 class MeshPipeline : public PipelineBase
 {
 public:
-	MeshPipeline(LLGL::RenderSystemPtr& renderSystem, EntityRegistry& entityRegistry,
-	             const ResourceManager& resourceManager);
+	MeshPipeline(const LLGL::RenderSystemPtr& renderSystem, const ResourceManager& resourceManager);
 
 	void Render(LLGL::CommandBuffer& commands, const Camera& camera, const glm::mat4 projection,
-	            EntityRegistry& entityRegistry, ResourceManager& resourceManager,
+	            MonScene* scene, ResourceManager& resourceManager,
 	            const LLGL::RenderSystemPtr& renderSystem);
 	void RenderMap(LLGL::CommandBuffer& commands, const Camera& camera, const LLGL::RenderSystemPtr& renderSystem,
 	               const ResourceManager& resourceManager, const glm::mat4 projection,
@@ -42,14 +41,16 @@ public:
 	void SetResourceHeapTexture(LLGL::CommandBuffer& commands, LLGL::Texture& texture) const;
 
 	void UpdateLightBuffer(const LLGL::RenderSystemPtr& renderSystem) const;
-	void AddLight(EnTTRegistry& registry, EntityId entity);
+	void AddLight(Entity* entity);
+
+	void SetSceneCallbacks(const MonScene* scene);
 
 private:
 	void _RenderModel(LLGL::CommandBuffer& commands, MeshComponent& meshComponent, const Camera& camera,
 	                  const LLGL::RenderSystemPtr& renderSystem, const ResourceManager& resourceManager,
 	                  const glm::mat4 projection, const TransformComponent& transform);
 
-	void _ProcessLights(EntityRegistry& entityRegistry);
+	void _ProcessLights();
 
 	LLGL::Buffer* mLightBuffer = nullptr;
 	LLGL::Buffer* mMaterialBuffer = nullptr;
@@ -105,5 +106,5 @@ private:
 
 	std::vector<LightUniform> mLights;
 
-	std::vector<EntityId> mQueuedLightEntities;
+	std::vector<Entity*> mQueuedLightEntities;
 };

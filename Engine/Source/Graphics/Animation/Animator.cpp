@@ -1,4 +1,5 @@
-#include "Entity/EntityRegistry.h"
+#include "Core/Scene.h"
+#include "Entity/Entity.h"
 #include "Entity/Components/AnimationComponent.h"
 #include "Entity/Components/MeshComponent.h"
 #include "Graphics/Core/ResourceManager.h"
@@ -6,20 +7,28 @@
 
 #include "Animator.h"
 
-Animator::Animator(EntityRegistry& entityRegistry, ResourceManager& resourceManager) : mResourceManager(resourceManager)
+Animator::Animator(ResourceManager& resourceManager) : mResourceManager(resourceManager)
 {
-	entityRegistry.GetEnttRegistry().on_construct<MeshComponent>().connect<&Animator::_SetJointMatrixCount>(this);
 }
 
-void Animator::Update(float deltaTime, EntityRegistry& entityRegistry, const ResourceManager& resourceManager)
+void Animator::Update(float deltaTime, MonScene* scene, const ResourceManager& resourceManager)
 {
-	const auto meshView = entityRegistry.GetEnttRegistry().view<AnimationComponent, MeshComponent>();
+	const auto meshView = scene->GetRegistry().view<AnimationComponent, MeshComponent>();
 
 	meshView.each([this, &resourceManager, &deltaTime](AnimationComponent& anim, MeshComponent& mesh)
 	{
 		auto& model = resourceManager.GetModelFromId(mesh.mMeshPath);
 		_UpdateAnimation(deltaTime, model, anim, mesh);
 	});
+}
+
+void Animator::SetSceneCallbacks(const MonScene* scene) const
+{
+	EventFunc func = [this](Entity* entity)
+	{
+		_SetJointMatrixCount(entity);
+	};
+	scene->ConnectOnConstruct<MeshComponent>(func);
 }
 
 void Animator::_UpdateAnimation(float deltaTime, Model& model, AnimationComponent& animComp, MeshComponent& mesh)
@@ -241,9 +250,9 @@ void Animator::_ApplyBlendTime(const AnimationComponent& animComp)
 	}
 }
 
-void Animator::_SetJointMatrixCount(EnTTRegistry& registry, EntityId entity) const
+void Animator::_SetJointMatrixCount(Entity* entity) const
 {
-	auto& mesh = registry.get<MeshComponent>(entity);
+	auto& mesh = entity->GetComponent<MeshComponent>();
 	const auto& model = mResourceManager.GetModelFromId(mesh.mMeshPath);
 
 	if (mesh.mHasBones)

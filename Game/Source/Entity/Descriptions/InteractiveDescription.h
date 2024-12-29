@@ -15,7 +15,7 @@ public:
 
 	~InteractiveDescription() override = default;
 
-	void ApplyToEntity(EntityId entity, EntityRegistry& entityRegistry) override;
+	void ApplyToEntity(Entity* entity, entt::registry& registry) override;
 
 	static constexpr char JsonName[] = "interactive";
 };

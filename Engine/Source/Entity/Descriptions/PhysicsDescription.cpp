@@ -4,12 +4,10 @@
 
 void PhysicsDescription::ApplyToEntity(Entity* entity, entt::registry& registry)
 {
-	std::istringstream jsonStream(mJson);
 	PhysicsComponent physics;
-
 	try
 	{
-		cereal::JSONInputArchive archive(jsonStream);
+		auto archive = FileSystem::CreateArchive(mJson);
 		physics.serialize(archive);
 	}
 	catch (const cereal::Exception& e)

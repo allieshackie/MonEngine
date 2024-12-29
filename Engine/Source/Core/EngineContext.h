@@ -34,24 +34,25 @@ public:
 	EngineContext(EngineContext&& other) = delete;
 	EngineContext& operator=(EngineContext&& other) = delete;
 
-	void Run(GameInterface* game) const;
+	void Run(GameInterface* game);
 
 	void SetGUIMenu(std::unique_ptr<GUIBase> gui);
 	void LoadFont(const char* fontFileName) const;
 	void OpenEditorMenu();
 
+	void SetSceneCallbacks(const MonScene* scene, const GameInterface* game);
+
 	// ========= SYSTEM GETTERS ============
-	EntityRegistry& GetEntityRegistry() const;
 	InputHandler& GetInputHandler() const;
 	PhysicsSystem& GetPhysicsSystem() const { return *mPhysicsSystem; }
 	Camera& GetCamera() const;
 
 	// ========= SCENE MANAGER ============
 	const std::vector<const char*>& GetSceneNames() const;
-	void LoadScene(const char* sceneName) const;
-	const MonScene* GetScene() const;
+	void LoadScene(const char* sceneName);
+	MonScene* GetScene() const;
 
-	void GenerateMapTexture(EntityId mapId) const;
+	void GenerateMapTexture(Entity* mapEntity) const;
 
 	// ========= RENDER CONTEXT ============
 	void DrawPoint(glm::vec3 position, float size, glm::vec4 color) const;
@@ -107,4 +108,5 @@ private:
 
 	bool mRunning = true;
 	bool mDebugDraw = false;
+	bool mSceneUpdate = false;
 };

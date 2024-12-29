@@ -15,7 +15,7 @@ public:
 
 	~PlayerDescription() override = default;
 
-	void ApplyToEntity(Entity* entity, entt::registry& registry) override = 0;
+	void ApplyToEntity(Entity* entity, entt::registry& registry) override;
 
 	static constexpr char JsonName[] = "player";
 };

@@ -1,6 +1,6 @@
 #pragma once
 
-class EntityRegistry;
+class MonScene;
 class ResourceManager;
 
 struct TransformComponent;
@@ -8,7 +8,7 @@ struct TransformComponent;
 class ObjectGUI
 {
 public:
-	void RenderGUI(EntityRegistry& entityRegistry, ResourceManager& resourceManager);
+	void RenderGUI(MonScene* scene, ResourceManager& resourceManager);
 
 private:
 	void _ObjectTransform(TransformComponent& transform);

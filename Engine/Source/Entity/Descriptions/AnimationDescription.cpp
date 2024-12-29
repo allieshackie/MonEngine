@@ -4,12 +4,10 @@
 
 void AnimationDescription::ApplyToEntity(Entity* entity, entt::registry& registry)
 {
-	std::istringstream jsonStream(mJson);
-
 	AnimationComponent anim;
 	try
 	{
-		cereal::JSONInputArchive archive(jsonStream);
+		auto archive = FileSystem::CreateArchive(mJson);
 		anim.serialize(archive);
 	}
 	catch (const cereal::Exception& e)

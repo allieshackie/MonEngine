@@ -1,21 +1,27 @@
 #include "Entity/Components/PlayerComponent.h"
+#include "Entity/Entity.h"
 #include <Entity/Components/TransformComponent.h>
+#include "Scene.h"
 
 #include "Camera.h"
 
-Camera::Camera(SceneManager& sceneManager, glm::vec3 position, glm::vec3 front, glm::vec3 up)
+Camera::Camera(MonScene* scene, glm::vec3 position, glm::vec3 front, glm::vec3 up)
 	: mCameraPos(position), mCameraFront(front), mCameraUp(up)
 {
 	UpdateView();
 
-	sceneManager.GetEnttRegistry().on_construct<PlayerComponent>().connect < &Camera::SetLookTarget > (this);
+	EventFunc func = [this](Entity* entity)
+	{
+		SetLookTarget(entity);
+	};
+	scene->ConnectOnConstruct<PlayerComponent>(func);
 }
 
-void Camera::Update(SceneManager& sceneManager)
+void Camera::Update()
 {
 	if (mFollowCam)
 	{
-		const auto& transform = sceneManager.GetComponent<TransformComponent>(mCameraTargetEntity);
+		const auto& transform = mCameraTargetEntity->GetComponent<TransformComponent>();
 		if (transform.mPosition != mCameraPos)
 		{
 			mCameraPos = transform.mPosition;
@@ -103,9 +109,9 @@ void Camera::UpdateRight()
 	}
 }
 
-void Camera::SetLookTarget(entt::registry& registry, entt::entity id)
+void Camera::SetLookTarget(Entity* entity)
 {
-	mCameraTargetEntity = id;
+	mCameraTargetEntity = entity;
 	mFollowCam = true;
 }
 

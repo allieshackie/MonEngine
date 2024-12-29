@@ -1,5 +1,6 @@
 #pragma once
 #include <nlohmann/json.hpp>
+#include <cereal/archives/json.hpp>
 #include <fstream>
 #include <ios>
 
@@ -9,6 +10,20 @@ namespace FileSystem
 	{
 		std::ifstream ifs(filePath.c_str());
 		return nlohmann::json::parse(ifs, nullptr, false, true);
+	}
+
+	static cereal::JSONInputArchive CreateArchive(const std::string& fileName, bool openFile = false)
+	{
+		if (openFile)
+		{
+			std::ifstream fileStream(fileName.c_str());
+			std::istream& jsonStream = fileStream; // Bind to base type.
+			return {jsonStream};
+		}
+
+		std::istringstream fileStream(fileName);
+		std::istream& jsonStream = fileStream; // Bind to base type.
+		return {jsonStream};
 	}
 
 	static std::vector<uint8_t> ReadBytes(const std::string& filePath)

@@ -1,4 +1,5 @@
 #pragma once
+#include "Util/FileSystem.h" // include for inherited classes
 #include "Entity/Entity.h"
 
 class DescriptionBase

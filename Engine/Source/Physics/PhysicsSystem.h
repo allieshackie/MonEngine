@@ -6,18 +6,20 @@
 
 #include "PhysicsDebugDraw.h"
 
-class EngineContext;
-class EntityRegistry;
+class Entity;
+class MonScene;
 
 class PhysicsSystem
 {
 public:
-	PhysicsSystem(EngineContext& engineContext);
+	PhysicsSystem();
 
-	void RegisterCollider(EnTTRegistry& registry, EntityId entity);
-	void AddEntityToInitialize(EnTTRegistry& registry, EntityId entity);
+	void RegisterCollider(Entity* entity);
+	void AddEntityToInitialize(Entity* entity);
 
-	void Update(float deltaTime, EntityRegistry& entityRegistry);
+	void Update(float deltaTime, MonScene* scene);
+
+	void SetSceneCallbacks(const MonScene* scene);
 
 	btDiscreteDynamicsWorld& GetDynamicWorld() const { return *mDynamicWorld; }
 
@@ -35,5 +37,5 @@ private:
 	btVector3 mGravityConst = {0.0f, -9.81f, 0.0f};
 
 	std::unique_ptr<PhysicsDebugDraw> mPhysicsDebugDraw;
-	std::vector<EntityId> mEntitiesToInitialize;
+	std::vector<Entity*> mEntitiesToInitialize;
 };

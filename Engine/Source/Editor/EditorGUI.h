@@ -2,7 +2,7 @@
 #include "MapEditor.h"
 #include "ObjectGUI.h"
 
-class EntityRegistry;
+class MonScene;
 class ResourceManager;
 
 class EditorGUI
@@ -10,7 +10,7 @@ class EditorGUI
 public:
 	EditorGUI();
 
-	void Render(EntityRegistry& entityRegistry, ResourceManager& resourceManager) const;
+	void Render(MonScene* scene, ResourceManager& resourceManager) const;
 
 private:
 	void _MainMenu(Camera& camera) const;

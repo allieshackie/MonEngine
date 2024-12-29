@@ -1,20 +1,21 @@
 #pragma once
 #include <imgui.h>
-#include "Entity/EntityRegistry.h"
 
 class InputHandler;
+class Entity;
+class MonScene;
 class ResourceManager;
 
 class EntityMenu
 {
 public:
-	EntityMenu(EntityRegistry& entityRegistry, InputHandler& inputHandler);
+	EntityMenu(MonScene* scene, InputHandler& inputHandler);
 
-	void RenderSelectedEntityMenu(EntityRegistry& entityRegistry, const ResourceManager& resourceManager);
+	void RenderSelectedEntityMenu(MonScene* scene, const ResourceManager& resourceManager);
 	void RenderEntitySelection();
 
-	void OnEntityAdded(EnTTRegistry& registry, EntityId entity);
-	void OnEntityRemoved(EnTTRegistry& registry, EntityId entity);
+	void OnEntityAdded(Entity* entity);
+	void OnEntityRemoved(Entity* entity);
 
 private:
 	void _HandleMouseMove(LLGL::Offset2D mousePos);
@@ -26,7 +27,7 @@ private:
 	glm::vec2 mMousePos = {0, 0};
 
 	// Entity Selection
-	EntityId mSelectedEntity = 0;
+	Entity* mSelectedEntity = nullptr;
 	std::vector<std::string> keys;
 	std::vector<const char*> items;
 };

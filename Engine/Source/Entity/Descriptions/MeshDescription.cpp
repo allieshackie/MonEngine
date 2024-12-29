@@ -4,12 +4,10 @@
 
 void MeshDescription::ApplyToEntity(Entity* entity, entt::registry& registry)
 {
-	std::istringstream jsonStream(mJson);
 	MeshComponent mesh;
-
 	try
 	{
-		cereal::JSONInputArchive archive(jsonStream);
+		auto archive = FileSystem::CreateArchive(mJson);
 		mesh.serialize(archive);
 	}
 	catch (const cereal::Exception& e)

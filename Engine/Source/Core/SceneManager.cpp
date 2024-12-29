@@ -1,5 +1,5 @@
 #include "Core/EngineContext.h"
-#include "Entity/EntityTemplateRegistry.h"
+#include "Entity/Descriptions/DescriptionFactory.h"
 #include "Entity/Components/CollisionComponent.h"
 #include "Entity/Components/TransformComponent.h"
 #include "Map/MapRegistry.h"
@@ -20,9 +20,13 @@ SceneManager::SceneManager(DescriptionFactory& descriptionFactory)
 	}
 }
 
-const MonScene* SceneManager::GetCurrentScene() const
+MonScene* SceneManager::GetCurrentScene() const
 {
-	return mCurrentScene.get();
+	if (mCurrentScene)
+	{
+		return mCurrentScene.get();
+	}
+	return nullptr;
 }
 
 void SceneManager::LoadScene(const std::string& SceneName, const EngineContext& context, MapRegistry& mapRegistry,
@@ -30,14 +34,14 @@ void SceneManager::LoadScene(const std::string& SceneName, const EngineContext& 
 {
 	if (mCurrentScene != nullptr)
 	{
-		_UnloadScene(context, mapRegistry, luaSystem);
+		_UnloadScene(mapRegistry, luaSystem);
 	}
 
 	// parse and serialize JSON
 	std::string fullFileName = LEVELS_FOLDER;
 	fullFileName.append(SceneName);
 
-	_ParseSceneJson(fullFileName, context);
+	_ParseSceneJson(fullFileName);
 
 	if (mCurrentScene == nullptr)
 	{
@@ -46,50 +50,46 @@ void SceneManager::LoadScene(const std::string& SceneName, const EngineContext& 
 	}
 
 	// Create Map
-	if (!mCurrentScene->mMapData.mName.empty())
+	if (!mCurrentScene->GetMapData().mName.empty())
 	{
-		mapRegistry.OpenMap(context, mCurrentScene->mMapData);
+		mapRegistry.OpenMap(mCurrentScene.get(), mCurrentScene->GetMapData());
 	}
 
-	for (const auto& entity : mCurrentScene->mEntityDefinitions)
+	for (const auto& entity : mCurrentScene->GetEntityDefinitions())
 	{
-		const auto gameObj = CreateEntityFromTemplate(entity.mName.c_str());
-		auto& transformComponent = gameObj->GetComponent<TransformComponent>();
+		auto gameObj = CreateEntityFromTemplate(entity.mName.c_str());
+		auto& transformComponent = gameObj.GetComponent<TransformComponent>();
 		transformComponent.mPosition = entity.mPosition;
-		if (const auto collider = gameObj->TryGetComponent<CollisionComponent>(); collider != nullptr)
+		if (const auto collider = gameObj.TryGetComponent<CollisionComponent>(); collider != nullptr)
 		{
 			collider->mInitialized = true;
 		}
 	}
 
-	for (const auto& script : mCurrentScene->mScripts)
+	for (const auto& script : mCurrentScene->GetScripts())
 	{
 		luaSystem.LoadScript(script.c_str(), context);
 	}
 }
 
-Entity* SceneManager::CreateEntityFromTemplate(const char* templateName)
+Entity& SceneManager::CreateEntityFromTemplate(const char* templateName) const
 {
-	const auto& descriptions = mEntityTemplateRegistry->GetEntityTemplateDescriptions(templateName);
-	const auto entity = CreateEntity();
-
-	for (const auto& description : descriptions)
-	{
-		description->ApplyToEntity(entity, *mCurrentScene->mRegistry);
-	}
-
-	return entity;
+	return mCurrentScene->CreateEntityFromTemplate(templateName, *mEntityTemplateRegistry);
 }
 
-Entity* SceneManager::CreateEntity() const
+Entity& SceneManager::CreateEntity() const
 {
-	auto id = mCurrentScene->mRegistry.create();
-	return new Entity(id);
+	return mCurrentScene->CreateEntity();
 }
 
 void SceneManager::RemoveEntity(const entt::entity id) const
 {
-	mCurrentScene->mRegistry.destroy(id);
+	mCurrentScene->RemoveEntity(id);
+}
+
+void SceneManager::FlushEntities() const
+{
+	mCurrentScene->FlushEntities();
 }
 
 const std::vector<const char*>& SceneManager::GetSceneNames() const
@@ -97,27 +97,26 @@ const std::vector<const char*>& SceneManager::GetSceneNames() const
 	return mSceneFileNames;
 }
 
-void SceneManager::_UnloadScene(const EngineContext& context, MapRegistry& mapRegistry,
+void SceneManager::_UnloadScene(MapRegistry& mapRegistry,
                                 LuaSystem& luaSystem) const
 {
 	luaSystem.QueueClose();
 
-	if (!mCurrentScene->mMapData.mName.empty())
+	if (!mCurrentScene->GetMapData().mName.empty())
 	{
-		mapRegistry.CloseMap(mCurrentScene->mMapData.mName);
+		mapRegistry.CloseMap(mCurrentScene->GetMapData().mName);
 	}
 
-	context.FlushEntities();
+	FlushEntities();
 }
 
-void SceneManager::_ParseSceneJson(const std::string& sceneName, const EngineContext& context)
+void SceneManager::_ParseSceneJson(const std::string& sceneName)
 {
-	mCurrentScene = std::make_shared<MonScene>();
-	std::ifstream jsonStream(sceneName.c_str());
+	mCurrentScene = std::make_unique<MonScene>();
 
 	try
 	{
-		cereal::JSONInputArchive archive(jsonStream);
+		auto archive = FileSystem::CreateArchive(sceneName, true);
 		mCurrentScene->load(archive);
 	}
 	catch (const cereal::Exception& e)
@@ -126,8 +125,5 @@ void SceneManager::_ParseSceneJson(const std::string& sceneName, const EngineCon
 		assert(false);
 	}
 
-	mCurrentScene->mCamera = std::make_unique<Camera>(context.GetEntityRegistry(),
-	                                                  mCurrentScene->mCameraData.mCameraPos,
-	                                                  mCurrentScene->mCameraData.mCameraFront,
-	                                                  mCurrentScene->mCameraData.mCameraUp);
+	mCurrentScene->CreateCamera();
 }

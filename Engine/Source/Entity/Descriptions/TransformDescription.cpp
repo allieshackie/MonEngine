@@ -4,12 +4,10 @@
 
 void TransformDescription::ApplyToEntity(Entity* entity, entt::registry& registry)
 {
-	std::istringstream jsonStream(mJson);
 	TransformComponent transform;
-
 	try
 	{
-		cereal::JSONInputArchive archive(jsonStream);
+		auto archive = FileSystem::CreateArchive(mJson);
 		transform.serialize(archive);
 	}
 	catch (const cereal::Exception& e)

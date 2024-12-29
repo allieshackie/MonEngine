@@ -1,19 +1,19 @@
-#include "Entity/EntityRegistry.h"
-
-#include "MapCollisionSystem.h"
-
+#include "Core/Scene.h"
 #include "Entity/Components/CollisionComponent.h"
 #include "Entity/Components/TransformComponent.h"
 
-MapCollisionSystem::MapCollisionSystem(CollisionSystem& collisionSystem, EntityRegistry& entityRegistry,
+#include "MapCollisionSystem.h"
+
+MapCollisionSystem::MapCollisionSystem(CollisionSystem& collisionSystem,
                                        MapSystem& mapSystem)
-	: mCollisionSystem(collisionSystem), mEntityRegistry(entityRegistry), mMapSystem(mapSystem)
+	: mCollisionSystem(collisionSystem), mMapSystem(mapSystem)
 {
 }
 
-void MapCollisionSystem::Update()
+void MapCollisionSystem::Update(MonScene* scene)
 {
-	const auto view = mEntityRegistry.GetEnttRegistry().view<CollisionComponent, TransformComponent>();
+	if (scene == nullptr) return;
+	const auto view = scene->GetRegistry().view<CollisionComponent, TransformComponent>();
 	view.each([=](const auto& collider, auto& transform)
 	{
 	});

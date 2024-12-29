@@ -7,16 +7,19 @@
 
 struct MeshComponent;
 
-class EntityRegistry;
+class Entity;
 class Model;
+class MonScene;
 class ResourceManager;
 
 class Animator
 {
 public:
-	Animator(EntityRegistry& entityRegistry, ResourceManager& resourceManager);
+	Animator(ResourceManager& resourceManager);
 	// Interpolate bone positions
-	void Update(float deltaTime, EntityRegistry& entityRegistry, const ResourceManager& resourceManager);
+	void Update(float deltaTime, MonScene* scene, const ResourceManager& resourceManager);
+
+	void SetSceneCallbacks(const MonScene* scene) const;
 
 private:
 	void _UpdateAnimation(float deltaTime, Model& model, AnimationComponent& animComp, MeshComponent& mesh);
@@ -35,7 +38,7 @@ private:
 	glm::mat4 _InterpolateMatrices(const glm::mat4& matA, const glm::mat4& matB, float blendFactor) const;
 
 	void _ApplyBlendTime(const AnimationComponent& animComp);
-	void _SetJointMatrixCount(EnTTRegistry& registry, EntityId entity) const;
+	void _SetJointMatrixCount(Entity* entity) const;
 
 	const AnimNode* GetAnimNode(const Animation* animation, int nodeId);
 

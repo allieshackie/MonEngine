@@ -34,6 +34,7 @@ target_precompile_headers(
     <memory>
     <vector>
     <fstream>
+    <istream>
     <unordered_map>
     <functional>
 )

@@ -4,12 +4,10 @@
 
 void LightDescription::ApplyToEntity(Entity* entity, entt::registry& registry)
 {
-	std::istringstream jsonStream(mJson);
 	LightComponent light;
-
 	try
 	{
-		cereal::JSONInputArchive archive(jsonStream);
+		auto archive = FileSystem::CreateArchive(mJson);
 		light.serialize(archive);
 	}
 	catch (const cereal::Exception& e)

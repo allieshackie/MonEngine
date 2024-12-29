@@ -1,20 +1,20 @@
 #include "LLGL/Key.h"
 
-#include "Entity/EntityRegistry.h"
+#include "Core/Scene.h"
+#include "Entity/Entity.h"
 #include "Entity/Components/PlayerComponent.h"
 #include "Input/InputHandler.h"
 
 #include "PlayerSystem.h"
 
-PlayerSystem::PlayerSystem(EntityRegistry& entityRegistry, InputHandler& inputHandler)
-	: mEntityRegistry(entityRegistry), mInputHandler(inputHandler)
+PlayerSystem::PlayerSystem(InputHandler& inputHandler)
+	: mInputHandler(inputHandler)
 {
-	mEntityRegistry.GetEnttRegistry().on_construct<PlayerComponent>().connect<&PlayerSystem::SpawnPlayer>(this);
 }
 
-void PlayerSystem::SpawnPlayer(EnTTRegistry& registry, EntityId entity) const
+void PlayerSystem::SpawnPlayer(Entity* entity) const
 {
-	auto& player = registry.get<PlayerComponent>(entity);
+	auto& player = entity->GetComponent<PlayerComponent>();
 
 	// Forward
 	mInputHandler.RegisterButtonDownHandler(LLGL::Key::W, [&player]()
@@ -70,4 +70,13 @@ void PlayerSystem::SpawnPlayer(EnTTRegistry& registry, EntityId entity) const
 	{
 		player.mMovementInput &= ~(MovementInput::Jump);
 	});
+}
+
+void PlayerSystem::SetSceneCallbacks(const MonScene* scene) const
+{
+	EventFunc func = [this](Entity* entity)
+	{
+		SpawnPlayer(entity);
+	};
+	scene->ConnectOnConstruct<PlayerComponent>(func);
 }

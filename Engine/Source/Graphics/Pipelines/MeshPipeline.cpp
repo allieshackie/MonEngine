@@ -3,6 +3,8 @@
 #include "LLGL/Utils/Parse.h"
 
 #include "Core/Camera.h"
+#include "Core/Scene.h"
+#include "Entity/Entity.h"
 #include "Entity/Components/MapComponent.h"
 #include "Entity/Components/SpriteComponent.h"
 #include "Entity/Components/TransformComponent.h"
@@ -10,7 +12,7 @@
 
 #include "MeshPipeline.h"
 
-MeshPipeline::MeshPipeline(LLGL::RenderSystemPtr& renderSystem, EntityRegistry& entityRegistry,
+MeshPipeline::MeshPipeline(const LLGL::RenderSystemPtr& renderSystem,
                            const ResourceManager& resourceManager) : PipelineBase()
 {
 	// Initialization
@@ -108,22 +110,21 @@ MeshPipeline::MeshPipeline(LLGL::RenderSystemPtr& renderSystem, EntityRegistry& 
 	}
 
 	resourceManager.InitModelVertexBuffers(renderSystem, *mShader);
-	entityRegistry.GetEnttRegistry().on_construct<LightComponent>().connect<&MeshPipeline::AddLight>(this);
 }
 
 void MeshPipeline::Render(LLGL::CommandBuffer& commands, const Camera& camera,
-                          const glm::mat4 projection, EntityRegistry& entityRegistry,
+                          const glm::mat4 projection, MonScene* scene,
                           ResourceManager& resourceManager, const LLGL::RenderSystemPtr& renderSystem)
 {
 	if (!mQueuedLightEntities.empty())
 	{
-		_ProcessLights(entityRegistry);
+		_ProcessLights();
 	}
 
 	commands.SetPipelineState(*mPipeline);
 
 	// TODO: Sort the entities based on their mesh component file names
-	const auto meshView = entityRegistry.GetEnttRegistry().view<
+	const auto meshView = scene->GetRegistry().view<
 		const TransformComponent, MeshComponent, const SpriteComponent>(
 		entt::exclude<MapComponent>);
 
@@ -212,9 +213,18 @@ void MeshPipeline::SetResourceHeapTexture(LLGL::CommandBuffer& commands, LLGL::T
 	commands.SetResource(0, texture);
 }
 
-void MeshPipeline::AddLight(EnTTRegistry& registry, EntityId entity)
+void MeshPipeline::AddLight(Entity* entity)
 {
 	mQueuedLightEntities.push_back(entity);
+}
+
+void MeshPipeline::SetSceneCallbacks(const MonScene* scene)
+{
+	EventFunc func = [this](Entity* entity)
+	{
+		AddLight(entity);
+	};
+	scene->ConnectOnConstruct<LightComponent>(func);
 }
 
 void MeshPipeline::UpdateLightBuffer(const LLGL::RenderSystemPtr& renderSystem) const
@@ -227,12 +237,12 @@ void MeshPipeline::UpdateLightBuffer(const LLGL::RenderSystemPtr& renderSystem) 
 	}
 }
 
-void MeshPipeline::_ProcessLights(EntityRegistry& entityRegistry)
+void MeshPipeline::_ProcessLights()
 {
 	for (auto it = mQueuedLightEntities.begin(); it != mQueuedLightEntities.end();)
 	{
-		const auto& light = entityRegistry.GetComponent<LightComponent>(*it);
-		const auto transform = entityRegistry.TryGetComponent<TransformComponent>(*it);
+		const auto& light = (*it)->GetComponent<LightComponent>();
+		const auto transform = (*it)->TryGetComponent<TransformComponent>();
 		if (transform != nullptr)
 		{
 			mLights.push_back({

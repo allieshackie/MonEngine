@@ -2,7 +2,8 @@
 #include <glm/ext/matrix_clip_space.hpp>
 
 #include "Core/Camera.h"
-#include "Entity/EntityRegistry.h"
+#include "Core/Scene.h"
+#include "Entity/Entity.h"
 #include "Input/InputHandler.h"
 
 #include "RenderContext.h"
@@ -83,9 +84,9 @@ RenderContext::~RenderContext()
 }
 
 void RenderContext::InitPipelines(const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler,
-                                  EntityRegistry& entityRegistry, const ResourceManager& resourceManager)
+                                  const ResourceManager& resourceManager)
 {
-	_CreatePipelines(entityRegistry, resourceManager);
+	_CreatePipelines(resourceManager);
 	_CreateWindow(title, inputHandler);
 }
 
@@ -128,14 +129,14 @@ void RenderContext::BeginFrame() const
 	mCommands->BeginRenderPass(*mSwapChain);
 }
 
-void RenderContext::Render(const Camera& camera, EntityRegistry& entityRegistry,
+void RenderContext::Render(const Camera& camera, MonScene* scene,
                            ResourceManager& resourceManager) const
 {
 	const auto projectionViewMat = mProjection * camera.GetView();
 
-	mMapPipeline->Render(*mCommands, camera, mProjection, entityRegistry, mRenderSystem, resourceManager,
+	mMapPipeline->Render(*mCommands, camera, mProjection, scene, mRenderSystem, resourceManager,
 	                     *mMeshPipeline);
-	mMeshPipeline->Render(*mCommands, camera, mProjection, entityRegistry, resourceManager, mRenderSystem);
+	mMeshPipeline->Render(*mCommands, camera, mProjection, scene, resourceManager, mRenderSystem);
 	//mTextPipeline->Render(*mCommands, projectionViewMat);
 	mImmediatePipeline->Render(*mCommands, projectionViewMat);
 	// TODO: debug shader is loading in for some meshes for some reason? Timing maybe?
@@ -223,10 +224,14 @@ void RenderContext::ResizeBuffers(const LLGL::Extent2D& size) const
 	mSwapChain->ResizeBuffers(size);
 }
 
-void RenderContext::GenerateMapTexture(EntityRegistry& entityRegistry, const ResourceManager& resourceManager,
-                                       EntityId mapId) const
+void RenderContext::GenerateMapTexture(const ResourceManager& resourceManager, Entity* mapEntity) const
 {
-	mMapPipeline->GenerateMapTexture(mRenderSystem, *mCommands, entityRegistry, resourceManager, mapId);
+	mMapPipeline->GenerateMapTexture(mRenderSystem, *mCommands, resourceManager, mapEntity);
+}
+
+void RenderContext::SetSceneCallbacks(const MonScene* scene) const
+{
+	mMeshPipeline->SetSceneCallbacks(scene);
 }
 
 void RenderContext::_CreateWindow(const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler)
@@ -249,11 +254,11 @@ void RenderContext::_CreateWindow(const LLGL::UTF8String& title, const std::shar
 	window.Show();
 }
 
-void RenderContext::_CreatePipelines(EntityRegistry& entityRegistry, const ResourceManager& resourceManager)
+void RenderContext::_CreatePipelines(const ResourceManager& resourceManager)
 {
 	mImmediatePipeline = std::make_unique<ImmediatePipeline>();
 	mTextPipeline = std::make_unique<TextPipeline>();
-	mMeshPipeline = std::make_unique<MeshPipeline>(mRenderSystem, entityRegistry, resourceManager);
+	mMeshPipeline = std::make_unique<MeshPipeline>(mRenderSystem, resourceManager);
 	mMapPipeline = std::make_unique<MapPipeline>(mRenderSystem, resourceManager, mMeshPipeline->GetConstantBuffer());
 
 	mImmediatePipeline->Init(mRenderSystem);

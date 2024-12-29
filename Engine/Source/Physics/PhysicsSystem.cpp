@@ -1,12 +1,13 @@
 #include "Core/EngineContext.h"
-#include "Entity/EntityRegistry.h"
+#include "Core/Scene.h"
+#include "Entity/Entity.h"
 #include "Entity/Components/CollisionComponent.h"
 #include "Entity/Components/PhysicsComponent.h"
 #include "Entity/Components/TransformComponent.h"
 
 #include "PhysicsSystem.h"
 
-PhysicsSystem::PhysicsSystem(EngineContext& engineContext)
+PhysicsSystem::PhysicsSystem()
 {
 	mBroadPhase = std::make_unique<btDbvtBroadphase>();
 	mConstraintSolver = std::make_unique<btSequentialImpulseConstraintSolver>();
@@ -26,17 +27,14 @@ PhysicsSystem::PhysicsSystem(EngineContext& engineContext)
 	//mPhysicsDebugDraw = std::make_unique<PhysicsDebugDraw>(engineContext);
 	//mDynamicWorld->setDebugDrawer(mPhysicsDebugDraw.get());
 	//mDynamicWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
-
-	engineContext.GetEntityRegistry().GetEnttRegistry().on_construct<CollisionComponent>().connect<&
-		PhysicsSystem::AddEntityToInitialize>(this);
 }
 
-void PhysicsSystem::RegisterCollider(EnTTRegistry& registry, EntityId entity)
+void PhysicsSystem::RegisterCollider(Entity* entity)
 {
-	const auto& transform = registry.get<TransformComponent>(entity);
-	auto& collider = registry.get<CollisionComponent>(entity);
+	const auto& transform = entity->GetComponent<TransformComponent>();
+	auto& collider = entity->GetComponent<CollisionComponent>();
 
-	const auto physics = registry.try_get<PhysicsComponent>(entity);
+	const auto physics = entity->TryGetComponent<PhysicsComponent>();
 
 	// If physics component exists, dynamic collider
 	if (physics != nullptr)
@@ -102,14 +100,14 @@ void PhysicsSystem::RegisterCollider(EnTTRegistry& registry, EntityId entity)
 	}
 }
 
-void PhysicsSystem::Update(float deltaTime, EntityRegistry& entityRegistry)
+void PhysicsSystem::Update(float deltaTime, MonScene* scene)
 {
 	for (auto it = mEntitiesToInitialize.begin(); it != mEntitiesToInitialize.end();)
 	{
-		const auto& collider = entityRegistry.GetComponent<CollisionComponent>(*it);
+		const auto& collider = (*it)->GetComponent<CollisionComponent>();
 		if (collider.mInitialized)
 		{
-			RegisterCollider(entityRegistry.GetEnttRegistry(), *it);
+			RegisterCollider(*it);
 			it = mEntitiesToInitialize.erase(it);
 		}
 		else
@@ -122,7 +120,8 @@ void PhysicsSystem::Update(float deltaTime, EntityRegistry& entityRegistry)
 	mDynamicWorld->stepSimulation(deltaTime, 10, 1.0f / 60.0f);
 	mDynamicWorld->debugDrawWorld();
 
-	const auto view = entityRegistry.GetEnttRegistry().view<CollisionComponent, TransformComponent>();
+	if (scene == nullptr) return;
+	const auto view = scene->GetRegistry().view<CollisionComponent, TransformComponent>();
 	view.each([=](auto& collider, auto& transform)
 	{
 		if (collider.mIsDynamic && collider.mRigidBody != nullptr)
@@ -142,6 +141,15 @@ void PhysicsSystem::Update(float deltaTime, EntityRegistry& entityRegistry)
 	});
 }
 
+void PhysicsSystem::SetSceneCallbacks(const MonScene* scene)
+{
+	EventFunc func = [this](Entity* entity)
+	{
+		AddEntityToInitialize(entity);
+	};
+	scene->ConnectOnConstruct<CollisionComponent>(func);
+}
+
 btQuaternion PhysicsSystem::_ConvertDegreesToQuat(glm::vec3 rot)
 {
 	const auto radianConversion = glm::radians(rot);
@@ -159,7 +167,7 @@ glm::vec3 PhysicsSystem::_ConvertQuatToRadians(btQuaternion quat)
 	return degreeConversion;
 }
 
-void PhysicsSystem::AddEntityToInitialize(EnTTRegistry& registry, EntityId entity)
+void PhysicsSystem::AddEntityToInitialize(Entity* entity)
 {
 	mEntitiesToInitialize.push_back(entity);
 }

@@ -21,6 +21,7 @@ public:
 	void Update(float dt) const override;
 	void Render() override;
 	void RegisterEntityDescriptions() const override;
+	void SetSceneCallbacks(const MonScene* scene) const override;
 
 private:
 	EngineContext* mEngine = nullptr;

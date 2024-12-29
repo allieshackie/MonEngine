@@ -4,7 +4,7 @@
 #include "BulletCollision/CollisionDispatch/btCollisionWorld.h"
 
 #include "Core/Camera.h"
-#include "Entity/EntityRegistry.h"
+#include "Core/Scene.h"
 #include "Entity/Components/AnimationComponent.h"
 #include "Entity/Components/CollisionComponent.h"
 #include "Entity/Components/PhysicsComponent.h"
@@ -15,9 +15,10 @@
 
 glm::vec3 rotateAxis(0.0f, 1.0f, 0.0f);
 
-void MovementSystem::Update(EntityRegistry& registry, PhysicsSystem& physicsSystem, const Camera& camera)
+void MovementSystem::Update(MonScene* scene, PhysicsSystem& physicsSystem, const Camera& camera)
 {
-	const auto playerView = registry.GetEnttRegistry().view<
+	if (scene == nullptr) return;
+	const auto playerView = scene->GetRegistry().view<
 		PlayerComponent, AnimationComponent, PhysicsComponent, CollisionComponent>();
 	playerView.each([=, &physicsSystem, &camera](const auto& player, auto& anim, auto& physics, const auto& collider)
 	{

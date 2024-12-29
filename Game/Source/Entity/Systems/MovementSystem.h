@@ -1,11 +1,11 @@
 #pragma once
 
 class Camera;
-class EntityRegistry;
+class MonScene;
 class PhysicsSystem;
 
 class MovementSystem
 {
 public:
-	void Update(EntityRegistry& registry, PhysicsSystem& physicsSystem, const Camera& camera);
+	void Update(MonScene* scene, PhysicsSystem& physicsSystem, const Camera& camera);
 };

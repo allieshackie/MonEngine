@@ -19,7 +19,7 @@ void Game::Init(EngineContext* engine)
 {
 	mEngine = engine;
 	mMovementSystem = std::make_unique<MovementSystem>();
-	mPlayerSystem = std::make_unique<PlayerSystem>(mEngine->GetEntityRegistry(), mEngine->GetInputHandler());
+	mPlayerSystem = std::make_unique<PlayerSystem>(mEngine->GetInputHandler());
 
 	// TODO: Re-add font, make sure to have font for gui
 	//mEngine->LoadFont("PixelLettersFull.ttf");
@@ -34,7 +34,7 @@ void Game::Init(EngineContext* engine)
 
 void Game::Update(float dt) const
 {
-	mMovementSystem->Update(mEngine->GetEntityRegistry(), mEngine->GetPhysicsSystem(), mEngine->GetCamera());
+	mMovementSystem->Update(mEngine->GetScene(), mEngine->GetPhysicsSystem(), mEngine->GetCamera());
 }
 
 void Game::Render()
@@ -49,4 +49,9 @@ void Game::Render()
 void Game::RegisterEntityDescriptions() const
 {
 	mEngine->RegisterDescription<InteractiveDescription>(InteractiveDescription::JsonName);
+}
+
+void Game::SetSceneCallbacks(const MonScene* scene) const
+{
+	mPlayerSystem->SetSceneCallbacks(scene);
 }

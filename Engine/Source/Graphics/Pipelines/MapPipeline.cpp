@@ -4,7 +4,8 @@
 
 #include "MeshPipeline.h"
 #include "Core/Camera.h"
-#include "Entity/EntityRegistry.h"
+#include "Core/Scene.h"
+#include "Entity/Entity.h"
 #include "Entity/Components/MapComponent.h"
 #include "Entity/Components/MeshComponent.h"
 #include "Entity/Components/TransformComponent.h"
@@ -78,14 +79,14 @@ MapPipeline::MapPipeline(const LLGL::RenderSystemPtr& renderSystem, const Resour
 }
 
 void MapPipeline::Render(LLGL::CommandBuffer& commandBuffer, const Camera& camera,
-                         const glm::mat4 projection, EntityRegistry& entityRegistry,
+                         const glm::mat4 projection, MonScene* scene,
                          const LLGL::RenderSystemPtr& renderSystem,
                          ResourceManager& resourceManager,
                          MeshPipeline& meshPipeline) const
 {
 	commandBuffer.SetPipelineState(*mPipeline);
 
-	const auto map3DView = entityRegistry.GetEnttRegistry().view<
+	const auto map3DView = scene->GetRegistry().view<
 		const MapComponent, const TransformComponent, MeshComponent>();
 
 	map3DView.each([this, &commandBuffer, &camera, &renderSystem, &resourceManager, &projection, &meshPipeline](
@@ -153,8 +154,8 @@ void MapPipeline::_CreateMapResourceHeap(const LLGL::RenderSystemPtr& renderSyst
 }
 
 void MapPipeline::GenerateMapTexture(const LLGL::RenderSystemPtr& renderSystem,
-                                     LLGL::CommandBuffer& commandBuffer, EntityRegistry& entityRegistry,
-                                     const ResourceManager& resourceManager, EntityId mapId)
+                                     LLGL::CommandBuffer& commandBuffer,
+                                     const ResourceManager& resourceManager, Entity* mapEntity)
 {
 	// Create Render Target
 	const auto texture = renderSystem->CreateTexture(
@@ -185,18 +186,18 @@ void MapPipeline::GenerateMapTexture(const LLGL::RenderSystemPtr& renderSystem,
 	}
 
 	const auto pipeline = renderSystem->CreatePipelineState(pipelineDesc);
-	_WriteMapTexture(commandBuffer, pipeline, renderTarget, texture, entityRegistry, resourceManager, mapId);
+	_WriteMapTexture(commandBuffer, pipeline, renderTarget, texture, resourceManager, mapEntity);
 
 	_CreateMapResourceHeap(renderSystem);
 }
 
 void MapPipeline::_WriteMapTexture(LLGL::CommandBuffer& commandBuffer, LLGL::PipelineState* writePipeline,
                                    LLGL::RenderTarget* writeTarget, LLGL::Texture* writtenTexture,
-                                   EntityRegistry& entityRegistry, const ResourceManager& resourceManager,
-                                   EntityId mapId)
+                                   const ResourceManager& resourceManager,
+                                   Entity* mapEntity)
 {
-	auto& mapComponent = entityRegistry.GetComponent<MapComponent>(mapId);
-	const auto& transformComponent = entityRegistry.GetComponent<TransformComponent>(mapId);
+	auto& mapComponent = mapEntity->GetComponent<MapComponent>();
+	const auto& transformComponent = mapEntity->GetComponent<TransformComponent>();
 	// Set the render target and clear the color buffer
 	commandBuffer.BeginRenderPass(*writeTarget);
 	{

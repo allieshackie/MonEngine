@@ -1,12 +1,12 @@
 #include <imgui.h>
-#include "Entity/EntityRegistry.h"
+#include "Core/Scene.h"
 #include "Entity/Components/MeshComponent.h"
 #include "Entity/Components/TransformComponent.h"
 #include "Graphics/Core/ResourceManager.h"
 
 #include "ObjectGUI.h"
 
-void ObjectGUI::RenderGUI(EntityRegistry& entityRegistry, ResourceManager& resourceManager)
+void ObjectGUI::RenderGUI(MonScene* scene, ResourceManager& resourceManager)
 {
 	ImGui::SetNextWindowPos(ImVec2(0, 20));
 	ImGui::SetNextWindowSize(mSize);
@@ -25,7 +25,7 @@ void ObjectGUI::RenderGUI(EntityRegistry& entityRegistry, ResourceManager& resou
 
 	if (ImGui::Begin("Bone Selection", &mOpen, mWindowFlags))
 	{
-		auto view = entityRegistry.GetEnttRegistry().view<MeshComponent>();
+		auto view = scene->GetRegistry().view<MeshComponent>();
 		view.each([=, &resourceManager](auto& mesh)
 		{
 			if (!mesh.mHasBones)
