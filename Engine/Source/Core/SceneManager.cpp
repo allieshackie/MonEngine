@@ -1,3 +1,4 @@
+#include "EventListener.h"
 #include "Core/EngineContext.h"
 #include "Entity/Descriptions/DescriptionFactory.h"
 #include "Entity/Components/CollisionComponent.h"
@@ -9,6 +10,7 @@
 
 SceneManager::SceneManager(DescriptionFactory& descriptionFactory)
 {
+	mEventPublisher = std::make_unique<EventPublisher>();
 	mEntityTemplateRegistry = std::make_unique<EntityTemplateRegistry>(descriptionFactory);
 
 	mSceneFileNames.clear();
@@ -112,7 +114,7 @@ void SceneManager::_UnloadScene(MapRegistry& mapRegistry,
 
 void SceneManager::_ParseSceneJson(const std::string& sceneName)
 {
-	mCurrentScene = std::make_unique<MonScene>();
+	mCurrentScene = std::make_unique<MonScene>(*mEventPublisher);
 
 	try
 	{
@@ -125,5 +127,5 @@ void SceneManager::_ParseSceneJson(const std::string& sceneName)
 		assert(false);
 	}
 
-	mCurrentScene->CreateCamera();
+	mCurrentScene->CreateCamera(*this);
 }

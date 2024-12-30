@@ -3,16 +3,11 @@
 
 #include "Scene.h"
 
-MonScene::MonScene()
-{
-	mEventPublisher = std::make_unique<EventPublisher>();
-}
-
 Entity& MonScene::CreateEntityFromTemplate(const char* templateName, EntityTemplateRegistry& templateRegistry)
 {
 	const auto& descriptions = templateRegistry.GetEntityTemplateDescriptions(templateName);
 	auto id = mRegistry.create();
-	const auto entity = new Entity(id, mRegistry, *mEventPublisher);
+	const auto entity = new Entity(id, mRegistry, mEventPublisher);
 	mEntityMap[id] = entity;
 
 	for (const auto& description : descriptions)
@@ -26,7 +21,7 @@ Entity& MonScene::CreateEntityFromTemplate(const char* templateName, EntityTempl
 Entity& MonScene::CreateEntity()
 {
 	auto id = mRegistry.create();
-	const auto entity = new Entity(id, mRegistry, *mEventPublisher);
+	const auto entity = new Entity(id, mRegistry, mEventPublisher);
 	mEntityMap[id] = entity;
 
 	return *mEntityMap[id];
@@ -54,9 +49,9 @@ Entity* MonScene::GetEntityForId(entt::entity id)
 	return nullptr;
 }
 
-void MonScene::CreateCamera()
+void MonScene::CreateCamera(const SceneManager& sceneManager)
 {
-	mCamera = std::make_unique<Camera>(this,
+	mCamera = std::make_unique<Camera>(sceneManager,
 	                                   mCameraData.mCameraPos,
 	                                   mCameraData.mCameraFront,
 	                                   mCameraData.mCameraUp);

@@ -6,12 +6,12 @@
 #include <entt/entt.hpp>
 
 class Entity;
-class MonScene;
+class SceneManager;
 
 class Camera
 {
 public:
-	Camera(MonScene* scene, glm::vec3 position, glm::vec3 front, glm::vec3 up);
+	Camera(const SceneManager& sceneManager, glm::vec3 position, glm::vec3 front, glm::vec3 up);
 
 	void Update();
 

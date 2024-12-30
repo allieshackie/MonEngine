@@ -1,11 +1,12 @@
 #include "Input/InputHandler.h"
 #include "Core/Scene.h"
+#include "Core/SceneManager.h"
 #include "Entity/Components/TransformComponent.h"
 #include "Graphics/Core/ResourceManager.h"
 
 #include "EntityMenu.h"
 
-EntityMenu::EntityMenu(MonScene* scene, InputHandler& inputHandler)
+EntityMenu::EntityMenu(const SceneManager& sceneManager, InputHandler& inputHandler)
 {
 	// TODO: Handle mouse hover + selection
 	inputHandler.RegisterMouseMoveHandler([this](LLGL::Offset2D mousePos) { _HandleMouseMove(mousePos); });
@@ -17,12 +18,12 @@ EntityMenu::EntityMenu(MonScene* scene, InputHandler& inputHandler)
 	{
 		OnEntityAdded(entity);
 	};
-	scene->ConnectOnConstruct<TransformComponent>(addedFunc);
+	sceneManager.ConnectOnConstruct<TransformComponent>(addedFunc);
 	EventFunc destroyFunc = [this](Entity* entity)
 	{
 		OnEntityRemoved(entity);
 	};
-	scene->ConnectOnDestroy<TransformComponent>(destroyFunc);
+	sceneManager.ConnectOnDestroy<TransformComponent>(destroyFunc);
 }
 
 void EntityMenu::RenderSelectedEntityMenu(MonScene* scene, const ResourceManager& resourceManager)

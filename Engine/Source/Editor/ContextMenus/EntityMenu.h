@@ -4,12 +4,13 @@
 class InputHandler;
 class Entity;
 class MonScene;
+class SceneManager;
 class ResourceManager;
 
 class EntityMenu
 {
 public:
-	EntityMenu(MonScene* scene, InputHandler& inputHandler);
+	EntityMenu(const SceneManager& sceneManager, InputHandler& inputHandler);
 
 	void RenderSelectedEntityMenu(MonScene* scene, const ResourceManager& resourceManager);
 	void RenderEntitySelection();

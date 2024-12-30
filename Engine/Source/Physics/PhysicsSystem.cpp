@@ -1,5 +1,6 @@
 #include "Core/EngineContext.h"
 #include "Core/Scene.h"
+#include "Core/SceneManager.h"
 #include "Entity/Entity.h"
 #include "Entity/Components/CollisionComponent.h"
 #include "Entity/Components/PhysicsComponent.h"
@@ -141,13 +142,13 @@ void PhysicsSystem::Update(float deltaTime, MonScene* scene)
 	});
 }
 
-void PhysicsSystem::SetSceneCallbacks(const MonScene* scene)
+void PhysicsSystem::SetSceneCallbacks(const SceneManager& sceneManager)
 {
 	EventFunc func = [this](Entity* entity)
 	{
 		AddEntityToInitialize(entity);
 	};
-	scene->ConnectOnConstruct<CollisionComponent>(func);
+	sceneManager.ConnectOnConstruct<CollisionComponent>(func);
 }
 
 btQuaternion PhysicsSystem::_ConvertDegreesToQuat(glm::vec3 rot)

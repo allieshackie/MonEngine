@@ -18,10 +18,11 @@ public:
 	Game& operator=(Game&& other) = delete;
 
 	void Init(EngineContext* engine) override;
+	void StartGame() override;
 	void Update(float dt) const override;
 	void Render() override;
 	void RegisterEntityDescriptions() const override;
-	void SetSceneCallbacks(const MonScene* scene) const override;
+	void SetSceneCallbacks(const SceneManager& sceneManager) const override;
 
 private:
 	EngineContext* mEngine = nullptr;

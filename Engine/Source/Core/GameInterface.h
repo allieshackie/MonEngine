@@ -1,7 +1,7 @@
 #pragma once
 
 class EngineContext;
-class MonScene;
+class SceneManager;
 
 class GameInterface
 {
@@ -19,11 +19,12 @@ public:
 
 	// called when the engine is ready for the game to initialize
 	virtual void Init(EngineContext* engine) = 0;
+	virtual void StartGame() = 0;
 
 	// run the simulation
 	virtual void Update(float dt) const = 0;
 	virtual void Render() = 0;
 
 	virtual void RegisterEntityDescriptions() const = 0;
-	virtual void SetSceneCallbacks(const MonScene* scene) const = 0;
+	virtual void SetSceneCallbacks(const SceneManager& sceneManager) const = 0;
 };

@@ -229,9 +229,9 @@ void RenderContext::GenerateMapTexture(const ResourceManager& resourceManager, E
 	mMapPipeline->GenerateMapTexture(mRenderSystem, *mCommands, resourceManager, mapEntity);
 }
 
-void RenderContext::SetSceneCallbacks(const MonScene* scene) const
+void RenderContext::SetSceneCallbacks(const SceneManager& sceneManager) const
 {
-	mMeshPipeline->SetSceneCallbacks(scene);
+	mMeshPipeline->SetSceneCallbacks(sceneManager);
 }
 
 void RenderContext::_CreateWindow(const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler)

@@ -10,6 +10,7 @@ struct MeshComponent;
 class Entity;
 class Model;
 class MonScene;
+class SceneManager;
 class ResourceManager;
 
 class Animator
@@ -19,7 +20,7 @@ public:
 	// Interpolate bone positions
 	void Update(float deltaTime, MonScene* scene, const ResourceManager& resourceManager);
 
-	void SetSceneCallbacks(const MonScene* scene) const;
+	void SetSceneCallbacks(const SceneManager& sceneManager) const;
 
 private:
 	void _UpdateAnimation(float deltaTime, Model& model, AnimationComponent& animComp, MeshComponent& mesh);

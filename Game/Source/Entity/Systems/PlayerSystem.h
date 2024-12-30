@@ -2,7 +2,7 @@
 
 class Entity;
 class InputHandler;
-class MonScene;
+class SceneManager;
 
 class PlayerSystem
 {
@@ -11,7 +11,7 @@ public:
 
 	void SpawnPlayer(Entity* entity) const;
 
-	void SetSceneCallbacks(const MonScene* scene) const;
+	void SetSceneCallbacks(const SceneManager& sceneManager) const;
 
 private:
 	InputHandler& mInputHandler;

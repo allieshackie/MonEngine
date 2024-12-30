@@ -40,7 +40,7 @@ public:
 	void LoadFont(const char* fontFileName) const;
 	void OpenEditorMenu();
 
-	void SetSceneCallbacks(const MonScene* scene, const GameInterface* game);
+	void SetSceneCallbacks(const GameInterface* game) const;
 
 	// ========= SYSTEM GETTERS ============
 	InputHandler& GetInputHandler() const;
@@ -108,5 +108,4 @@ private:
 
 	bool mRunning = true;
 	bool mDebugDraw = false;
-	bool mSceneUpdate = false;
 };

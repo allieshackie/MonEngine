@@ -20,7 +20,10 @@ void Game::Init(EngineContext* engine)
 	mEngine = engine;
 	mMovementSystem = std::make_unique<MovementSystem>();
 	mPlayerSystem = std::make_unique<PlayerSystem>(mEngine->GetInputHandler());
+}
 
+void Game::StartGame()
+{
 	// TODO: Re-add font, make sure to have font for gui
 	//mEngine->LoadFont("PixelLettersFull.ttf");
 	mEngine->SetBackgroundClearColor({0.1f, 0.1f, 0.1f});
@@ -51,7 +54,7 @@ void Game::RegisterEntityDescriptions() const
 	mEngine->RegisterDescription<InteractiveDescription>(InteractiveDescription::JsonName);
 }
 
-void Game::SetSceneCallbacks(const MonScene* scene) const
+void Game::SetSceneCallbacks(const SceneManager& sceneManager) const
 {
-	mPlayerSystem->SetSceneCallbacks(scene);
+	mPlayerSystem->SetSceneCallbacks(sceneManager);
 }

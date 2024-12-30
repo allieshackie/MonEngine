@@ -1,11 +1,11 @@
 #include "Entity/Components/PlayerComponent.h"
 #include "Entity/Entity.h"
 #include <Entity/Components/TransformComponent.h>
-#include "Scene.h"
+#include "SceneManager.h"
 
 #include "Camera.h"
 
-Camera::Camera(MonScene* scene, glm::vec3 position, glm::vec3 front, glm::vec3 up)
+Camera::Camera(const SceneManager& sceneManager, glm::vec3 position, glm::vec3 front, glm::vec3 up)
 	: mCameraPos(position), mCameraFront(front), mCameraUp(up)
 {
 	UpdateView();
@@ -14,7 +14,7 @@ Camera::Camera(MonScene* scene, glm::vec3 position, glm::vec3 front, glm::vec3 u
 	{
 		SetLookTarget(entity);
 	};
-	scene->ConnectOnConstruct<PlayerComponent>(func);
+	sceneManager.ConnectOnConstruct<PlayerComponent>(func);
 }
 
 void Camera::Update()

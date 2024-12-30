@@ -86,7 +86,9 @@ struct EntityData
 class MonScene
 {
 public:
-	MonScene();
+	MonScene(EventPublisher& eventPublisher) : mEventPublisher(eventPublisher)
+	{
+	}
 
 	const MapData& GetMapData() const { return mMapData; }
 	const CameraData& GetCameraData() const { return mCameraData; }
@@ -94,18 +96,13 @@ public:
 	const std::vector<std::string>& GetScripts() const { return mScripts; }
 	Camera& GetCamera() const { return *mCamera; }
 	entt::registry& GetRegistry() { return mRegistry; }
-	EventPublisher& GetEventPublisher() const { return *mEventPublisher; }
 	Entity* GetEntityForId(entt::entity id);
 
-	void CreateCamera();
+	void CreateCamera(const SceneManager& sceneManager);
 	Entity& CreateEntityFromTemplate(const char* templateName, EntityTemplateRegistry& templateRegistry);
 	Entity& CreateEntity();
 	void RemoveEntity(const entt::entity id);
 	void FlushEntities();
-	template <typename Component>
-	void ConnectOnConstruct(EventFunc& handler) const;
-	template <typename Component>
-	void ConnectOnDestroy(EventFunc& handler) const;
 
 	template <class Archive>
 	void save(Archive& ar) const
@@ -136,17 +133,5 @@ private:
 	std::unique_ptr<Camera> mCamera = nullptr;
 	entt::registry mRegistry;
 	std::unordered_map<entt::entity, Entity*> mEntityMap;
-	std::unique_ptr<EventPublisher> mEventPublisher;
+	EventPublisher& mEventPublisher;
 };
-
-template <typename Component>
-void MonScene::ConnectOnConstruct(EventFunc& handler) const
-{
-	mEventPublisher->AddListener<Component>("on_construct", handler);
-}
-
-template <typename Component>
-void MonScene::ConnectOnDestroy(EventFunc& handler) const
-{
-	mEventPublisher->AddListener<Component>("on_destroy", handler);
-}

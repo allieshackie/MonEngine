@@ -1,4 +1,5 @@
 #include "Core/Scene.h"
+#include "Core/SceneManager.h"
 #include "Entity/Entity.h"
 #include "Entity/Components/AnimationComponent.h"
 #include "Entity/Components/MeshComponent.h"
@@ -22,13 +23,13 @@ void Animator::Update(float deltaTime, MonScene* scene, const ResourceManager& r
 	});
 }
 
-void Animator::SetSceneCallbacks(const MonScene* scene) const
+void Animator::SetSceneCallbacks(const SceneManager& sceneManager) const
 {
 	EventFunc func = [this](Entity* entity)
 	{
 		_SetJointMatrixCount(entity);
 	};
-	scene->ConnectOnConstruct<MeshComponent>(func);
+	sceneManager.ConnectOnConstruct<MeshComponent>(func);
 }
 
 void Animator::_UpdateAnimation(float deltaTime, Model& model, AnimationComponent& animComp, MeshComponent& mesh)

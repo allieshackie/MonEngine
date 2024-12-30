@@ -11,6 +11,7 @@
 class Camera;
 class Entity;
 class MonScene;
+class SceneManager;
 class InputHandler;
 
 class RenderContext
@@ -52,7 +53,7 @@ public:
 
 	const LLGL::RenderSystemPtr& GetRenderSystem() const { return mRenderSystem; }
 
-	void SetSceneCallbacks(const MonScene* scene) const;
+	void SetSceneCallbacks(const SceneManager& sceneManager) const;
 
 private:
 	void _CreateWindow(const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler);

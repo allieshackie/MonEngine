@@ -4,6 +4,7 @@
 
 #include "Core/Camera.h"
 #include "Core/Scene.h"
+#include "Core/SceneManager.h"
 #include "Entity/Entity.h"
 #include "Entity/Components/MapComponent.h"
 #include "Entity/Components/SpriteComponent.h"
@@ -218,13 +219,13 @@ void MeshPipeline::AddLight(Entity* entity)
 	mQueuedLightEntities.push_back(entity);
 }
 
-void MeshPipeline::SetSceneCallbacks(const MonScene* scene)
+void MeshPipeline::SetSceneCallbacks(const SceneManager& sceneManager)
 {
 	EventFunc func = [this](Entity* entity)
 	{
 		AddLight(entity);
 	};
-	scene->ConnectOnConstruct<LightComponent>(func);
+	sceneManager.ConnectOnConstruct<LightComponent>(func);
 }
 
 void MeshPipeline::UpdateLightBuffer(const LLGL::RenderSystemPtr& renderSystem) const

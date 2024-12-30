@@ -125,7 +125,9 @@ EngineContext::EngineContext(GameInterface* game, const LLGL::Extent2D screenSiz
 {
 	_Init(screenSize, title, backgroundClearColor, usePerspective);
 	game->Init(this);
+	SetSceneCallbacks(game);
 	game->RegisterEntityDescriptions();
+	game->StartGame();
 }
 
 void EngineContext::Run(GameInterface* game)
@@ -153,11 +155,6 @@ void EngineContext::Run(GameInterface* game)
 		{
 			_FixedUpdate(mTimer->mDT);
 			mTimer->mAccumulator -= mTimer->mDT;
-		}
-
-		if (mSceneUpdate)
-		{
-			SetSceneCallbacks(mSceneManager->GetCurrentScene(), game);
 		}
 
 		mInputHandler->Update();
@@ -224,18 +221,13 @@ void EngineContext::OpenEditorMenu()
 	mEditorGUI = std::make_unique<EditorGUI>();
 }
 
-void EngineContext::SetSceneCallbacks(const MonScene* scene, const GameInterface* game)
+void EngineContext::SetSceneCallbacks(const GameInterface* game) const
 {
-	if (scene != nullptr)
-	{
-		// loading new scene means setting up callbacks for various systems
-		mAnimator->SetSceneCallbacks(scene);
-		mPhysicsSystem->SetSceneCallbacks(scene);
-		mRenderContext->SetSceneCallbacks(scene);
-		game->SetSceneCallbacks(scene);
-	}
-
-	mSceneUpdate = false;
+	// loading new scene means setting up callbacks for various systems
+	mAnimator->SetSceneCallbacks(*mSceneManager);
+	mPhysicsSystem->SetSceneCallbacks(*mSceneManager);
+	mRenderContext->SetSceneCallbacks(*mSceneManager);
+	game->SetSceneCallbacks(*mSceneManager);
 }
 
 InputHandler& EngineContext::GetInputHandler() const
@@ -256,8 +248,6 @@ const std::vector<const char*>& EngineContext::GetSceneNames() const
 void EngineContext::LoadScene(const char* sceneName)
 {
 	mSceneManager->LoadScene(sceneName, *this, *mMapRegistry, *mLuaSystem);
-
-	mSceneUpdate = true;
 }
 
 MonScene* EngineContext::GetScene() const

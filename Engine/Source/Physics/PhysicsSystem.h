@@ -8,6 +8,7 @@
 
 class Entity;
 class MonScene;
+class SceneManager;
 
 class PhysicsSystem
 {
@@ -19,7 +20,7 @@ public:
 
 	void Update(float deltaTime, MonScene* scene);
 
-	void SetSceneCallbacks(const MonScene* scene);
+	void SetSceneCallbacks(const SceneManager& sceneManager);
 
 	btDiscreteDynamicsWorld& GetDynamicWorld() const { return *mDynamicWorld; }
 

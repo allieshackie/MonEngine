@@ -29,6 +29,11 @@ public:
 	void RemoveEntity(const entt::entity id) const;
 	void FlushEntities() const;
 
+	template <typename Component>
+	void ConnectOnConstruct(EventFunc& handler) const;
+	template <typename Component>
+	void ConnectOnDestroy(EventFunc& handler) const;
+
 private:
 	void _UnloadScene(MapRegistry& mapRegistry,
 	                  LuaSystem& luaSystem) const;
@@ -36,9 +41,23 @@ private:
 	void _ParseSceneJson(const std::string& sceneName);
 
 	std::unique_ptr<MonScene> mCurrentScene = nullptr;
+	std::unique_ptr<EventPublisher> mEventPublisher;
 
 	std::vector<const char*> mSceneFileNames;
 	std::unique_ptr<EntityTemplateRegistry> mEntityTemplateRegistry = nullptr;
 
 	const char* EDITOR_SCENE = "editor";
 };
+
+
+template <typename Component>
+void SceneManager::ConnectOnConstruct(EventFunc& handler) const
+{
+	mEventPublisher->AddListener<Component>("on_construct", handler);
+}
+
+template <typename Component>
+void SceneManager::ConnectOnDestroy(EventFunc& handler) const
+{
+	mEventPublisher->AddListener<Component>("on_destroy", handler);
+}

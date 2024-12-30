@@ -14,6 +14,7 @@ class Animator;
 class Camera;
 class Entity;
 class MonScene;
+class SceneManager;
 class RenderObject;
 class Shader;
 
@@ -43,7 +44,7 @@ public:
 	void UpdateLightBuffer(const LLGL::RenderSystemPtr& renderSystem) const;
 	void AddLight(Entity* entity);
 
-	void SetSceneCallbacks(const MonScene* scene);
+	void SetSceneCallbacks(const SceneManager& sceneManager);
 
 private:
 	void _RenderModel(LLGL::CommandBuffer& commands, MeshComponent& meshComponent, const Camera& camera,
