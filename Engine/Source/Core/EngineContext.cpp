@@ -16,26 +16,25 @@
 void EngineContext::_Init(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
                           const LLGL::ColorRGBAf backgroundClearColor, bool usePerspective)
 {
+	// Init all systems **without** dependencies
 	mInputHandler = std::make_shared<InputHandler>();
-	mInputHandler->RegisterButtonUpHandler(LLGL::Key::Escape, [=]() { mRunning = false; });
-
 	mResourceManager = std::make_unique<ResourceManager>();
-
 	mDescriptionFactory = std::make_unique<DescriptionFactory>();
-	_InitDescriptions();
-
 	mEventPublisher = std::make_unique<EventPublisher>();
 	mMapRegistry = std::make_unique<MapRegistry>();
 	mTimer = std::make_unique<Timer>();
-
-	mAnimator = std::make_unique<Animator>(*mResourceManager);
-	mRenderContext = std::make_unique<RenderContext>(screenSize, backgroundClearColor, usePerspective);
-	GUISystem::InitGUI(*mRenderContext);
 	mLuaSystem = std::make_unique<LuaSystem>();
+	mRenderContext = std::make_unique<RenderContext>(screenSize, backgroundClearColor, usePerspective);
+
+	// Init all systems **with** dependencies
+	mAnimator = std::make_unique<Animator>(*mResourceManager);
 	mSceneManager = std::make_unique<SceneManager>(*mDescriptionFactory);
+	mPhysicsSystem = std::make_unique<PhysicsSystem>(*this);
 
-	mPhysicsSystem = std::make_unique<PhysicsSystem>();
-
+	// Remaining system setup
+	mInputHandler->RegisterButtonUpHandler(LLGL::Key::Escape, [=]() { mRunning = false; });
+	_InitDescriptions();
+	GUISystem::InitGUI(*mRenderContext);
 	mResourceManager->LoadAllResources(mRenderContext->GetRenderSystem());
 	mRenderContext->InitPipelines(title, mInputHandler, *mResourceManager);
 
@@ -125,6 +124,7 @@ EngineContext::EngineContext(GameInterface* game, const LLGL::Extent2D screenSiz
 {
 	_Init(screenSize, title, backgroundClearColor, usePerspective);
 	game->Init(this);
+	// NOTE: Scene callbacks need to be set before scene gets loaded in StartGame()
 	SetSceneCallbacks(game);
 	game->RegisterEntityDescriptions();
 	game->StartGame();
@@ -230,6 +230,7 @@ void EngineContext::SetSceneCallbacks(const GameInterface* game) const
 	game->SetSceneCallbacks(*mSceneManager);
 }
 
+// ========== ACCESSORS FOR GAME INTERFACE ==============
 InputHandler& EngineContext::GetInputHandler() const
 {
 	return *mInputHandler;
@@ -245,7 +246,7 @@ const std::vector<const char*>& EngineContext::GetSceneNames() const
 	return mSceneManager->GetSceneNames();
 }
 
-void EngineContext::LoadScene(const char* sceneName)
+void EngineContext::LoadScene(const char* sceneName) const
 {
 	mSceneManager->LoadScene(sceneName, *this, *mMapRegistry, *mLuaSystem);
 }

@@ -13,7 +13,7 @@ class SceneManager;
 class PhysicsSystem
 {
 public:
-	PhysicsSystem();
+	PhysicsSystem(EngineContext& engineContext);
 
 	void RegisterCollider(Entity* entity);
 	void AddEntityToInitialize(Entity* entity);

@@ -8,7 +8,7 @@
 
 #include "PhysicsSystem.h"
 
-PhysicsSystem::PhysicsSystem()
+PhysicsSystem::PhysicsSystem(EngineContext& engineContext)
 {
 	mBroadPhase = std::make_unique<btDbvtBroadphase>();
 	mConstraintSolver = std::make_unique<btSequentialImpulseConstraintSolver>();
@@ -25,9 +25,9 @@ PhysicsSystem::PhysicsSystem()
 	mDynamicWorld->setGravity(mGravityConst);
 
 	// TODO: Uncomment to turn on debug draw
-	//mPhysicsDebugDraw = std::make_unique<PhysicsDebugDraw>(engineContext);
-	//mDynamicWorld->setDebugDrawer(mPhysicsDebugDraw.get());
-	//mDynamicWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
+	mPhysicsDebugDraw = std::make_unique<PhysicsDebugDraw>(engineContext);
+	mDynamicWorld->setDebugDrawer(mPhysicsDebugDraw.get());
+	mDynamicWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
 }
 
 void PhysicsSystem::RegisterCollider(Entity* entity)

@@ -49,7 +49,7 @@ public:
 
 	// ========= SCENE MANAGER ============
 	const std::vector<const char*>& GetSceneNames() const;
-	void LoadScene(const char* sceneName);
+	void LoadScene(const char* sceneName) const;
 	MonScene* GetScene() const;
 
 	void GenerateMapTexture(Entity* mapEntity) const;
