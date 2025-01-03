@@ -27,13 +27,13 @@ void EngineContext::_Init(const LLGL::Extent2D screenSize, const LLGL::UTF8Strin
 	mRenderContext = std::make_unique<RenderContext>(screenSize, backgroundClearColor, usePerspective);
 
 	// Init all systems **with** dependencies
+	_InitDescriptions(); // Must be called before SceneManager sets up description factory
 	mAnimator = std::make_unique<Animator>(*mResourceManager);
 	mSceneManager = std::make_unique<SceneManager>(*mDescriptionFactory);
 	mPhysicsSystem = std::make_unique<PhysicsSystem>(*this);
 
 	// Remaining system setup
 	mInputHandler->RegisterButtonUpHandler(LLGL::Key::Escape, [=]() { mRunning = false; });
-	_InitDescriptions();
 	GUISystem::InitGUI(*mRenderContext);
 	mResourceManager->LoadAllResources(mRenderContext->GetRenderSystem());
 	mRenderContext->InitPipelines(title, mInputHandler, *mResourceManager);
