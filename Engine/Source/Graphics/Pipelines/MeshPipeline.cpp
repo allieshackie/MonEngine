@@ -104,7 +104,7 @@ MeshPipeline::MeshPipeline(const LLGL::RenderSystemPtr& renderSystem,
 
 		renderSystem->WriteBuffer(*mMaterialBuffer, 0, &(material), sizeof(Material));
 
-		std::vector<LLGL::ResourceViewDescriptor> resourceViews = {
+		const std::vector<LLGL::ResourceViewDescriptor> resourceViews = {
 			mConstantBuffer, mLightConstantBuffer, mBoneBuffer, mLightBuffer, mMaterialBuffer
 		};
 		InitResourceHeap(renderSystem, resourceViews);
@@ -174,10 +174,11 @@ void MeshPipeline::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& command
 	model = glm::rotate(model, glm::radians(transform.mRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
 	model = glm::rotate(model, glm::radians(transform.mRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
 
-	model = glm::scale(model, transform.mSize);
+	auto calculatedSize = meshModel.CalculateModelScaling(transform.mSize);
+	model = glm::scale(model, calculatedSize);
 
 	// Light Settings
-	const auto lightsSize = mLights.size();
+	int lightsSize = static_cast<int>(mLights.size());
 	if (lightsSize != lightSettings.numLights)
 	{
 		lightSettings.numLights = lightsSize;

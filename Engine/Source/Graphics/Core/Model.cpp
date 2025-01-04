@@ -77,6 +77,18 @@ const Animation* Model::GetAnimation(AnimationStates state) const
 	return nullptr;
 }
 
+glm::vec3 Model::CalculateModelScaling(const glm::vec3& targetSize) const
+{
+	glm::vec3 size = mMeshes[0]->mMaxBounds - mMeshes[0]->mMinBounds;
+	float maxDimension = std::max({size.x, size.y, size.z});
+
+	// Scale uniformly to fit within targetSize (e.g., 1x1x1 meters)
+	glm::vec3 scaleFactor = targetSize / maxDimension;
+
+	// Return a scaling matrix
+	return scaleFactor;
+}
+
 void Model::_ProcessMeshes(tinygltf::Model& model)
 {
 	for (unsigned int i = 0; i < model.meshes.size(); i++)
@@ -123,11 +135,17 @@ void Model::_ProcessMeshes(tinygltf::Model& model)
 				weights = gltfHelpers::GetgltfBuffer<const float*>(model, it->second);
 			}
 
+			glm::vec3 minBounds(std::numeric_limits<float>::max());
+			glm::vec3 maxBounds(std::numeric_limits<float>::lowest());
+
 			meshData->mVertices.resize(posCount);
 			for (int vertId = 0; vertId < posCount; vertId++)
 			{
 				// Position
 				meshData->mVertices[vertId].position = glm::make_vec3(&positions[vertId * VEC3_STEP]);
+
+				minBounds = glm::min(minBounds, meshData->mVertices[vertId].position);
+				maxBounds = glm::max(maxBounds, meshData->mVertices[vertId].position);
 
 				// Normal (optional)
 				if (normals)
@@ -186,6 +204,9 @@ void Model::_ProcessMeshes(tinygltf::Model& model)
 					}
 				}
 			}
+
+			meshData->mMinBounds = minBounds;
+			meshData->mMaxBounds = maxBounds;
 
 			// Indices
 			if (primitive.indices != -1)

@@ -61,7 +61,7 @@ bool MapRegistry::_ParseMapData(const MapData& mapData, Entity& entity) const
 
 	if (mapData.mHasDimension)
 	{
-		entity.AddComponentWithArgs<MeshComponent>("PlainBox.gltf");
+		entity.AddComponentWithArgs<MeshComponent>("dogeTerrain.gltf");
 	}
 	else
 	{

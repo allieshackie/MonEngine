@@ -45,7 +45,7 @@ void PhysicsSystem::RegisterCollider(Entity* entity)
 			const auto& position = transform.mPosition;
 			const auto& size = transform.mSize;
 			const auto& rotation = transform.mRotation;
-			auto boxShape = new btBoxShape({size.x, size.y, size.z});
+			auto boxShape = new btBoxShape(btVector3{size.x / 2, size.y / 2, size.z / 2});
 
 			btTransform boxTransform;
 			boxTransform.setIdentity();
@@ -55,8 +55,7 @@ void PhysicsSystem::RegisterCollider(Entity* entity)
 			boxShape->calculateLocalInertia(mass, localInertia);
 
 			// Set the initial position and rotation
-			// TODO: Get proper model size, size is currently "scale"
-			boxTransform.setOrigin(btVector3{position.x, position.y + size.y, position.z});
+			boxTransform.setOrigin(btVector3{position.x, position.y - (size.y / 2), position.z});
 			boxTransform.setRotation(_ConvertDegreesToQuat(rotation));
 
 			auto motionState = new btDefaultMotionState(boxTransform);
@@ -79,14 +78,14 @@ void PhysicsSystem::RegisterCollider(Entity* entity)
 			const auto& position = transform.mPosition;
 			const auto& size = transform.mSize;
 			const auto& rotation = transform.mRotation;
-			const auto boxShape = new btBoxShape(btVector3{size.x, size.y, size.z});
+			const auto boxShape = new btBoxShape(btVector3{size.x / 2, size.y / 2, size.z / 2});
 
 			btTransform boxTransform;
 			boxTransform.setIdentity();
 
 			const btVector3 localInertia(0, 0, 0);
 
-			boxTransform.setOrigin(btVector3{position.x, position.y, position.z});
+			boxTransform.setOrigin(btVector3{position.x, position.y - (size.y / 2), position.z});
 			boxTransform.setRotation(_ConvertDegreesToQuat(rotation));
 
 			const auto motionState = new btDefaultMotionState(boxTransform);
@@ -136,7 +135,7 @@ void PhysicsSystem::Update(float deltaTime, MonScene* scene)
 			btVector3 pos = worldTransform.getOrigin();
 			btQuaternion orn = worldTransform.getRotation();
 
-			transform.mPosition = {pos.x(), pos.y() - size.y, pos.z()};
+			transform.mPosition = {pos.x(), pos.y() - (size.y / 2), pos.z()};
 			transform.mRotation = _ConvertQuatToRadians(orn);
 		}
 	});

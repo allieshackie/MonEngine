@@ -19,6 +19,9 @@ struct MeshData
 	std::vector<Vertex> mVertices;
 	std::vector<uint32_t> mIndices;
 
+	glm::vec3 mMinBounds = {0, 0, 0};
+	glm::vec3 mMaxBounds = {0, 0, 0};
+
 	LLGL::Buffer* mVertexBuffer = nullptr;
 	LLGL::Buffer* mIndexBuffer = nullptr;
 };
@@ -38,6 +41,8 @@ public:
 	size_t GetNumJoints() const { return mNumNodes; }
 
 	const Animation* GetAnimation(AnimationStates state) const;
+
+	glm::vec3 CalculateModelScaling(const glm::vec3& targetSize) const;
 
 	// TODO: For Debug GUI
 	const std::unordered_map<std::string, int>& GetBoneNamesToIndex() const { return mBoneNameToIndex; }

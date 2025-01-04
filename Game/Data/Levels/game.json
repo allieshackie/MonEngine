@@ -7,7 +7,7 @@
     "maps": {
         "name": "ground_map.json",
         "position": [0,0,0],
-        "size": [20, 1, 20],
+        "size": [20,10,20],
         "rotation": [0,0,0],
         "tile_size": 1,
         "has_dimension": true
