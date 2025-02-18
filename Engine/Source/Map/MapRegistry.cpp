@@ -52,6 +52,7 @@ bool MapRegistry::_ParseMapData(const MapData& mapData, Entity& entity) const
 		data.emplace_back(std::stoi(str));
 	}
 
+	entity.SetName(mapData.mName);
 	entity.AddComponentWithArgs<MapComponent>(mapData.mName, mapReg.mRows, mapReg.mColumns,
 	                                          mapReg.mTextureSize, mapReg.mTextureData.mTexturePath,
 	                                          mapReg.mTextureData.mTextureRows, mapReg.mTextureData.mTextureColumns,
@@ -68,8 +69,8 @@ bool MapRegistry::_ParseMapData(const MapData& mapData, Entity& entity) const
 		entity.AddComponentWithArgs<MeshComponent>("Plane.gltf");
 	}
 
-	entity.AddComponentWithArgs<CollisionComponent>(ColliderShapes::BOX, mapData.mSize, false, -1, nullptr,
-	                                                true);
+	entity.AddComponentWithArgs<CollisionComponent>(ColliderShapes::BOX, mapData.mSize,
+	                                                false, -1, nullptr, true);
 
 	return mapReg.mTextureData.mTextureRows != 0 && mapReg.mTextureData.mTextureColumns != 0;
 }

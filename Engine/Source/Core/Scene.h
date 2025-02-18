@@ -132,6 +132,8 @@ private:
 
 	std::unique_ptr<Camera> mCamera = nullptr;
 	entt::registry mRegistry;
+	std::unordered_map<std::string, int> mTypeCounters;
 	std::unordered_map<entt::entity, Entity*> mEntityMap;
+	std::unordered_map<std::string, entt::entity> mEntityNameIdMap;
 	EventPublisher& mEventPublisher;
 };

@@ -5,10 +5,14 @@
 class Entity
 {
 public:
-	Entity(entt::entity id, entt::registry& registry, EventPublisher& eventPub) : mRegistry(registry),
-		mEventPublisher(eventPub), mId(id)
+	Entity(entt::entity id, entt::registry& registry, EventPublisher& eventPub, const std::string name = "")
+		: mRegistry(registry), mEventPublisher(eventPub), mId(id), mName(name)
 	{
 	}
+
+	const entt::entity& GetId() const { return mId; }
+	const std::string& GetName() const { return mName; }
+	void SetName(const std::string& name) { mName = name; }
 
 	template <typename Component>
 	Component& GetComponent()
@@ -60,5 +64,5 @@ private:
 	EventPublisher& mEventPublisher;
 
 	entt::entity mId{entt::null};
-	const char* mName = "";
+	std::string mName;
 };

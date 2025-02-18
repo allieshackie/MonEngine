@@ -196,7 +196,7 @@ void EngineContext::Run(GameInterface* game)
 		// GUISystem::RenderGuiElements();  DEBUG GUI MENU
 		if (mEditorGUI != nullptr)
 		{
-			mEditorGUI->Render(mSceneManager->GetCurrentScene(), *mResourceManager);
+			mEditorGUI->Render(mSceneManager->GetCurrentScene(), *mResourceManager, *mRenderContext);
 		}
 		GUISystem::GUIEndFrame();
 
@@ -218,7 +218,7 @@ void EngineContext::LoadFont(const char* fontFileName) const
 
 void EngineContext::OpenEditorMenu()
 {
-	mEditorGUI = std::make_unique<EditorGUI>();
+	mEditorGUI = std::make_unique<EditorGUI>(*mSceneManager, *mInputHandler);
 }
 
 void EngineContext::SetSceneCallbacks(const GameInterface* game) const

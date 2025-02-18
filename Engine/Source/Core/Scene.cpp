@@ -7,8 +7,9 @@ Entity& MonScene::CreateEntityFromTemplate(const char* templateName, EntityTempl
 {
 	const auto& descriptions = templateRegistry.GetEntityTemplateDescriptions(templateName);
 	auto id = mRegistry.create();
-	const auto entity = new Entity(id, mRegistry, mEventPublisher);
+	const auto entity = new Entity(id, mRegistry, mEventPublisher, templateName);
 	mEntityMap[id] = entity;
+	mEntityNameIdMap[std::to_string(static_cast<uint32_t>(id))] = id;
 
 	for (const auto& description : descriptions)
 	{
