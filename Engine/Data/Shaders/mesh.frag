@@ -1,5 +1,14 @@
 #version 460
 
+layout(std140) uniform MeshSettings 
+{
+    mat4 model;
+    mat4 view;
+    mat4 projection;
+    vec4 meshFlags; // [0] = hasTexture, [1] = hasBones, [2] = gTargetBone (for debugging)
+    vec3 solidColor;
+};
+
 layout(std140) uniform LightSettings 
 {
     vec3 viewPos;
@@ -40,7 +49,7 @@ layout(std430) buffer MaterialBuffer
 in vec3 vPosition;
 in vec3 vNormal;
 in vec2 vTexCoord;
-in vec4 vTestColor;
+in vec4 vBoneDebugColor;
 
 out vec4 fragColor;
 
@@ -52,7 +61,13 @@ void main()
     // properties
     vec3 norm = normalize(vNormal);
     vec3 viewDir = normalize(viewPos - vPosition);
-    vec4 color = texture(colorMap, vTexCoord);
+    vec4 color;
+    if (meshFlags[0] == 1) {
+        color = texture(colorMap, vTexCoord);
+    }
+    else {
+        color = vec4(solidColor, 1.0);
+    }
     vec3 result = vec3(0.0);
 
     for(int i = 0; i < numLights; i++) {
@@ -66,7 +81,7 @@ void main()
 
     fragColor = vec4(result * color.rgb, 1.0);
     // Debug: Show bone weight
-    //fragColor = vTestColor;
+    //fragColor = vBoneDebugColor;
     // Debug: Show UV color coords
     //fragColor = vec4(vTexCoord, 0.0, 1.0);  // Show UVs as colors
 }

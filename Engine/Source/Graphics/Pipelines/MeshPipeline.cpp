@@ -36,7 +36,7 @@ MeshPipeline::MeshPipeline(const LLGL::RenderSystemPtr& renderSystem,
 			{
 				LLGL::BindingDescriptor{
 					"MeshSettings", LLGL::ResourceType::Buffer, LLGL::BindFlags::ConstantBuffer,
-					LLGL::StageFlags::VertexStage, 0
+					LLGL::StageFlags::VertexStage | LLGL::StageFlags::FragmentStage, 0
 				},
 				LLGL::BindingDescriptor{
 					"LightSettings", LLGL::ResourceType::Buffer, LLGL::BindFlags::ConstantBuffer,
@@ -124,7 +124,6 @@ void MeshPipeline::Render(LLGL::CommandBuffer& commands, const Camera& camera,
 
 	commands.SetPipelineState(*mPipeline);
 
-	// TODO: Sort the entities based on their mesh component file names
 	const auto meshView = scene->GetRegistry().view<
 		const TransformComponent, MeshComponent, const SpriteComponent>(
 		entt::exclude<MapComponent>);
@@ -148,9 +147,9 @@ void MeshPipeline::Render(LLGL::CommandBuffer& commands, const Camera& camera,
 void MeshPipeline::RenderMap(LLGL::CommandBuffer& commands, const Camera& camera,
                              const LLGL::RenderSystemPtr& renderSystem, const ResourceManager& resourceManager,
                              const glm::mat4 projection, MeshComponent& meshComponent,
-                             const TransformComponent& transform)
+                             const TransformComponent& transform, const glm::vec3 color)
 {
-	_RenderModel(commands, meshComponent, camera, renderSystem, resourceManager, projection, transform);
+	_RenderModel(commands, meshComponent, camera, renderSystem, resourceManager, projection, transform, color);
 }
 
 void MeshPipeline::SetPipeline(LLGL::CommandBuffer& commands) const
@@ -161,7 +160,7 @@ void MeshPipeline::SetPipeline(LLGL::CommandBuffer& commands) const
 void MeshPipeline::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& commands, const Camera& camera,
                                                     const LLGL::RenderSystemPtr& renderSystem,
                                                     const glm::mat4 projection, const TransformComponent& transform,
-                                                    MeshComponent& mesh, const Model& meshModel)
+                                                    MeshComponent& mesh, const Model& meshModel, const glm::vec3 color)
 {
 	// Update
 	auto model = glm::mat4(1.0f);
@@ -193,10 +192,11 @@ void MeshPipeline::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& command
 	meshSettings.model = model;
 	meshSettings.view = camera.GetView();
 	meshSettings.projection = projection;
-	meshSettings.textureClip = glm::mat4(1.0f);
-	meshSettings.hasBones[0] = mesh.mHasBones;
 
-	meshSettings.hasBones[1] = static_cast<float>(mesh.mCurrentBoneIndex);
+	meshSettings.solidColor = color;
+	meshSettings.meshFlags[0] = static_cast<int>(color.x) == -1;
+	meshSettings.meshFlags[1] = mesh.mHasBones;
+	meshSettings.meshFlags[2] = static_cast<float>(mesh.mCurrentBoneIndex);
 
 	std::uint64_t transformOffset = 0;
 	for (const auto& finalTransform : mesh.mFinalTransforms)
@@ -263,10 +263,11 @@ void MeshPipeline::_ProcessLights()
 
 void MeshPipeline::_RenderModel(LLGL::CommandBuffer& commands, MeshComponent& meshComponent, const Camera& camera,
                                 const LLGL::RenderSystemPtr& renderSystem, const ResourceManager& resourceManager,
-                                const glm::mat4 projection, const TransformComponent& transform)
+                                const glm::mat4 projection, const TransformComponent& transform, const glm::vec3 color)
 {
 	const auto& model = resourceManager.GetModelFromId(meshComponent.mMeshPath);
-	UpdateProjectionViewModelUniform(commands, camera, renderSystem, projection, transform, meshComponent, model);
+	UpdateProjectionViewModelUniform(commands, camera, renderSystem, projection, transform, meshComponent, model,
+	                                 color);
 
 	for (const auto mesh : model.GetMeshes())
 	{

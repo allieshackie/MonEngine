@@ -5,34 +5,38 @@ struct MapComponent
 {
 	std::string mId;
 
-	int mRows = 0;
-	int mColumns = 0;
-
-	glm::vec2 mTextureSize = {0, 0};
-
 	std::string mTexturePath;
-	int mTextureMapRows = 0;
-	int mTextureMapColumns = 0;
+	glm::vec2 mTextureSize = {0, 0};
+	glm::vec2 mTextureTiling = {0, 0};
 
 	std::string mDataPath;
 	std::vector<int> mData;
 
-	float mTileSize = 0.0f;
+	glm::vec3 mColor = {-1, -1, -1};
 
 	// Runtime
 	int mGeneratedTextureId = -1;
 
 	template <class Archive>
-	void serialize(Archive& archive)
+	void save(Archive& archive) const
 	{
 		archive(cereal::make_nvp("id", mId),
-		        cereal::make_nvp("rows", mRows),
-		        cereal::make_nvp("columns", mColumns),
-		        cereal::make_nvp("texture_size", mTextureSize),
 		        cereal::make_nvp("texture_path", mTexturePath),
-		        cereal::make_nvp("texture_map_rows", mTextureMapRows),
-		        cereal::make_nvp("texture_map_columns", mTextureMapColumns),
-		        cereal::make_nvp("data_path", mDataPath),
-		        cereal::make_nvp("tile_size", mTileSize));
+		        cereal::make_nvp("texture_size", mTextureSize),
+		        cereal::make_nvp("texture_tiling", mTextureTiling),
+		        cereal::make_nvp("data_path", mDataPath));
+	}
+
+	template <class Archive>
+	void load(Archive& archive)
+	{
+		archive(cereal::make_nvp("id", mId));
+
+		cereal::make_optional_nvp(archive, "texture_path", mTexturePath);
+		cereal::make_optional_nvp(archive, "texture_size", mTextureSize);
+		cereal::make_optional_nvp(archive, "texture_tiling", mTextureTiling);
+		cereal::make_optional_nvp(archive, "data_path", mDataPath);
+
+		cereal::make_optional_nvp(archive, "color", mColor);
 	}
 };

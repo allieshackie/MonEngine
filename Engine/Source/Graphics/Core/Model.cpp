@@ -80,13 +80,8 @@ const Animation* Model::GetAnimation(AnimationStates state) const
 glm::vec3 Model::CalculateModelScaling(const glm::vec3& targetSize) const
 {
 	glm::vec3 size = mMeshes[0]->mMaxBounds - mMeshes[0]->mMinBounds;
-	float maxDimension = std::max({size.x, size.y, size.z});
-
 	// Scale uniformly to fit within targetSize (e.g., 1x1x1 meters)
-	glm::vec3 scaleFactor = targetSize / maxDimension;
-
-	// Return a scaling matrix
-	return scaleFactor;
+	return targetSize / size;
 }
 
 void Model::_ProcessMeshes(tinygltf::Model& model)

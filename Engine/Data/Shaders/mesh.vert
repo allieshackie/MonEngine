@@ -14,8 +14,8 @@ layout(std140) uniform MeshSettings
     mat4 model;
     mat4 view;
     mat4 projection;
-    mat4 textureClip;
-    vec4 hasBones; // [0] = hasBones, [1] = gTargetBone (for debugging)
+    vec4 meshFlags; // [0] = hasTexture, [1] = hasBones, [2] = gTargetBone (for debugging)
+    vec3 solidColor;
 };
 
 layout(std430) buffer BoneBuffer
@@ -32,7 +32,7 @@ in vec4 weights;
 out vec3 vPosition;
 out vec3 vNormal;
 out vec2 vTexCoord;
-out vec4 vTestColor;
+out vec4 vBoneDebugColor;
 
 void debugShowBoneWeights(bool found) 
 {
@@ -41,7 +41,7 @@ void debugShowBoneWeights(bool found)
     
     vec4 weightColor;
     for (int i = 0 ; i < 4; i++) {
-        if (boneIds[i] == hasBones[1]) {
+        if (boneIds[i] == meshFlags[2]) {
             if (weights[i] >= 0.7) {
                 weightColor = vec4(1.0, 0.0, 0.0, 1.0) * weights[i];
             } else if (weights[i] >= 0.4 && weights[i] <= 0.6) {
@@ -49,7 +49,7 @@ void debugShowBoneWeights(bool found)
             } else if (weights[i] >= 0.1) {
                 weightColor = vec4(1.0, 1.0, 0.0, 1.0) * weights[i];
             }
-            vTestColor = vec4(weightColor.xyz, 1.0);
+            vBoneDebugColor = vec4(weightColor.xyz, 1.0);
             found = true;
             break;
         }
@@ -71,7 +71,7 @@ vec3 applyBoneTransform(vec4 pos)
 
 void main()
 {
-    if (hasBones[0] != 0) {
+    if (meshFlags[1] != 0) {
         vec3 transformedPos = applyBoneTransform(vec4(position, 1.0));
         vec3 transformedNormal = normalize(applyBoneTransform(vec4(normal, 0.0)));
         
@@ -83,13 +83,13 @@ void main()
         //debugShowBoneWeights(found);
 
         if (!found) {
-            vTestColor = vec4(0.5, 0.5, 0.5, 1.0);
+            vBoneDebugColor = vec4(0.5, 0.5, 0.5, 1.0);
         }
     }
     else {
         vPosition = vec3(model * vec4(position, 1.0));
         vNormal = mat3(transpose(inverse(model))) * normal;  
-        vTestColor = vec4(1.0, 0, 0, 1.0);
+        vBoneDebugColor = vec4(1.0, 0, 0, 1.0);
     }
 
 	vTexCoord = texCoord;

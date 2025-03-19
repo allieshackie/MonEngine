@@ -13,8 +13,6 @@ struct MapData
 	glm::vec3 mPosition = {0, 0, 0};
 	glm::vec3 mSize = {0, 0, 0};
 	glm::vec3 mRotation = {0, 0, 0};
-	glm::vec4 mColor = {0, 0, 0, 0};
-	float mTileSize = 0.0f;
 	bool mHasDimension = false;
 
 	template <class Archive>
@@ -24,8 +22,6 @@ struct MapData
 		   cereal::make_nvp("position", mPosition),
 		   cereal::make_nvp("size", mSize),
 		   cereal::make_nvp("rotation", mRotation),
-		   cereal::make_nvp("color", mColor),
-		   cereal::make_nvp("tile_size", mTileSize),
 		   cereal::make_nvp("has_dimension", mHasDimension));
 	}
 
@@ -36,11 +32,7 @@ struct MapData
 		   cereal::make_nvp("position", mPosition),
 		   cereal::make_nvp("size", mSize),
 		   cereal::make_nvp("rotation", mRotation),
-		   cereal::make_nvp("has_dimension", mHasDimension)
-		);
-
-		cereal::make_optional_nvp(ar, "color", mColor);
-		cereal::make_optional_nvp(ar, "tile_size", mTileSize);
+		   cereal::make_nvp("has_dimension", mHasDimension));
 	}
 };
 

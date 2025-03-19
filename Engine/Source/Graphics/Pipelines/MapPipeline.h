@@ -40,7 +40,7 @@ private:
 	                      const ResourceManager& resourceManager, Entity* mapEntity);
 
 	void _CalculateTileDrawData(const MapComponent& mapComponent, int tileIndex, glm::vec3& pos, glm::vec3& size,
-	                            glm::vec4& clip) const;
+	                            glm::vec4& clip, const glm::vec3 mapSize) const;
 	glm::vec4 _GetClipForTile(const MapComponent& mapComponent, int index) const;
 
 

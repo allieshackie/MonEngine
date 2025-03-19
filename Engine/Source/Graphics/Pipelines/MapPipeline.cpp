@@ -105,7 +105,8 @@ void MapPipeline::Render(LLGL::CommandBuffer& commandBuffer, const Camera& camer
 				auto& texture = resourceManager.GetTexture(map.mTexturePath);
 				meshPipeline.SetResourceHeapTexture(commandBuffer, texture);
 			}
-			meshPipeline.RenderMap(commandBuffer, camera, renderSystem, resourceManager, projection, mesh, transform);
+			meshPipeline.RenderMap(commandBuffer, camera, renderSystem, resourceManager, projection, mesh, transform,
+			                       map.mColor);
 		});
 }
 
@@ -218,7 +219,7 @@ void MapPipeline::_WriteMapTexture(LLGL::CommandBuffer& commandBuffer, LLGL::Pip
 			glm::vec3 tilePos;
 			glm::vec3 size;
 			glm::vec4 clip;
-			_CalculateTileDrawData(mapComponent, i, tilePos, size, clip);
+			_CalculateTileDrawData(mapComponent, i, tilePos, size, clip, transformComponent.mSize);
 
 			_UpdateUniformsModel(commandBuffer, tilePos, size, transformComponent.mRotation, clip);
 			commandBuffer.Draw(4, 0);
@@ -236,15 +237,15 @@ void MapPipeline::_WriteMapTexture(LLGL::CommandBuffer& commandBuffer, LLGL::Pip
 }
 
 void MapPipeline::_CalculateTileDrawData(const MapComponent& mapComponent, int tileIndex, glm::vec3& pos,
-                                         glm::vec3& size, glm::vec4& clip) const
+                                         glm::vec3& size, glm::vec4& clip, const glm::vec3 mapSize) const
 {
-	const auto rows = mapComponent.mRows;
-	const auto columns = mapComponent.mColumns;
+	const auto rows = mapSize.x;
+	const auto columns = mapSize.y;
 	const glm::vec2 tileSize = {(1.0f / columns) * 2, (1.0f / rows) * 2};
 	const glm::vec3 mapTopLeft = {-1 + (tileSize.x / 2.0f), 1 - (tileSize.y / 2.0f), 0};
 
 	const int tile = mapComponent.mData[tileIndex];
-	const float posX = tileIndex % columns;
+	const float posX = tileIndex % static_cast<int>(columns);
 	const float currentRow = floorf(tileIndex / columns);
 
 	clip = _GetClipForTile(mapComponent, tile);
@@ -259,8 +260,8 @@ void MapPipeline::_CalculateTileDrawData(const MapComponent& mapComponent, int t
 
 glm::vec4 MapPipeline::_GetClipForTile(const MapComponent& mapComponent, int index) const
 {
-	const auto texColumns = mapComponent.mTextureMapColumns;
-	const auto texRows = mapComponent.mTextureMapRows;
+	const auto texColumns = mapComponent.mTextureTiling.y;
+	const auto texRows = mapComponent.mTextureTiling.x;
 	const auto whichColumn = fmod(index, texColumns);
 	// Add one or else the last index in row tries to go to next row
 	const auto whichRow = floor(index / (texRows + 1));

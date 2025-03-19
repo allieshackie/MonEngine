@@ -28,11 +28,11 @@ bool MapRegistry::_ParseMapData(const MapData& mapData, Entity& entity) const
 	std::string fullMapPath = MAPS_FOLDER;
 	fullMapPath.append(mapData.mName);
 
-	TempMapReg mapReg;
+	MapComponent mapComponent;
 	try
 	{
 		auto archive = FileSystem::CreateArchive(fullMapPath, true);
-		mapReg.serialize(archive);
+		mapComponent.load(archive);
 	}
 	catch (const cereal::Exception& e)
 	{
@@ -41,23 +41,17 @@ bool MapRegistry::_ParseMapData(const MapData& mapData, Entity& entity) const
 	}
 
 	std::string fullMapDataPath = MAPS_FOLDER;
-	fullMapDataPath.append(mapReg.mDataPath);
+	fullMapDataPath.append(mapComponent.mDataPath);
 	std::ifstream file(fullMapDataPath.c_str());
 
 	std::string str;
-	std::vector<int> data;
-
 	while (std::getline(file, str, ','))
 	{
-		data.emplace_back(std::stoi(str));
+		mapComponent.mData.emplace_back(std::stoi(str));
 	}
 
 	entity.SetName(mapData.mName);
-	entity.AddComponentWithArgs<MapComponent>(mapData.mName, mapReg.mRows, mapReg.mColumns,
-	                                          mapReg.mTextureSize, mapReg.mTextureData.mTexturePath,
-	                                          mapReg.mTextureData.mTextureRows, mapReg.mTextureData.mTextureColumns,
-	                                          mapReg.mDataPath, data);
-
+	entity.AddComponent<MapComponent>(mapComponent);
 	entity.AddComponentWithArgs<TransformComponent>(mapData.mPosition, mapData.mSize, mapData.mRotation);
 
 	if (mapData.mHasDimension)
@@ -72,5 +66,5 @@ bool MapRegistry::_ParseMapData(const MapData& mapData, Entity& entity) const
 	entity.AddComponentWithArgs<CollisionComponent>(ColliderShapes::BOX, mapData.mSize,
 	                                                false, -1, nullptr, true);
 
-	return mapReg.mTextureData.mTextureRows != 0 && mapReg.mTextureData.mTextureColumns != 0;
+	return mapComponent.mTextureTiling.x != 0.0f && mapComponent.mTextureTiling.y != 0.0f;
 }

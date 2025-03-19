@@ -30,14 +30,15 @@ public:
 	            const LLGL::RenderSystemPtr& renderSystem);
 	void RenderMap(LLGL::CommandBuffer& commands, const Camera& camera, const LLGL::RenderSystemPtr& renderSystem,
 	               const ResourceManager& resourceManager, const glm::mat4 projection,
-	               MeshComponent& meshComponent, const TransformComponent& transform);
+	               MeshComponent& meshComponent, const TransformComponent& transform,
+	               const glm::vec3 color = {-1, -1, -1});
 
 	void SetPipeline(LLGL::CommandBuffer& commands) const;
 
 	void UpdateProjectionViewModelUniform(LLGL::CommandBuffer& commands, const Camera& camera,
 	                                      const LLGL::RenderSystemPtr& renderSystem, const glm::mat4 projection,
 	                                      const TransformComponent& transform, MeshComponent& mesh,
-	                                      const Model& meshModel);
+	                                      const Model& meshModel, const glm::vec3 color = {-1, -1, -1});
 
 	void SetResourceHeapTexture(LLGL::CommandBuffer& commands, LLGL::Texture& texture) const;
 
@@ -49,7 +50,8 @@ public:
 private:
 	void _RenderModel(LLGL::CommandBuffer& commands, MeshComponent& meshComponent, const Camera& camera,
 	                  const LLGL::RenderSystemPtr& renderSystem, const ResourceManager& resourceManager,
-	                  const glm::mat4 projection, const TransformComponent& transform);
+	                  const glm::mat4 projection, const TransformComponent& transform,
+	                  const glm::vec3 color = {-1, -1, -1});
 
 	void _ProcessLights();
 
@@ -63,9 +65,8 @@ private:
 		glm::mat4 model = glm::mat4();
 		glm::mat4 view = glm::mat4();
 		glm::mat4 projection = glm::mat4();
-		// texture clip to render part of texture
-		glm::mat4 textureClip = glm::mat4();
-		glm::vec4 hasBones = {0, 0, 0, 0};
+		glm::vec4 meshFlags = {1, 0, 0, 0}; // [0] = hasTexture, [1] = hasBones, [2] = gTargetBone (for debugging)
+		glm::vec3 solidColor = {1, 1, 1};
 	}
 	meshSettings = {};
 

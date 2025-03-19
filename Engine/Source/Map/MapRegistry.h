@@ -24,28 +24,6 @@ struct TextureData
 	}
 };
 
-struct TempMapReg
-{
-	std::string mId;
-	int mRows = 0;
-	int mColumns = 0;
-	glm::vec2 mTextureSize = {0, 0};
-	TextureData mTextureData;
-	std::string mDataPath;
-
-	template <class Archive>
-	void serialize(Archive& archive)
-	{
-		archive(cereal::make_nvp("id", mId),
-		        cereal::make_nvp("rows", mRows),
-		        cereal::make_nvp("columns", mColumns),
-		        cereal::make_nvp("texture_size", mTextureSize),
-		        cereal::make_nvp("texture_data", mTextureData),
-		        cereal::make_nvp("data_path", mDataPath)
-		);
-	}
-};
-
 class MapRegistry
 {
 public:
