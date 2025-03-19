@@ -78,19 +78,10 @@ void EntityMenu::RenderSelectedEntityMenu(MonScene* scene)
 
 void EntityMenu::RenderEntitySelection(MonScene* scene)
 {
-	if (ImGui::Begin("Entity Selection", &mOpen, mWindowFlags))
+	ImGui::Combo("Entities", &current_entity_selected, items.data(), items.size());
+	if (ImGui::Button("Open"))
 	{
-		if (scene == nullptr)
-		{
-			return;
-		}
-
-		ImGui::Combo("Entities", &current_entity_selected, items.data(), items.size());
-		if (ImGui::Button("Open"))
-		{
-		}
 	}
-	ImGui::End();
 }
 
 void EntityMenu::QueueClick()

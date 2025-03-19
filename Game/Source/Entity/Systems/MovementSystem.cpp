@@ -36,14 +36,14 @@ static void _ApplyJump(const CollisionComponent& collider, const PlayerComponent
 	{
 		// Check if player is on the ground (no double jumping yet)
 		btVector3 start = collider.mRigidBody->getWorldTransform().getOrigin();
-		btVector3 end = start - btVector3(0, 1.0, 0); // 1.0 units down
+		btVector3 end = start - btVector3(0, 3.0, 0); // 1.0 units down
 
 		btCollisionWorld::ClosestRayResultCallback rayCallback(start, end);
 		physicsSystem.GetDynamicWorld().rayTest(start, end, rayCallback);
 
 		if (rayCallback.hasHit())
 		{
-			auto upwardImpulse = btVector3(0, 6.0f, 0);
+			auto upwardImpulse = btVector3(0, 0.5f, 0);
 			collider.mRigidBody->applyCentralImpulse(upwardImpulse);
 		}
 	}

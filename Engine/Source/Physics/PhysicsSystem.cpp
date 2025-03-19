@@ -85,7 +85,7 @@ void PhysicsSystem::RegisterCollider(Entity* entity)
 
 			const btVector3 localInertia(0, 0, 0);
 
-			boxTransform.setOrigin(btVector3{position.x, position.y - (size.y / 2), position.z});
+			boxTransform.setOrigin(btVector3{position.x, position.y + (size.y / 2), position.z});
 			boxTransform.setRotation(_ConvertDegreesToQuat(rotation));
 
 			const auto motionState = new btDefaultMotionState(boxTransform);

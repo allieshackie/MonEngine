@@ -51,6 +51,15 @@ void InputHandler::RegisterZoomOutHandler(const std::function<void()>& callback)
 	mZoomOutCallback = callback;
 }
 
+const char* InputHandler::GetNameForKey(LLGL::Key key) const
+{
+	if (const auto it = mKeyNames.find(key); it != mKeyNames.end())
+	{
+		return it->second;
+	}
+	return "Unknown";
+}
+
 void InputHandler::AddEditorInputs(Camera& camera)
 {
 	// Register camera handlers for moving the camera position
@@ -69,9 +78,7 @@ void InputHandler::AddEditorInputs(Camera& camera)
 	RegisterButtonHoldHandler(LLGL::Key::Right, [&camera]() { camera.MoveRight(); }, []()
 	{
 	});
-	RegisterButtonHoldHandler(LLGL::Key::D0, [&camera]() { camera.ToggleFollowCam(); }, []()
-	{
-	});
+	RegisterButtonUpHandler(LLGL::Key::C, [&camera]() { camera.ToggleFollowCam(); });
 
 	// Handlers for handling the camera zoom
 	RegisterZoomInHandler([&camera]() { camera.ZoomIn(); });
@@ -114,6 +121,8 @@ void InputHandler::OnKeyDown(LLGL::Window& sender, LLGL::Key keyCode)
 			mKeysHeld.insert(keyCode);
 		}
 	}
+
+	_AddToDebugKeys(keyCode);
 }
 
 void InputHandler::OnKeyUp(LLGL::Window& sender, LLGL::Key keyCode)
@@ -131,12 +140,16 @@ void InputHandler::OnKeyUp(LLGL::Window& sender, LLGL::Key keyCode)
 		{
 			// Call the release function
 			for (auto& handler : mButtonHoldHandlers[keyCode])
+			{
 				handler.onRelease();
+			}
 
 			// Remove the key from the held keys set
 			mKeysHeld.erase(keyCode);
 		}
 	}
+
+	_RemoveFromDebugKeys(keyCode);
 }
 
 void InputHandler::OnWheelMotion(LLGL::Window& sender, int motion)
@@ -266,6 +279,40 @@ void InputHandler::_handleKeyUpGUI(LLGL::Key keyCode)
 				io.KeysDown[static_cast<int>(keyCode)] = false;
 			}
 			break;
+		}
+	}
+}
+
+void InputHandler::_AddToDebugKeys(LLGL::Key keyCode)
+{
+	bool duplicate = false;
+	for (const auto key : mDebugKeysPressed)
+	{
+		if (key == keyCode)
+		{
+			duplicate = true;
+			break;
+		}
+	}
+
+	if (!duplicate)
+	{
+		mDebugKeysPressed.push_back(keyCode);
+	}
+}
+
+void InputHandler::_RemoveFromDebugKeys(LLGL::Key keyCode)
+{
+	mPreviousKeysPressed = mDebugKeysPressed;
+	for (auto it = mDebugKeysPressed.begin(); it != mDebugKeysPressed.end();)
+	{
+		if (*it == keyCode)
+		{
+			it = mDebugKeysPressed.erase(it);
+		}
+		else
+		{
+			++it;
 		}
 	}
 }

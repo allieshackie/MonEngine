@@ -52,6 +52,10 @@ public:
 	void RegisterZoomInHandler(const std::function<void()>& callback);
 	void RegisterZoomOutHandler(const std::function<void()>& callback);
 
+	const std::vector<LLGL::Key>& GetKeysPressed() const { return mDebugKeysPressed; }
+	const std::vector<LLGL::Key>& GetPreviousKeysHeld() const { return mPreviousKeysPressed; }
+	const char* GetNameForKey(LLGL::Key key) const;
+
 	void AddEditorInputs(Camera& camera);
 
 	void Update();
@@ -72,6 +76,9 @@ private:
 	void _handleKeyDownGUI(LLGL::Key keyCode);
 	void _handleKeyUpGUI(LLGL::Key keyCode);
 
+	void _AddToDebugKeys(LLGL::Key keyCode);
+	void _RemoveFromDebugKeys(LLGL::Key keyCode);
+
 	std::unordered_map<LLGL::Key, std::vector<std::function<void()>>> mButtonUpHandlers;
 	std::unordered_map<LLGL::Key, std::vector<std::function<void()>>> mButtonDownHandlers;
 	std::unordered_map<LLGL::Key, std::vector<HoldHandler>> mButtonHoldHandlers;
@@ -82,4 +89,18 @@ private:
 	std::unordered_set<LLGL::Key> mKeysHeld;
 
 	LLGL::Offset2D mCurrentMousePos = {0, 0};
+
+	// GUI Menu
+	std::vector<LLGL::Key> mDebugKeysPressed;
+	std::vector<LLGL::Key> mPreviousKeysPressed;
+
+	// Only naming the keys we're most concerned with
+	std::unordered_map<LLGL::Key, const char*> mKeyNames = {
+		{LLGL::Key::W, "W"},
+		{LLGL::Key::A, "A"},
+		{LLGL::Key::S, "S"},
+		{LLGL::Key::D, "D"},
+		{LLGL::Key::Space, "Space"},
+		{LLGL::Key::C, "C"},
+	};
 };

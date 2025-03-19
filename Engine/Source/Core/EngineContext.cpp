@@ -193,10 +193,10 @@ void EngineContext::Run(GameInterface* game)
 		// Render GUI last so menus draw on top
 		GUISystem::GUIStartFrame();
 		GUISystem::RenderMenus();
-		// GUISystem::RenderGuiElements();  DEBUG GUI MENU
+		//GUISystem::RenderGuiElements(); //DEBUG GUI MENU
 		if (mEditorGUI != nullptr)
 		{
-			mEditorGUI->Render(mSceneManager->GetCurrentScene(), *mResourceManager, *mRenderContext);
+			mEditorGUI->Render(mSceneManager->GetCurrentScene(), *mResourceManager, *mRenderContext, *mInputHandler);
 		}
 		GUISystem::GUIEndFrame();
 

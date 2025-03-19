@@ -6,6 +6,8 @@
 
 #include "EditorGUI.h"
 
+#include "Input/InputHandler.h"
+
 EditorGUI::EditorGUI(const SceneManager& sceneManager, InputHandler& inputHandler)
 {
 	//mMapEditor = std::make_unique<MapEditor>(engineContext, inputHandler, levelManager, mapRegistry, renderContext);
@@ -13,9 +15,42 @@ EditorGUI::EditorGUI(const SceneManager& sceneManager, InputHandler& inputHandle
 	mEntityMenu = std::make_unique<EntityMenu>(sceneManager, inputHandler);
 }
 
-void EditorGUI::Render(MonScene* scene, ResourceManager& resourceManager, const RenderContext& renderContext) const
+void EditorGUI::Render(MonScene* scene, ResourceManager& resourceManager, const RenderContext& renderContext,
+                       const InputHandler& inputHandler)
 {
-	mEntityMenu->Render(scene, renderContext);
+	if (ImGui::Begin("Editor", &mOpen, mWindowFlags))
+	{
+		if (scene == nullptr)
+		{
+			return;
+		}
+
+		// Camera
+		ImGui::Checkbox("Follow Cam", &scene->GetCamera().GetFollowCamFlag());
+		ImGui::NewLine();
+
+		// Inputs
+		ImGui::Text("Current Key: ");
+		const auto& keysPressed = inputHandler.GetKeysPressed();
+		for (const auto& key : keysPressed)
+		{
+			ImGui::SameLine();
+			ImGui::Text(inputHandler.GetNameForKey(key));
+		}
+		ImGui::NewLine();
+
+		ImGui::Text("Previous Key: ");
+		const auto& previousKeysPressed = inputHandler.GetPreviousKeysHeld();
+		for (const auto& key : previousKeysPressed)
+		{
+			ImGui::SameLine();
+			ImGui::Text(inputHandler.GetNameForKey(key));
+		}
+		ImGui::NewLine();
+
+		mEntityMenu->Render(scene, renderContext);
+	}
+	ImGui::End();
 	//mObjectGUI->RenderGUI(scene, resourceManager);
 	// TODO: How can the camera be addressed? 
 	/*
