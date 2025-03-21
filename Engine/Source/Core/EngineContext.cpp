@@ -116,7 +116,7 @@ void EngineContext::_InitDescriptions() const
 
 void EngineContext::_FixedUpdate(float dt) const
 {
-	mPhysicsSystem->Update(dt, mSceneManager->GetCurrentScene());
+	mPhysicsSystem->Update(dt, mSceneManager->GetCurrentScene(), *mResourceManager);
 }
 
 EngineContext::EngineContext(GameInterface* game, const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,

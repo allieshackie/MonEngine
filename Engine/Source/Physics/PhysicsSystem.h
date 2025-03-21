@@ -8,6 +8,7 @@
 
 class Entity;
 class MonScene;
+class ResourceManager;
 class SceneManager;
 
 class PhysicsSystem
@@ -15,10 +16,10 @@ class PhysicsSystem
 public:
 	PhysicsSystem(EngineContext& engineContext);
 
-	void RegisterCollider(Entity* entity);
+	void RegisterCollider(Entity* entity, const ResourceManager& resourceManager);
 	void AddEntityToInitialize(Entity* entity);
 
-	void Update(float deltaTime, MonScene* scene);
+	void Update(float deltaTime, MonScene* scene, const ResourceManager& resourceManager);
 
 	void SetSceneCallbacks(const SceneManager& sceneManager);
 

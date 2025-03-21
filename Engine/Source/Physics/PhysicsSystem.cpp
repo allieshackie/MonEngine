@@ -27,13 +27,14 @@ PhysicsSystem::PhysicsSystem(EngineContext& engineContext)
 	// TODO: Uncomment to turn on debug draw
 	mPhysicsDebugDraw = std::make_unique<PhysicsDebugDraw>(engineContext);
 	mDynamicWorld->setDebugDrawer(mPhysicsDebugDraw.get());
-	mDynamicWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
+	mDynamicWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe | btIDebugDraw::DBG_DrawAabb);
 }
 
-void PhysicsSystem::RegisterCollider(Entity* entity)
+void PhysicsSystem::RegisterCollider(Entity* entity, const ResourceManager& resourceManager)
 {
 	const auto& transform = entity->GetComponent<TransformComponent>();
 	auto& collider = entity->GetComponent<CollisionComponent>();
+	const auto& mesh = entity->GetComponent<MeshComponent>();
 
 	const auto physics = entity->TryGetComponent<PhysicsComponent>();
 
@@ -100,14 +101,14 @@ void PhysicsSystem::RegisterCollider(Entity* entity)
 	}
 }
 
-void PhysicsSystem::Update(float deltaTime, MonScene* scene)
+void PhysicsSystem::Update(float deltaTime, MonScene* scene, const ResourceManager& resourceManager)
 {
 	for (auto it = mEntitiesToInitialize.begin(); it != mEntitiesToInitialize.end();)
 	{
 		const auto& collider = (*it)->GetComponent<CollisionComponent>();
 		if (collider.mInitialized)
 		{
-			RegisterCollider(*it);
+			RegisterCollider(*it, resourceManager);
 			it = mEntitiesToInitialize.erase(it);
 		}
 		else
