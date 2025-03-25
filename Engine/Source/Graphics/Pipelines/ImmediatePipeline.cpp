@@ -92,7 +92,7 @@ void ImmediatePipeline::Init(LLGL::RenderSystemPtr& renderSystem)
 	mLinePipeline = renderSystem->CreatePipelineState(linePipelineDesc);
 	// pre-allocate the buffer with 500 vertices 
 	mLineVertexBuffer = renderSystem->CreateBuffer(
-		VertexBufferDesc(static_cast<std::uint32_t>(1000 * sizeof(DebugVertex)),
+		VertexBufferDesc(static_cast<std::uint32_t>(2000 * sizeof(DebugVertex)),
 		                 mShader->GetVertexFormat()));
 
 

@@ -25,9 +25,9 @@ PhysicsSystem::PhysicsSystem(EngineContext& engineContext)
 	mDynamicWorld->setGravity(mGravityConst);
 
 	// TODO: Uncomment to turn on debug draw
-	mPhysicsDebugDraw = std::make_unique<PhysicsDebugDraw>(engineContext);
-	mDynamicWorld->setDebugDrawer(mPhysicsDebugDraw.get());
-	mDynamicWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe | btIDebugDraw::DBG_DrawAabb);
+	//mPhysicsDebugDraw = std::make_unique<PhysicsDebugDraw>(engineContext);
+	//mDynamicWorld->setDebugDrawer(mPhysicsDebugDraw.get());
+	//mDynamicWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe | btIDebugDraw::DBG_DrawAabb);
 }
 
 void PhysicsSystem::RegisterCollider(Entity* entity, const ResourceManager& resourceManager)
@@ -37,30 +37,30 @@ void PhysicsSystem::RegisterCollider(Entity* entity, const ResourceManager& reso
 	const auto& mesh = entity->GetComponent<MeshComponent>();
 
 	const auto physics = entity->TryGetComponent<PhysicsComponent>();
+	const auto& position = transform.mPosition;
+	const auto& size = transform.mSize;
+	const auto& rotation = transform.mRotation;
+	const auto& model = resourceManager.GetModelFromId(mesh.mMeshPath);
+	auto calculatedSize = model.CalculateModelScaling(size);
 
 	// If physics component exists, dynamic collider
 	if (physics != nullptr)
 	{
 		if (collider.mColliderShape == ColliderShapes::BOX)
 		{
-			const auto& position = transform.mPosition;
-			const auto& size = transform.mSize;
-			const auto& rotation = transform.mRotation;
-			auto boxShape = new btBoxShape(btVector3{size.x / 2, size.y / 2, size.z / 2});
-
-			btTransform boxTransform;
-			boxTransform.setIdentity();
-
 			btScalar mass(physics->mMass);
 			btVector3 localInertia(0, 0, 0);
-			boxShape->calculateLocalInertia(mass, localInertia);
+			auto capsuleShape = new btCapsuleShape(calculatedSize.x * 2, calculatedSize.y * 3);
+			capsuleShape->calculateLocalInertia(mass, localInertia);
 
 			// Set the initial position and rotation
-			boxTransform.setOrigin(btVector3{position.x, position.y - (size.y / 2), position.z});
+			btTransform boxTransform;
+			boxTransform.setIdentity();
+			boxTransform.setOrigin(btVector3{position.x, position.y, position.z});
 			boxTransform.setRotation(_ConvertDegreesToQuat(rotation));
 
 			auto motionState = new btDefaultMotionState(boxTransform);
-			const btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, motionState, boxShape, localInertia);
+			const btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, motionState, capsuleShape, localInertia);
 
 			collider.mColliderIndex = mDynamicWorld->getNumCollisionObjects();
 			collider.mIsDynamic = true;
@@ -76,21 +76,25 @@ void PhysicsSystem::RegisterCollider(Entity* entity, const ResourceManager& reso
 	{
 		if (collider.mColliderShape == ColliderShapes::BOX)
 		{
-			const auto& position = transform.mPosition;
-			const auto& size = transform.mSize;
-			const auto& rotation = transform.mRotation;
-			const auto boxShape = new btBoxShape(btVector3{size.x / 2, size.y / 2, size.z / 2});
+			const auto modelMesh = model.GetMeshes()[0];
+			auto triangleMesh = new btTriangleMesh();
+			for (int i = 0; i < modelMesh->mIndices.size(); i += 3)
+			{
+				const auto& v0 = modelMesh->mVertices[modelMesh->mIndices[i]].position * calculatedSize;
+				const auto& v1 = modelMesh->mVertices[modelMesh->mIndices[i + 1]].position * calculatedSize;
+				const auto& v2 = modelMesh->mVertices[modelMesh->mIndices[i + 2]].position * calculatedSize;
+				triangleMesh->addTriangle({v0.x, v0.y, v0.z}, {v1.x, v1.y, v1.z}, {v2.x, v2.y, v2.z});
+			}
+
+			auto triangleMeshShape = new btBvhTriangleMeshShape(triangleMesh, true);
 
 			btTransform boxTransform;
 			boxTransform.setIdentity();
-
-			const btVector3 localInertia(0, 0, 0);
-
-			boxTransform.setOrigin(btVector3{position.x, position.y + (size.y / 2), position.z});
+			boxTransform.setOrigin(btVector3{position.x, position.y, position.z});
 			boxTransform.setRotation(_ConvertDegreesToQuat(rotation));
 
 			const auto motionState = new btDefaultMotionState(boxTransform);
-			const btRigidBody::btRigidBodyConstructionInfo rbInfo(0, motionState, boxShape, localInertia);
+			const btRigidBody::btRigidBodyConstructionInfo rbInfo(0, motionState, triangleMeshShape, {0, 0, 0});
 
 			collider.mColliderIndex = mDynamicWorld->getNumCollisionObjects();
 			auto rigidBody = new btRigidBody(rbInfo);
