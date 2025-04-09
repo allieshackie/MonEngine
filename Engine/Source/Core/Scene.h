@@ -41,13 +41,15 @@ struct CameraData
 	glm::vec3 mCameraPos = {0.0f, 0.0f, 0.0f};
 	glm::vec3 mCameraFront = {0.0f, 0.0f, 0.0f};
 	glm::vec3 mCameraUp = {0.0f, 0.0f, 0.0f};
+	bool mFollowCam = true;
 
 	template <class Archive>
 	void serialize(Archive& archive)
 	{
 		archive(cereal::make_nvp("position", mCameraPos),
 		        cereal::make_nvp("front", mCameraFront),
-		        cereal::make_nvp("up", mCameraUp));
+		        cereal::make_nvp("up", mCameraUp),
+		        cereal::make_nvp("follow_cam", mFollowCam));
 	}
 };
 

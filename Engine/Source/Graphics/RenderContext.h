@@ -22,14 +22,14 @@ public:
 	~RenderContext();
 
 	void InitPipelines(const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler,
-	                   const ResourceManager& resourceManager);
+	                   const ResourceManager& resourceManager, bool transparent);
 
 	void BeginFrame() const;
 	void Render(const Camera& camera, MonScene* scene, ResourceManager& resourceManager) const;
 	void EndFrame() const;
 	bool ProcessEvents() const;
 
-	void DrawText(const char* text, glm::vec2 position, glm::vec2 size, glm::vec4 color);
+	void DrawTextFont(const char* text, glm::vec2 position, glm::vec2 size, glm::vec4 color);
 	void DrawPoint(glm::vec3 pos, glm::vec4 color, float size) const;
 	void DrawLine(glm::vec3 from, glm::vec3 to, glm::vec4 color) const;
 	void DrawBox(glm::vec3 pos, glm::vec3 size, glm::vec4 color, bool filled) const;
@@ -56,7 +56,8 @@ public:
 	void SetSceneCallbacks(const SceneManager& sceneManager) const;
 
 private:
-	void _CreateWindow(const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler);
+	void _CreateWindow(const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler,
+	                   bool transparent);
 	void _CreatePipelines(const ResourceManager& resourceManager);
 
 	static LLGL::Extent2D _ScaleResolution(const LLGL::Extent2D& res, float scale);

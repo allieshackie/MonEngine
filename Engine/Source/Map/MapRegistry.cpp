@@ -53,16 +53,7 @@ bool MapRegistry::_ParseMapData(const MapData& mapData, Entity& entity) const
 	entity.SetName(mapData.mName);
 	entity.AddComponent<MapComponent>(mapComponent);
 	entity.AddComponentWithArgs<TransformComponent>(mapData.mPosition, mapData.mSize, mapData.mRotation);
-
-	if (mapData.mHasDimension)
-	{
-		entity.AddComponentWithArgs<MeshComponent>("dogeTerrain.gltf");
-	}
-	else
-	{
-		entity.AddComponentWithArgs<MeshComponent>("Plane.gltf");
-	}
-
+	entity.AddComponentWithArgs<MeshComponent>(mapComponent.mMeshPath);
 	entity.AddComponentWithArgs<CollisionComponent>(ColliderShapes::BOX, mapData.mSize,
 	                                                false, -1, nullptr, true);
 

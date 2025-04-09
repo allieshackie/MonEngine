@@ -11,7 +11,7 @@ class SceneManager;
 class Camera
 {
 public:
-	Camera(const SceneManager& sceneManager, glm::vec3 position, glm::vec3 front, glm::vec3 up);
+	Camera(const SceneManager& sceneManager, glm::vec3 position, glm::vec3 front, glm::vec3 up, bool followCam = true);
 
 	void Update();
 

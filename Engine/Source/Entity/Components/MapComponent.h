@@ -5,6 +5,8 @@ struct MapComponent
 {
 	std::string mId;
 
+	std::string mMeshPath;
+
 	std::string mTexturePath;
 	glm::vec2 mTextureSize = {0, 0};
 	glm::vec2 mTextureTiling = {0, 0};
@@ -21,6 +23,7 @@ struct MapComponent
 	void save(Archive& archive) const
 	{
 		archive(cereal::make_nvp("id", mId),
+		        cereal::make_nvp("mesh_path", mMeshPath),
 		        cereal::make_nvp("texture_path", mTexturePath),
 		        cereal::make_nvp("texture_size", mTextureSize),
 		        cereal::make_nvp("texture_tiling", mTextureTiling),
@@ -30,7 +33,7 @@ struct MapComponent
 	template <class Archive>
 	void load(Archive& archive)
 	{
-		archive(cereal::make_nvp("id", mId));
+		archive(cereal::make_nvp("id", mId), cereal::make_nvp("mesh_path", mMeshPath));
 
 		cereal::make_optional_nvp(archive, "texture_path", mTexturePath);
 		cereal::make_optional_nvp(archive, "texture_size", mTextureSize);

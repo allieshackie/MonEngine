@@ -14,7 +14,7 @@
 #include "EngineContext.h"
 
 void EngineContext::_Init(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
-                          const LLGL::ColorRGBAf backgroundClearColor, bool usePerspective)
+                          const LLGL::ColorRGBAf backgroundClearColor, bool usePerspective, bool transparent)
 {
 	// Init all systems **without** dependencies
 	mInputHandler = std::make_shared<InputHandler>();
@@ -36,7 +36,7 @@ void EngineContext::_Init(const LLGL::Extent2D screenSize, const LLGL::UTF8Strin
 	mInputHandler->RegisterButtonUpHandler(LLGL::Key::Escape, [=]() { mRunning = false; });
 	GUISystem::InitGUI(*mRenderContext);
 	mResourceManager->LoadAllResources(mRenderContext->GetRenderSystem());
-	mRenderContext->InitPipelines(title, mInputHandler, *mResourceManager);
+	mRenderContext->InitPipelines(title, mInputHandler, *mResourceManager, transparent);
 
 	// TODO: Comment/uncomment for editor gui menu
 	OpenEditorMenu();
@@ -120,9 +120,9 @@ void EngineContext::_FixedUpdate(float dt) const
 }
 
 EngineContext::EngineContext(GameInterface* game, const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
-                             const LLGL::ColorRGBAf backgroundClearColor, bool usePerspective)
+                             const LLGL::ColorRGBAf backgroundClearColor, bool usePerspective, bool transparent)
 {
-	_Init(screenSize, title, backgroundClearColor, usePerspective);
+	_Init(screenSize, title, backgroundClearColor, usePerspective, transparent);
 	game->Init(this);
 	// NOTE: Scene callbacks need to be set before scene gets loaded in StartGame()
 	SetSceneCallbacks(game);
@@ -288,13 +288,13 @@ void EngineContext::DrawGrid(glm::vec3 position, glm::vec3 size, int rows, int c
 
 void EngineContext::DrawText2D(const char* text, glm::vec2 position, glm::vec2 size, glm::vec4 color) const
 {
-	mRenderContext->DrawText(text, position, size, color);
+	mRenderContext->DrawTextFont(text, position, size, color);
 }
 
 void EngineContext::DrawText3D(const char* text, glm::vec3 position, glm::vec3 size) const
 {
 	// TODO: This will just render 2D text for now
-	mRenderContext->DrawText(text, position, size, {1.0f, 1.0f, 1.0f, 1.0f});
+	mRenderContext->DrawTextFont(text, position, size, {1.0f, 1.0f, 1.0f, 1.0f});
 }
 
 void EngineContext::SetBackgroundClearColor(const LLGL::ColorRGBAf color) const

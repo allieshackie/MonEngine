@@ -55,5 +55,6 @@ void MonScene::CreateCamera(const SceneManager& sceneManager)
 	mCamera = std::make_unique<Camera>(sceneManager,
 	                                   mCameraData.mCameraPos,
 	                                   mCameraData.mCameraFront,
-	                                   mCameraData.mCameraUp);
+	                                   mCameraData.mCameraUp,
+	                                   mCameraData.mFollowCam);
 }

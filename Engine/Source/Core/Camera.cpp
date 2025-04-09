@@ -5,16 +5,24 @@
 
 #include "Camera.h"
 
-Camera::Camera(const SceneManager& sceneManager, glm::vec3 position, glm::vec3 front, glm::vec3 up)
+Camera::Camera(const SceneManager& sceneManager, glm::vec3 position, glm::vec3 front, glm::vec3 up, bool followCam)
 	: mCameraPos(position), mCameraFront(front), mCameraUp(up)
 {
-	UpdateView();
+	mFollowCam = followCam;
 
-	EventFunc func = [this](Entity* entity)
+	if (followCam)
 	{
-		SetLookTarget(entity);
-	};
-	sceneManager.ConnectOnConstruct<PlayerComponent>(func);
+		EventFunc func = [this](Entity* entity)
+		{
+			SetLookTarget(entity);
+		};
+		sceneManager.ConnectOnConstruct<PlayerComponent>(func);
+	}
+	else
+	{
+		mCameraTarget = position + front;
+	}
+	UpdateView();
 }
 
 void Camera::Update()

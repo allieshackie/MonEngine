@@ -8,6 +8,8 @@
 
 #include "RenderContext.h"
 
+#include "LLGL/Platform/Win32/Win32NativeHandle.h"
+
 RenderContext::RenderContext(const LLGL::Extent2D screenSize, const LLGL::ColorRGBAf backgroundColor,
                              bool usePerspective)
 	: mBackgroundColor(backgroundColor), mUsePerspective(usePerspective)
@@ -84,10 +86,10 @@ RenderContext::~RenderContext()
 }
 
 void RenderContext::InitPipelines(const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler,
-                                  const ResourceManager& resourceManager)
+                                  const ResourceManager& resourceManager, bool transparent)
 {
 	_CreatePipelines(resourceManager);
-	_CreateWindow(title, inputHandler);
+	_CreateWindow(title, inputHandler, transparent);
 }
 
 void RenderContext::LoadFont(const char* fontFileName) const
@@ -120,7 +122,7 @@ void RenderContext::BeginFrame() const
 	// Render Commands to Queue
 	mCommands->Begin();
 
-	mCommands->Clear(LLGL::ClearFlags::ColorDepth, {
+	mCommands->Clear(LLGL::ClearFlags::ColorDepth | LLGL::ClearFlags::Color, {
 		                 mBackgroundColor.r, mBackgroundColor.g, mBackgroundColor.b, mBackgroundColor.a
 	                 });
 	// set viewport and scissor rectangle
@@ -161,7 +163,7 @@ bool RenderContext::ProcessEvents() const
 	return mSwapChain->GetSurface().ProcessEvents() && !window.HasQuit();
 }
 
-void RenderContext::DrawText(const char* text, glm::vec2 position, glm::vec2 size, glm::vec4 color)
+void RenderContext::DrawTextFont(const char* text, glm::vec2 position, glm::vec2 size, glm::vec4 color)
 {
 	mTextPipeline->CreateTextMesh(mRenderSystem, text, position, size, color);
 }
@@ -234,7 +236,8 @@ void RenderContext::SetSceneCallbacks(const SceneManager& sceneManager) const
 	mMeshPipeline->SetSceneCallbacks(sceneManager);
 }
 
-void RenderContext::_CreateWindow(const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler)
+void RenderContext::_CreateWindow(const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler,
+                                  bool transparent)
 {
 	// get window from context surface
 	auto& window = LLGL::CastTo<LLGL::Window>(mSwapChain->GetSurface());
@@ -244,12 +247,25 @@ void RenderContext::_CreateWindow(const LLGL::UTF8String& title, const std::shar
 
 	// Change window descriptor to allow resizing
 	auto wndDesc = window.GetDesc();
-	wndDesc.flags |= LLGL::WindowFlags::Resizable | LLGL::WindowFlags::DisableClearOnResize;
+	wndDesc.flags |= LLGL::WindowFlags::Borderless | LLGL::WindowFlags::Visible | LLGL::WindowFlags::Resizable;
+	wndDesc.flags &= ~LLGL::WindowFlags::Visible;
+	wndDesc.flags &= ~LLGL::WindowFlags::Resizable;
 	window.SetDesc(wndDesc);
 
 	// Add window resize listener
 	window.AddEventListener(std::make_shared<ResizeEventHandler>(*this));
 	window.AddEventListener(inputHandler);
+	if (transparent)
+	{
+		LLGL::NativeHandle mainWindowHandle;
+		GetSurfaceNativeHandle(&mainWindowHandle, sizeof(mainWindowHandle));
+
+		SetWindowLong(mainWindowHandle.window, GWL_EXSTYLE,
+		              GetWindowLong(mainWindowHandle.window, GWL_EXSTYLE) | WS_EX_LAYERED);
+		SetWindowPos(mainWindowHandle.window, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+
+		SetLayeredWindowAttributes(mainWindowHandle.window, RGB(0, 0, 0), 0, LWA_COLORKEY); // or use alpha channel
+	}
 
 	window.Show();
 }
