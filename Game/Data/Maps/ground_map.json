@@ -1,4 +1,5 @@
 {
     "id": "ground_map",
+    "mesh_path": "dogeTerrain.gltf",
     "color": [1,1,1]
 }

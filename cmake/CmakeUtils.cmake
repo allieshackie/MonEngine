@@ -7,3 +7,9 @@ function(copy_data_contents source_folder destination_folder)
     # Copy the contents of the source folder to the destination folder
     file(COPY ${source_folder} DESTINATION ${destination_folder})
 endfunction()
+
+function(set_target_folder_prop target_list destination_folder)
+    foreach(target IN LISTS ${target_list})
+        set_property(TARGET ${target} PROPERTY FOLDER "${destination_folder}")
+    endforeach()
+endfunction()

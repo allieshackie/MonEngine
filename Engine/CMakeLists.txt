@@ -39,7 +39,14 @@ target_precompile_headers(
     <functional>
 )
 
-set (BULLET_LIBRARIES    "LinearMath;Bullet3Common;BulletInverseDynamics;BulletCollision;BulletDynamics;BulletSoftBody")
+set (BULLET_LIBRARIES
+    LinearMath
+    Bullet3Common
+    BulletInverseDynamics
+    BulletCollision
+    BulletDynamics
+    BulletSoftBody
+)
 target_link_libraries(
     MonEngine 
     PUBLIC

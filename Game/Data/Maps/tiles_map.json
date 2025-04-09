@@ -1,5 +1,6 @@
 {
     "id": "tiles_map",
+    "mesh_path": "Plane.gltf",
     "texture_path": "tiles.png",
     "texture_size": [512, 512],
     "texture_tiling": [3,4],
