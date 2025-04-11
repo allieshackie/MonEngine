@@ -1,14 +1,15 @@
-#include "Core/EngineContext.h"
 #include "Core/Scene.h"
 #include "Core/SceneManager.h"
 #include "Entity/Entity.h"
 #include "Entity/Components/CollisionComponent.h"
+#include "Entity/Components/MeshComponent.h"
 #include "Entity/Components/PhysicsComponent.h"
 #include "Entity/Components/TransformComponent.h"
+#include "Graphics/Core/ResourceManager.h"
 
 #include "PhysicsSystem.h"
 
-PhysicsSystem::PhysicsSystem(EngineContext& engineContext)
+PhysicsSystem::PhysicsSystem(RenderContext& renderContext)
 {
 	mBroadPhase = std::make_unique<btDbvtBroadphase>();
 	mConstraintSolver = std::make_unique<btSequentialImpulseConstraintSolver>();
@@ -25,7 +26,7 @@ PhysicsSystem::PhysicsSystem(EngineContext& engineContext)
 	mDynamicWorld->setGravity(mGravityConst);
 
 	// TODO: Uncomment to turn on debug draw
-	//mPhysicsDebugDraw = std::make_unique<PhysicsDebugDraw>(engineContext);
+	//mPhysicsDebugDraw = std::make_unique<PhysicsDebugDraw>(renderContext);
 	//mDynamicWorld->setDebugDrawer(mPhysicsDebugDraw.get());
 	//mDynamicWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe | btIDebugDraw::DBG_DrawAabb);
 }

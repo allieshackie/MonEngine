@@ -8,13 +8,14 @@
 
 class Entity;
 class MonScene;
+class RenderContext;
 class ResourceManager;
 class SceneManager;
 
 class PhysicsSystem
 {
 public:
-	PhysicsSystem(EngineContext& engineContext);
+	PhysicsSystem(RenderContext& renderContext);
 
 	void RegisterCollider(Entity* entity, const ResourceManager& resourceManager);
 	void AddEntityToInitialize(Entity* entity);

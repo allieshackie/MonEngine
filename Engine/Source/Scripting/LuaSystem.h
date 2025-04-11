@@ -6,14 +6,12 @@ extern "C" {
 
 #include "LuaContext.h"
 
-class EngineContext;
-
 namespace Mon
 {
 	namespace Lua
 	{
 		void BindUIModule(lua_State* L);
-		void BindEngineContext(lua_State* state, const EngineContext& engine);
+		void BindEngineContext(lua_State* state);
 
 		std::function<void()> GetFunctionFromLua(lua_State* L, int index);
 		void ProfileLuaState(lua_State* L, bool before, const char* profileTag);
@@ -73,7 +71,7 @@ namespace Mon
 class LuaSystem
 {
 public:
-	void LoadScript(const char* scriptFile, const EngineContext& engine);
+	void LoadScript(const char* scriptFile);
 
 	void QueueClose();
 	void CloseAllScripts();

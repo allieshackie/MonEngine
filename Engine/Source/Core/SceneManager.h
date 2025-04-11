@@ -18,8 +18,7 @@ public:
 	// Returning the scene, which can possibly be nullptr
 	MonScene* GetCurrentScene() const;
 
-	void LoadScene(const std::string& sceneName, const EngineContext& context, MapRegistry& mapRegistry,
-	               LuaSystem& luaSystem);
+	void LoadScene(const std::string& sceneName, MapRegistry& mapRegistry, LuaSystem& luaSystem);
 	const std::vector<const char*>& GetSceneNames() const;
 
 	Camera& GetCamera() const { return mCurrentScene->GetCamera(); }

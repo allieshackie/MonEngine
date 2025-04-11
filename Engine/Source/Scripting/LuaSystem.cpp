@@ -1,4 +1,3 @@
-#include "Core/EngineContext.h"
 #include "GUI/GUIMenuItems.h"
 #include "GUI/GUISystem.h"
 #include "GUI/GUIMenu.h"
@@ -9,13 +8,13 @@
 //#define PROFILE_LUA
 
 // TODO: Create Initialize and Update methods for scripts
-void LuaSystem::LoadScript(const char* scriptFile, const EngineContext& engine)
+void LuaSystem::LoadScript(const char* scriptFile)
 {
 	auto context = std::make_unique<LuaContext>();
 	const auto state = context->GetState();
 
 	Mon::Lua::BindUIModule(state);
-	Mon::Lua::BindEngineContext(state, engine);
+	Mon::Lua::BindEngineContext(state);
 
 	context->Execute(scriptFile);
 
@@ -39,7 +38,7 @@ bool LuaSystem::QueueCloseScripts() const
 	return mQueueClose;
 }
 
-void Mon::Lua::BindEngineContext(lua_State* state, const EngineContext& engine)
+void Mon::Lua::BindEngineContext(lua_State* state)
 {
 	luaL_newmetatable(state, Engine::EngineTableName);
 
@@ -60,8 +59,8 @@ void Mon::Lua::BindEngineContext(lua_State* state, const EngineContext& engine)
 	lua_settable(state, -3);
 
 	// Expose the C++ instance to Lua as a global variable
-	auto userData = static_cast<const EngineContext**>(lua_newuserdata(state, sizeof(EngineContext*)));
-	*userData = &engine;
+	//auto userData = static_cast<const EngineContext**>(lua_newuserdata(state, sizeof(EngineContext*)));
+	//*userData = &engine;
 
 	luaL_getmetatable(state, Engine::EngineTableName);
 	lua_setmetatable(state, -2);
@@ -358,18 +357,23 @@ int Mon::UI::Impl_GetCurrentItem(lua_State* L)
 
 int Mon::Engine::LoadScene(lua_State* L)
 {
+	/*
+	 *
 	auto userdata = static_cast<EngineContext**>(luaL_checkudata(L, 1, EngineTableName));
 	if (*userdata)
 	{
 		const char* label = luaL_checkstring(L, 2);
 		(*userdata)->LoadScene(label);
 	}
+	 */
 
 	return 0;
 }
 
 int Mon::Engine::GetSceneNames(lua_State* L)
 {
+	/*
+	 *
 	auto userdata = static_cast<EngineContext**>(luaL_checkudata(L, 1, EngineTableName));
 	if (*userdata)
 	{
@@ -390,17 +394,21 @@ int Mon::Engine::GetSceneNames(lua_State* L)
 		// Return the Lua table containing the Scene names
 		return 1;
 	}
+	 */
 
 	return 0;
 }
 
 int Mon::Engine::OpenEditorMenu(lua_State* L)
 {
+	/*
+	 *
 	auto userdata = static_cast<EngineContext**>(luaL_checkudata(L, 1, EngineTableName));
 	if (*userdata)
 	{
 		(*userdata)->OpenEditorMenu();
 	}
+	 */
 
 	return 0;
 }

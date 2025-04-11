@@ -1,9 +1,9 @@
 #include "EventListener.h"
-#include "Core/EngineContext.h"
 #include "Entity/Descriptions/DescriptionFactory.h"
 #include "Entity/Components/CollisionComponent.h"
 #include "Entity/Components/TransformComponent.h"
 #include "Map/MapRegistry.h"
+#include "Scripting/LuaSystem.h"
 #include "Util/FileSystem.h"
 
 #include "SceneManager.h"
@@ -31,8 +31,7 @@ MonScene* SceneManager::GetCurrentScene() const
 	return nullptr;
 }
 
-void SceneManager::LoadScene(const std::string& SceneName, const EngineContext& context, MapRegistry& mapRegistry,
-                             LuaSystem& luaSystem)
+void SceneManager::LoadScene(const std::string& SceneName, MapRegistry& mapRegistry, LuaSystem& luaSystem)
 {
 	if (mCurrentScene != nullptr)
 	{
@@ -70,7 +69,7 @@ void SceneManager::LoadScene(const std::string& SceneName, const EngineContext& 
 
 	for (const auto& script : mCurrentScene->GetScripts())
 	{
-		luaSystem.LoadScript(script.c_str(), context);
+		luaSystem.LoadScript(script.c_str());
 	}
 }
 

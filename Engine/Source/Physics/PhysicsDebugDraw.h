@@ -3,7 +3,7 @@
 #include "LinearMath/btAlignedObjectArray.h"
 #include "LinearMath/btIDebugDraw.h"
 
-class EngineContext;
+class RenderContext;
 
 struct MyDebugVec3
 {
@@ -22,7 +22,7 @@ struct MyDebugVec3
 class PhysicsDebugDraw : public btIDebugDraw
 {
 public:
-	PhysicsDebugDraw(EngineContext& engineContext);
+	PhysicsDebugDraw(RenderContext& renderContext);
 
 	~PhysicsDebugDraw() override = default;
 
@@ -43,7 +43,7 @@ public:
 	void flushLines() override;
 
 private:
-	EngineContext& mEngineContext;
+	RenderContext& mRenderContext;
 
 	int m_debugMode;
 
