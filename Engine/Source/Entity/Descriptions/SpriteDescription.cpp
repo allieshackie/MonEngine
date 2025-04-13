@@ -9,7 +9,7 @@ void SpriteDescription::ApplyToEntity(Entity* entity, entt::registry& registry)
 	try
 	{
 		auto archive = FileSystem::CreateArchive(mJson);
-		sprite.serialize(archive);
+		sprite.load(archive);
 	}
 	catch (const cereal::Exception& e)
 	{
