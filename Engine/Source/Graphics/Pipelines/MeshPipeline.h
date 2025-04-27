@@ -28,17 +28,13 @@ public:
 	void Render(LLGL::CommandBuffer& commands, const Camera& camera, const glm::mat4 projection,
 	            MonScene* scene, ResourceManager& resourceManager,
 	            const LLGL::RenderSystemPtr& renderSystem);
-	void RenderMap(LLGL::CommandBuffer& commands, const Camera& camera, const LLGL::RenderSystemPtr& renderSystem,
-	               const ResourceManager& resourceManager, const glm::mat4 projection,
-	               MeshComponent& meshComponent, const TransformComponent& transform,
-	               const glm::vec3 color = {-1, -1, -1});
 
 	void SetPipeline(LLGL::CommandBuffer& commands) const;
 
 	void UpdateProjectionViewModelUniform(LLGL::CommandBuffer& commands, const Camera& camera,
-	                                      const LLGL::RenderSystemPtr& renderSystem, const glm::mat4 projection,
+	                                      const LLGL::RenderSystemPtr& renderSystem,
 	                                      const TransformComponent& transform, MeshComponent& mesh,
-	                                      const Model& meshModel, const glm::vec3 color = {-1, -1, -1});
+	                                      const Model& meshModel);
 
 	void SetResourceHeapTexture(LLGL::CommandBuffer& commands, LLGL::Texture& texture) const;
 
@@ -48,34 +44,35 @@ public:
 	void SetSceneCallbacks(const SceneManager& sceneManager);
 
 private:
-	void _RenderModel(LLGL::CommandBuffer& commands, MeshComponent& meshComponent, const Camera& camera,
-	                  const LLGL::RenderSystemPtr& renderSystem, const ResourceManager& resourceManager,
-	                  const glm::mat4 projection, const TransformComponent& transform,
-	                  const glm::vec3 color = {-1, -1, -1});
-
 	void _ProcessLights();
 
 	LLGL::Buffer* mLightBuffer = nullptr;
 	LLGL::Buffer* mMaterialBuffer = nullptr;
 	LLGL::Buffer* mBoneBuffer = nullptr;
 
+	LLGL::Buffer* mFrameBuffer = nullptr;
+
+	struct FrameSettings
+	{
+		glm::mat4 projection = glm::mat4();
+		glm::mat4 view = glm::mat4();
+	} frameSettings = {};
+
 	struct MeshSettings
 	{
-		// projection-view-model matrix
 		glm::mat4 model = glm::mat4();
-		glm::mat4 view = glm::mat4();
-		glm::mat4 projection = glm::mat4();
-		glm::vec4 meshFlags = {1, 0, 0, 0}; // [0] = hasTexture, [1] = hasBones, [2] = gTargetBone (for debugging)
-		glm::vec3 solidColor = {1, 1, 1};
-	}
-	meshSettings = {};
+		float hasTexture = 0;
+		float hasBones = 0;
+		float gTargetBone = -1;
+		float _padding = 0;
+		glm::vec4 solidColor = {1, 1, 1, 1};
+	} meshSettings = {};
 
 	struct LightSettings
 	{
 		glm::vec3 viewPos = {0, 0, 0};
 		int numLights = 0;
-	}
-	lightSettings = {};
+	} lightSettings = {};
 
 	LLGL::Buffer* mLightConstantBuffer = nullptr;
 
@@ -86,6 +83,7 @@ private:
 		glm::vec4 specular = {0, 0, 0, 0};
 		glm::vec4 emission = {0, 0, 0, 0};
 		float shininess = 0.0f;
+		glm::vec3 _padding = {0, 0, 0};
 	};
 
 	Material material = {

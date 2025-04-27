@@ -38,7 +38,7 @@ struct TextMesh
 class TextPipeline
 {
 public:
-	void Init(LLGL::RenderSystemPtr& renderSystem);
+	TextPipeline(LLGL::RenderSystemPtr& renderSystem);
 	void Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat);
 	void Release(const LLGL::RenderSystemPtr& renderSystem);
 

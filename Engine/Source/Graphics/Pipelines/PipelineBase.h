@@ -24,7 +24,8 @@ public:
 	                const char* vertexFile, const char* fragmentFile);
 	void InitPipeline(const LLGL::RenderSystemPtr& renderSystem,
 	                  const LLGL::PipelineLayoutDescriptor& pipelineLayoutDesc,
-	                  LLGL::PrimitiveTopology topology = LLGL::PrimitiveTopology::TriangleStrip);
+	                  LLGL::PrimitiveTopology topology = LLGL::PrimitiveTopology::TriangleStrip,
+	                  bool enableDepthTest = true);
 	void InitResourceHeap(const LLGL::RenderSystemPtr& renderSystem,
 	                      const std::vector<LLGL::ResourceViewDescriptor>& resourceViews);
 

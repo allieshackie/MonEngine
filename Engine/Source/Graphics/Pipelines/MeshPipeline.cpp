@@ -6,12 +6,103 @@
 #include "Core/Scene.h"
 #include "Core/SceneManager.h"
 #include "Entity/Entity.h"
-#include "Entity/Components/MapComponent.h"
-#include "Entity/Components/SpriteComponent.h"
 #include "Entity/Components/TransformComponent.h"
 #include "Graphics/Animation/Animation.h"
 
 #include "MeshPipeline.h"
+
+void MeshPipeline::Render(LLGL::CommandBuffer& commands, const Camera& camera,
+                          const glm::mat4 projection, MonScene* scene,
+                          ResourceManager& resourceManager, const LLGL::RenderSystemPtr& renderSystem)
+{
+	if (!mQueuedLightEntities.empty())
+	{
+		_ProcessLights();
+	}
+
+	commands.SetPipelineState(*mPipeline);
+
+	frameSettings.view = camera.GetView();
+	frameSettings.projection = projection;
+	commands.UpdateBuffer(*mFrameBuffer, 0, &frameSettings, sizeof(frameSettings));
+
+	const auto meshView = scene->GetRegistry().view<const TransformComponent, MeshComponent>();
+
+	// Should either be a sprite or basic color
+	meshView.each([this, &commands, &camera, &renderSystem, &resourceManager](
+		const TransformComponent& transform, MeshComponent& meshComponent)
+		{
+			// Set resources
+			auto& texture = resourceManager.GetTexture(meshComponent.mTexturePath);
+			auto& sampler = resourceManager.GetSampler(meshComponent.mTexturePath);
+			commands.SetResourceHeap(*mResourceHeap);
+			commands.SetResource(0, texture);
+			commands.SetResource(1, sampler);
+			const auto& model = resourceManager.GetModelFromId(meshComponent.mMeshPath);
+			UpdateProjectionViewModelUniform(commands, camera, renderSystem, transform, meshComponent, model);
+
+			for (const auto mesh : model.GetMeshes())
+			{
+				commands.SetVertexBuffer(*mesh->mVertexBuffer);
+				commands.SetIndexBuffer(*mesh->mIndexBuffer);
+				commands.DrawIndexed(mesh->mNumIndices, 0);
+			}
+		});
+}
+
+void MeshPipeline::SetPipeline(LLGL::CommandBuffer& commands) const
+{
+	commands.SetPipelineState(*mPipeline);
+}
+
+void MeshPipeline::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& commands, const Camera& camera,
+                                                    const LLGL::RenderSystemPtr& renderSystem,
+                                                    const TransformComponent& transform, MeshComponent& mesh,
+                                                    const Model& meshModel)
+{
+	// Update
+	auto model = glm::mat4(1.0f);
+
+	// Translation matrix
+	model = glm::translate(model, transform.mPosition);
+
+	// Apply rotation in ZXY order
+	model = glm::rotate(model, glm::radians(transform.mRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+	model = glm::rotate(model, glm::radians(transform.mRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+	model = glm::rotate(model, glm::radians(transform.mRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+
+	auto calculatedSize = meshModel.CalculateModelScaling(transform.mSize);
+	model = glm::scale(model, calculatedSize);
+
+	// Light Settings
+	int lightsSize = static_cast<int>(mLights.size());
+	if (lightsSize != lightSettings.numLights)
+	{
+		lightSettings.numLights = lightsSize;
+		UpdateLightBuffer(renderSystem);
+	}
+	if (lightSettings.viewPos != camera.GetPosition())
+	{
+		lightSettings.viewPos = camera.GetPosition();
+	}
+
+	// Mesh Settings
+	meshSettings.model = model;
+	meshSettings.solidColor = mesh.mColor;
+	meshSettings.hasBones = mesh.mHasBones;
+	meshSettings.hasTexture = mesh.mTexturePath.empty() ? 0.0f : 1.0f;
+	meshSettings.gTargetBone = static_cast<float>(mesh.mCurrentBoneIndex);
+
+	std::uint64_t transformOffset = 0;
+	for (const auto& finalTransform : mesh.mFinalTransforms)
+	{
+		renderSystem->WriteBuffer(*mBoneBuffer, transformOffset, &(finalTransform), sizeof(glm::mat4));
+		transformOffset += sizeof(glm::mat4);
+	}
+
+	commands.UpdateBuffer(*mConstantBuffer, 0, &meshSettings, sizeof(meshSettings));
+	commands.UpdateBuffer(*mLightConstantBuffer, 0, &lightSettings, sizeof(lightSettings));
+}
 
 MeshPipeline::MeshPipeline(const LLGL::RenderSystemPtr& renderSystem,
                            const ResourceManager& resourceManager) : PipelineBase()
@@ -19,6 +110,7 @@ MeshPipeline::MeshPipeline(const LLGL::RenderSystemPtr& renderSystem,
 	// Initialization
 	{
 		InitConstantBuffer<MeshSettings>(renderSystem, meshSettings);
+		mFrameBuffer = renderSystem->CreateBuffer(LLGL::ConstantBufferDesc(sizeof(FrameSettings)), &frameSettings);
 		mLightConstantBuffer = renderSystem->CreateBuffer(LLGL::ConstantBufferDesc(sizeof(LightSettings)),
 		                                                  &lightSettings);
 
@@ -35,27 +127,28 @@ MeshPipeline::MeshPipeline(const LLGL::RenderSystemPtr& renderSystem,
 			layoutDesc.heapBindings =
 			{
 				LLGL::BindingDescriptor{
+					"FrameSettings", LLGL::ResourceType::Buffer, LLGL::BindFlags::ConstantBuffer,
+					LLGL::StageFlags::VertexStage, 0
+				},
+				LLGL::BindingDescriptor{
 					"MeshSettings", LLGL::ResourceType::Buffer, LLGL::BindFlags::ConstantBuffer,
-					LLGL::StageFlags::VertexStage | LLGL::StageFlags::FragmentStage, 0
+					LLGL::StageFlags::VertexStage | LLGL::StageFlags::FragmentStage, 1
 				},
 				LLGL::BindingDescriptor{
 					"LightSettings", LLGL::ResourceType::Buffer, LLGL::BindFlags::ConstantBuffer,
-					LLGL::StageFlags::FragmentStage, 1
+					LLGL::StageFlags::FragmentStage, 2
 				},
 				LLGL::BindingDescriptor{
 					"BoneBuffer", LLGL::ResourceType::Buffer, LLGL::BindFlags::Storage,
-					LLGL::StageFlags::VertexStage,
-					2
+					LLGL::StageFlags::VertexStage, 3
 				},
 				LLGL::BindingDescriptor{
 					"LightBuffer", LLGL::ResourceType::Buffer, LLGL::BindFlags::Storage,
-					LLGL::StageFlags::FragmentStage,
-					3
+					LLGL::StageFlags::FragmentStage, 4
 				},
 				LLGL::BindingDescriptor{
 					"MaterialBuffer", LLGL::ResourceType::Buffer, LLGL::BindFlags::Storage,
-					LLGL::StageFlags::FragmentStage,
-					4
+					LLGL::StageFlags::FragmentStage, 5
 				},
 			};
 			layoutDesc.bindings = {
@@ -105,108 +198,12 @@ MeshPipeline::MeshPipeline(const LLGL::RenderSystemPtr& renderSystem,
 		renderSystem->WriteBuffer(*mMaterialBuffer, 0, &(material), sizeof(Material));
 
 		const std::vector<LLGL::ResourceViewDescriptor> resourceViews = {
-			mConstantBuffer, mLightConstantBuffer, mBoneBuffer, mLightBuffer, mMaterialBuffer
+			mFrameBuffer, mConstantBuffer, mLightConstantBuffer, mBoneBuffer, mLightBuffer, mMaterialBuffer
 		};
 		InitResourceHeap(renderSystem, resourceViews);
 	}
 
 	resourceManager.InitModelVertexBuffers(renderSystem, *mShader);
-}
-
-void MeshPipeline::Render(LLGL::CommandBuffer& commands, const Camera& camera,
-                          const glm::mat4 projection, MonScene* scene,
-                          ResourceManager& resourceManager, const LLGL::RenderSystemPtr& renderSystem)
-{
-	if (!mQueuedLightEntities.empty())
-	{
-		_ProcessLights();
-	}
-
-	commands.SetPipelineState(*mPipeline);
-
-	const auto meshView = scene->GetRegistry().view<
-		const TransformComponent, MeshComponent, const SpriteComponent>(
-		entt::exclude<MapComponent>);
-
-	// Should either be a sprite or basic color
-	meshView.each([this, &commands, &camera, &renderSystem, &resourceManager, &projection](
-		const TransformComponent& transform,
-		MeshComponent& mesh,
-		const SpriteComponent& sprite)
-		{
-			// Set resources
-			auto& texture = resourceManager.GetTexture(sprite.mTexturePath);
-			auto& sampler = resourceManager.GetSampler(sprite.mTexturePath);
-			commands.SetResourceHeap(*mResourceHeap);
-			commands.SetResource(0, texture);
-			commands.SetResource(1, sampler);
-			_RenderModel(commands, mesh, camera, renderSystem, resourceManager, projection, transform);
-		});
-}
-
-void MeshPipeline::RenderMap(LLGL::CommandBuffer& commands, const Camera& camera,
-                             const LLGL::RenderSystemPtr& renderSystem, const ResourceManager& resourceManager,
-                             const glm::mat4 projection, MeshComponent& meshComponent,
-                             const TransformComponent& transform, const glm::vec3 color)
-{
-	_RenderModel(commands, meshComponent, camera, renderSystem, resourceManager, projection, transform, color);
-}
-
-void MeshPipeline::SetPipeline(LLGL::CommandBuffer& commands) const
-{
-	commands.SetPipelineState(*mPipeline);
-}
-
-void MeshPipeline::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& commands, const Camera& camera,
-                                                    const LLGL::RenderSystemPtr& renderSystem,
-                                                    const glm::mat4 projection, const TransformComponent& transform,
-                                                    MeshComponent& mesh, const Model& meshModel, const glm::vec3 color)
-{
-	// Update
-	auto model = glm::mat4(1.0f);
-
-	// Translation matrix
-	model = glm::translate(model, transform.mPosition);
-
-	// Apply rotation in ZXY order
-	model = glm::rotate(model, glm::radians(transform.mRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-	model = glm::rotate(model, glm::radians(transform.mRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-	model = glm::rotate(model, glm::radians(transform.mRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-
-	auto calculatedSize = meshModel.CalculateModelScaling(transform.mSize);
-	model = glm::scale(model, calculatedSize);
-
-	// Light Settings
-	int lightsSize = static_cast<int>(mLights.size());
-	if (lightsSize != lightSettings.numLights)
-	{
-		lightSettings.numLights = lightsSize;
-		UpdateLightBuffer(renderSystem);
-	}
-	if (lightSettings.viewPos != camera.GetPosition())
-	{
-		lightSettings.viewPos = camera.GetPosition();
-	}
-
-	// Mesh Settings
-	meshSettings.model = model;
-	meshSettings.view = camera.GetView();
-	meshSettings.projection = projection;
-
-	meshSettings.solidColor = color;
-	meshSettings.meshFlags[0] = static_cast<int>(color.x) == -1;
-	meshSettings.meshFlags[1] = mesh.mHasBones;
-	meshSettings.meshFlags[2] = static_cast<float>(mesh.mCurrentBoneIndex);
-
-	std::uint64_t transformOffset = 0;
-	for (const auto& finalTransform : mesh.mFinalTransforms)
-	{
-		renderSystem->WriteBuffer(*mBoneBuffer, transformOffset, &(finalTransform), sizeof(glm::mat4));
-		transformOffset += sizeof(glm::mat4);
-	}
-
-	commands.UpdateBuffer(*mConstantBuffer, 0, &meshSettings, sizeof(meshSettings));
-	commands.UpdateBuffer(*mLightConstantBuffer, 0, &lightSettings, sizeof(lightSettings));
 }
 
 void MeshPipeline::SetResourceHeapTexture(LLGL::CommandBuffer& commands, LLGL::Texture& texture) const
@@ -258,21 +255,5 @@ void MeshPipeline::_ProcessLights()
 			// Move to the next element
 			++it;
 		}
-	}
-}
-
-void MeshPipeline::_RenderModel(LLGL::CommandBuffer& commands, MeshComponent& meshComponent, const Camera& camera,
-                                const LLGL::RenderSystemPtr& renderSystem, const ResourceManager& resourceManager,
-                                const glm::mat4 projection, const TransformComponent& transform, const glm::vec3 color)
-{
-	const auto& model = resourceManager.GetModelFromId(meshComponent.mMeshPath);
-	UpdateProjectionViewModelUniform(commands, camera, renderSystem, projection, transform, meshComponent, model,
-	                                 color);
-
-	for (const auto mesh : model.GetMeshes())
-	{
-		commands.SetVertexBuffer(*mesh->mVertexBuffer);
-		commands.SetIndexBuffer(*mesh->mIndexBuffer);
-		commands.DrawIndexed(mesh->mNumIndices, 0);
 	}
 }

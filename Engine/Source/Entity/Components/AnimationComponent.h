@@ -1,6 +1,6 @@
 #pragma once
-#include "Util/SerialUtil.h"
 #include "cereal/types/unordered_map.hpp"
+#include "Util/SerialUtil.h"
 
 #include "Graphics/Animation/Animation.h"
 

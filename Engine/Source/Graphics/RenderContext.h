@@ -4,8 +4,8 @@
 #include <glm/gtc/matrix_transform.hpp> //translate, rotate, scale, perspective
 
 #include "Graphics/Pipelines/ImmediatePipeline.h"
-#include "Graphics/Pipelines/MapPipeline.h"
 #include "Graphics/Pipelines/MeshPipeline.h"
+#include "Pipelines/OverlayPipeline.h"
 #include "Graphics/Pipelines/TextPipeline.h"
 
 class Camera;
@@ -36,6 +36,8 @@ public:
 	void DrawCircle(glm::vec3 position, float radius, glm::vec4 color) const;
 	void DrawGrid(glm::vec3 pos, glm::vec3 size, glm::vec4 color, int rows, int columns) const;
 
+	void DrawOverlay(glm::vec2 pos, glm::vec4 color) const;
+
 	void LoadFont(const char* fontFileName) const;
 	bool GetSurfaceNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const;
 	bool GetBackendNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const;
@@ -48,8 +50,6 @@ public:
 	glm::mat4 GetProjection() const;
 
 	void ResizeBuffers(const LLGL::Extent2D& size) const;
-
-	void GenerateMapTexture(const ResourceManager& resourceManager, Entity* mapEntity) const;
 
 	const LLGL::RenderSystemPtr& GetRenderSystem() const { return mRenderSystem; }
 
@@ -70,8 +70,8 @@ private:
 	glm::mat4 mProjection = glm::identity<glm::mat4>();
 
 	std::unique_ptr<MeshPipeline> mMeshPipeline;
-	std::unique_ptr<MapPipeline> mMapPipeline;
 	std::unique_ptr<ImmediatePipeline> mImmediatePipeline;
+	std::unique_ptr<OverlayPipeline> mOverlayPipeline;
 	std::unique_ptr<TextPipeline> mTextPipeline;
 
 	LLGL::ColorRGBAf mBackgroundColor = {0.0f, 0.0f, 0.0f, 1.0f};

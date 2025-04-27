@@ -136,11 +136,10 @@ void RenderContext::Render(const Camera& camera, MonScene* scene,
 {
 	const auto projectionViewMat = mProjection * camera.GetView();
 
-	mMapPipeline->Render(*mCommands, camera, mProjection, scene, mRenderSystem, resourceManager,
-	                     *mMeshPipeline);
 	mMeshPipeline->Render(*mCommands, camera, mProjection, scene, resourceManager, mRenderSystem);
-	//mTextPipeline->Render(*mCommands, projectionViewMat);
+	mOverlayPipeline->Render(*mCommands);
 	mImmediatePipeline->Render(*mCommands, projectionViewMat);
+	//mTextPipeline->Render(*mCommands, projectionViewMat);
 	// TODO: debug shader is loading in for some meshes for some reason? Timing maybe?
 
 	//mTextPipeline->Release(mRenderSystem);
@@ -193,6 +192,11 @@ void RenderContext::DrawGrid(glm::vec3 pos, glm::vec3 size, glm::vec4 color, int
 	mImmediatePipeline->DrawGrid(pos, size, color, rows, columns);
 }
 
+void RenderContext::DrawOverlay(glm::vec2 pos, glm::vec4 color) const
+{
+	mOverlayPipeline->DrawOverlay(pos, color);
+}
+
 // Called on window resize
 void RenderContext::UpdateProjection()
 {
@@ -211,8 +215,9 @@ glm::vec3 RenderContext::NormalizedDeviceCoords(glm::vec3 vec) const
 {
 	const auto res = mSwapChain->GetResolution();
 	return {
-		(vec.x / (static_cast<float>(res.width) / 2.0f) - 1.0f),
-		-1 * (vec.y / (static_cast<float>(res.height) / 2.0f) - 1.0f), vec.z
+		(2.0f * vec.x) / res.width - 1.0f,
+		1.0f - (2.0f * vec.y) / res.height,
+		vec.z
 	};
 }
 
@@ -224,11 +229,6 @@ glm::mat4 RenderContext::GetProjection() const
 void RenderContext::ResizeBuffers(const LLGL::Extent2D& size) const
 {
 	mSwapChain->ResizeBuffers(size);
-}
-
-void RenderContext::GenerateMapTexture(const ResourceManager& resourceManager, Entity* mapEntity) const
-{
-	mMapPipeline->GenerateMapTexture(mRenderSystem, *mCommands, resourceManager, mapEntity);
 }
 
 void RenderContext::SetSceneCallbacks(const SceneManager& sceneManager) const
@@ -272,13 +272,10 @@ void RenderContext::_CreateWindow(const LLGL::UTF8String& title, const std::shar
 
 void RenderContext::_CreatePipelines(const ResourceManager& resourceManager)
 {
-	mImmediatePipeline = std::make_unique<ImmediatePipeline>();
-	mTextPipeline = std::make_unique<TextPipeline>();
+	mImmediatePipeline = std::make_unique<ImmediatePipeline>(mRenderSystem);
+	mTextPipeline = std::make_unique<TextPipeline>(mRenderSystem);
 	mMeshPipeline = std::make_unique<MeshPipeline>(mRenderSystem, resourceManager);
-	mMapPipeline = std::make_unique<MapPipeline>(mRenderSystem, resourceManager, mMeshPipeline->GetConstantBuffer());
-
-	mImmediatePipeline->Init(mRenderSystem);
-	mTextPipeline->Init(mRenderSystem);
+	mOverlayPipeline = std::make_unique<OverlayPipeline>(mRenderSystem);
 }
 
 LLGL::Extent2D RenderContext::_ScaleResolution(const LLGL::Extent2D& res, float scale)

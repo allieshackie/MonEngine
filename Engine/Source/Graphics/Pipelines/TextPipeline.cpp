@@ -205,7 +205,7 @@ GlyphInfo TextPipeline::_GenerateGlyphInfo(uint32_t character, float offsetX, fl
 	return info;
 }
 
-void TextPipeline::Init(LLGL::RenderSystemPtr& renderSystem)
+TextPipeline::TextPipeline(LLGL::RenderSystemPtr& renderSystem)
 {
 	mConstantBuffer = renderSystem->CreateBuffer(LLGL::ConstantBufferDesc(sizeof(GUISettings)),
 	                                             &guiSettings);

@@ -16,3 +16,9 @@ struct DebugVertex
 	glm::vec3 pos = {0, 0, 0};
 	glm::vec4 color = {0, 0, 0, 0};
 };
+
+struct OverlayVertex
+{
+	glm::vec2 pos = {0, 0};
+	glm::vec4 color = {0, 0, 0, 0};
+};

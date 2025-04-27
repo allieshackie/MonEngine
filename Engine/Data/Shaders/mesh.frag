@@ -3,10 +3,10 @@
 layout(std140) uniform MeshSettings 
 {
     mat4 model;
-    mat4 view;
-    mat4 projection;
-    vec4 meshFlags; // [0] = hasTexture, [1] = hasBones, [2] = gTargetBone (for debugging)
-    vec3 solidColor;
+    float hasTexture;
+    float hasBones;
+    float gTargetBone;
+    vec4 solidColor;
 };
 
 layout(std140) uniform LightSettings 
@@ -62,11 +62,11 @@ void main()
     vec3 norm = normalize(vNormal);
     vec3 viewDir = normalize(viewPos - vPosition);
     vec4 color;
-    if (meshFlags[0] == 1) {
+    if (hasTexture == 1) {
         color = texture(colorMap, vTexCoord);
     }
     else {
-        color = vec4(solidColor, 1.0);
+        color = solidColor;
     }
     vec3 result = vec3(0.0);
 

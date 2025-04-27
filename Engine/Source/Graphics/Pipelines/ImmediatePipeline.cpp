@@ -43,77 +43,6 @@ void ImmediatePipeline::UpdateProjectionViewUniform(LLGL::CommandBuffer& command
 	commandBuffer.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
 }
 
-void ImmediatePipeline::Init(LLGL::RenderSystemPtr& renderSystem)
-{
-	mConstantBuffer = renderSystem->CreateBuffer(LLGL::ConstantBufferDesc(sizeof(Settings)),
-	                                             &settings);
-	LLGL::VertexFormat vertexFormat;
-	vertexFormat.AppendAttribute({"position", LLGL::Format::RGB32Float});
-	vertexFormat.AppendAttribute({"color", LLGL::Format::RGBA32Float});
-
-	std::string vertPath = SHADERS_FOLDER;
-	vertPath.append("debug.vert");
-
-	std::string fragPath = SHADERS_FOLDER;
-	fragPath.append("debug.frag");
-
-	mShader = std::make_unique<Shader>(*renderSystem, vertexFormat, vertPath.c_str(),
-	                                   fragPath.c_str());
-
-	// Create pipeline layout
-	// TODO: Does the pipeline layout need to be removed if we aren't using resource heap?
-	mPipelineLayout = renderSystem->CreatePipelineLayout(
-		LLGL::Parse("heap{cbuffer(0):vert}"));
-	// Create graphics pipeline
-	LLGL::GraphicsPipelineDescriptor pointPipelineDesc;
-	{
-		pointPipelineDesc.vertexShader = &mShader->GetVertexShader();
-		pointPipelineDesc.fragmentShader = &mShader->GetFragmentShader();
-		pointPipelineDesc.pipelineLayout = mPipelineLayout;
-		pointPipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::PointList;
-		pointPipelineDesc.blend.targets[0].blendEnabled = true;
-	}
-	mPointPipeline = renderSystem->CreatePipelineState(pointPipelineDesc);
-	// pre-allocate the buffer with 500 vertices 
-	mPointVertexBuffer = renderSystem->CreateBuffer(
-		VertexBufferDesc(static_cast<std::uint32_t>(200 * sizeof(DebugVertex)),
-		                 mShader->GetVertexFormat()));
-
-
-	// Create graphics pipeline
-	LLGL::GraphicsPipelineDescriptor linePipelineDesc;
-	{
-		linePipelineDesc.vertexShader = &mShader->GetVertexShader();
-		linePipelineDesc.fragmentShader = &mShader->GetFragmentShader();
-		linePipelineDesc.pipelineLayout = mPipelineLayout;
-		linePipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::LineList;
-		linePipelineDesc.blend.targets[0].blendEnabled = true;
-	}
-	mLinePipeline = renderSystem->CreatePipelineState(linePipelineDesc);
-	// pre-allocate the buffer with 500 vertices 
-	mLineVertexBuffer = renderSystem->CreateBuffer(
-		VertexBufferDesc(static_cast<std::uint32_t>(2000 * sizeof(DebugVertex)),
-		                 mShader->GetVertexFormat()));
-
-
-	// Create graphics pipeline
-	LLGL::GraphicsPipelineDescriptor circlePipelineDesc;
-	{
-		circlePipelineDesc.vertexShader = &mShader->GetVertexShader();
-		circlePipelineDesc.fragmentShader = &mShader->GetFragmentShader();
-		circlePipelineDesc.pipelineLayout = mPipelineLayout;
-		circlePipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::TriangleList;
-		circlePipelineDesc.blend.targets[0].blendEnabled = true;
-	}
-	mCirclePipeline = renderSystem->CreatePipelineState(circlePipelineDesc);
-	// pre-allocate the buffer with 500 vertices 
-	mCircleVertexBuffer = renderSystem->CreateBuffer(
-		VertexBufferDesc(static_cast<std::uint32_t>(1000 * sizeof(DebugVertex)),
-		                 mShader->GetVertexFormat()));
-
-	_InitResourceHeap(renderSystem);
-}
-
 void ImmediatePipeline::_RenderPoints(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat)
 {
 	// If point size change is needed, confirm works  
@@ -349,4 +278,75 @@ void ImmediatePipeline::_DrawOutlinedBox(glm::vec3 pos, glm::vec3 size, glm::vec
 
 	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[2]), color});
 	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[0]), color});
+}
+
+ImmediatePipeline::ImmediatePipeline(LLGL::RenderSystemPtr& renderSystem)
+{
+	mConstantBuffer = renderSystem->CreateBuffer(LLGL::ConstantBufferDesc(sizeof(Settings)),
+	                                             &settings);
+	LLGL::VertexFormat vertexFormat;
+	vertexFormat.AppendAttribute({"position", LLGL::Format::RGB32Float});
+	vertexFormat.AppendAttribute({"color", LLGL::Format::RGBA32Float});
+
+	std::string vertPath = SHADERS_FOLDER;
+	vertPath.append("debug.vert");
+
+	std::string fragPath = SHADERS_FOLDER;
+	fragPath.append("debug.frag");
+
+	mShader = std::make_unique<Shader>(*renderSystem, vertexFormat, vertPath.c_str(),
+	                                   fragPath.c_str());
+
+	// Create pipeline layout
+	// TODO: Does the pipeline layout need to be removed if we aren't using resource heap?
+	mPipelineLayout = renderSystem->CreatePipelineLayout(
+		LLGL::Parse("heap{cbuffer(0):vert}"));
+	// Create graphics pipeline
+	LLGL::GraphicsPipelineDescriptor pointPipelineDesc;
+	{
+		pointPipelineDesc.vertexShader = &mShader->GetVertexShader();
+		pointPipelineDesc.fragmentShader = &mShader->GetFragmentShader();
+		pointPipelineDesc.pipelineLayout = mPipelineLayout;
+		pointPipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::PointList;
+		pointPipelineDesc.blend.targets[0].blendEnabled = true;
+	}
+	mPointPipeline = renderSystem->CreatePipelineState(pointPipelineDesc);
+	// pre-allocate the buffer with 500 vertices 
+	mPointVertexBuffer = renderSystem->CreateBuffer(
+		VertexBufferDesc(static_cast<std::uint32_t>(200 * sizeof(DebugVertex)),
+		                 mShader->GetVertexFormat()));
+
+
+	// Create graphics pipeline
+	LLGL::GraphicsPipelineDescriptor linePipelineDesc;
+	{
+		linePipelineDesc.vertexShader = &mShader->GetVertexShader();
+		linePipelineDesc.fragmentShader = &mShader->GetFragmentShader();
+		linePipelineDesc.pipelineLayout = mPipelineLayout;
+		linePipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::LineList;
+		linePipelineDesc.blend.targets[0].blendEnabled = true;
+	}
+	mLinePipeline = renderSystem->CreatePipelineState(linePipelineDesc);
+	// pre-allocate the buffer with 500 vertices 
+	mLineVertexBuffer = renderSystem->CreateBuffer(
+		VertexBufferDesc(static_cast<std::uint32_t>(2000 * sizeof(DebugVertex)),
+		                 mShader->GetVertexFormat()));
+
+
+	// Create graphics pipeline
+	LLGL::GraphicsPipelineDescriptor circlePipelineDesc;
+	{
+		circlePipelineDesc.vertexShader = &mShader->GetVertexShader();
+		circlePipelineDesc.fragmentShader = &mShader->GetFragmentShader();
+		circlePipelineDesc.pipelineLayout = mPipelineLayout;
+		circlePipelineDesc.primitiveTopology = LLGL::PrimitiveTopology::TriangleList;
+		circlePipelineDesc.blend.targets[0].blendEnabled = true;
+	}
+	mCirclePipeline = renderSystem->CreatePipelineState(circlePipelineDesc);
+	// pre-allocate the buffer with 500 vertices 
+	mCircleVertexBuffer = renderSystem->CreateBuffer(
+		VertexBufferDesc(static_cast<std::uint32_t>(1000 * sizeof(DebugVertex)),
+		                 mShader->GetVertexFormat()));
+
+	_InitResourceHeap(renderSystem);
 }

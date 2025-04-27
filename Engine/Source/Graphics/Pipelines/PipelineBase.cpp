@@ -17,7 +17,7 @@ void PipelineBase::InitShader(const LLGL::RenderSystemPtr& renderSystem, const L
 
 void PipelineBase::InitPipeline(const LLGL::RenderSystemPtr& renderSystem,
                                 const LLGL::PipelineLayoutDescriptor& pipelineLayoutDesc,
-                                LLGL::PrimitiveTopology topology)
+                                LLGL::PrimitiveTopology topology, bool enableDepthTest)
 {
 	// All layout bindings that will be used by graphics and compute pipelines
 	// Create pipeline layout
@@ -34,8 +34,8 @@ void PipelineBase::InitPipeline(const LLGL::RenderSystemPtr& renderSystem,
 		pipelineDesc.rasterizer.cullMode = LLGL::CullMode::Disabled;
 
 		// Enable depth test and writing
-		pipelineDesc.depth.testEnabled = true;
-		pipelineDesc.depth.writeEnabled = true;
+		pipelineDesc.depth.testEnabled = enableDepthTest;
+		pipelineDesc.depth.writeEnabled = enableDepthTest;
 	}
 	mPipeline = renderSystem->CreatePipelineState(pipelineDesc);
 }
