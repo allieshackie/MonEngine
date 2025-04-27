@@ -3,17 +3,18 @@
     "components" : {
         "transform" : {
             "position": [0,0,0],
-            "size": [1.5,2,1.5],
+            "size": [1,1.5,1],
             "rotation": [0,0,0]
-        },
-        "sprite": {
-            "resource_path": "doge_uv.png",
-            "rows": 0,
-            "columns": 0
         },
         "mesh": {
             "mesh_path": "dogemage_fixed.gltf",
-            "has_bones": true
+            "texture_path": "doge_uv.png",
+            "has_bones": true,
+            "color": [1,1,1,1]
+        },
+        "collider": {
+            "collider_shape": "Box",
+            "size": [1,1,1]
         },
         "animation": {
             "animations": [
@@ -34,6 +35,7 @@
                     "targeted_blend_time": 0.0
                 }
             ]
-        }
+        },
+        "interact": {}
     }
 }

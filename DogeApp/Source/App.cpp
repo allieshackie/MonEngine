@@ -3,11 +3,14 @@
 #include "Core/Timer.h"
 #include "Entity/Descriptions/AnimationDescription.h"
 #include "Entity/Descriptions/CollisionDescription.h"
+#include "Entity/Descriptions/InteractDescription.h"
 #include "Entity/Descriptions/LightDescription.h"
+#include "Entity/Descriptions/OverlayDescription.h"
 #include "Entity/Descriptions/MeshDescription.h"
 #include "Entity/Descriptions/PhysicsDescription.h"
 #include "Entity/Descriptions/PlayerDescription.h"
 #include "Entity/Descriptions/SpriteDescription.h"
+#include "Entity/Components/OverlayComponent.h"
 #include "Entity/Descriptions/TransformDescription.h"
 #include "Graphics/Animation/Animator.h"
 #include "GUI/GUISystem.h"
@@ -23,7 +26,6 @@ int main()
 
 	return 0;
 }
-
 
 void App::Run() const
 {
@@ -64,6 +66,7 @@ void App::Run() const
 		mInputHandler->Update();
 		mSceneManager->GetCamera().Update();
 		mAnimator->Update(deltaTime, mSceneManager->GetCurrentScene(), *mResourceManager);
+		mInteractSystem->Update(*mRenderContext, mSceneManager->GetCamera(), *mPhysicsSystem);
 
 		// TODO: Debug draw axis
 		//_DrawAxis();
@@ -126,8 +129,10 @@ App::App(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
 	// Must be called before SceneManager sets up description factory
 	mDescriptionFactory->RegisterDescription<AnimationDescription>(AnimationDescription::JsonName);
 	mDescriptionFactory->RegisterDescription<CollisionDescription>(CollisionDescription::JsonName);
+	mDescriptionFactory->RegisterDescription<InteractDescription>(InteractDescription::JsonName);
 	mDescriptionFactory->RegisterDescription<LightDescription>(LightDescription::JsonName);
 	mDescriptionFactory->RegisterDescription<MeshDescription>(MeshDescription::JsonName);
+	mDescriptionFactory->RegisterDescription<OverlayDescription>(OverlayDescription::JsonName);
 	mDescriptionFactory->RegisterDescription<PhysicsDescription>(PhysicsDescription::JsonName);
 	mDescriptionFactory->RegisterDescription<PlayerDescription>(PlayerDescription::JsonName);
 	mDescriptionFactory->RegisterDescription<SpriteDescription>(SpriteDescription::JsonName);
@@ -137,6 +142,7 @@ App::App(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
 	mAnimator = std::make_unique<Animator>(*mResourceManager);
 	mSceneManager = std::make_unique<SceneManager>(*mDescriptionFactory);
 	mPhysicsSystem = std::make_unique<PhysicsSystem>(*mRenderContext);
+	mInteractSystem = std::make_unique<InteractSystem>(*mInputHandler, *mSceneManager);
 
 	// Remaining system setup
 	mInputHandler->RegisterButtonUpHandler(LLGL::Key::Escape, [=]() { mRunning = false; });
@@ -151,6 +157,12 @@ App::App(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
 	mAnimator->SetSceneCallbacks(*mSceneManager);
 	mPhysicsSystem->SetSceneCallbacks(*mSceneManager);
 	mRenderContext->SetSceneCallbacks(*mSceneManager);
+
+	EventFunc func = [this](Entity* entity)
+	{
+		mRenderContext->DrawOverlay({1, 1}, {1, 1, 1, 0});
+	};
+	mSceneManager->ConnectOnConstruct<OverlayComponent>(func);
 }
 
 void App::ToggleEditorMode(bool toggle) const

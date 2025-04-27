@@ -4,6 +4,7 @@
 #include "Core/SceneManager.h"
 #include "Editor/EditorGUI.h"
 #include "Entity/Descriptions/DescriptionFactory.h"
+#include "Entity/Systems/InteractSystem.h"
 #include "Graphics/RenderContext.h"
 #include "Graphics/Core/ResourceManager.h"
 #include "GUI/GUIBase.h"
@@ -51,6 +52,7 @@ private:
 	std::unique_ptr<EventPublisher> mEventPublisher;
 
 	// systems
+	std::unique_ptr<InteractSystem> mInteractSystem;
 	std::unique_ptr<MapRegistry> mMapRegistry;
 	std::unique_ptr<PhysicsSystem> mPhysicsSystem;
 

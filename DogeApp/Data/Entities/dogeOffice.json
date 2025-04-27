@@ -1,0 +1,21 @@
+{
+    "template_name": "dogeOffice", 
+    "components" : {
+        "transform" : {
+            "position": [0,0,0],
+            "size": [1,1.5,2],
+            "rotation": [0,-90,0]
+        },
+        "mesh": {
+            "mesh_path": "dogeoffice.gltf",
+            "texture_path": "",
+            "has_bones": false,
+            "color": [1,1,1,1]
+        },
+        "collider": {
+            "collider_shape": "Box",
+            "size": [1,1,1]
+        },
+        "interact": {}
+    }
+}
