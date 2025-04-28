@@ -1,0 +1,14 @@
+{
+    "name": "mondev",
+    "version-string": "0.1.0",
+    "dependencies": [
+        "bullet3",
+        "cereal",
+        "entt",
+        "gaussianlib",
+        "glm",
+        "nlohmann-json",
+        "imgui",
+        "tinygltf"
+    ]
+}
