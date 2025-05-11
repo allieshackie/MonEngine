@@ -1,4 +1,4 @@
-#include "imgui.h"
+#include <imgui.h>
 #include "Core/Camera.h"
 #include "GUI/GUISystem.h"
 
@@ -248,7 +248,7 @@ void InputHandler::_handleKeyDownGUI(LLGL::Key keyCode)
 		{
 			if (static_cast<int>(keyCode) < 256)
 			{
-				io.KeysDown[static_cast<int>(keyCode)] = true;
+				io.AddKeyEvent(static_cast<ImGuiKey>(keyCode), true);
 			}
 			break;
 		}
@@ -276,7 +276,7 @@ void InputHandler::_handleKeyUpGUI(LLGL::Key keyCode)
 		{
 			if (static_cast<int>(keyCode) < 256)
 			{
-				io.KeysDown[static_cast<int>(keyCode)] = false;
+				io.AddKeyEvent(static_cast<ImGuiKey>(keyCode), false);
 			}
 			break;
 		}

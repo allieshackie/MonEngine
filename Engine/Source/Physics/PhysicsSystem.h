@@ -1,8 +1,8 @@
 #pragma once
-#include <btBulletDynamicsCommon.h>
-#include <BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.h>
-#include <BulletSoftBody/btSoftBodyRigidBodyCollisionConfiguration.h>
-#include <BulletSoftBody/btSoftRigidDynamicsWorld.h>
+#include <bullet/btBulletDynamicsCommon.h>
+#include <bullet/BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.h>
+#include <bullet/BulletSoftBody/btSoftBodyRigidBodyCollisionConfiguration.h>
+#include <bullet/BulletSoftBody/btSoftRigidDynamicsWorld.h>
 
 #include "PhysicsDebugDraw.h"
 

@@ -1,3 +1,4 @@
+#include "LLGL/Platform/Win32/Win32NativeHandle.h"
 #include "LLGL/Utils/TypeNames.h"
 #include <glm/ext/matrix_clip_space.hpp>
 
@@ -7,8 +8,6 @@
 #include "Input/InputHandler.h"
 
 #include "RenderContext.h"
-
-#include "LLGL/Platform/Win32/Win32NativeHandle.h"
 
 RenderContext::RenderContext(const LLGL::Extent2D screenSize, const LLGL::ColorRGBAf backgroundColor,
                              bool usePerspective)

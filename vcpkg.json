@@ -7,8 +7,6 @@
         "entt",
         "gaussianlib",
         "glm",
-        "nlohmann-json",
-        "imgui",
-        "tinygltf"
+        "nlohmann-json"
     ]
 }

@@ -13,7 +13,7 @@
             "color": [1,1,1,1]
         },
         "collider": {
-            "collider_shape": "Box",
+            "collider_shape": "Convex",
             "size": [1,1,1]
         },
         "interact": {}

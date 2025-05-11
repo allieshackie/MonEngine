@@ -32,6 +32,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 
 add_compile_definitions(BUILD_GAME)
+add_definitions(-DGLM_ENABLE_EXPERIMENTAL)
 
 # Macros must be defined before subdirectories are added
 # ============== MACROS ===============
@@ -69,17 +70,19 @@ set_property(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${GAME_PR
 
 ## ENTT
 message("=== BUILDING ENTT ===")
-add_subdirectory(${THIRD_PARTY_DIR}/entt)
-#set_property(TARGET aob PROPERTY FOLDER "ThirdParty")
+find_package(entt CONFIG REQUIRED)
+target_link_libraries(MonEngine PUBLIC EnTT::EnTT)
 
 ## JSON
 message("=== BUILDING JSON ===")
-add_subdirectory(${THIRD_PARTY_DIR}/json)
+find_package(nlohmann_json CONFIG REQUIRED)
+target_link_libraries(MonEngine PUBLIC nlohmann_json::nlohmann_json)
 
 ## GLM
 message("=== BUILDING GLM ===")
-add_subdirectory(${THIRD_PARTY_DIR}/glm)
-set_property(TARGET uninstall PROPERTY FOLDER "ThirdParty")
+find_package(glm CONFIG REQUIRED)
+target_link_libraries(MonEngine PUBLIC glm::glm)
+target_link_libraries(MonEngine PUBLIC glad)
 
 ## LLGL
 message("=== BUILDING LLGL ===")
@@ -91,6 +94,7 @@ set (LLGL_TARGETS
   LLGL_OpenGL
 )
 set_target_folder_prop(LLGL_TARGETS LLGL)
+target_link_libraries(MonEngine PUBLIC LLGL)
 
 ## IMGUI
 message("=== BUILDING IMGUI ===")
@@ -120,45 +124,37 @@ set(TINYGLTF_TARGETS
 )
 set_target_folder_prop(TINYGLTF_TARGETS ThirdParty)
 
+find_path(GAUSSIANLIB_INCLUDE_DIRS "Gauss/AffineMatrix.h")
+target_include_directories(MonEngine PRIVATE ${GAUSSIANLIB_INCLUDE_DIRS})
+
 ## LUA
 message("=== BUILDING LUA ===")
 file(GLOB_RECURSE LUA_SOURCES "${THIRD_PARTY_DIR}/Lua/src/*.c")
 source_group(TREE "${THIRD_PARTY_DIR}/Lua/src" FILES ${LUA_SOURCES})
-
 add_library(lua STATIC ${LUA_SOURCES})
-
 set_property(TARGET lua PROPERTY FOLDER "ThirdParty")
-
 target_include_directories(lua PUBLIC
     ${THIRD_PARTY_DIR}/Lua/src
 )
+target_link_libraries(MonEngine PUBLIC lua)
 
 ## BULLET PHYSICS
 message("=== BUILDING BULLET ===")
-set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "" FORCE)
-set(BUILD_CPU_DEMOS OFF CACHE BOOL "" FORCE)
-set(BUILD_OPENGL3_DEMOS OFF CACHE BOOL "" FORCE)
-set(BUILD_UNIT_TESTS OFF CACHE BOOL "" FORCE)
-set(BUILD_EXTRAS OFF CACHE BOOL "" FORCE)
-add_subdirectory(${THIRD_PARTY_DIR}/bullet3)
-set(BULLET_TARGETS
-  Bullet2FileLoader
-  Bullet3Collision
+find_package(bullet CONFIG REQUIRED)
+
+set (BULLET_LIBRARIES
+  LinearMath
   Bullet3Common
-  Bullet3Dynamics
-  Bullet3Geometry
-  Bullet3OpenCL_clew
+  BulletInverseDynamics
   BulletCollision
   BulletDynamics
-  BulletInverseDynamics
   BulletSoftBody
-  LinearMath
 )
-set_target_folder_prop(BULLET_TARGETS "ThirdParty/bullet3")
 
-set (BULLET_LIBRARIES    "LinearMath;Bullet3Common;BulletInverseDynamics;BulletCollision;BulletDynamics;BulletSoftBody")
-set (BULLET_INCLUDE_DIRS ${THIRD_PARTY_DIR}/bullet3/src)
+target_link_libraries(MonEngine PUBLIC ${BULLET_LIBRARIES})
 
 # target_include_directories = Include Directories
 # target_link_libraries = Additional Dependencies (lib)
 # link_directories = Additional Library Directories (dll) x64
+
+#  cmake -B ./Build -DGAME_TO_BUILD=dogeapp -DCMAKE_TOOLCHAIN_FILE=ThirdParty/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_MANIFEST_MODE=ON

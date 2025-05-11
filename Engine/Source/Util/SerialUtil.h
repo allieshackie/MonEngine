@@ -11,18 +11,24 @@ enum class ColliderShapes : int
 	BOX = 0,
 	SPHERE,
 	CAPSULE,
+	TRI_MESH,
+	CONVEX
 };
 
 inline std::map<std::string, ColliderShapes> COLLIDER_NAMES = {
 	{"Box", ColliderShapes::BOX},
 	{"Sphere", ColliderShapes::SPHERE},
 	{"Capsule", ColliderShapes::CAPSULE},
+	{"TriMesh", ColliderShapes::TRI_MESH},
+	{"Convex", ColliderShapes::CONVEX},
 };
 
 inline std::map<ColliderShapes, std::string> COLLIDER_STRINGS = {
 	{ColliderShapes::BOX, "Box"},
 	{ColliderShapes::SPHERE, "Sphere"},
 	{ColliderShapes::CAPSULE, "Capsule"},
+	{ColliderShapes::TRI_MESH, "TriMesh"},
+	{ColliderShapes::CONVEX, "Convex"},
 };
 
 namespace cereal

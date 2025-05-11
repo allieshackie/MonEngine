@@ -26,9 +26,9 @@ PhysicsSystem::PhysicsSystem(RenderContext& renderContext)
 	mDynamicWorld->setGravity(mGravityConst);
 
 	// TODO: Uncomment to turn on debug draw
-	//mPhysicsDebugDraw = std::make_unique<PhysicsDebugDraw>(renderContext);
-	//mDynamicWorld->setDebugDrawer(mPhysicsDebugDraw.get());
-	//mDynamicWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe | btIDebugDraw::DBG_DrawAabb);
+	mPhysicsDebugDraw = std::make_unique<PhysicsDebugDraw>(renderContext);
+	mDynamicWorld->setDebugDrawer(mPhysicsDebugDraw.get());
+	mDynamicWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe | btIDebugDraw::DBG_DrawAabb);
 }
 
 void PhysicsSystem::RegisterCollider(Entity* entity, const ResourceManager& resourceManager)
@@ -44,38 +44,35 @@ void PhysicsSystem::RegisterCollider(Entity* entity, const ResourceManager& reso
 	const auto& model = resourceManager.GetModelFromId(mesh.mMeshPath);
 	auto calculatedSize = model.CalculateModelScaling(size);
 
-	// If physics component exists, dynamic collider
-	if (physics != nullptr)
+	btCollisionShape* shape = nullptr;
+
+	switch (collider.mColliderShape)
 	{
-		if (collider.mColliderShape == ColliderShapes::BOX)
+	case ColliderShapes::BOX:
+		shape = new btBoxShape(btVector3{size.x / 2, size.y / 2, size.z / 2});
+		break;
+	case ColliderShapes::SPHERE:
+		shape = new btSphereShape(calculatedSize.x * 2);
+		break;
+	case ColliderShapes::CAPSULE:
+		shape = new btCapsuleShape(calculatedSize.x * 2, calculatedSize.y * 3);
+		break;
+	case ColliderShapes::CONVEX:
 		{
-			btScalar mass(physics->mMass);
-			btVector3 localInertia(0, 0, 0);
-			auto capsuleShape = new btCapsuleShape(calculatedSize.x * 2, calculatedSize.y * 3);
-			capsuleShape->calculateLocalInertia(mass, localInertia);
-
-			// Set the initial position and rotation
-			btTransform boxTransform;
-			boxTransform.setIdentity();
-			boxTransform.setOrigin(btVector3{position.x, position.y, position.z});
-			boxTransform.setRotation(_ConvertDegreesToQuat(rotation));
-
-			auto motionState = new btDefaultMotionState(boxTransform);
-			const btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, motionState, capsuleShape, localInertia);
-
-			collider.mColliderIndex = mDynamicWorld->getNumCollisionObjects();
-			collider.mIsDynamic = true;
-
-			auto rigidBody = new btRigidBody(rbInfo);
-			rigidBody->setDamping(0.8f, 0.6f);
-			rigidBody->setAngularFactor(btVector3(0, 0, 0));
-			mDynamicWorld->addRigidBody(rigidBody);
-			collider.mRigidBody = rigidBody;
+			auto convex = new btConvexHullShape();
+			for (const auto& modelMesh : model.GetMeshes())
+			{
+				for (const auto& v : modelMesh->mVertices)
+				{
+					auto convexPos = btVector3(v.position.x, v.position.y - size.y, v.position.z) * btVector3(
+						calculatedSize.x, calculatedSize.y, calculatedSize.z);
+					convex->addPoint(convexPos);
+				}
+			}
+			shape = convex;
+			break;
 		}
-	}
-	else
-	{
-		if (collider.mColliderShape == ColliderShapes::BOX)
+	case ColliderShapes::TRI_MESH:
 		{
 			const auto modelMesh = model.GetMeshes()[0];
 			auto triangleMesh = new btTriangleMesh();
@@ -87,23 +84,39 @@ void PhysicsSystem::RegisterCollider(Entity* entity, const ResourceManager& reso
 				triangleMesh->addTriangle({v0.x, v0.y, v0.z}, {v1.x, v1.y, v1.z}, {v2.x, v2.y, v2.z});
 			}
 
-			auto triangleMeshShape = new btBvhTriangleMeshShape(triangleMesh, true);
-
-			btTransform boxTransform;
-			boxTransform.setIdentity();
-			boxTransform.setOrigin(btVector3{position.x, position.y, position.z});
-			boxTransform.setRotation(_ConvertDegreesToQuat(rotation));
-
-			const auto motionState = new btDefaultMotionState(boxTransform);
-			const btRigidBody::btRigidBodyConstructionInfo rbInfo(0, motionState, triangleMeshShape, {0, 0, 0});
-
-			collider.mColliderIndex = mDynamicWorld->getNumCollisionObjects();
-			auto rigidBody = new btRigidBody(rbInfo);
-			mDynamicWorld->addRigidBody(rigidBody);
-
-			collider.mRigidBody = rigidBody;
+			shape = new btBvhTriangleMeshShape(triangleMesh, true);
 		}
 	}
+
+	btScalar mass(0);
+	btVector3 localInertia(0, 0, 0);
+
+	// If physics component exists, dynamic collider
+	if (physics != nullptr)
+	{
+		mass = physics->mMass;
+		shape->calculateLocalInertia(mass, localInertia);
+		collider.mIsDynamic = true;
+	}
+
+	btTransform boxTransform;
+	boxTransform.setIdentity();
+	boxTransform.setOrigin(btVector3{position.x, position.y + (size.y / 2), position.z});
+	boxTransform.setRotation(_ConvertDegreesToQuat(rotation));
+
+	const auto motionState = new btDefaultMotionState(boxTransform);
+	const btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, motionState, shape, localInertia);
+
+	collider.mColliderIndex = mDynamicWorld->getNumCollisionObjects();
+	auto rigidBody = new btRigidBody(rbInfo);
+	if (physics != nullptr)
+	{
+		rigidBody->setDamping(0.8f, 0.6f);
+		rigidBody->setAngularFactor(btVector3(0, 0, 0));
+	}
+	mDynamicWorld->addRigidBody(rigidBody);
+
+	collider.mRigidBody = rigidBody;
 }
 
 void PhysicsSystem::Update(float deltaTime, MonScene* scene, const ResourceManager& resourceManager)

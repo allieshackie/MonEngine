@@ -1,7 +1,7 @@
 #pragma once
 #define BT_LINE_BATCH_SIZE 512
-#include "LinearMath/btAlignedObjectArray.h"
-#include "LinearMath/btIDebugDraw.h"
+#include "bullet/LinearMath/btAlignedObjectArray.h"
+#include "bullet/LinearMath/btIDebugDraw.h"
 
 class RenderContext;
 

@@ -1,10 +1,9 @@
 #include <glad/glad.h>
-#include "imgui.h"
+#include <imgui.h>
 #include "backends/imgui_impl_opengl3.h"
 #include "backends/imgui_impl_win32.h"
 #include "LLGL/Key.h"
 #include "LLGL/Platform/Win32/Win32NativeHandle.h"
-
 #include "Graphics/RenderContext.h"
 
 #include "GUISystem.h"
@@ -29,6 +28,8 @@ void GUISystem::InitGUI(const RenderContext& renderContext)
 
 	io.DisplaySize = {800, 600};
 
+	/*
+	 *
 	io.KeyMap[ImGuiKey_Tab] = static_cast<int>(LLGL::Key::Tab);
 	io.KeyMap[ImGuiKey_LeftArrow] = static_cast<int>(LLGL::Key::Left);
 	io.KeyMap[ImGuiKey_RightArrow] = static_cast<int>(LLGL::Key::Right);
@@ -44,6 +45,7 @@ void GUISystem::InitGUI(const RenderContext& renderContext)
 	io.KeyMap[ImGuiKey_Space] = static_cast<int>(LLGL::Key::Space);
 	io.KeyMap[ImGuiKey_Enter] = static_cast<int>(LLGL::Key::Return);
 	io.KeyMap[ImGuiKey_Escape] = static_cast<int>(LLGL::Key::Escape);
+	 */
 
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
@@ -96,7 +98,6 @@ void GUISystem::LoadGUITheme()
 	style.GrabRounding = 20.0f;
 	style.TabRounding = 0.0f;
 	style.TabBorderSize = 0.0f;
-	style.TabMinWidthForCloseButton = 0.0f;
 	style.ColorButtonPosition = ImGuiDir_Right;
 	style.ButtonTextAlign = ImVec2(0.5f, 0.5f);
 	style.SelectableTextAlign = ImVec2(0.0f, 0.0f);

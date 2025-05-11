@@ -1,7 +1,7 @@
 #pragma once
 #include <glm/vec3.hpp>
 #include "Util/SerialUtil.h"
-#include <BulletDynamics/Dynamics/btRigidBody.h>
+#include <bullet/BulletDynamics/Dynamics/btRigidBody.h>
 
 struct CollisionComponent
 {

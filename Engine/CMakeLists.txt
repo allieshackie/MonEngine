@@ -39,36 +39,16 @@ target_precompile_headers(
     <functional>
 )
 
-set (BULLET_LIBRARIES
-    LinearMath
-    Bullet3Common
-    BulletInverseDynamics
-    BulletCollision
-    BulletDynamics
-    BulletSoftBody
-)
 target_link_libraries(
     MonEngine 
     PUBLIC
-    EnTT
-    nlohmann_json::nlohmann_json
-    glm::glm
-    LLGL
     imgui
-    glad
-    lua
     tinygltf
-    ${BULLET_LIBRARIES}
 )
-
-message("CMAKE_CURRENT_SOURCE_DIR MonEngine: ${CMAKE_CURRENT_SOURCE_DIR}")
-
 target_include_directories(
     MonEngine 
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Source
-    ${THIRD_PARTY_DIR}/bullet3/src
-    ${THIRD_PARTY_DIR}/cereal/include/
 )
 
 # target_include_directories = Include Directories
