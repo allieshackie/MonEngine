@@ -11,7 +11,7 @@ class SceneManager;
 class RenderObject;
 class Shader;
 
-struct MeshComponent;
+struct ModelComponent;
 struct TransformComponent;
 
 class OverlayPipeline : public PipelineBase

@@ -8,6 +8,12 @@ Texture::Texture(const LLGL::RenderSystemPtr& renderer, const std::string& path)
 	_CreateSampler(renderer);
 }
 
+Texture::Texture(const LLGL::RenderSystemPtr& renderer, const tinygltf::Image& image)
+{
+	_ConvertFromGltf(renderer, image);
+	_CreateSampler(renderer);
+}
+
 Texture::Texture(const LLGL::RenderSystemPtr& renderer, const unsigned char* imageData, int width,
                  int height, bool singleChannel)
 {
@@ -76,6 +82,39 @@ bool Texture::_LoadFromFile(const LLGL::RenderSystemPtr& renderer, const std::st
 	}
 
 	stbi_image_free(imageBuffer);
+
+	return true;
+}
+
+bool Texture::_ConvertFromGltf(const LLGL::RenderSystemPtr& renderer, const tinygltf::Image& image)
+{
+	mTextureWidth = image.width;
+	mTextureHeight = image.height;
+
+	// Initialize source image descriptor to upload image data onto GPU
+	LLGL::ImageView imageDesc;
+	{
+		// Set color format depending on alpha channel
+		imageDesc.format = (image.component == 4 ? LLGL::ImageFormat::RGBA : LLGL::ImageFormat::RGB);
+		// Set image data type (unsigned char = 8 bit unsigned int)
+		imageDesc.dataType = LLGL::DataType::UInt8;
+		imageDesc.data = image.image.data();
+		imageDesc.dataSize = mTextureWidth * mTextureHeight * image.component;
+	}
+
+	{
+		LLGL::TextureDescriptor texDesc;
+		{
+			texDesc.type = LLGL::TextureType::Texture2D;
+			// texture hardware format: RGBA with normalize 8-bit unsigned char 
+			texDesc.format = LLGL::Format::BGRA8UNorm;
+			texDesc.extent = {static_cast<uint32_t>(mTextureWidth), static_cast<uint32_t>(mTextureHeight), 1u};
+			// Generate all Mip map levels for texture (creates multiple sizes to be used for lower res)
+			texDesc.miscFlags = LLGL::MiscFlags::GenerateMips;
+		}
+
+		mTexture = renderer->CreateTexture(texDesc, &imageDesc);
+	}
 
 	return true;
 }

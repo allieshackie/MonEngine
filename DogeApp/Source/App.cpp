@@ -6,7 +6,7 @@
 #include "Entity/Descriptions/InteractDescription.h"
 #include "Entity/Descriptions/LightDescription.h"
 #include "Entity/Descriptions/OverlayDescription.h"
-#include "Entity/Descriptions/MeshDescription.h"
+#include "Entity/Descriptions/ModelDescription.h"
 #include "Entity/Descriptions/PhysicsDescription.h"
 #include "Entity/Descriptions/PlayerDescription.h"
 #include "Entity/Descriptions/SpriteDescription.h"
@@ -20,7 +20,7 @@
 int main()
 {
 	const auto app = std::make_unique<App>(LLGL::Extent2D{800, 600}, "",
-	                                       LLGL::ColorRGBAf{0.0f, 0.0f, 0.0f, 0.0f}, true, true);
+	                                       LLGL::ColorRGBAf{1.0f, 0.0f, 1.0f, 1.0f}, true, true);
 
 	app->Run();
 
@@ -75,8 +75,6 @@ void App::Run() const
 
 		mRenderContext->BeginFrame();
 
-		//game->Render();
-
 		if (mSceneManager->GetCurrentScene())
 		{
 			mRenderContext->Render(mSceneManager->GetCamera(), mSceneManager->GetCurrentScene(), *mResourceManager);
@@ -91,6 +89,7 @@ void App::Run() const
 		{
 			mEditorGUI->Render(mSceneManager->GetCurrentScene(), *mResourceManager, *mRenderContext, *mInputHandler);
 		}
+		mInteractSystem->Render();
 		GUISystem::GUIEndFrame();
 
 		mRenderContext->EndFrame();
@@ -107,6 +106,51 @@ void App::Run() const
 void App::SetGUIMenu(std::unique_ptr<GUIBase> gui)
 {
 	mGUIMenu = std::move(gui);
+}
+
+void App::_DebugDrawBones() const
+{
+	const auto modelView = mSceneManager->GetCurrentScene()->GetRegistry().view<const ModelComponent>();
+
+	// Should either be a sprite or basic color
+	modelView.each([=](const ModelComponent& modelComp)
+	{
+		auto model = mResourceManager->GetModelFromId(modelComp.mModelPath);
+		_RenderModelBones(model, modelComp, model.GetRootNodeIndex(), glm::mat4(1.0f));
+	});
+}
+
+void App::_RenderModelBones(Model& model, const ModelComponent& modelComp, int nodeIndex,
+                            const glm::mat4 parentTransform) const
+{
+	const auto node = model.GetJointNodeAt(nodeIndex);
+
+	if (node == nullptr)
+	{
+		return;
+	}
+
+	glm::mat4 globalTransform = parentTransform * node->mTransformation;
+	auto bonePosition = glm::vec3(globalTransform[3]);
+	auto parentPosition = glm::vec3(parentTransform[3]);
+
+	// Default length for visualization purposes
+	float defaultLength = 1.0f; // Adjust this as needed
+	glm::vec3 direction = glm::normalize(bonePosition - parentPosition) * defaultLength;
+	glm::vec3 endPosition = bonePosition + direction;
+
+	glm::vec4 color = {1, 1, 1, 1};
+	if (strcmp(node->mId.c_str(), "Head") == 0)
+	{
+		color = {1, 0, 0, 1};
+	}
+
+	mRenderContext->DrawLine(bonePosition, endPosition, color);
+
+	for (const auto child : node->mChildren)
+	{
+		_RenderModelBones(model, modelComp, child, globalTransform);
+	}
 }
 
 void App::_FixedUpdate(float dt) const
@@ -131,7 +175,7 @@ App::App(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
 	mDescriptionFactory->RegisterDescription<CollisionDescription>(CollisionDescription::JsonName);
 	mDescriptionFactory->RegisterDescription<InteractDescription>(InteractDescription::JsonName);
 	mDescriptionFactory->RegisterDescription<LightDescription>(LightDescription::JsonName);
-	mDescriptionFactory->RegisterDescription<MeshDescription>(MeshDescription::JsonName);
+	mDescriptionFactory->RegisterDescription<ModelDescription>(ModelDescription::JsonName);
 	mDescriptionFactory->RegisterDescription<OverlayDescription>(OverlayDescription::JsonName);
 	mDescriptionFactory->RegisterDescription<PhysicsDescription>(PhysicsDescription::JsonName);
 	mDescriptionFactory->RegisterDescription<PlayerDescription>(PlayerDescription::JsonName);

@@ -2,7 +2,7 @@
 #include "Core/SceneManager.h"
 #include "Entity/Entity.h"
 #include "Entity/Components/CollisionComponent.h"
-#include "Entity/Components/MeshComponent.h"
+#include "Entity/Components/ModelComponent.h"
 #include "Entity/Components/PhysicsComponent.h"
 #include "Entity/Components/TransformComponent.h"
 #include "Graphics/Core/ResourceManager.h"
@@ -26,22 +26,22 @@ PhysicsSystem::PhysicsSystem(RenderContext& renderContext)
 	mDynamicWorld->setGravity(mGravityConst);
 
 	// TODO: Uncomment to turn on debug draw
-	mPhysicsDebugDraw = std::make_unique<PhysicsDebugDraw>(renderContext);
-	mDynamicWorld->setDebugDrawer(mPhysicsDebugDraw.get());
-	mDynamicWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe | btIDebugDraw::DBG_DrawAabb);
+	//mPhysicsDebugDraw = std::make_unique<PhysicsDebugDraw>(renderContext);
+	//mDynamicWorld->setDebugDrawer(mPhysicsDebugDraw.get());
+	//mDynamicWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe | btIDebugDraw::DBG_DrawAabb);
 }
 
 void PhysicsSystem::RegisterCollider(Entity* entity, const ResourceManager& resourceManager)
 {
 	const auto& transform = entity->GetComponent<TransformComponent>();
 	auto& collider = entity->GetComponent<CollisionComponent>();
-	const auto& mesh = entity->GetComponent<MeshComponent>();
+	const auto& mesh = entity->GetComponent<ModelComponent>();
 
 	const auto physics = entity->TryGetComponent<PhysicsComponent>();
 	const auto& position = transform.mPosition;
 	const auto& size = transform.mSize;
 	const auto& rotation = transform.mRotation;
-	const auto& model = resourceManager.GetModelFromId(mesh.mMeshPath);
+	const auto& model = resourceManager.GetModelFromId(mesh.mModelPath);
 	auto calculatedSize = model.CalculateModelScaling(size);
 
 	btCollisionShape* shape = nullptr;

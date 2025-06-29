@@ -1,4 +1,5 @@
 #pragma once
+#include <tiny_gltf.h>
 #include <LLGL/LLGL.h>
 #include <glm/vec2.hpp>
 
@@ -6,6 +7,7 @@ class Texture
 {
 public:
 	Texture(const LLGL::RenderSystemPtr& renderer, const std::string& path);
+	Texture(const LLGL::RenderSystemPtr& renderer, const tinygltf::Image& image);
 	Texture(const LLGL::RenderSystemPtr& renderer, const unsigned char* imageData, int width, int height,
 	        bool singleChannel = false);
 
@@ -16,6 +18,7 @@ public:
 
 private:
 	bool _LoadFromFile(const LLGL::RenderSystemPtr& renderer, const std::string& path);
+	bool _ConvertFromGltf(const LLGL::RenderSystemPtr& renderer, const tinygltf::Image& image);
 	bool _CreateRGBAFromData(const LLGL::RenderSystemPtr& renderer, const unsigned char* imageData,
 	                         int width, int height);
 	bool _CreateSingleChannelTextureFromData(const LLGL::RenderSystemPtr& renderer,

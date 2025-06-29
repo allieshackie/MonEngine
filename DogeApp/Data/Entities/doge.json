@@ -3,38 +3,21 @@
     "components" : {
         "transform" : {
             "position": [0,0,0],
-            "size": [1,1.5,1],
+            "size": [1,1,1],
             "rotation": [0,0,0]
         },
-        "mesh": {
-            "mesh_path": "dogemage_fixed.gltf",
-            "texture_path": "doge_uv.png",
-            "has_bones": true,
-            "color": [1,1,1,1]
+        "model": {
+            "model_path": "doge_new.gltf"
         },
         "collider": {
             "collider_shape": "Capsule",
             "size": [1,1,1]
         },
         "animation": {
-            "animations": [
-                {"key": "Idle", "value": 1},
-                {"key": "Walk", "value": 2}
-            ],
-            "transitions": [
-                {
-                    "from": "Idle",
-                    "to": "Walk",
-                    "transition_time": 1.2,
-                    "targeted_blend_time": 0.9
-                },
-                {
-                    "from": "Walk",
-                    "to": "Idle",
-                    "transition_time": 1.5,
-                    "targeted_blend_time": 0.0
-                }
-            ]
+            "entry": {
+                "name": "Walking",
+                "looping": true
+            }
         },
         "interact": {}
     }

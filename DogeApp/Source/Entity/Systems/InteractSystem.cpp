@@ -1,4 +1,6 @@
+#include <imgui.h>
 #include "LLGL/Key.h"
+#include "LLGL/Platform/Win32/Win32NativeHandle.h"
 
 #include "Core/EventListener.h"
 #include "Core/SceneManager.h"
@@ -12,20 +14,23 @@
 
 void InteractSystem::Update(const RenderContext& renderContext, const Camera& camera, PhysicsSystem& physicsSystem)
 {
-	if (mQueuedClick)
+	if (mQueueIntersectCheck)
 	{
 		_OnClick(renderContext, camera, physicsSystem);
-		mQueuedClick = false;
+		mQueueIntersectCheck = false;
 	}
-
-	// Debug draw
-	//auto ray = _CalculateMouseRay(renderContext, camera);
-
-	//const auto& camPos = camera.GetPosition();
-	//renderContext.DrawLine(camPos, camPos + glm::vec3{ray.x, ray.y, ray.z} * 100.0f, {1, 1, 1, 1});
 }
 
-void InteractSystem::_OnClick(const RenderContext& renderContext, const Camera& camera, PhysicsSystem& physicsSystem)
+void InteractSystem::Render()
+{
+	if (mShowOptions)
+	{
+		_ShowOptions();
+	}
+}
+
+void InteractSystem::_OnClick(const RenderContext& renderContext, const Camera& camera,
+                              PhysicsSystem& physicsSystem) const
 {
 	auto ray = _CalculateMouseRay(renderContext, camera);
 
@@ -34,21 +39,26 @@ void InteractSystem::_OnClick(const RenderContext& renderContext, const Camera& 
 	btVector3 rayFromWorld(camPos.x, camPos.y, camPos.z);
 	btVector3 rayToWorld = rayFromWorld + btVector3{ray.x, ray.y, ray.z} * 100.0f;
 
-	//renderContext.DrawOverlay({mMousePos.x, mMousePos.y}, {1, 0, 0, 1});
-
 	btCollisionWorld::ClosestRayResultCallback rayCallback(rayFromWorld, rayToWorld);
 	physicsSystem.GetDynamicWorld().rayTest(rayFromWorld, rayToWorld, rayCallback);
 
 	if (rayCallback.hasHit())
 	{
 		std::printf("yup!");
+		ReleaseCapture();
+		LLGL::NativeHandle mainWindowHandle;
+		renderContext.GetSurfaceNativeHandle(&mainWindowHandle, sizeof(mainWindowHandle));
+		SendMessage(mainWindowHandle.window, WM_NCLBUTTONDOWN, HTCAPTION, 0);
 	}
 }
 
 InteractSystem::InteractSystem(InputHandler& inputHandler, const SceneManager& sceneManager)
 {
 	inputHandler.RegisterMouseMoveHandler([this](LLGL::Offset2D mousePos) { _HandleMouseMove(mousePos); });
-	inputHandler.RegisterButtonDownHandler(LLGL::Key::LButton, [this]() { QueueClick(); });
+	inputHandler.RegisterButtonDownHandler(LLGL::Key::LButton, [this]() { DragClick(); });
+
+	inputHandler.RegisterButtonDownHandler(LLGL::Key::RButton, [this]() { mShowOptions = !mShowOptions; });
+	//inputHandler.RegisterButtonUpHandler(LLGL::Key::RButton, [this]() { mShowOptions = false; });
 
 	// All entities should have a transform
 	EventFunc addedFunc = [this](Entity* entity)
@@ -77,6 +87,16 @@ glm::vec3 InteractSystem::_CalculateMouseRay(const RenderContext& renderContext,
 	return glm::normalize(glm::inverse(camera.GetView()) * eyeRay);
 }
 
+void InteractSystem::_ShowOptions()
+{
+	ImGui::SetNextWindowSize(ImVec2(150, 100));
+	if (ImGui::Begin("Doge", &mShowOptions, ImGuiWindowFlags_None))
+	{
+		ImGui::Button("Chat with Doge", {120, 20});
+	}
+	ImGui::End();
+}
+
 void InteractSystem::OnEntityAdded(Entity* entity)
 {
 	mEntityList.push_back(entity->GetId());
@@ -91,7 +111,7 @@ void InteractSystem::OnEntityRemoved(Entity* entity)
 	}
 }
 
-void InteractSystem::QueueClick()
+void InteractSystem::DragClick()
 {
-	mQueuedClick = true;
+	mQueueIntersectCheck = true;
 }

@@ -81,5 +81,6 @@ void main()
     vPosition = vec3(model * getAppliedTransform(vec4(position, 1.0)));
     vNormal = vec3(transpose(inverse(model)) * normalize(getAppliedTransform(vec4(normal, 0.0))));  
 	vTexCoord = texCoord;
+    vTexCoord.y = 1.0 - vTexCoord.y;
     gl_Position = projection * view * vec4(vPosition, 1.0);
 }

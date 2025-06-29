@@ -13,6 +13,8 @@
 #include "Physics/PhysicsSystem.h"
 #include "Scripting/LuaSystem.h"
 
+struct ModelComponent;
+
 class App
 {
 public:
@@ -35,6 +37,9 @@ public:
 
 private:
 	void _FixedUpdate(float dt) const;
+	void _DebugDrawBones() const;
+	void _RenderModelBones(Model& model, const ModelComponent& modelComp, int nodeIndex,
+	                       const glm::mat4 parentTransform) const;
 
 	std::unique_ptr<DescriptionFactory> mDescriptionFactory;
 	std::unique_ptr<RenderContext> mRenderContext;

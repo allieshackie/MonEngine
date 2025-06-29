@@ -15,21 +15,25 @@ public:
 	InteractSystem(InputHandler& inputHandler, const SceneManager& sceneManager);
 
 	void Update(const RenderContext& renderContext, const Camera& camera, PhysicsSystem& physicsSystem);
+	void Render();
 
 	void OnEntityAdded(Entity* entity);
 	void OnEntityRemoved(Entity* entity);
 
-	void QueueClick();
+	void DragClick();
+	void PressClick();
 
 private:
-	void _OnClick(const RenderContext& renderContext, const Camera& camera, PhysicsSystem& physicsSystem);
+	void _OnClick(const RenderContext& renderContext, const Camera& camera, PhysicsSystem& physicsSystem) const;
 	void _HandleMouseMove(LLGL::Offset2D mousePos);
-
 	glm::vec3 _CalculateMouseRay(const RenderContext& renderContext, const Camera& camera) const;
-	bool _Intersect(glm::vec3 position, glm::vec3 size, glm::vec3 intersection);
+
+	void _ShowOptions();
 
 	glm::vec2 mMousePos = {0, 0};
 	std::vector<entt::entity> mEntityList;
 
-	bool mQueuedClick = false;
+	bool mQueueIntersectCheck = false;
+
+	bool mShowOptions = false;
 };

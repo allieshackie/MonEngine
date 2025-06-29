@@ -26,23 +26,29 @@ void MeshPipeline::Render(LLGL::CommandBuffer& commands, const Camera& camera,
 	frameSettings.projection = projection;
 	commands.UpdateBuffer(*mFrameBuffer, 0, &frameSettings, sizeof(frameSettings));
 
-	const auto meshView = scene->GetRegistry().view<const TransformComponent, MeshComponent>();
+	const auto meshView = scene->GetRegistry().view<const TransformComponent, ModelComponent>();
 
 	// Should either be a sprite or basic color
 	meshView.each([this, &commands, &camera, &renderSystem, &resourceManager](
-		const TransformComponent& transform, MeshComponent& meshComponent)
+		const TransformComponent& transform, ModelComponent& modelComponent)
 		{
-			// Set resources
-			auto& texture = resourceManager.GetTexture(meshComponent.mTexturePath);
-			auto& sampler = resourceManager.GetSampler(meshComponent.mTexturePath);
 			commands.SetResourceHeap(*mResourceHeap);
-			commands.SetResource(0, texture);
-			commands.SetResource(1, sampler);
-			const auto& model = resourceManager.GetModelFromId(meshComponent.mMeshPath);
-			UpdateProjectionViewModelUniform(commands, camera, renderSystem, transform, meshComponent, model);
+			const auto& model = resourceManager.GetModelFromId(modelComponent.mModelPath);
+			// Set resources
+			UpdateProjectionViewModelUniform(commands, camera, renderSystem, transform, modelComponent, model);
 
 			for (const auto mesh : model.GetMeshes())
 			{
+				// Mesh Settings
+				//meshSettings.solidColor = model.mColor;
+				meshSettings.hasBones = model.GetNumJoints() > 0;
+				meshSettings.hasTexture = mesh->mTextureId != -1;
+				meshSettings.gTargetBone = static_cast<float>(modelComponent.mCurrentBoneIndex);
+				commands.UpdateBuffer(*mConstantBuffer, 0, &meshSettings, sizeof(meshSettings));
+				auto& texture = resourceManager.GetTexture(mesh->mTextureId);
+				auto& sampler = resourceManager.GetSampler(mesh->mTextureId);
+				commands.SetResource(0, texture);
+				commands.SetResource(1, sampler);
 				commands.SetVertexBuffer(*mesh->mVertexBuffer);
 				commands.SetIndexBuffer(*mesh->mIndexBuffer);
 				commands.DrawIndexed(mesh->mNumIndices, 0);
@@ -57,7 +63,7 @@ void MeshPipeline::SetPipeline(LLGL::CommandBuffer& commands) const
 
 void MeshPipeline::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& commands, const Camera& camera,
                                                     const LLGL::RenderSystemPtr& renderSystem,
-                                                    const TransformComponent& transform, MeshComponent& mesh,
+                                                    const TransformComponent& transform, ModelComponent& mesh,
                                                     const Model& meshModel)
 {
 	// Update
@@ -86,12 +92,7 @@ void MeshPipeline::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& command
 		lightSettings.viewPos = camera.GetPosition();
 	}
 
-	// Mesh Settings
 	meshSettings.model = model;
-	meshSettings.solidColor = mesh.mColor;
-	meshSettings.hasBones = mesh.mHasBones;
-	meshSettings.hasTexture = mesh.mTexturePath.empty() ? 0.0f : 1.0f;
-	meshSettings.gTargetBone = static_cast<float>(mesh.mCurrentBoneIndex);
 
 	std::uint64_t transformOffset = 0;
 	for (const auto& finalTransform : mesh.mFinalTransforms)
@@ -100,7 +101,6 @@ void MeshPipeline::UpdateProjectionViewModelUniform(LLGL::CommandBuffer& command
 		transformOffset += sizeof(glm::mat4);
 	}
 
-	commands.UpdateBuffer(*mConstantBuffer, 0, &meshSettings, sizeof(meshSettings));
 	commands.UpdateBuffer(*mLightConstantBuffer, 0, &lightSettings, sizeof(lightSettings));
 }
 

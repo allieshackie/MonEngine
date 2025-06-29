@@ -5,7 +5,7 @@
 
 #include "Animation.h"
 
-struct MeshComponent;
+struct ModelComponent;
 
 class Entity;
 class Model;
@@ -23,9 +23,9 @@ public:
 	void SetSceneCallbacks(const SceneManager& sceneManager) const;
 
 private:
-	void _UpdateAnimation(float deltaTime, Model& model, AnimationComponent& animComp, MeshComponent& mesh);
+	void _UpdateAnimation(float deltaTime, Model& model, AnimationComponent& animComp, ModelComponent& mesh);
 	void _UpdateBlend(float deltaTime, AnimationComponent& animComp);
-	void _UpdateJointHierarchy(Model& model, AnimationComponent& animComp, MeshComponent& mesh,
+	void _UpdateJointHierarchy(Model& model, AnimationComponent& animComp, ModelComponent& mesh,
 	                           const Animation* animation, const Animation* prevAnimation, int nodeIndex,
 	                           const glm::mat4 parentTransform);
 

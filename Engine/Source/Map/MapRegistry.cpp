@@ -2,7 +2,7 @@
 #include "Entity/Entity.h"
 #include "Entity/Components/CollisionComponent.h"
 #include "Entity/Components/MapComponent.h"
-#include "Entity/Components/MeshComponent.h"
+#include "Entity/Components/ModelComponent.h"
 #include "Entity/Components/TransformComponent.h"
 #include "Util/FileSystem.h"
 
@@ -54,7 +54,7 @@ bool MapRegistry::_ParseMapData(const MapData& mapData, Entity& entity) const
 	entity.SetName(mapData.mName);
 	entity.AddComponent<MapComponent>(mapComponent);
 	entity.AddComponentWithArgs<TransformComponent>(mapData.mPosition, mapData.mSize, mapData.mRotation);
-	entity.AddComponentWithArgs<MeshComponent>(mapComponent.mMeshPath);
+	entity.AddComponentWithArgs<ModelComponent>(mapComponent.mModelPath);
 	entity.AddComponentWithArgs<CollisionComponent>(ColliderShapes::BOX, mapData.mSize,
 	                                                false, -1, nullptr, true);
 

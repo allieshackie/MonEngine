@@ -8,7 +8,7 @@ void AnimationDescription::ApplyToEntity(Entity* entity, entt::registry& registr
 	try
 	{
 		auto archive = FileSystem::CreateArchive(mJson);
-		anim.serialize(archive);
+		anim.load(archive);
 	}
 	catch (const cereal::Exception& e)
 	{

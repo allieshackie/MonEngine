@@ -1,5 +1,4 @@
 #pragma once
-#include <tiny_gltf.h>
 
 #include "LLGL/RenderSystem.h"
 #include "Graphics/Animation/Animation.h"
@@ -15,6 +14,7 @@ struct MeshData
 {
 	std::string mName;
 	std::uint32_t mNumIndices = 0;
+	int mTextureId = -1;
 
 	std::vector<Vertex> mVertices;
 	std::vector<uint32_t> mIndices;
@@ -29,34 +29,38 @@ struct MeshData
 class Model
 {
 public:
-	Model(const std::string& fullPath, std::string fileName);
+	Model(int id, size_t nodesSize);
 
 	void InitializeBuffers(const LLGL::RenderSystemPtr& renderSystem, const Shader& shader) const;
 
-	const std::string& GetId() const { return mId; }
+	int GetId() const { return mId; }
 	int GetRootNodeIndex() const { return mRootNodeIndex; }
 	const std::vector<MeshData*>& GetMeshes() const { return mMeshes; }
 
 	JointNode* GetJointNodeAt(int nodeIndex) const;
 	size_t GetNumJoints() const { return mNumNodes; }
 
-	const Animation* GetAnimation(AnimationStates state) const;
+	const Animation* GetAnimation(int index) const;
 
 	glm::vec3 CalculateModelScaling(const glm::vec3& targetSize) const;
 
 	// TODO: For Debug GUI
 	const std::unordered_map<std::string, int>& GetBoneNamesToIndex() const { return mBoneNameToIndex; }
 
-private:
-	void _ProcessMeshes(tinygltf::Model& model);
-	void _ProcessJointData(const tinygltf::Model& model);
-	void _ProcessAnimations(const tinygltf::Model& model);
+	// Setup
+	void AddMesh(MeshData* mesh) { mMeshes.push_back(std::move(mesh)); }
+	void SetRootNodeIndex(int index) { mRootNodeIndex = index; }
+	void AddBoneNameToIndex(std::string name, int index) { mBoneNameToIndex[name] = index; }
+	void AddJointNode(int index, JointNode* node) { mJointNodes[index] = node; }
 
-	std::string mId;
+	void AddAnimation(Animation* modelAnim) { mAnimations.push_back(std::move(modelAnim)); }
+
+private:
+	int mId;
 	std::vector<MeshData*> mMeshes;
 
 	std::unordered_map<std::string, int> mBoneNameToIndex;
-	std::unordered_map<AnimationStates, Animation*> mAnimations;
+	std::vector<Animation*> mAnimations;
 
 	std::unordered_map<int, JointNode*> mJointNodes;
 	int mRootNodeIndex = 0;

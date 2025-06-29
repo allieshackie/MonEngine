@@ -6,8 +6,8 @@
 
 struct AnimTransition
 {
-	AnimationStates mTransitionFrom = AnimationStates::NONE;
-	AnimationStates mTransitionTo = AnimationStates::NONE;
+	int mTransitionFrom = 0;
+	int mTransitionTo = 0;
 
 	float mTransitionTime = 0.0f;
 	float mTargetedBlendTime = 0.0f;
@@ -29,18 +29,23 @@ struct AnimationComponent
 
 	// runtime
 	bool mUpdated = false;
-	AnimationStates mPrevAnimState = AnimationStates::NONE;
-	AnimationStates mCurrentAnimState = AnimationStates::IDLE;
+	int mPrevAnimState = -1;
+	int mCurrentAnimState = 5;
 	float mBlendFactor = 1.0f;
 
 	template <class Archive>
-	void serialize(Archive& archive)
+	void save(Archive& archive) const
 	{
-		archive(cereal::make_nvp("animations", mAnimationNames),
-		        cereal::make_nvp("transitions", mTransitions));
+		archive(cereal::make_nvp("transitions", mTransitions));
 	}
 
-	void TryTriggerAnimation(AnimationStates state)
+	template <class Archive>
+	void load(Archive& archive)
+	{
+		cereal::make_optional_nvp(archive, "transitions", mTransitions);
+	}
+
+	void TryTriggerAnimation(int state)
 	{
 		if (mCurrentAnimState != state)
 		{

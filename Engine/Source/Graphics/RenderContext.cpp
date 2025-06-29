@@ -263,7 +263,7 @@ void RenderContext::_CreateWindow(const LLGL::UTF8String& title, const std::shar
 		              GetWindowLong(mainWindowHandle.window, GWL_EXSTYLE) | WS_EX_LAYERED);
 		SetWindowPos(mainWindowHandle.window, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 
-		SetLayeredWindowAttributes(mainWindowHandle.window, RGB(0, 0, 0), 0, LWA_COLORKEY); // or use alpha channel
+		SetLayeredWindowAttributes(mainWindowHandle.window, RGB(255, 0, 255), 0, LWA_COLORKEY);
 	}
 
 	window.Show();

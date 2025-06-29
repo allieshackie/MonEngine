@@ -43,32 +43,6 @@ namespace cereal
 	void serialize(Archive& archive, glm::vec4& v) { archive(v.x, v.y, v.z, v.w); }
 
 	template <>
-	struct specialize<JSONInputArchive, AnimationStates, cereal::specialization::non_member_load_save>
-	{
-	};
-
-	template <>
-	struct specialize<JSONOutputArchive, AnimationStates, cereal::specialization::non_member_load_save>
-	{
-	};
-
-	// Save function for writing the enum as a string
-	template <class Archive>
-	void save(Archive& archive, const AnimationStates& state)
-	{
-		archive(ANIM_STRINGS[state]);
-	}
-
-	// Load function for reading a string and converting it to an enum
-	template <class Archive>
-	void load(Archive& archive, AnimationStates& state)
-	{
-		std::string stateStr;
-		archive(stateStr);
-		state = ANIM_NAMES[stateStr];
-	}
-
-	template <>
 	struct specialize<JSONInputArchive, ColliderShapes, cereal::specialization::non_member_load_save>
 	{
 	};

@@ -2,7 +2,7 @@
 #include "Core/SceneManager.h"
 #include "Entity/Entity.h"
 #include "Entity/Components/AnimationComponent.h"
-#include "Entity/Components/MeshComponent.h"
+#include "Entity/Components/ModelComponent.h"
 #include "Graphics/Core/ResourceManager.h"
 #include "Util/gltfHelpers.h"
 
@@ -14,11 +14,11 @@ Animator::Animator(ResourceManager& resourceManager) : mResourceManager(resource
 
 void Animator::Update(float deltaTime, MonScene* scene, const ResourceManager& resourceManager)
 {
-	const auto meshView = scene->GetRegistry().view<AnimationComponent, MeshComponent>();
+	const auto meshView = scene->GetRegistry().view<AnimationComponent, ModelComponent>();
 
-	meshView.each([this, &resourceManager, &deltaTime](AnimationComponent& anim, MeshComponent& mesh)
+	meshView.each([this, &resourceManager, &deltaTime](AnimationComponent& anim, ModelComponent& mesh)
 	{
-		auto& model = resourceManager.GetModelFromId(mesh.mMeshPath);
+		auto& model = resourceManager.GetModelFromId(mesh.mModelPath);
 		_UpdateAnimation(deltaTime, model, anim, mesh);
 	});
 }
@@ -29,10 +29,10 @@ void Animator::SetSceneCallbacks(const SceneManager& sceneManager) const
 	{
 		_SetJointMatrixCount(entity);
 	};
-	sceneManager.ConnectOnConstruct<MeshComponent>(func);
+	sceneManager.ConnectOnConstruct<ModelComponent>(func);
 }
 
-void Animator::_UpdateAnimation(float deltaTime, Model& model, AnimationComponent& animComp, MeshComponent& mesh)
+void Animator::_UpdateAnimation(float deltaTime, Model& model, AnimationComponent& animComp, ModelComponent& mesh)
 {
 	const auto animation = model.GetAnimation(animComp.mCurrentAnimState);
 	const auto prevAnimation = model.GetAnimation(animComp.mPrevAnimState);
@@ -85,13 +85,13 @@ void Animator::_UpdateBlend(float deltaTime, AnimationComponent& animComp)
 
 		if (animComp.mBlendFactor >= 1.0f)
 		{
-			animComp.mPrevAnimState = AnimationStates::NONE;
+			animComp.mPrevAnimState = -1;
 			mPrevAnimationTime = 0.0f;
 		}
 	}
 }
 
-void Animator::_UpdateJointHierarchy(Model& model, AnimationComponent& animComp, MeshComponent& mesh,
+void Animator::_UpdateJointHierarchy(Model& model, AnimationComponent& animComp, ModelComponent& mesh,
                                      const Animation* animation, const Animation* prevAnimation, int nodeIndex,
                                      const glm::mat4 parentTransform)
 {
@@ -253,11 +253,11 @@ void Animator::_ApplyBlendTime(const AnimationComponent& animComp)
 
 void Animator::_SetJointMatrixCount(Entity* entity) const
 {
-	auto& mesh = entity->GetComponent<MeshComponent>();
-	const auto& model = mResourceManager.GetModelFromId(mesh.mMeshPath);
+	auto& mesh = entity->GetComponent<ModelComponent>();
+	const auto& model = mResourceManager.GetModelFromId(mesh.mModelPath);
 
-	if (mesh.mHasBones)
-	{
-		mesh.mFinalTransforms.resize(model.GetNumJoints());
-	}
+	//if (mesh.mHasBones) TODO: Figure out how to re-introduce
+	//{
+	mesh.mFinalTransforms.resize(model.GetNumJoints());
+	//}
 }

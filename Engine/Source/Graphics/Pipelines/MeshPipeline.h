@@ -3,7 +3,7 @@
 
 #include "PipelineBase.h"
 #include "Entity/Components/LightComponent.h"
-#include "Entity/Components/MeshComponent.h"
+#include "Entity/Components/ModelComponent.h"
 #include "Graphics/Core/Model.h"
 #include "Graphics/Core/ResourceManager.h"
 
@@ -33,7 +33,7 @@ public:
 
 	void UpdateProjectionViewModelUniform(LLGL::CommandBuffer& commands, const Camera& camera,
 	                                      const LLGL::RenderSystemPtr& renderSystem,
-	                                      const TransformComponent& transform, MeshComponent& mesh,
+	                                      const TransformComponent& transform, ModelComponent& mesh,
 	                                      const Model& meshModel);
 
 	void SetResourceHeapTexture(LLGL::CommandBuffer& commands, LLGL::Texture& texture) const;

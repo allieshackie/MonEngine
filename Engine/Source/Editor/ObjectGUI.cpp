@@ -1,6 +1,6 @@
 #include <imgui.h>
 #include "Core/Scene.h"
-#include "Entity/Components/MeshComponent.h"
+#include "Entity/Components/ModelComponent.h"
 #include "Entity/Components/TransformComponent.h"
 #include "Graphics/Core/ResourceManager.h"
 
@@ -25,14 +25,17 @@ void ObjectGUI::RenderGUI(MonScene* scene, ResourceManager& resourceManager)
 
 	if (ImGui::Begin("Bone Selection", &mOpen, mWindowFlags))
 	{
-		auto view = scene->GetRegistry().view<MeshComponent>();
+		auto view = scene->GetRegistry().view<ModelComponent>();
 		view.each([=, &resourceManager](auto& mesh)
 		{
+			/* TODO: figure out how to re-introduce
+			 *
 			if (!mesh.mHasBones)
 			{
 				return;
 			}
-			const auto model = resourceManager.GetModelFromId(mesh.mMeshPath);
+			 */
+			const auto model = resourceManager.GetModelFromId(mesh.mModelPath);
 			auto& boneNamesToIndex = model.GetBoneNamesToIndex();
 
 			// Extract keys into a vector
