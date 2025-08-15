@@ -3,6 +3,7 @@
 #include <random>
 #include <tiny_gltf.h>
 #include<glm/gtc/quaternion.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "Graphics/Animation/Animation.h"
 
@@ -22,11 +23,7 @@ namespace gltfHelpers
 		// Handle the node's transformation (translation, rotation, scale) or matrix
 		if (!gltfNode.matrix.empty())
 		{
-			// If the node has a matrix, use it directly
-			for (int i = 0; i < 16; ++i)
-			{
-				transform[i / 4][i % 4] = static_cast<float>(gltfNode.matrix[i]);
-			}
+			transform = glm::make_mat4(gltfNode.matrix.data());
 		}
 		else
 		{

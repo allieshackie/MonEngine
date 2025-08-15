@@ -59,8 +59,8 @@ void App::Run() const
 
 		while (timer->mAccumulator >= deltaTime)
 		{
-			_FixedUpdate(timer->mDT);
-			timer->mAccumulator -= timer->mDT;
+			_FixedUpdate(deltaTime);
+			timer->mAccumulator -= deltaTime;
 		}
 
 		mInputHandler->Update();

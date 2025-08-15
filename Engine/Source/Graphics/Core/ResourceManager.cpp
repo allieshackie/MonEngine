@@ -1,12 +1,10 @@
 #include <glad/glad.h>
+#include <glm/gtc/type_ptr.hpp>
 #include <filesystem>
 #include <stb_image.h>
 
-#include "ResourceManager.h"
-
-#include <glm/gtc/type_ptr.hpp>
-
 #include "Util/gltfHelpers.h"
+#include "ResourceManager.h"
 
 void ResourceManager::LoadAllResources(const LLGL::RenderSystemPtr& renderSystem)
 {
