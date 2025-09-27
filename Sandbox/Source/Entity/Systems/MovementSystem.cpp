@@ -124,10 +124,10 @@ static void _UpdateMovementAnim(AnimationComponent& anim, const PhysicsComponent
 {
 	if (glm::length(physics.mVelocity) > 0.0f)
 	{
-		anim.TryTriggerAnimation(AnimationStates::WALKING);
+		anim.TryTriggerAnimation(1);
 	}
 	else
 	{
-		anim.TryTriggerAnimation(AnimationStates::IDLE);
+		anim.TryTriggerAnimation(0);
 	}
 }

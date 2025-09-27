@@ -3,19 +3,12 @@
         "position": [0,5,10],
         "front": [0,0,1],
         "up": [0,1,0],
-        "follow_cam": true
-    },
-    "maps": {
-        "name": "ground_map.json",
-        "position": [0,0,0],
-        "size": [20,5,20],
-        "rotation": [0,0,0],
-        "has_dimension": true
+        "follow_cam": false
     },
     "entities": [
         {
             "name": "player",
-            "position": [0,10,0]
+            "position": [0,0,0]
         },
         {
             "name": "pointLightRed",

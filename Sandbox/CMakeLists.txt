@@ -7,16 +7,16 @@ include(${CMAKE_UTILS}/CmakeUtils.cmake)
 
 # Add the source files with proper folder structure
 file(GLOB_RECURSE SOURCES "Source/*")
-source_group(TREE ${PROJECT_SOURCE_DIR}/Game/Source PREFIX "Source Files/" FILES ${SOURCES})
+source_group(TREE ${PROJECT_SOURCE_DIR}/Sandbox/Source PREFIX "Source Files/" FILES ${SOURCES})
 
-add_executable(Game ${SOURCES})
-set_target_properties(Game PROPERTIES LINKER_LANGUAGE CXX)
+add_executable(Sandbox ${SOURCES})
+set_target_properties(Sandbox PROPERTIES LINKER_LANGUAGE CXX)
 
 # Call the function to copy the Data folder contents to the Build folder
 copy_data_contents(${CMAKE_CURRENT_SOURCE_DIR}/Data/ ${CMAKE_BINARY_DIR}/Data)
 
 target_precompile_headers(
-    Game 
+    Sandbox 
     PRIVATE
     <iostream>
     <memory>
@@ -27,16 +27,16 @@ target_precompile_headers(
     <functional>
 )
 
-message("CMAKE_CURRENT_SOURCE_DIR Game: ${CMAKE_CURRENT_SOURCE_DIR}")
+message("CMAKE_CURRENT_SOURCE_DIR Sandbox: ${CMAKE_CURRENT_SOURCE_DIR}")
 
 target_include_directories(
-    Game
+    Sandbox
     PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/Source
 )
 
 target_link_libraries(
-    Game 
+    Sandbox 
     PRIVATE
     MonEngine
 )

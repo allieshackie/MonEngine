@@ -1,0 +1,24 @@
+{
+    "template_name": "player", 
+    "components" : {
+        "transform" : {
+            "position": [0,0,0],
+            "size": [1,1,1],
+            "rotation": [0,0,0]
+        },
+        "model": {
+            "model_path": "doge_new.gltf"
+        }
+        // "player": {
+        //     "camera_target": true
+        // },
+        // "rigidbody": {
+        //     "mass": 1.0,
+        //     "friction": 1.0
+        // },
+        // "collider": {
+        //     "collider_shape": "Box", // Box collider
+        //     "size": [1,1,1]
+        // }
+    }
+}

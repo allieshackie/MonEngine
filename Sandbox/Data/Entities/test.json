@@ -6,11 +6,8 @@
             "size": [1,10,1],
             "rotation": [0,0,0]
         },
-        "sprite": {
-            "resource_path": "container.jpg"
-        },
-        "mesh": {
-            "mesh_path": "PlainBox.obj" 
+        "model": {
+            "model_path": "PlainBox.obj" 
         }
     }
 }

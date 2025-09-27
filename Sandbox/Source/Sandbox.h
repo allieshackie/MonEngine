@@ -14,13 +14,13 @@
 #include "Physics/PhysicsSystem.h"
 #include "Scripting/LuaSystem.h"
 
-class Game
+class Sandbox
 {
 public:
-	Game(const LLGL::Extent2D screenSize = {800, 600},
-	     const LLGL::UTF8String& title = "Game",
-	     const LLGL::ColorRGBAf backgroundClearColor = {0.0f, 0.0f, 0.0f, 1.0f},
-	     bool usePerspective = true, bool transparent = false);
+	Sandbox(const LLGL::Extent2D screenSize = {800, 600},
+	        const LLGL::UTF8String& title = "Sandbox",
+	        const LLGL::ColorRGBAf backgroundClearColor = {0.0f, 0.0f, 0.0f, 1.0f},
+	        bool usePerspective = true, bool transparent = false);
 
 	void Run() const;
 
@@ -40,7 +40,7 @@ private:
 	// Debug
 	void _DrawAxis() const;
 	void _DebugDrawBones() const;
-	void _RenderModelBones(Model& model, const MeshComponent& mesh, int nodeIndex,
+	void _RenderModelBones(Model& model, const ModelComponent& modelComp, int nodeIndex,
 	                       const glm::mat4 parentTransform) const;
 
 	std::unique_ptr<DescriptionFactory> mDescriptionFactory;

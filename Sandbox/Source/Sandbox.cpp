@@ -3,28 +3,28 @@
 #include "Entity/Descriptions/CollisionDescription.h"
 #include "Entity/Descriptions/InteractiveDescription.h"
 #include "Entity/Descriptions/LightDescription.h"
-#include "Entity/Components/MapComponent.h"
-#include "Entity/Descriptions/MeshDescription.h"
+#include "Entity/Descriptions/ModelDescription.h"
 #include "Entity/Descriptions/PhysicsDescription.h"
 #include "Entity/Descriptions/PlayerDescription.h"
 #include "Entity/Descriptions/SpriteDescription.h"
 #include "Entity/Descriptions/TransformDescription.h"
+#include "Graphics/Core/Node.h"
 #include "Graphics/Animation/Animator.h"
 #include "GUI/GUISystem.h"
 
-#include "Game.h"
+#include "Sandbox.h"
 
 int main()
 {
-	const auto game = std::make_unique<Game>(LLGL::Extent2D{800, 600}, "Game",
-	                                         LLGL::ColorRGBAf{1.0f, 0.5f, 1.0f});
+	const auto game = std::make_unique<Sandbox>(LLGL::Extent2D{800, 600}, "Sandbox",
+	                                            LLGL::ColorRGBAf{1.0f, 0.5f, 1.0f});
 
 	game->Run();
 
 	return 0;
 }
 
-void Game::Run() const
+void Sandbox::Run() const
 {
 	// TODO: Re-add font, make sure to have font for gui
 	//mEngine->LoadFont("PixelLettersFull.ttf");
@@ -102,18 +102,18 @@ void Game::Run() const
 	GUISystem::CloseGUI();
 }
 
-void Game::SetGUIMenu(std::unique_ptr<GUIBase> gui)
+void Sandbox::SetGUIMenu(std::unique_ptr<GUIBase> gui)
 {
 	mGUIMenu = std::move(gui);
 }
 
-void Game::_FixedUpdate(float dt) const
+void Sandbox::_FixedUpdate(float dt) const
 {
 	mPhysicsSystem->Update(dt, mSceneManager->GetCurrentScene(), *mResourceManager);
 }
 
-Game::Game(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
-           const LLGL::ColorRGBAf backgroundClearColor, bool usePerspective, bool transparent)
+Sandbox::Sandbox(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
+                 const LLGL::ColorRGBAf backgroundClearColor, bool usePerspective, bool transparent)
 {
 	// Init all systems **without** dependencies
 	mInputHandler = std::make_shared<InputHandler>();
@@ -131,7 +131,7 @@ Game::Game(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
 	mDescriptionFactory->RegisterDescription<CollisionDescription>(CollisionDescription::JsonName);
 	mDescriptionFactory->RegisterDescription<InteractiveDescription>(InteractiveDescription::JsonName);
 	mDescriptionFactory->RegisterDescription<LightDescription>(LightDescription::JsonName);
-	mDescriptionFactory->RegisterDescription<MeshDescription>(MeshDescription::JsonName);
+	mDescriptionFactory->RegisterDescription<ModelDescription>(ModelDescription::JsonName);
 	mDescriptionFactory->RegisterDescription<PhysicsDescription>(PhysicsDescription::JsonName);
 	mDescriptionFactory->RegisterDescription<PlayerDescription>(PlayerDescription::JsonName);
 	mDescriptionFactory->RegisterDescription<SpriteDescription>(SpriteDescription::JsonName);
@@ -158,7 +158,7 @@ Game::Game(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
 	mPlayerSystem->SetSceneCallbacks(*mSceneManager);
 }
 
-void Game::ToggleEditorMode(bool toggle) const
+void Sandbox::ToggleEditorMode(bool toggle) const
 {
 	if (toggle)
 	{
@@ -169,7 +169,7 @@ void Game::ToggleEditorMode(bool toggle) const
 	}
 }
 
-void Game::_DrawAxis() const
+void Sandbox::_DrawAxis() const
 {
 	/*
 	 * Draw the XYZ axis at 0,0,0
@@ -191,30 +191,31 @@ void Game::_DrawAxis() const
 	mRenderContext->DrawBox({0, 0, 1}, {0.1f, 0.1f, 1.0f}, {0, 0, 255, 1}, false);
 }
 
-void Game::_DebugDrawBones() const
+void Sandbox::_DebugDrawBones() const
 {
-	const auto meshView = mSceneManager->GetCurrentScene()->GetRegistry().view<const MeshComponent>(
-		entt::exclude<MapComponent>);
+	const auto modelView = mSceneManager->GetCurrentScene()->GetRegistry().view<const ModelComponent>();
 
 	// Should either be a sprite or basic color
-	meshView.each([=](const MeshComponent& mesh)
+	modelView.each([=](const ModelComponent& modelComp)
 	{
-		auto model = mResourceManager->GetModelFromId(mesh.mMeshPath);
-		_RenderModelBones(model, mesh, model.GetRootNodeIndex(), glm::mat4(1.0f));
+		auto model = mResourceManager->GetModelFromId(modelComp.mModelPath);
+		_RenderModelBones(model, modelComp, model.GetRootNodeIndex(), glm::mat4(1.0f));
 	});
 }
 
-void Game::_RenderModelBones(Model& model, const MeshComponent& mesh, int nodeIndex,
-                             const glm::mat4 parentTransform) const
+void Sandbox::_RenderModelBones(Model& model, const ModelComponent& modelComp, int nodeIndex,
+                                const glm::mat4 parentTransform) const
 {
-	const auto node = model.GetJointNodeAt(nodeIndex);
+	const auto node = model.GetNodeAt(nodeIndex);
 
 	if (node == nullptr)
 	{
 		return;
 	}
 
-	glm::mat4 globalTransform = parentTransform * node->mTransformation;
+	const auto jointNode = model.GetJointDataAt(node->mJointIndex);
+
+	glm::mat4 globalTransform = parentTransform * node->mTransform;
 	auto bonePosition = glm::vec3(globalTransform[3]);
 	auto parentPosition = glm::vec3(parentTransform[3]);
 
@@ -224,7 +225,7 @@ void Game::_RenderModelBones(Model& model, const MeshComponent& mesh, int nodeIn
 	glm::vec3 endPosition = bonePosition + direction;
 
 	glm::vec4 color = {1, 1, 1, 1};
-	if (strcmp(node->mId.c_str(), "Head") == 0)
+	if (strcmp(jointNode->mId.c_str(), "Head") == 0)
 	{
 		color = {1, 0, 0, 1};
 	}
@@ -233,6 +234,6 @@ void Game::_RenderModelBones(Model& model, const MeshComponent& mesh, int nodeIn
 
 	for (const auto child : node->mChildren)
 	{
-		_RenderModelBones(model, mesh, child, globalTransform);
+		_RenderModelBones(model, modelComp, child, globalTransform);
 	}
 }
