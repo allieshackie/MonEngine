@@ -1,7 +1,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "LLGL/RenderSystem.h"
 #include "LLGL/Utils/Utility.h"
 
+#include "Graphics/Core/Node.h"
 #include "Graphics/Core/Shader.h"
 #include "Graphics/Core/Vertex.h"
 #include "Util/gltfHelpers.h"
@@ -10,6 +12,10 @@
 
 Model::Model(int id, size_t nodesSize): mId(id), mNumNodes(nodesSize)
 {
+	for (int i = 0; i < nodesSize; i++)
+	{
+		mNodes.push_back(new Node());
+	}
 }
 
 void Model::InitializeBuffers(const LLGL::RenderSystemPtr& renderSystem, const Shader& shader) const
@@ -29,9 +35,9 @@ void Model::InitializeBuffers(const LLGL::RenderSystemPtr& renderSystem, const S
 	}
 }
 
-JointNode* Model::GetJointNodeAt(int nodeIndex) const
+JointData* Model::GetJointDataAt(int nodeIndex) const
 {
-	if (const auto it = mJointNodes.find(nodeIndex); it != mJointNodes.end())
+	if (const auto it = mJointData.find(nodeIndex); it != mJointData.end())
 	{
 		return it->second;
 	}
@@ -54,4 +60,14 @@ glm::vec3 Model::CalculateModelScaling(const glm::vec3& targetSize) const
 	glm::vec3 size = mMeshes[0]->mMaxBounds - mMeshes[0]->mMinBounds;
 	// Scale uniformly to fit within targetSize (e.g., 1x1x1 meters)
 	return targetSize / size;
+}
+
+Node* Model::GetNodeAt(int nodeIndex) const
+{
+	if (nodeIndex > mNodes.size())
+	{
+		return nullptr;
+	}
+
+	return mNodes[nodeIndex];
 }

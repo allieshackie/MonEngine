@@ -31,8 +31,9 @@ private:
 
 	// Process GLTF Models
 	void _LoadModel(const LLGL::RenderSystemPtr& renderSystem, const std::string& fullPath, int modelId);
-	void _ProcessMeshes(const LLGL::RenderSystemPtr& renderSystem, tinygltf::Model& model, Model& newModel);
-	void _ProcessJointData(const tinygltf::Model& model, Model& newModel) const;
+	MeshData* _ProcessMesh(const LLGL::RenderSystemPtr& renderSystem, const tinygltf::Model& model,
+	                       int meshIndex);
+	void _ProcessSkin(const tinygltf::Model& model, Model& newModel, int skinIndex) const;
 	void _ProcessAnimations(const tinygltf::Model& model, Model& newModel) const;
 
 	std::unordered_map<std::string, int> mModelIds;

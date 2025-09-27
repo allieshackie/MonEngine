@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <stb_image.h>
 
+#include "Graphics/Core/Node.h"
 #include "Util/gltfHelpers.h"
 #include "ResourceManager.h"
 
@@ -140,206 +141,218 @@ void ResourceManager::_LoadModel(const LLGL::RenderSystemPtr& renderSystem, cons
 
 	auto newModel = std::make_unique<Model>(modelId, model.nodes.size());
 
-	_ProcessMeshes(renderSystem, model, *newModel);
-	_ProcessJointData(model, *newModel);
+	for (int i = 0; i < model.nodes.size(); i++)
+	{
+		const auto node = model.nodes[i];
+
+		const auto newNode = newModel->GetNodeAt(i);
+		newNode->mTransform = gltfHelpers::GetNodeTransform(node);
+		newNode->mName = node.name;
+
+		if (node.mesh != -1)
+		{
+			newModel->AddMesh(_ProcessMesh(renderSystem, model, node.mesh));
+			newNode->mMeshIndex = node.mesh;
+		}
+
+		if (node.skin != -1)
+		{
+			_ProcessSkin(model, *newModel, node.skin);
+		}
+
+		newNode->mChildren = node.children;
+	}
+
 	_ProcessAnimations(model, *newModel);
 
 	mModels.push_back(std::move(newModel));
 }
 
-void ResourceManager::_ProcessMeshes(const LLGL::RenderSystemPtr& renderSystem, tinygltf::Model& model,
-                                     Model& newModel)
+MeshData* ResourceManager::_ProcessMesh(const LLGL::RenderSystemPtr& renderSystem, const tinygltf::Model& model,
+                                        int meshIndex)
 {
-	for (unsigned int i = 0; i < model.meshes.size(); i++)
+	const auto& mesh = model.meshes[meshIndex];
+
+	auto meshData = new MeshData();
+	meshData->mName = mesh.name;
+
+	for (const auto& primitive : mesh.primitives)
 	{
-		const auto& mesh = model.meshes[i];
-
-		auto meshData = new MeshData();
-		meshData->mName = mesh.name;
-
-		for (const auto& primitive : mesh.primitives)
+		const float* positions = nullptr;
+		int posCount = 0;
+		if (const auto& it = primitive.attributes.find("POSITION"); it != primitive.attributes.end())
 		{
-			const float* positions = nullptr;
-			int posCount = 0;
-			if (const auto& it = primitive.attributes.find("POSITION"); it != primitive.attributes.end())
+			positions = gltfHelpers::GetgltfBuffer<const float*>(model, it->second, posCount);
+		}
+
+		// Retrieve normals (if they exist)
+		const float* normals = nullptr;
+		if (const auto& it = primitive.attributes.find("NORMAL"); it != primitive.attributes.end())
+		{
+			normals = gltfHelpers::GetgltfBuffer<const float*>(model, it->second);
+		}
+
+		// Retrieve texture coordinates (if they exist)
+		const float* texCoords = nullptr;
+		if (const auto& it = primitive.attributes.find("TEXCOORD_0"); it != primitive.attributes.end())
+		{
+			texCoords = gltfHelpers::GetgltfBuffer<const float*>(model, it->second);
+		}
+
+		// Retrieve bone IDs (JOINTS_0)
+		const unsigned char* joints = nullptr;
+		if (const auto& it = primitive.attributes.find("JOINTS_0"); it != primitive.attributes.end())
+		{
+			joints = gltfHelpers::GetgltfBuffer<const unsigned char*>(model, it->second);
+		}
+
+		// Retrieve bone weights (WEIGHTS_0)
+		const float* weights = nullptr;
+		if (const auto& it = primitive.attributes.find("WEIGHTS_0"); it != primitive.attributes.end())
+		{
+			weights = gltfHelpers::GetgltfBuffer<const float*>(model, it->second);
+		}
+
+		glm::vec3 minBounds(std::numeric_limits<float>::max());
+		glm::vec3 maxBounds(std::numeric_limits<float>::lowest());
+
+		meshData->mVertices.resize(posCount);
+		for (int vertId = 0; vertId < posCount; vertId++)
+		{
+			// Position
+			meshData->mVertices[vertId].position = glm::make_vec3(&positions[vertId * VEC3_STEP]);
+
+			minBounds = glm::min(minBounds, meshData->mVertices[vertId].position);
+			maxBounds = glm::max(maxBounds, meshData->mVertices[vertId].position);
+
+			// Normal (optional)
+			if (normals)
 			{
-				positions = gltfHelpers::GetgltfBuffer<const float*>(model, it->second, posCount);
+				meshData->mVertices[vertId].normal = glm::make_vec3(&normals[vertId * VEC3_STEP]);
+			}
+			else
+			{
+				meshData->mVertices[vertId].normal = glm::vec3(0.0f, 0.0f, 0.0f); // Default if no normal provided
 			}
 
-			// Retrieve normals (if they exist)
-			const float* normals = nullptr;
-			if (const auto& it = primitive.attributes.find("NORMAL"); it != primitive.attributes.end())
+			// Texture coordinates (optional)
+			if (texCoords)
 			{
-				normals = gltfHelpers::GetgltfBuffer<const float*>(model, it->second);
+				meshData->mVertices[vertId].texCoord = glm::make_vec2(&texCoords[vertId * VEC2_STEP]);
+				meshData->mVertices[vertId].texCoord.y = 1.0f - meshData->mVertices[vertId].texCoord.y;
+			}
+			else
+			{
+				meshData->mVertices[vertId].texCoord = glm::vec2(0.0f, 0.0f); // Default if no tex coords provided
 			}
 
-			// Retrieve texture coordinates (if they exist)
-			const float* texCoords = nullptr;
-			if (const auto& it = primitive.attributes.find("TEXCOORD_0"); it != primitive.attributes.end())
+			// Bone IDs (optional)
+			if (joints)
 			{
-				texCoords = gltfHelpers::GetgltfBuffer<const float*>(model, it->second);
+				auto jointVec = glm::make_vec4(&joints[vertId * VEC4_STEP]);
+				meshData->mVertices[vertId].boneIds[0] = model.skins[0].joints[jointVec[0]];
+				meshData->mVertices[vertId].boneIds[1] = model.skins[0].joints[jointVec[1]];
+				meshData->mVertices[vertId].boneIds[2] = model.skins[0].joints[jointVec[2]];
+				meshData->mVertices[vertId].boneIds[3] = model.skins[0].joints[jointVec[3]];
 			}
-
-			// Retrieve bone IDs (JOINTS_0)
-			const unsigned char* joints = nullptr;
-			if (const auto& it = primitive.attributes.find("JOINTS_0"); it != primitive.attributes.end())
+			else
 			{
-				joints = gltfHelpers::GetgltfBuffer<const unsigned char*>(model, it->second);
-			}
-
-			// Retrieve bone weights (WEIGHTS_0)
-			const float* weights = nullptr;
-			if (const auto& it = primitive.attributes.find("WEIGHTS_0"); it != primitive.attributes.end())
-			{
-				weights = gltfHelpers::GetgltfBuffer<const float*>(model, it->second);
-			}
-
-			glm::vec3 minBounds(std::numeric_limits<float>::max());
-			glm::vec3 maxBounds(std::numeric_limits<float>::lowest());
-
-			meshData->mVertices.resize(posCount);
-			for (int vertId = 0; vertId < posCount; vertId++)
-			{
-				// Position
-				meshData->mVertices[vertId].position = glm::make_vec3(&positions[vertId * VEC3_STEP]);
-
-				minBounds = glm::min(minBounds, meshData->mVertices[vertId].position);
-				maxBounds = glm::max(maxBounds, meshData->mVertices[vertId].position);
-
-				// Normal (optional)
-				if (normals)
+				// Default to no bone influence
+				for (int j = 0; j < 4; ++j)
 				{
-					meshData->mVertices[vertId].normal = glm::make_vec3(&normals[vertId * VEC3_STEP]);
-				}
-				else
-				{
-					meshData->mVertices[vertId].normal = glm::vec3(0.0f, 0.0f, 0.0f); // Default if no normal provided
-				}
-
-				// Texture coordinates (optional)
-				if (texCoords)
-				{
-					meshData->mVertices[vertId].texCoord = glm::make_vec2(&texCoords[vertId * VEC2_STEP]);
-					meshData->mVertices[vertId].texCoord.y = 1.0f - meshData->mVertices[vertId].texCoord.y;
-				}
-				else
-				{
-					meshData->mVertices[vertId].texCoord = glm::vec2(0.0f, 0.0f); // Default if no tex coords provided
-				}
-
-				// Bone IDs (optional)
-				if (joints)
-				{
-					auto jointVec = glm::make_vec4(&joints[vertId * VEC4_STEP]);
-					meshData->mVertices[vertId].boneIds[0] = model.skins[0].joints[jointVec[0]];
-					meshData->mVertices[vertId].boneIds[1] = model.skins[0].joints[jointVec[1]];
-					meshData->mVertices[vertId].boneIds[2] = model.skins[0].joints[jointVec[2]];
-					meshData->mVertices[vertId].boneIds[3] = model.skins[0].joints[jointVec[3]];
-				}
-				else
-				{
-					// Default to no bone influence
-					for (int j = 0; j < 4; ++j)
-					{
-						meshData->mVertices[vertId].boneIds[j] = -1;
-					}
-				}
-
-				// Weights (optional)
-				if (weights)
-				{
-					auto weightVec = glm::make_vec4(&weights[vertId * VEC4_STEP]);
-					meshData->mVertices[vertId].weights[0] = weightVec[0];
-					meshData->mVertices[vertId].weights[1] = weightVec[1];
-					meshData->mVertices[vertId].weights[2] = weightVec[2];
-					meshData->mVertices[vertId].weights[3] = weightVec[3];
-				}
-				else
-				{
-					// Default to no bone weight
-					for (int j = 0; j < 4; ++j)
-					{
-						meshData->mVertices[vertId].weights[j] = 0.0f;
-					}
+					meshData->mVertices[vertId].boneIds[j] = -1;
 				}
 			}
 
-			meshData->mMinBounds = minBounds;
-			meshData->mMaxBounds = maxBounds;
-
-			// Indices
-			if (primitive.indices != -1)
+			// Weights (optional)
+			if (weights)
 			{
-				int indicesCount = 0;
-				const auto indices = gltfHelpers::GetgltfBuffer<const unsigned short
-					*>(model, primitive.indices, indicesCount);
-
-				meshData->mIndices.resize(indicesCount);
-				for (int index = 0; index < indicesCount; ++index)
-				{
-					meshData->mIndices[index] = indices[index];
-				}
+				auto weightVec = glm::make_vec4(&weights[vertId * VEC4_STEP]);
+				meshData->mVertices[vertId].weights[0] = weightVec[0];
+				meshData->mVertices[vertId].weights[1] = weightVec[1];
+				meshData->mVertices[vertId].weights[2] = weightVec[2];
+				meshData->mVertices[vertId].weights[3] = weightVec[3];
 			}
-
-			// Handle textures
-			int materialIndex = primitive.material;
-			if (materialIndex >= 0 && materialIndex < model.materials.size())
+			else
 			{
-				const auto& material = model.materials[materialIndex];
-				const auto& pbr = material.pbrMetallicRoughness;
-
-				int texIndex = pbr.baseColorTexture.index;
-				if (texIndex >= 0 && texIndex < model.textures.size())
+				// Default to no bone weight
+				for (int j = 0; j < 4; ++j)
 				{
-					const auto& texture = model.textures[texIndex];
-					int imageIndex = texture.source;
-
-					if (imageIndex >= 0 && imageIndex < model.images.size())
-					{
-						const auto& image = model.images[imageIndex];
-						meshData->mTextureId = _LoadNewTexture(renderSystem, image);
-					}
+					meshData->mVertices[vertId].weights[j] = 0.0f;
 				}
 			}
 		}
 
-		newModel.AddMesh(meshData);
+		meshData->mMinBounds = minBounds;
+		meshData->mMaxBounds = maxBounds;
+
+		// Indices
+		if (primitive.indices != -1)
+		{
+			int indicesCount = 0;
+			const auto indices = gltfHelpers::GetgltfBuffer<const unsigned short
+				*>(model, primitive.indices, indicesCount);
+
+			meshData->mIndices.resize(indicesCount);
+			for (int index = 0; index < indicesCount; ++index)
+			{
+				meshData->mIndices[index] = indices[index];
+			}
+		}
+
+		// Handle textures
+		int materialIndex = primitive.material;
+		if (materialIndex >= 0 && materialIndex < model.materials.size())
+		{
+			const auto& material = model.materials[materialIndex];
+			const auto& pbr = material.pbrMetallicRoughness;
+
+			int texIndex = pbr.baseColorTexture.index;
+			if (texIndex >= 0 && texIndex < model.textures.size())
+			{
+				const auto& texture = model.textures[texIndex];
+				int imageIndex = texture.source;
+
+				if (imageIndex >= 0 && imageIndex < model.images.size())
+				{
+					const auto& image = model.images[imageIndex];
+					meshData->mTextureId = _LoadNewTexture(renderSystem, image);
+				}
+			}
+		}
 	}
+
+	return meshData;
 }
 
-void ResourceManager::_ProcessJointData(const tinygltf::Model& model, Model& newModel) const
+void ResourceManager::_ProcessSkin(const tinygltf::Model& model, Model& newModel, int skinIndex) const
 {
-	for (const tinygltf::Skin& skin : model.skins)
+	const auto& skin = model.skins[skinIndex];
+	// Get a pointer to the raw matrix data
+	int matrixByteOffset = 0;
+	const auto matrixData = gltfHelpers::GetgltfBuffer<const float*>(
+		model, skin.inverseBindMatrices, matrixByteOffset);
+
+	newModel.SetRootNodeIndex(skin.joints[0]);
+
+	// Loop over each bone node (joint) in the skin
+	for (size_t i = 0; i < skin.joints.size(); ++i)
 	{
-		// Get a pointer to the raw matrix data
-		int matrixByteOffset = 0;
-		const auto matrixData = gltfHelpers::GetgltfBuffer<const float*>(
-			model, skin.inverseBindMatrices, matrixByteOffset);
+		int nodeIndex = skin.joints[i];
+		const tinygltf::Node& node = model.nodes[nodeIndex];
 
-		newModel.SetRootNodeIndex(skin.joints[0]);
+		auto joint = new JointData();
+		joint->mId = node.name;
+		//joint->mLocalTransform = gltfHelpers::GetNodeTransform(node);
+		joint->mInverseBindMatrix = glm::make_mat4(&matrixData[i * 16]);
 
-		// Loop over each bone node (joint) in the skin
-		for (size_t i = 0; i < skin.joints.size(); ++i)
-		{
-			int nodeIndex = skin.joints[i];
-			const tinygltf::Node& node = model.nodes[nodeIndex];
+		newModel.AddBoneNameToIndex(node.name, nodeIndex);
 
-			auto joint = new JointNode();
-			joint->mId = node.name;
-			joint->mTransformation = gltfHelpers::GetNodeTransform(node);
-			joint->mInverseBindMatrix = glm::make_mat4(&matrixData[i * 16]);
+		// Store the bone info in the map (using node index as the key)
+		newModel.AddJointData(nodeIndex, joint);
 
-			newModel.AddBoneNameToIndex(node.name, nodeIndex);
-
-			// Add children if the node has any
-			for (int child : node.children)
-			{
-				joint->mChildren.push_back(child);
-			}
-
-			// Store the bone info in the map (using node index as the key)
-			newModel.AddJointNode(nodeIndex, joint);
-		}
+		auto newNode = newModel.GetNodeAt(nodeIndex);
+		newNode->mJointIndex = nodeIndex;
 	}
 }
 

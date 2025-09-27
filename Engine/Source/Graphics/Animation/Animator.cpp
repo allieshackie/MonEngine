@@ -4,6 +4,7 @@
 #include "Entity/Components/AnimationComponent.h"
 #include "Entity/Components/ModelComponent.h"
 #include "Graphics/Core/ResourceManager.h"
+#include "Graphics/Core/Node.h"
 #include "Util/gltfHelpers.h"
 
 #include "Animator.h"
@@ -95,14 +96,15 @@ void Animator::_UpdateJointHierarchy(Model& model, AnimationComponent& animComp,
                                      const Animation* animation, const Animation* prevAnimation, int nodeIndex,
                                      const glm::mat4 parentTransform)
 {
-	const auto jointNode = model.GetJointNodeAt(nodeIndex);
+	const auto node = model.GetNodeAt(nodeIndex);
+	const auto jointNode = model.GetJointDataAt(node->mJointIndex);
 
-	if (jointNode == nullptr)
+	if (node == nullptr || jointNode == nullptr)
 	{
 		return;
 	}
 
-	glm::mat4 transform = jointNode->mTransformation;
+	glm::mat4 transform = node->mTransform;
 
 	if (animation != nullptr)
 	{
@@ -136,7 +138,7 @@ void Animator::_UpdateJointHierarchy(Model& model, AnimationComponent& animComp,
 
 	mesh.mFinalTransforms[nodeIndex] = globalTransform * jointNode->mInverseBindMatrix;
 
-	for (const auto child : jointNode->mChildren)
+	for (const auto child : node->mChildren)
 	{
 		_UpdateJointHierarchy(model, animComp, mesh, animation, prevAnimation, child, globalTransform);
 	}

@@ -246,9 +246,12 @@ void RenderContext::_CreateWindow(const LLGL::UTF8String& title, const std::shar
 
 	// Change window descriptor to allow resizing
 	auto wndDesc = window.GetDesc();
-	wndDesc.flags |= LLGL::WindowFlags::Borderless | LLGL::WindowFlags::Visible | LLGL::WindowFlags::Resizable;
-	wndDesc.flags &= ~LLGL::WindowFlags::Visible;
-	wndDesc.flags &= ~LLGL::WindowFlags::Resizable;
+	wndDesc.flags |= LLGL::WindowFlags::Visible | LLGL::WindowFlags::Resizable;
+	if (transparent)
+	{
+		wndDesc.flags &= ~LLGL::WindowFlags::Borderless;
+		wndDesc.flags &= ~LLGL::WindowFlags::Resizable;
+	}
 	window.SetDesc(wndDesc);
 
 	// Add window resize listener

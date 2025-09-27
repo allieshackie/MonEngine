@@ -1,4 +1,5 @@
 #pragma once
+#include <map>
 #include <glm/vec3.hpp>
 #include <cereal/types/string.hpp>
 #include <cereal/types/vector.hpp>

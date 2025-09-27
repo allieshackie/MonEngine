@@ -2,17 +2,6 @@
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <vector>
-#include <map>
-
-struct JointNode
-{
-	std::string mId;
-	glm::mat4 mTransformation = glm::mat4(1.0f);
-	// Convert bone from world space to bone space
-	glm::mat4 mInverseBindMatrix = glm::mat4(1.0f);
-
-	std::vector<int> mChildren;
-};
 
 struct KeyframeVec
 {

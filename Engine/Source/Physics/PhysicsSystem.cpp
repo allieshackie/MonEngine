@@ -5,6 +5,7 @@
 #include "Entity/Components/ModelComponent.h"
 #include "Entity/Components/PhysicsComponent.h"
 #include "Entity/Components/TransformComponent.h"
+#include "Graphics/Core/Node.h"
 #include "Graphics/Core/ResourceManager.h"
 
 #include "PhysicsSystem.h"

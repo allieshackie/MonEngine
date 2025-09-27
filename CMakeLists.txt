@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.18.2)
 #  ============== PROJECT ================
 project(MonDev)
 
-set(GAME_TO_BUILD "sandbox" CACHE STRING "Which game to build")
+set(PROJ_TO_BUILD "sandbox" CACHE STRING "Which game to build")
 
 # ============== CONFIG ================
 
@@ -51,20 +51,20 @@ message("=== BUILDING ENGINE ===")
 add_subdirectory(${PROJECT_SOURCE_DIR}/Engine)
 
 # ====== BUILD SELECTED GAME =========
-if(GAME_TO_BUILD STREQUAL "sandbox")
+if(PROJ_TO_BUILD STREQUAL "sandbox")
   message("=== BUILDING SANDBOX ===")
-  add_subdirectory(${PROJECT_SOURCE_DIR}/Game)
-  set(GAME_PROJ "Game")
-elseif(GAME_TO_BUILD STREQUAL "dogeapp")
+  add_subdirectory(${PROJECT_SOURCE_DIR}/Sandbox)
+  set(PROJ_NAME "Sandbox")
+elseif(PROJ_TO_BUILD STREQUAL "dogeapp")
   message("=== BUILDING DOGEAPP ===")
   add_subdirectory(${PROJECT_SOURCE_DIR}/DogeApp)
-  set(GAME_PROJ "DogeApp")
+  set(PROJ_NAME "DogeApp")
 else()
-  message("Unknown Game to build")
-  set(GAME_PROJ "MonEngine")
+  message("Unknown Proj to build")
+  set(PROJ_NAME "MonEngine")
 endif()
 
-set_property(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${GAME_PROJ})
+set_property(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJ_NAME})
 
 # ============== THIRD PARTY ================
 
@@ -153,8 +153,27 @@ set (BULLET_LIBRARIES
 
 target_link_libraries(MonEngine PUBLIC ${BULLET_LIBRARIES})
 
+# ================== DATA COPY ==================
+set(GAME_DATA_DIR "${PROJECT_SOURCE_DIR}/${PROJ_NAME}/Data")
+
+if (EXISTS ${GAME_DATA_DIR})
+    file(GLOB_RECURSE GAME_DATA_FILES "${GAME_DATA_DIR}/*")
+
+    add_custom_target(copy_data ALL
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/Data"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+                "${GAME_DATA_DIR}"
+                "${CMAKE_BINARY_DIR}/Data"
+        DEPENDS ${GAME_DATA_FILES}
+    )
+
+    add_dependencies(${PROJ_NAME} copy_data)
+else()
+    message(WARNING "No Data folder found for ${PROJ_NAME}")
+endif()
+
 # target_include_directories = Include Directories
 # target_link_libraries = Additional Dependencies (lib)
 # link_directories = Additional Library Directories (dll) x64
 
-#  cmake -B ./Build -DGAME_TO_BUILD=dogeapp -DCMAKE_TOOLCHAIN_FILE=ThirdParty/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_MANIFEST_MODE=ON
+#  cmake -B ./Build -DPROJ_TO_BUILD=dogeapp -DCMAKE_TOOLCHAIN_FILE=ThirdParty/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_MANIFEST_MODE=ON

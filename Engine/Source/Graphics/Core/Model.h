@@ -1,6 +1,5 @@
 #pragma once
 
-#include "LLGL/RenderSystem.h"
 #include "Graphics/Animation/Animation.h"
 #include "Vertex.h"
 
@@ -9,22 +8,11 @@
 #define VEC4_STEP 4
 
 class Shader;
+class RenderSystem;
 
-struct MeshData
-{
-	std::string mName;
-	std::uint32_t mNumIndices = 0;
-	int mTextureId = -1;
-
-	std::vector<Vertex> mVertices;
-	std::vector<uint32_t> mIndices;
-
-	glm::vec3 mMinBounds = {0, 0, 0};
-	glm::vec3 mMaxBounds = {0, 0, 0};
-
-	LLGL::Buffer* mVertexBuffer = nullptr;
-	LLGL::Buffer* mIndexBuffer = nullptr;
-};
+struct JointData;
+struct MeshData;
+struct Node;
 
 class Model
 {
@@ -36,8 +24,9 @@ public:
 	int GetId() const { return mId; }
 	int GetRootNodeIndex() const { return mRootNodeIndex; }
 	const std::vector<MeshData*>& GetMeshes() const { return mMeshes; }
+	const std::vector<Node*>& GetNodes() const { return mNodes; }
 
-	JointNode* GetJointNodeAt(int nodeIndex) const;
+	JointData* GetJointDataAt(int nodeIndex) const;
 	size_t GetNumJoints() const { return mNumNodes; }
 
 	const Animation* GetAnimation(int index) const;
@@ -48,21 +37,26 @@ public:
 	const std::unordered_map<std::string, int>& GetBoneNamesToIndex() const { return mBoneNameToIndex; }
 
 	// Setup
-	void AddMesh(MeshData* mesh) { mMeshes.push_back(std::move(mesh)); }
+	void AddMesh(MeshData* mesh) { mMeshes.push_back(mesh); }
 	void SetRootNodeIndex(int index) { mRootNodeIndex = index; }
-	void AddBoneNameToIndex(std::string name, int index) { mBoneNameToIndex[name] = index; }
-	void AddJointNode(int index, JointNode* node) { mJointNodes[index] = node; }
+	void AddBoneNameToIndex(const std::string& name, int index) { mBoneNameToIndex[name] = index; }
+	void AddJointData(int index, JointData* node) { mJointData[index] = node; }
+	void AddAnimation(Animation* modelAnim) { mAnimations.push_back(modelAnim); }
 
-	void AddAnimation(Animation* modelAnim) { mAnimations.push_back(std::move(modelAnim)); }
+	// Setup helpers
+	Node* GetNodeAt(int nodeIndex) const;
+	int GetMeshIndex(const std::string& name);
+	int GetJointIndex(const std::string& name);
 
 private:
 	int mId;
+	std::vector<Node*> mNodes;
 	std::vector<MeshData*> mMeshes;
 
 	std::unordered_map<std::string, int> mBoneNameToIndex;
 	std::vector<Animation*> mAnimations;
 
-	std::unordered_map<int, JointNode*> mJointNodes;
+	std::unordered_map<int, JointData*> mJointData;
 	int mRootNodeIndex = 0;
 	size_t mNumNodes = 0;
 };
