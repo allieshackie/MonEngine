@@ -3,20 +3,13 @@
 
 #include "PipelineBase.h"
 #include "Entity/Components/LightComponent.h"
-#include "Entity/Components/ModelComponent.h"
-#include "Graphics/Core/Model.h"
 #include "Graphics/Core/ResourceManager.h"
 
 #define MAX_LIGHTS 4
 #define MAX_BONES 100
 
-class Animator;
-class Camera;
 class Entity;
-class MonScene;
-class SceneManager;
-class RenderObject;
-class Shader;
+class World;
 
 struct TransformComponent;
 
@@ -25,23 +18,14 @@ class MeshPipeline : public PipelineBase
 public:
 	MeshPipeline(const LLGL::RenderSystemPtr& renderSystem, const ResourceManager& resourceManager);
 
-	void Render(LLGL::CommandBuffer& commands, const Camera& camera, const glm::mat4 projection,
-	            MonScene* scene, ResourceManager& resourceManager,
-	            const LLGL::RenderSystemPtr& renderSystem);
+	void Render(LLGL::CommandBuffer& commands, const glm::mat4 projection, World* world);
 
 	void SetPipeline(LLGL::CommandBuffer& commands) const;
-
-	void UpdateProjectionViewModelUniform(LLGL::CommandBuffer& commands, const Camera& camera,
-	                                      const LLGL::RenderSystemPtr& renderSystem,
-	                                      const TransformComponent& transform, ModelComponent& mesh,
-	                                      const Model& meshModel);
-
 	void SetResourceHeapTexture(LLGL::CommandBuffer& commands, LLGL::Texture& texture) const;
+	void SetSceneCallbacks(const World* world);
 
-	void UpdateLightBuffer(const LLGL::RenderSystemPtr& renderSystem) const;
+	void UpdateLightBuffer() const;
 	void AddLight(Entity* entity);
-
-	void SetSceneCallbacks(const SceneManager& sceneManager);
 
 private:
 	void _ProcessLights();
@@ -107,4 +91,7 @@ private:
 	std::vector<LightUniform> mLights;
 
 	std::vector<Entity*> mQueuedLightEntities;
+
+	const LLGL::RenderSystemPtr& mRenderSystem;
+	const ResourceManager& mResourceManager;
 };

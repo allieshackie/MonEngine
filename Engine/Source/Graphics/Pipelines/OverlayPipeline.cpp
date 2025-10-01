@@ -1,5 +1,7 @@
 #include "OverlayPipeline.h"
 
+#include "Util/gltfHelpers.h"
+
 void OverlayPipeline::Render(LLGL::CommandBuffer& commands)
 {
 	if (mOverlayElements.empty())
@@ -32,6 +34,12 @@ void OverlayPipeline::DrawOverlay(glm::vec2 pos, glm::vec4 color)
 	mOverlayElements.push_back({pos * mBoxVertices[2], color});
 	mOverlayElements.push_back({pos * mBoxVertices[3], color});
 	mOverlayElements.push_back({pos * mBoxVertices[0], color});
+}
+
+void OverlayPipeline::DrawLine(glm::vec2 from, glm::vec2 to, glm::vec4 color)
+{
+	mOverlayElements.push_back({from, color});
+	mOverlayElements.push_back({to, color});
 }
 
 OverlayPipeline::OverlayPipeline(const LLGL::RenderSystemPtr& renderSystem) : PipelineBase()

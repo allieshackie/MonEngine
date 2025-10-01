@@ -2,15 +2,14 @@
 #include "LLGL/Utils/TypeNames.h"
 #include <glm/ext/matrix_clip_space.hpp>
 
-#include "Core/Camera.h"
-#include "Core/Scene.h"
-#include "Entity/Entity.h"
 #include "Input/InputHandler.h"
 
 #include "RenderContext.h"
 
 RenderContext::RenderContext(const LLGL::Extent2D screenSize, const LLGL::ColorRGBAf backgroundColor,
-                             bool usePerspective)
+                             bool usePerspective, const LLGL::UTF8String& title,
+                             const std::shared_ptr<InputHandler>& inputHandler,
+                             bool transparent)
 	: mBackgroundColor(backgroundColor), mUsePerspective(usePerspective)
 {
 	try
@@ -71,6 +70,7 @@ RenderContext::RenderContext(const LLGL::Extent2D screenSize, const LLGL::ColorR
 
 	// NOTE: Projection update must occur after debug shader is initialized
 	UpdateProjection();
+	_CreateWindow(title, inputHandler, transparent);
 }
 
 RenderContext::~RenderContext()
@@ -80,20 +80,6 @@ RenderContext::~RenderContext()
 
 	mRenderSystem->Release(*mCommands);
 	mCommands = nullptr;
-
-	mImmediatePipeline->Release(mRenderSystem);
-}
-
-void RenderContext::InitPipelines(const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler,
-                                  const ResourceManager& resourceManager, bool transparent)
-{
-	_CreatePipelines(resourceManager);
-	_CreateWindow(title, inputHandler, transparent);
-}
-
-void RenderContext::LoadFont(const char* fontFileName) const
-{
-	mTextPipeline->LoadFont(mRenderSystem, fontFileName);
 }
 
 bool RenderContext::GetSurfaceNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const
@@ -109,6 +95,11 @@ bool RenderContext::GetBackendNativeHandle(void* nativeHandle, std::size_t nativ
 bool RenderContext::GetCommandBufferNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const
 {
 	return mCommands->GetNativeHandle(nativeHandle, nativeHandleSize);
+}
+
+LLGL::Extent2D RenderContext::GetResolution() const
+{
+	return mSwapChain->GetResolution();
 }
 
 void RenderContext::SetBackgroundClearColor(const LLGL::ColorRGBAf color)
@@ -130,20 +121,6 @@ void RenderContext::BeginFrame() const
 	mCommands->BeginRenderPass(*mSwapChain);
 }
 
-void RenderContext::Render(const Camera& camera, MonScene* scene,
-                           ResourceManager& resourceManager) const
-{
-	const auto projectionViewMat = mProjection * camera.GetView();
-
-	mMeshPipeline->Render(*mCommands, camera, mProjection, scene, resourceManager, mRenderSystem);
-	mOverlayPipeline->Render(*mCommands);
-	mImmediatePipeline->Render(*mCommands, projectionViewMat);
-	//mTextPipeline->Render(*mCommands, projectionViewMat);
-	// TODO: debug shader is loading in for some meshes for some reason? Timing maybe?
-
-	//mTextPipeline->Release(mRenderSystem);
-}
-
 void RenderContext::EndFrame() const
 {
 	mCommands->EndRenderPass();
@@ -159,41 +136,6 @@ bool RenderContext::ProcessEvents() const
 {
 	const LLGL::Window& window = LLGL::CastTo<LLGL::Window>(mSwapChain->GetSurface());
 	return mSwapChain->GetSurface().ProcessEvents() && !window.HasQuit();
-}
-
-void RenderContext::DrawTextFont(const char* text, glm::vec2 position, glm::vec2 size, glm::vec4 color)
-{
-	mTextPipeline->CreateTextMesh(mRenderSystem, text, position, size, color);
-}
-
-void RenderContext::DrawPoint(glm::vec3 pos, glm::vec4 color, float size) const
-{
-	mImmediatePipeline->DrawPoint(pos, color, size);
-}
-
-void RenderContext::DrawLine(glm::vec3 from, glm::vec3 to, glm::vec4 color) const
-{
-	mImmediatePipeline->DrawLine(from, to, color);
-}
-
-void RenderContext::DrawBox(glm::vec3 pos, glm::vec3 size, glm::vec4 color, bool filled) const
-{
-	mImmediatePipeline->DrawBox(pos, size, color, filled);
-}
-
-void RenderContext::DrawCircle(glm::vec3 position, float radius, glm::vec4 color) const
-{
-	mImmediatePipeline->DrawCircle(position, radius, color);
-}
-
-void RenderContext::DrawGrid(glm::vec3 pos, glm::vec3 size, glm::vec4 color, int rows, int columns) const
-{
-	mImmediatePipeline->DrawGrid(pos, size, color, rows, columns);
-}
-
-void RenderContext::DrawOverlay(glm::vec2 pos, glm::vec4 color) const
-{
-	mOverlayPipeline->DrawOverlay(pos, color);
 }
 
 // Called on window resize
@@ -228,11 +170,6 @@ glm::mat4 RenderContext::GetProjection() const
 void RenderContext::ResizeBuffers(const LLGL::Extent2D& size) const
 {
 	mSwapChain->ResizeBuffers(size);
-}
-
-void RenderContext::SetSceneCallbacks(const SceneManager& sceneManager) const
-{
-	mMeshPipeline->SetSceneCallbacks(sceneManager);
 }
 
 void RenderContext::_CreateWindow(const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler,
@@ -270,14 +207,6 @@ void RenderContext::_CreateWindow(const LLGL::UTF8String& title, const std::shar
 	}
 
 	window.Show();
-}
-
-void RenderContext::_CreatePipelines(const ResourceManager& resourceManager)
-{
-	mImmediatePipeline = std::make_unique<ImmediatePipeline>(mRenderSystem);
-	mTextPipeline = std::make_unique<TextPipeline>(mRenderSystem);
-	mMeshPipeline = std::make_unique<MeshPipeline>(mRenderSystem, resourceManager);
-	mOverlayPipeline = std::make_unique<OverlayPipeline>(mRenderSystem);
 }
 
 LLGL::Extent2D RenderContext::_ScaleResolution(const LLGL::Extent2D& res, float scale)

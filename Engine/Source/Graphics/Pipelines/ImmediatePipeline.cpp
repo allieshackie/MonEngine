@@ -4,6 +4,8 @@
 
 #include "ImmediatePipeline.h"
 
+#include "Util/gltfHelpers.h"
+
 void ImmediatePipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat)
 {
 	_RenderPoints(commandBuffer, pvMat);
@@ -108,25 +110,15 @@ void ImmediatePipeline::_InitResourceHeap(const LLGL::RenderSystemPtr& renderSys
 	mResourceHeap = renderSystem->CreateResourceHeap(mPipelineLayout, resourceViews);
 }
 
-glm::vec3 ImmediatePipeline::_CalculateModelPoint(glm::vec3 pos, glm::vec3 size, glm::vec3 basePoint)
-{
-	auto model = glm::mat4(1.0f);
-
-	model = glm::translate(model, pos);
-	model = glm::scale(model, size);
-
-	return model * glm::vec4(basePoint, 1.0);
-}
-
 void ImmediatePipeline::DrawPoint(glm::vec3 pos, glm::vec4 color, float size)
 {
-	mFramePointVertices.push_back({_CalculateModelPoint(pos, {size, size, 1}), color});
+	mFramePointVertices.push_back({MonUtil::CalculateModelPoint(pos, {size, size, 1}), color});
 }
 
 void ImmediatePipeline::DrawLine(glm::vec3 from, glm::vec3 to, glm::vec4 color)
 {
-	mFrameLineVertices.push_back({_CalculateModelPoint(from, {1.0f, 1.0f, 1.0f}), color});
-	mFrameLineVertices.push_back({_CalculateModelPoint(to, {1.0f, 1.0f, 1.0f}), color});
+	mFrameLineVertices.push_back({MonUtil::CalculateModelPoint(from, {1.0f, 1.0f, 1.0f}), color});
+	mFrameLineVertices.push_back({MonUtil::CalculateModelPoint(to, {1.0f, 1.0f, 1.0f}), color});
 }
 
 void ImmediatePipeline::DrawBox(glm::vec3 pos, glm::vec3 size, glm::vec4 color, bool filled)
@@ -152,7 +144,7 @@ void ImmediatePipeline::DrawCircle(glm::vec3 position, float radius, glm::vec4 c
 		const float y = position.y + radius * sin(angle);
 
 		mFrameCircleVertices.push_back({
-			_CalculateModelPoint({position.x + x, position.y - y, position.z}, {1.0f, 1.0f, 1.0f}), color
+			MonUtil::CalculateModelPoint({position.x + x, position.y - y, position.z}, {1.0f, 1.0f, 1.0f}), color
 		});
 	}
 	 */
@@ -168,17 +160,17 @@ void ImmediatePipeline::DrawCircle(glm::vec3 position, float radius, glm::vec4 c
 
 		// Add the center vertex
 		mFrameCircleVertices.push_back({
-			_CalculateModelPoint(position, {1.0f, 1.0f, 1.0f}), color
+			MonUtil::CalculateModelPoint(position, {1.0f, 1.0f, 1.0f}), color
 		});
 
 		// Add the first vertex on the edge of the circle
 		mFrameCircleVertices.push_back({
-			_CalculateModelPoint({x1, y1, position.z}, {1.0f, 1.0f, 1.0f}), color
+			MonUtil::CalculateModelPoint({x1, y1, position.z}, {1.0f, 1.0f, 1.0f}), color
 		});
 
 		// Add the second vertex on the edge of the circle
 		mFrameCircleVertices.push_back({
-			_CalculateModelPoint({x2, y2, position.z}, {1.0f, 1.0f, 1.0f}), color
+			MonUtil::CalculateModelPoint({x2, y2, position.z}, {1.0f, 1.0f, 1.0f}), color
 		});
 	}
 
@@ -192,95 +184,68 @@ void ImmediatePipeline::DrawCircle(glm::vec3 position, float radius, glm::vec4 c
 
 	// Add the center vertex
 	mFrameCircleVertices.push_back({
-		_CalculateModelPoint(position, {1.0f, 1.0f, 1.0f}), color
+		MonUtil::CalculateModelPoint(position, {1.0f, 1.0f, 1.0f}), color
 	});
 
 	// Add the first vertex on the edge of the circle
 	mFrameCircleVertices.push_back({
-		_CalculateModelPoint({x1, y1, position.z}, {1.0f, 1.0f, 1.0f}), color
+		MonUtil::CalculateModelPoint({x1, y1, position.z}, {1.0f, 1.0f, 1.0f}), color
 	});
 
 	// Add the second vertex on the edge of the circle
 	mFrameCircleVertices.push_back({
-		_CalculateModelPoint({x2, y2, position.z}, {1.0f, 1.0f, 1.0f}), color
+		MonUtil::CalculateModelPoint({x2, y2, position.z}, {1.0f, 1.0f, 1.0f}), color
 	});
 }
 
-void ImmediatePipeline::DrawGrid(glm::vec3 pos, glm::vec3 size, glm::vec4 color, int rows, int columns)
+void ImmediatePipeline::DrawGrid()
 {
-	const auto& p0 = mBoxVertices[0]; //a
-	const auto& p1 = mBoxVertices[1]; //b
-	const auto& p2 = mBoxVertices[2]; //c
-	const auto& p3 = mBoxVertices[3]; //d
+	int halfSize = 50; // how far the grid extends in both +X/-X and +Z/-Z
+	float spacing = 1.0f; // distance between grid lines
 
-	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, p0), color});
-	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, p1), color});
-
-	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, p1), color});
-	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, p3), color});
-
-	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, p2), color});
-	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, p3), color});
-
-	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, p2), color});
-	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, p0), color});
-
-	const float totalYDist = abs(p1.y - p0.y);
-	const float yAmountToJump = totalYDist / rows;
-	for (int i = 1; i < rows; i++)
+	for (int i = -halfSize; i <= halfSize; ++i)
 	{
-		mFrameLineVertices.push_back({
-			_CalculateModelPoint(pos, size, glm::vec3{p0.x, p0.y - (i * yAmountToJump), p0.z}),
-			color
-		});
-		mFrameLineVertices.push_back({
-			_CalculateModelPoint(pos, size, glm::vec3{p2.x, p2.y - (i * yAmountToJump), p2.z}),
-			color
-		});
-	}
+		const glm::vec4 color = (i == 0)
+			                        ? glm::vec4(1.0f, 0.0f, 0.0f, 1.0f) // X/Z axis lines highlighted
+			                        : glm::vec4(0.7f, 0.7f, 0.7f, 1.0f); // regular grid lines
 
-	const float totalXDist = abs(p2.x - p0.x);
-	const float xAmountToJump = totalXDist / columns;
-	for (int i = 1; i < columns; i++)
-	{
-		mFrameLineVertices.push_back({
-			_CalculateModelPoint(pos, size, glm::vec3{p0.x + (i * xAmountToJump), p0.y, p0.z}),
-			color
-		});
-		mFrameLineVertices.push_back({
-			_CalculateModelPoint(pos, size, glm::vec3{p1.x + (i * xAmountToJump), p1.y, p1.z}),
-			color
-		});
+		// vertical lines (parallel to Z axis)
+		mFrameLineVertices.push_back({glm::vec3(i * spacing, 0.0f, -halfSize * spacing), color});
+		mFrameLineVertices.push_back({glm::vec3(i * spacing, 0.0f, halfSize * spacing), color});
+
+		// horizontal lines (parallel to X axis)
+		mFrameLineVertices.push_back({glm::vec3(-halfSize * spacing, 0.0f, i * spacing), color});
+		mFrameLineVertices.push_back({glm::vec3(halfSize * spacing, 0.0f, i * spacing), color});
 	}
 }
 
 void ImmediatePipeline::_DrawFilledBox(glm::vec3 pos, glm::vec3 size, glm::vec4 color)
 {
-	mFrameCircleVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[0]), color});
-	mFrameCircleVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[1]), color});
-	mFrameCircleVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[3]), color});
+	mFrameCircleVertices.push_back({MonUtil::CalculateModelPoint(pos, size, MonUtil::mBoxVertices[0]), color});
+	mFrameCircleVertices.push_back({MonUtil::CalculateModelPoint(pos, size, MonUtil::mBoxVertices[1]), color});
+	mFrameCircleVertices.push_back({MonUtil::CalculateModelPoint(pos, size, MonUtil::mBoxVertices[3]), color});
 
-	mFrameCircleVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[2]), color});
-	mFrameCircleVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[3]), color});
-	mFrameCircleVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[0]), color});
+	mFrameCircleVertices.push_back({MonUtil::CalculateModelPoint(pos, size, MonUtil::mBoxVertices[2]), color});
+	mFrameCircleVertices.push_back({MonUtil::CalculateModelPoint(pos, size, MonUtil::mBoxVertices[3]), color});
+	mFrameCircleVertices.push_back({MonUtil::CalculateModelPoint(pos, size, MonUtil::mBoxVertices[0]), color});
 }
 
 void ImmediatePipeline::_DrawOutlinedBox(glm::vec3 pos, glm::vec3 size, glm::vec4 color)
 {
-	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[0]), color});
-	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[1]), color});
+	mFrameLineVertices.push_back({MonUtil::CalculateModelPoint(pos, size, MonUtil::mBoxVertices[0]), color});
+	mFrameLineVertices.push_back({MonUtil::CalculateModelPoint(pos, size, MonUtil::mBoxVertices[1]), color});
 
-	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[1]), color});
-	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[3]), color});
+	mFrameLineVertices.push_back({MonUtil::CalculateModelPoint(pos, size, MonUtil::mBoxVertices[1]), color});
+	mFrameLineVertices.push_back({MonUtil::CalculateModelPoint(pos, size, MonUtil::mBoxVertices[3]), color});
 
-	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[2]), color});
-	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[3]), color});
+	mFrameLineVertices.push_back({MonUtil::CalculateModelPoint(pos, size, MonUtil::mBoxVertices[2]), color});
+	mFrameLineVertices.push_back({MonUtil::CalculateModelPoint(pos, size, MonUtil::mBoxVertices[3]), color});
 
-	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[2]), color});
-	mFrameLineVertices.push_back({_CalculateModelPoint(pos, size, mBoxVertices[0]), color});
+	mFrameLineVertices.push_back({MonUtil::CalculateModelPoint(pos, size, MonUtil::mBoxVertices[2]), color});
+	mFrameLineVertices.push_back({MonUtil::CalculateModelPoint(pos, size, MonUtil::mBoxVertices[0]), color});
 }
 
-ImmediatePipeline::ImmediatePipeline(LLGL::RenderSystemPtr& renderSystem)
+ImmediatePipeline::ImmediatePipeline(const LLGL::RenderSystemPtr& renderSystem)
 {
 	mConstantBuffer = renderSystem->CreateBuffer(LLGL::ConstantBufferDesc(sizeof(Settings)),
 	                                             &settings);

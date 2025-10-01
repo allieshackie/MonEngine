@@ -49,17 +49,17 @@ void TextPipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pv
 	}
 }
 
-void TextPipeline::Release(const LLGL::RenderSystemPtr& renderSystem)
+void TextPipeline::Release()
 {
 	for (const auto& mesh : mTextMeshes)
 	{
-		renderSystem->Release(*mesh->mVertexBuffer);
-		renderSystem->Release(*mesh->mIndexBuffer);
+		mRenderSystem->Release(*mesh->mVertexBuffer);
+		mRenderSystem->Release(*mesh->mIndexBuffer);
 	}
 	mTextMeshes.clear();
 }
 
-void TextPipeline::_CreateResourceHeap(const LLGL::RenderSystemPtr& renderSystem)
+void TextPipeline::_CreateResourceHeap()
 {
 	std::vector<LLGL::ResourceViewDescriptor> resourceViews;
 	resourceViews.reserve(3);
@@ -68,7 +68,7 @@ void TextPipeline::_CreateResourceHeap(const LLGL::RenderSystemPtr& renderSystem
 	resourceViews.emplace_back(&mTextureAtlas->GetTextureData());
 	resourceViews.emplace_back(&mTextureAtlas->GetSamplerData());
 
-	mResourceHeap = renderSystem->CreateResourceHeap(mPipelineLayout, resourceViews);
+	mResourceHeap = mRenderSystem->CreateResourceHeap(mPipelineLayout, resourceViews);
 }
 
 // Orthographic Projection
@@ -84,7 +84,7 @@ void TextPipeline::_UpdateUniforms(LLGL::CommandBuffer& commandBuffer, const glm
 	commandBuffer.UpdateBuffer(*mConstantBuffer, 0, &settings, sizeof(settings));
 }
 
-void TextPipeline::LoadFont(const LLGL::RenderSystemPtr& renderSystem, const char* fontFile)
+void TextPipeline::LoadFont(const char* fontFile)
 {
 	std::string fullPath = FONTS_FOLDER;
 	fullPath.append(fontFile);
@@ -116,14 +116,13 @@ void TextPipeline::LoadFont(const LLGL::RenderSystemPtr& renderSystem, const cha
 
 	stbtt_PackEnd(&context);
 
-	mTextureAtlas = std::make_unique<Texture>(renderSystem, atlasData.data(), _font.mAtlasWidth,
+	mTextureAtlas = std::make_unique<Texture>(mRenderSystem, atlasData.data(), _font.mAtlasWidth,
 	                                          _font.mAtlasHeight, true);
 
-	_CreateResourceHeap(renderSystem);
+	_CreateResourceHeap();
 }
 
-void TextPipeline::CreateTextMesh(LLGL::RenderSystemPtr& renderSystem, const std::string& text,
-                                  glm::vec2 pos, glm::vec2 size, glm::vec4 color)
+void TextPipeline::CreateTextMesh(const std::string& text, glm::vec2 pos, glm::vec2 size, glm::vec4 color)
 {
 	auto textMesh = std::make_unique<TextMesh>();
 	textMesh->mPosition = {pos, 1.0f};
@@ -162,14 +161,14 @@ void TextPipeline::CreateTextMesh(LLGL::RenderSystemPtr& renderSystem, const std
 		}
 	}
 
-	textMesh->mVertexBuffer = renderSystem->CreateBuffer(
+	textMesh->mVertexBuffer = mRenderSystem->CreateBuffer(
 		LLGL::VertexBufferDesc(static_cast<std::uint32_t>(vertices.size() * sizeof(TextVertex)),
 		                       mShader->GetVertexFormat()),
 		vertices.data()
 	);
 
 	textMesh->mIndexCount = static_cast<std::uint32_t>(indices.size());
-	textMesh->mIndexBuffer = renderSystem->CreateBuffer(
+	textMesh->mIndexBuffer = mRenderSystem->CreateBuffer(
 		LLGL::IndexBufferDesc(static_cast<std::uint32_t>(indices.size() * sizeof(uint32_t)), LLGL::Format::R32UInt),
 		indices.data()
 	);
@@ -205,7 +204,7 @@ GlyphInfo TextPipeline::_GenerateGlyphInfo(uint32_t character, float offsetX, fl
 	return info;
 }
 
-TextPipeline::TextPipeline(LLGL::RenderSystemPtr& renderSystem)
+TextPipeline::TextPipeline(const LLGL::RenderSystemPtr& renderSystem) : mRenderSystem(renderSystem)
 {
 	mConstantBuffer = renderSystem->CreateBuffer(LLGL::ConstantBufferDesc(sizeof(GUISettings)),
 	                                             &guiSettings);

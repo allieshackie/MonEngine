@@ -22,6 +22,9 @@ public:
 	void Render(LLGL::CommandBuffer& commands);
 
 	void DrawOverlay(glm::vec2 pos, glm::vec4 color);
+	void DrawLine(glm::vec2 from, glm::vec2 to, glm::vec4 color);
+
+	void ClearOverlay() { mOverlayElements.clear(); }
 
 private:
 	const std::array<glm::vec2, 4> mBoxVertices{

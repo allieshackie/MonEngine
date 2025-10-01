@@ -3,18 +3,15 @@
 #include "LLGL/Utils/Parse.h"
 
 #include "Core/Camera.h"
-#include "Core/Scene.h"
-#include "Core/SceneManager.h"
+#include "Core/World.h"
 #include "Entity/Entity.h"
+#include "Entity/Components/ModelComponent.h"
 #include "Entity/Components/TransformComponent.h"
-#include "Graphics/Animation/Animation.h"
 #include "Graphics/Core/Node.h"
 
 #include "MeshPipeline.h"
 
-void MeshPipeline::Render(LLGL::CommandBuffer& commands, const Camera& camera,
-                          const glm::mat4 projection, MonScene* scene,
-                          ResourceManager& resourceManager, const LLGL::RenderSystemPtr& renderSystem)
+void MeshPipeline::Render(LLGL::CommandBuffer& commands, const glm::mat4 projection, World* world)
 {
 	if (!mQueuedLightEntities.empty())
 	{
@@ -23,18 +20,18 @@ void MeshPipeline::Render(LLGL::CommandBuffer& commands, const Camera& camera,
 
 	commands.SetPipelineState(*mPipeline);
 
-	frameSettings.view = camera.GetView();
+	frameSettings.view = world->GetCamera().GetView();
 	frameSettings.projection = projection;
 	commands.UpdateBuffer(*mFrameBuffer, 0, &frameSettings, sizeof(frameSettings));
 
-	const auto meshView = scene->GetRegistry().view<const TransformComponent, ModelComponent>();
+	const auto meshView = world->GetRegistry().view<const TransformComponent, const ModelComponent>();
 
 	// Should either be a sprite or basic color
-	meshView.each([this, &commands, &camera, &renderSystem, &resourceManager](
-		const TransformComponent& transform, ModelComponent& modelComponent)
+	meshView.each([this, &commands, &world](
+		const TransformComponent& transform, const ModelComponent& modelComponent)
 		{
 			commands.SetResourceHeap(*mResourceHeap);
-			const auto& model = resourceManager.GetModelFromId(modelComponent.mModelPath);
+			const auto& model = mResourceManager.GetModelFromId(modelComponent.mModelPath);
 
 			for (const auto node : model.GetNodes())
 			{
@@ -49,18 +46,18 @@ void MeshPipeline::Render(LLGL::CommandBuffer& commands, const Camera& camera,
 				if (lightsSize != lightSettings.numLights)
 				{
 					lightSettings.numLights = lightsSize;
-					UpdateLightBuffer(renderSystem);
+					UpdateLightBuffer();
 				}
-				if (lightSettings.viewPos != camera.GetPosition())
+				if (lightSettings.viewPos != world->GetCamera().GetPosition())
 				{
-					lightSettings.viewPos = camera.GetPosition();
+					lightSettings.viewPos = world->GetCamera().GetPosition();
 				}
 
 				meshSettings.model = modelTransform;
 				std::uint64_t transformOffset = 0;
 				for (const auto& finalTransform : modelComponent.mFinalTransforms)
 				{
-					renderSystem->WriteBuffer(*mBoneBuffer, transformOffset, &(finalTransform), sizeof(glm::mat4));
+					mRenderSystem->WriteBuffer(*mBoneBuffer, transformOffset, &(finalTransform), sizeof(glm::mat4));
 					transformOffset += sizeof(glm::mat4);
 				}
 
@@ -75,8 +72,8 @@ void MeshPipeline::Render(LLGL::CommandBuffer& commands, const Camera& camera,
 				meshSettings.hasTexture = meshData->mTextureId != -1;
 				meshSettings.gTargetBone = static_cast<float>(modelComponent.mCurrentBoneIndex);
 				commands.UpdateBuffer(*mConstantBuffer, 0, &meshSettings, sizeof(meshSettings));
-				auto& texture = resourceManager.GetTexture(meshData->mTextureId);
-				auto& sampler = resourceManager.GetSampler(meshData->mTextureId);
+				auto& texture = mResourceManager.GetTexture(meshData->mTextureId);
+				auto& sampler = mResourceManager.GetSampler(meshData->mTextureId);
 				commands.SetResource(0, texture);
 				commands.SetResource(1, sampler);
 				commands.SetVertexBuffer(*meshData->mVertexBuffer);
@@ -91,8 +88,8 @@ void MeshPipeline::SetPipeline(LLGL::CommandBuffer& commands) const
 	commands.SetPipelineState(*mPipeline);
 }
 
-MeshPipeline::MeshPipeline(const LLGL::RenderSystemPtr& renderSystem,
-                           const ResourceManager& resourceManager) : PipelineBase()
+MeshPipeline::MeshPipeline(const LLGL::RenderSystemPtr& renderSystem, const ResourceManager& resourceManager)
+	: PipelineBase(), mRenderSystem(renderSystem), mResourceManager(resourceManager)
 {
 	// Initialization
 	{
@@ -204,21 +201,21 @@ void MeshPipeline::AddLight(Entity* entity)
 	mQueuedLightEntities.push_back(entity);
 }
 
-void MeshPipeline::SetSceneCallbacks(const SceneManager& sceneManager)
+void MeshPipeline::SetSceneCallbacks(const World* world)
 {
 	EventFunc func = [this](Entity* entity)
 	{
 		AddLight(entity);
 	};
-	sceneManager.ConnectOnConstruct<LightComponent>(func);
+	world->ConnectOnConstruct<LightComponent>(func);
 }
 
-void MeshPipeline::UpdateLightBuffer(const LLGL::RenderSystemPtr& renderSystem) const
+void MeshPipeline::UpdateLightBuffer() const
 {
 	std::uint64_t lightOffset = 0;
 	for (const auto& light : mLights)
 	{
-		renderSystem->WriteBuffer(*mLightBuffer, lightOffset, &(light), sizeof(LightUniform));
+		mRenderSystem->WriteBuffer(*mLightBuffer, lightOffset, &(light), sizeof(LightUniform));
 		lightOffset += sizeof(LightUniform);
 	}
 }

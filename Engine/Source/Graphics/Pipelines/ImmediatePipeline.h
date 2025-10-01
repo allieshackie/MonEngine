@@ -9,9 +9,9 @@
 class ImmediatePipeline
 {
 public:
-	ImmediatePipeline(LLGL::RenderSystemPtr& renderSystem);
-	void Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat);
+	ImmediatePipeline(const LLGL::RenderSystemPtr& renderSystem);
 
+	void Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat);
 	void Release(const LLGL::RenderSystemPtr& renderSystem);
 
 	void UpdateProjectionViewUniform(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat);
@@ -21,11 +21,9 @@ public:
 	void DrawLine(glm::vec3 from, glm::vec3 to, glm::vec4 color);
 	void DrawBox(glm::vec3 pos, glm::vec3 size, glm::vec4 color, bool filled);
 	void DrawCircle(glm::vec3 position, float radius, glm::vec4 color);
-	void DrawGrid(glm::vec3 pos, glm::vec3 size, glm::vec4 color, int rows, int columns);
+	void DrawGrid();
 
 private:
-	static glm::vec3 _CalculateModelPoint(glm::vec3 pos, glm::vec3 size, glm::vec3 basePoint = {0, 0, 0});
-
 	void _RenderPoints(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat);
 	void _RenderLines(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat);
 	void _RenderCircles(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat);
@@ -42,8 +40,6 @@ private:
 		glm::mat4 pvMat;
 	}
 	settings = {};
-
-	const std::array<glm::vec3, 4> mBoxVertices{{{0, 1.0, 1.0}, {0, 0, 1.0}, {1.0, 1.0, 1.0}, {1.0, 0, 1.0}}};
 
 	LLGL::PipelineLayout* mPipelineLayout = nullptr;
 
