@@ -1,5 +1,4 @@
-#include "Core/Scene.h"
-#include "Core/SceneManager.h"
+#include "Core/World.h"
 #include "Entity/Entity.h"
 #include "Entity/Components/CollisionComponent.h"
 #include "Entity/Components/ModelComponent.h"
@@ -10,7 +9,8 @@
 
 #include "PhysicsSystem.h"
 
-PhysicsSystem::PhysicsSystem(RenderContext& renderContext)
+PhysicsSystem::PhysicsSystem(RenderSystem& renderSystem, ResourceManager& resourceManager, std::weak_ptr<World> world)
+	: mResourceManager(resourceManager), mWorld(std::move(world))
 {
 	mBroadPhase = std::make_unique<btDbvtBroadphase>();
 	mConstraintSolver = std::make_unique<btSequentialImpulseConstraintSolver>();
@@ -27,12 +27,12 @@ PhysicsSystem::PhysicsSystem(RenderContext& renderContext)
 	mDynamicWorld->setGravity(mGravityConst);
 
 	// TODO: Uncomment to turn on debug draw
-	//mPhysicsDebugDraw = std::make_unique<PhysicsDebugDraw>(renderContext);
+	//mPhysicsDebugDraw = std::make_unique<PhysicsDebugDraw>(renderSystem);
 	//mDynamicWorld->setDebugDrawer(mPhysicsDebugDraw.get());
 	//mDynamicWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe | btIDebugDraw::DBG_DrawAabb);
 }
 
-void PhysicsSystem::RegisterCollider(Entity* entity, const ResourceManager& resourceManager)
+void PhysicsSystem::RegisterCollider(Entity* entity)
 {
 	const auto& transform = entity->GetComponent<TransformComponent>();
 	auto& collider = entity->GetComponent<CollisionComponent>();
@@ -42,7 +42,7 @@ void PhysicsSystem::RegisterCollider(Entity* entity, const ResourceManager& reso
 	const auto& position = transform.mPosition;
 	const auto& size = transform.mSize;
 	const auto& rotation = transform.mRotation;
-	const auto& model = resourceManager.GetModelFromId(mesh.mModelPath);
+	const auto& model = mResourceManager.GetModelFromId(mesh.mModelPath);
 	auto calculatedSize = model.CalculateModelScaling(size);
 
 	btCollisionShape* shape = nullptr;
@@ -120,14 +120,14 @@ void PhysicsSystem::RegisterCollider(Entity* entity, const ResourceManager& reso
 	collider.mRigidBody = rigidBody;
 }
 
-void PhysicsSystem::Update(float deltaTime, MonScene* scene, const ResourceManager& resourceManager)
+void PhysicsSystem::Update(float dt)
 {
 	for (auto it = mEntitiesToInitialize.begin(); it != mEntitiesToInitialize.end();)
 	{
 		const auto& collider = (*it)->GetComponent<CollisionComponent>();
 		if (collider.mInitialized)
 		{
-			RegisterCollider(*it, resourceManager);
+			RegisterCollider(*it);
 			it = mEntitiesToInitialize.erase(it);
 		}
 		else
@@ -137,37 +137,42 @@ void PhysicsSystem::Update(float deltaTime, MonScene* scene, const ResourceManag
 		}
 	}
 
-	mDynamicWorld->stepSimulation(deltaTime, 10, 1.0f / 60.0f);
+	mDynamicWorld->stepSimulation(dt, 10, 1.0f / 60.0f);
 	mDynamicWorld->debugDrawWorld();
 
-	if (scene == nullptr) return;
-	const auto view = scene->GetRegistry().view<CollisionComponent, TransformComponent>();
-	view.each([=](auto& collider, auto& transform)
+	if (const auto world = mWorld.lock())
 	{
-		if (collider.mIsDynamic && collider.mRigidBody != nullptr)
+		const auto view = world->GetRegistry().view<CollisionComponent, TransformComponent>();
+		view.each([=](auto& collider, auto& transform)
 		{
-			const auto& size = transform.mSize;
-			btRigidBody* body = collider.mRigidBody;
+			if (collider.mIsDynamic && collider.mRigidBody != nullptr)
+			{
+				const auto& size = transform.mSize;
+				btRigidBody* body = collider.mRigidBody;
 
-			btTransform worldTransform;
-			body->getMotionState()->getWorldTransform(worldTransform);
+				btTransform worldTransform;
+				body->getMotionState()->getWorldTransform(worldTransform);
 
-			btVector3 pos = worldTransform.getOrigin();
-			btQuaternion orn = worldTransform.getRotation();
+				btVector3 pos = worldTransform.getOrigin();
+				btQuaternion orn = worldTransform.getRotation();
 
-			transform.mPosition = {pos.x(), pos.y() - (size.y / 2), pos.z()};
-			transform.mRotation = _ConvertQuatToRadians(orn);
-		}
-	});
+				transform.mPosition = {pos.x(), pos.y() - (size.y / 2), pos.z()};
+				transform.mRotation = _ConvertQuatToRadians(orn);
+			}
+		});
+	}
 }
 
-void PhysicsSystem::SetSceneCallbacks(const SceneManager& sceneManager)
+void PhysicsSystem::SetSceneCallbacks()
 {
-	EventFunc func = [this](Entity* entity)
+	if (const auto world = mWorld.lock())
 	{
-		AddEntityToInitialize(entity);
-	};
-	sceneManager.ConnectOnConstruct<CollisionComponent>(func);
+		EventFunc func = [this](Entity* entity)
+		{
+			AddEntityToInitialize(entity);
+		};
+		world->ConnectOnConstruct<CollisionComponent>(func);
+	}
 }
 
 btQuaternion PhysicsSystem::_ConvertDegreesToQuat(glm::vec3 rot)

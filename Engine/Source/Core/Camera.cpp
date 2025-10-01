@@ -1,11 +1,11 @@
 #include "Entity/Components/PlayerComponent.h"
 #include "Entity/Entity.h"
 #include "Entity/Components/TransformComponent.h"
-#include "SceneManager.h"
+#include "World.h"
 
 #include "Camera.h"
 
-Camera::Camera(const SceneManager& sceneManager, glm::vec3 position, glm::vec3 front, glm::vec3 up, bool followCam)
+Camera::Camera(const World* world, glm::vec3 position, glm::vec3 front, glm::vec3 up, bool followCam)
 	: mCameraPos(position), mCameraFront(front), mCameraUp(up)
 {
 	mFollowCam = followCam;
@@ -16,7 +16,7 @@ Camera::Camera(const SceneManager& sceneManager, glm::vec3 position, glm::vec3 f
 		{
 			SetLookTarget(entity);
 		};
-		sceneManager.ConnectOnConstruct<PlayerComponent>(func);
+		world->ConnectOnConstruct<PlayerComponent>(func);
 	}
 	else
 	{

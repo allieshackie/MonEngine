@@ -3,11 +3,8 @@
 #include "MapInteractionSystem.h"
 
 class Camera;
-class EngineContext;
 class InputHandler;
-class SceneManager;
 class MapRegistry;
-class Map;
 class RenderContext;
 
 using GLuint = unsigned int;
@@ -15,8 +12,7 @@ using GLuint = unsigned int;
 class MapEditor
 {
 public:
-	MapEditor(const EngineContext& engineContext, InputHandler& inputHandler, SceneManager& sceneManager,
-	          MapRegistry& mapRegistry, RenderContext& renderContext);
+	MapEditor(InputHandler& inputHandler, MapRegistry& mapRegistry, RenderContext& renderContext);
 
 	void RenderGUI(Camera& camera);
 

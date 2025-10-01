@@ -1,5 +1,4 @@
-#include "Core/Scene.h"
-#include "Core/SceneManager.h"
+#include "Core/World.h"
 #include "Entity/Entity.h"
 #include "Entity/Components/AnimationComponent.h"
 #include "Entity/Components/ModelComponent.h"
@@ -9,31 +8,38 @@
 
 #include "Animator.h"
 
-Animator::Animator(ResourceManager& resourceManager) : mResourceManager(resourceManager)
+AnimatorSystem::AnimatorSystem(ResourceManager& resourceManager, std::weak_ptr<World> world) :
+	mWorld(std::move(world)), mResourceManager(resourceManager)
 {
 }
 
-void Animator::Update(float deltaTime, MonScene* scene, const ResourceManager& resourceManager)
+void AnimatorSystem::Update(float dt)
 {
-	const auto meshView = scene->GetRegistry().view<AnimationComponent, ModelComponent>();
-
-	meshView.each([this, &resourceManager, &deltaTime](AnimationComponent& anim, ModelComponent& mesh)
+	if (const auto world = mWorld.lock())
 	{
-		auto& model = resourceManager.GetModelFromId(mesh.mModelPath);
-		_UpdateAnimation(deltaTime, model, anim, mesh);
-	});
+		const auto meshView = world->GetRegistry().view<AnimationComponent, ModelComponent>();
+
+		meshView.each([this, &dt](AnimationComponent& anim, ModelComponent& mesh)
+		{
+			auto& model = mResourceManager.GetModelFromId(mesh.mModelPath);
+			_UpdateAnimation(dt, model, anim, mesh);
+		});
+	}
 }
 
-void Animator::SetSceneCallbacks(const SceneManager& sceneManager) const
+void AnimatorSystem::SetSceneCallbacks() const
 {
-	EventFunc func = [this](Entity* entity)
+	if (const auto world = mWorld.lock())
 	{
-		_SetJointMatrixCount(entity);
-	};
-	sceneManager.ConnectOnConstruct<ModelComponent>(func);
+		EventFunc func = [this](Entity* entity)
+		{
+			_SetJointMatrixCount(entity);
+		};
+		world->ConnectOnConstruct<ModelComponent>(func);
+	}
 }
 
-void Animator::_UpdateAnimation(float deltaTime, Model& model, AnimationComponent& animComp, ModelComponent& mesh)
+void AnimatorSystem::_UpdateAnimation(float deltaTime, Model& model, AnimationComponent& animComp, ModelComponent& mesh)
 {
 	const auto animation = model.GetAnimation(animComp.mCurrentAnimState);
 	const auto prevAnimation = model.GetAnimation(animComp.mPrevAnimState);
@@ -66,7 +72,7 @@ void Animator::_UpdateAnimation(float deltaTime, Model& model, AnimationComponen
 	                      glm::mat4(1.0f));
 }
 
-void Animator::_UpdateBlend(float deltaTime, AnimationComponent& animComp)
+void AnimatorSystem::_UpdateBlend(float deltaTime, AnimationComponent& animComp)
 {
 	if (animComp.mBlendFactor < 1.0f)
 	{
@@ -92,9 +98,9 @@ void Animator::_UpdateBlend(float deltaTime, AnimationComponent& animComp)
 	}
 }
 
-void Animator::_UpdateJointHierarchy(Model& model, AnimationComponent& animComp, ModelComponent& mesh,
-                                     const Animation* animation, const Animation* prevAnimation, int nodeIndex,
-                                     const glm::mat4 parentTransform)
+void AnimatorSystem::_UpdateJointHierarchy(Model& model, AnimationComponent& animComp, ModelComponent& mesh,
+                                           const Animation* animation, const Animation* prevAnimation, int nodeIndex,
+                                           const glm::mat4 parentTransform)
 {
 	const auto node = model.GetNodeAt(nodeIndex);
 	const auto jointNode = model.GetJointDataAt(node->mJointIndex);
@@ -144,22 +150,22 @@ void Animator::_UpdateJointHierarchy(Model& model, AnimationComponent& animComp,
 	}
 }
 
-glm::mat4 Animator::_InterpolatePosition(float animationTime, const AnimNode* nodeData) const
+glm::mat4 AnimatorSystem::_InterpolatePosition(float animationTime, const AnimNode* nodeData) const
 {
 	return glm::translate(glm::mat4(1.0f), _InterpolateVec3(animationTime, nodeData->mPositions));
 }
 
-glm::mat4 Animator::_InterpolateRotation(float animationTime, const AnimNode* nodeData) const
+glm::mat4 AnimatorSystem::_InterpolateRotation(float animationTime, const AnimNode* nodeData) const
 {
 	return glm::toMat4(_InterpolateQuat(animationTime, nodeData->mRotations));
 }
 
-glm::mat4 Animator::_InterpolateScale(float animationTime, const AnimNode* nodeData) const
+glm::mat4 AnimatorSystem::_InterpolateScale(float animationTime, const AnimNode* nodeData) const
 {
 	return glm::scale(glm::mat4(1.0f), _InterpolateVec3(animationTime, nodeData->mScales));
 }
 
-glm::vec3 Animator::_InterpolateVec3(float animationTime, const std::vector<KeyframeVec>& keyframes) const
+glm::vec3 AnimatorSystem::_InterpolateVec3(float animationTime, const std::vector<KeyframeVec>& keyframes) const
 {
 	if (keyframes.empty())
 	{
@@ -179,7 +185,7 @@ glm::vec3 Animator::_InterpolateVec3(float animationTime, const std::vector<Keyf
 	return keyframes.back().mData;
 }
 
-glm::quat Animator::_InterpolateQuat(float animationTime, const std::vector<KeyframeQuat>& keyframes) const
+glm::quat AnimatorSystem::_InterpolateQuat(float animationTime, const std::vector<KeyframeQuat>& keyframes) const
 {
 	if (keyframes.empty())
 	{
@@ -199,7 +205,7 @@ glm::quat Animator::_InterpolateQuat(float animationTime, const std::vector<Keyf
 	return keyframes.back().mData;
 }
 
-glm::mat4 Animator::_InterpolateMatrices(const glm::mat4& matA, const glm::mat4& matB, float blendFactor) const
+glm::mat4 AnimatorSystem::_InterpolateMatrices(const glm::mat4& matA, const glm::mat4& matB, float blendFactor) const
 {
 	// Extract position, scale, and rotation from both matrices
 
@@ -227,7 +233,7 @@ glm::mat4 Animator::_InterpolateMatrices(const glm::mat4& matA, const glm::mat4&
 	return blendedMatrix;
 }
 
-const AnimNode* Animator::GetAnimNode(const Animation* animation, int nodeId)
+const AnimNode* AnimatorSystem::GetAnimNode(const Animation* animation, int nodeId)
 {
 	for (const auto animNode : animation->mAnimNodes)
 	{
@@ -240,7 +246,7 @@ const AnimNode* Animator::GetAnimNode(const Animation* animation, int nodeId)
 	return nullptr;
 }
 
-void Animator::_ApplyBlendTime(const AnimationComponent& animComp)
+void AnimatorSystem::_ApplyBlendTime(const AnimationComponent& animComp)
 {
 	for (const auto& transition : animComp.mTransitions)
 	{
@@ -253,7 +259,7 @@ void Animator::_ApplyBlendTime(const AnimationComponent& animComp)
 	}
 }
 
-void Animator::_SetJointMatrixCount(Entity* entity) const
+void AnimatorSystem::_SetJointMatrixCount(Entity* entity) const
 {
 	auto& mesh = entity->GetComponent<ModelComponent>();
 	const auto& model = mResourceManager.GetModelFromId(mesh.mModelPath);

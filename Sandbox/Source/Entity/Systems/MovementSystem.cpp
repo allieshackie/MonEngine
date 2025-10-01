@@ -4,7 +4,7 @@
 #include "BulletCollision/CollisionDispatch/btCollisionWorld.h"
 
 #include "Core/Camera.h"
-#include "Core/Scene.h"
+#include "Core/World.h"
 #include "Entity/Components/AnimationComponent.h"
 #include "Entity/Components/CollisionComponent.h"
 #include "Entity/Components/PhysicsComponent.h"
@@ -15,19 +15,27 @@
 
 glm::vec3 rotateAxis(0.0f, 1.0f, 0.0f);
 
-void MovementSystem::Update(MonScene* scene, PhysicsSystem& physicsSystem, const Camera& camera)
+MovementSystem::MovementSystem(PhysicsSystem& physicsSystem, std::weak_ptr<World> world)
+	: mPhysicsSystem(physicsSystem), mWorld(std::move(world))
 {
-	if (scene == nullptr) return;
-	const auto playerView = scene->GetRegistry().view<
-		PlayerComponent, AnimationComponent, PhysicsComponent, CollisionComponent>();
-	playerView.each([=, &physicsSystem, &camera](const auto& player, auto& anim, auto& physics, const auto& collider)
+}
+
+void MovementSystem::Update(float dt)
+{
+	if (const auto world = mWorld.lock())
 	{
-		_ApplyJump(collider, player, physicsSystem);
-		// Apply movement directions to physics component
-		_ApplyVelocityFromDirection(player, physics, camera);
-		_ApplyMovementForce(physics, collider);
-		_UpdateMovementAnim(anim, physics);
-	});
+		const auto playerView = world->GetRegistry().view<
+			PlayerComponent, AnimationComponent, PhysicsComponent, CollisionComponent>();
+		playerView.each(
+			[=](const auto& player, auto& anim, auto& physics, const auto& collider)
+			{
+				_ApplyJump(collider, player, mPhysicsSystem);
+				// Apply movement directions to physics component
+				_ApplyVelocityFromDirection(player, physics, world->GetCamera());
+				_ApplyMovementForce(physics, collider);
+				_UpdateMovementAnim(anim, physics);
+			});
+	}
 }
 
 static void _ApplyJump(const CollisionComponent& collider, const PlayerComponent& player, PhysicsSystem& physicsSystem)

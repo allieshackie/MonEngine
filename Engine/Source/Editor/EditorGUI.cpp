@@ -1,54 +1,56 @@
 #include "imgui.h"
 #include <filesystem>
 
-#include "Core/SceneManager.h"
+#include "Core/World.h"
 #include "ContextMenus/EntityMenu.h"
+#include "Input/InputHandler.h"
 
 #include "EditorGUI.h"
 
-#include "Input/InputHandler.h"
-
-EditorGUI::EditorGUI(const SceneManager& sceneManager, InputHandler& inputHandler)
+EditorGUI::EditorGUI(InputHandler& inputHandler, std::weak_ptr<World> world, RenderContext& renderContext,
+                     ResourceManager& resourceManager)
+	: mInputHandler(inputHandler), mWorld(std::move(world))
 {
 	//mMapEditor = std::make_unique<MapEditor>(engineContext, inputHandler, levelManager, mapRegistry, renderContext);
 	mObjectGUI = std::make_unique<ObjectGUI>();
-	mEntityMenu = std::make_unique<EntityMenu>(sceneManager, inputHandler);
+	mEntityMenu = std::make_unique<EntityMenu>(inputHandler, mWorld, renderContext);
 }
 
-void EditorGUI::Render(MonScene* scene, ResourceManager& resourceManager, const RenderContext& renderContext,
-                       const InputHandler& inputHandler)
+void EditorGUI::Render(float dt)
 {
 	if (ImGui::Begin("Editor", &mOpen, mWindowFlags))
 	{
-		if (scene == nullptr)
+		if (auto world = mWorld.lock())
+		{
+			// Camera
+			ImGui::Checkbox("Follow Cam", &world->GetCamera().GetFollowCamFlag());
+			ImGui::NewLine();
+		}
+		else
 		{
 			return;
 		}
 
-		// Camera
-		ImGui::Checkbox("Follow Cam", &scene->GetCamera().GetFollowCamFlag());
-		ImGui::NewLine();
-
 		// Inputs
 		ImGui::Text("Current Key: ");
-		const auto& keysPressed = inputHandler.GetKeysPressed();
+		const auto& keysPressed = mInputHandler.GetKeysPressed();
 		for (const auto& key : keysPressed)
 		{
 			ImGui::SameLine();
-			ImGui::Text(inputHandler.GetNameForKey(key));
+			ImGui::Text(mInputHandler.GetNameForKey(key));
 		}
 		ImGui::NewLine();
 
 		ImGui::Text("Previous Key: ");
-		const auto& previousKeysPressed = inputHandler.GetPreviousKeysHeld();
+		const auto& previousKeysPressed = mInputHandler.GetPreviousKeysHeld();
 		for (const auto& key : previousKeysPressed)
 		{
 			ImGui::SameLine();
-			ImGui::Text(inputHandler.GetNameForKey(key));
+			ImGui::Text(mInputHandler.GetNameForKey(key));
 		}
 		ImGui::NewLine();
 
-		mEntityMenu->Render(scene, renderContext);
+		mEntityMenu->Render();
 	}
 	ImGui::End();
 	//mObjectGUI->RenderGUI(scene, resourceManager);

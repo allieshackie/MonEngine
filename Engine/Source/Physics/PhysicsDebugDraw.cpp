@@ -1,10 +1,10 @@
-#include "Graphics/RenderContext.h"
+#include "Graphics/RenderSystem.h"
 
 #include "PhysicsDebugDraw.h"
 
 // TODO: Improve performance, batch lines 
-PhysicsDebugDraw::PhysicsDebugDraw(RenderContext& renderContext)
-	: mRenderContext(renderContext), m_debugMode(btIDebugDraw::DBG_DrawWireframe | btIDebugDraw::DBG_DrawAabb),
+PhysicsDebugDraw::PhysicsDebugDraw(RenderSystem& renderSystem)
+	: mRenderSystem(renderSystem), m_debugMode(btIDebugDraw::DBG_DrawWireframe | btIDebugDraw::DBG_DrawAabb),
 	  m_currentLineColor(-1, -1, -1)
 {
 }
@@ -32,8 +32,8 @@ void PhysicsDebugDraw::drawLine(const btVector3& from1, const btVector3& to1, co
 		m_currentLineColor = color1;
 	}
 
-	mRenderContext.DrawLine(glm::vec3(from1.x(), from1.y(), from1.z()), glm::vec3(to1.x(), to1.y(), to1.z()),
-	                        glm::vec4(color1.x(), color1.y(), color1.z(), 255));
+	mRenderSystem.DrawLine(glm::vec3(from1.x(), from1.y(), from1.z()), glm::vec3(to1.x(), to1.y(), to1.z()),
+	                       glm::vec4(color1.x(), color1.y(), color1.z(), 255));
 
 	/*
 	 *

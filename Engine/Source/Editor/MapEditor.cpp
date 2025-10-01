@@ -8,12 +8,9 @@
 
 #include "MapEditor.h"
 
-MapEditor::MapEditor(const EngineContext& engineContext, InputHandler& inputHandler, SceneManager& sceneManager,
-                     MapRegistry& mapRegistry, RenderContext& renderContext)
+MapEditor::MapEditor(InputHandler& inputHandler, MapRegistry& mapRegistry, RenderContext& renderContext)
 	: mInputHandler(inputHandler), mMapRegistry(mapRegistry), mRenderContext(renderContext)
 {
-	// TODO: Pass map registry and lua system
-	//levelManager.LoadLevel("editor.json", engineContext);
 	_GetAllMapFileNames();
 }
 

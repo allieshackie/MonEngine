@@ -22,7 +22,7 @@ public:
 	        const LLGL::ColorRGBAf backgroundClearColor = {0.0f, 0.0f, 0.0f, 1.0f},
 	        bool usePerspective = true, bool transparent = false);
 
-	void Run() const;
+	void Run();
 
 	void SetGUIMenu(std::unique_ptr<GUIBase> gui);
 
@@ -45,11 +45,12 @@ private:
 
 	std::unique_ptr<DescriptionFactory> mDescriptionFactory;
 	std::unique_ptr<RenderContext> mRenderContext;
+	std::unique_ptr<RenderSystem> mRenderSystem;
 
 	std::shared_ptr<InputHandler> mInputHandler;
 
 	std::unique_ptr<ResourceManager> mResourceManager;
-	std::unique_ptr<Animator> mAnimator;
+	std::unique_ptr<AnimatorSystem> mAnimator;
 
 	std::unique_ptr<SceneManager> mSceneManager;
 	std::unique_ptr<GUIBase> mGUIMenu;

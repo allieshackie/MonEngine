@@ -1,6 +1,6 @@
 #include "LLGL/Key.h"
 
-#include "Core/SceneManager.h"
+#include "Core/World.h"
 #include "Entity/Entity.h"
 #include "Entity/Components/PlayerComponent.h"
 #include "Input/InputHandler.h"
@@ -72,11 +72,11 @@ void PlayerSystem::SpawnPlayer(Entity* entity) const
 	});
 }
 
-void PlayerSystem::SetSceneCallbacks(const SceneManager& sceneManager) const
+void PlayerSystem::SetSceneCallbacks(World* world) const
 {
 	EventFunc func = [this](Entity* entity)
 	{
 		SpawnPlayer(entity);
 	};
-	sceneManager.ConnectOnConstruct<PlayerComponent>(func);
+	world->ConnectOnConstruct<PlayerComponent>(func);
 }

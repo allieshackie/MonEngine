@@ -1,4 +1,5 @@
 #include "Core/Scene.h"
+#include "Core/World.h"
 #include "Entity/Entity.h"
 #include "Entity/Components/CollisionComponent.h"
 #include "Entity/Components/MapComponent.h"
@@ -8,10 +9,10 @@
 
 #include "MapRegistry.h"
 
-void MapRegistry::OpenMap(MonScene* scene, const MapData& mapData) const
+void MapRegistry::OpenMap(World* world, const MapData& mapData) const
 {
 	// Create entity
-	auto& entity = scene->CreateEntity();
+	auto& entity = world->CreateEntity();
 
 	if (_ParseMapData(mapData, entity))
 	{

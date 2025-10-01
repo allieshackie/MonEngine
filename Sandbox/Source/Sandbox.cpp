@@ -1,4 +1,5 @@
 #include "Core/Timer.h"
+#include "Entity/Components/ModelComponent.h"
 #include "Entity/Descriptions/AnimationDescription.h"
 #include "Entity/Descriptions/CollisionDescription.h"
 #include "Entity/Descriptions/InteractiveDescription.h"
@@ -14,6 +15,8 @@
 
 #include "Sandbox.h"
 
+#include "Graphics/RenderSystem.h"
+
 int main()
 {
 	const auto game = std::make_unique<Sandbox>(LLGL::Extent2D{800, 600}, "Sandbox",
@@ -24,15 +27,15 @@ int main()
 	return 0;
 }
 
-void Sandbox::Run() const
+void Sandbox::Run()
 {
 	// TODO: Re-add font, make sure to have font for gui
 	//mEngine->LoadFont("PixelLettersFull.ttf");
 	mRenderContext->SetBackgroundClearColor({0.1f, 0.1f, 0.1f});
-
 	// TODO: Data drive theming to make it easier to have different styles
 	//GUISystem::LoadGUITheme();
 	mSceneManager->LoadScene("game.json", *mMapRegistry, *mLuaSystem);
+
 	ToggleEditorMode(true);
 
 	// Init current time
@@ -61,23 +64,23 @@ void Sandbox::Run() const
 			timer->mAccumulator -= timer->mDT;
 		}
 
+		auto world = mSceneManager->GetCurrentWorld();
+
 		mInputHandler->Update();
-		mMovementSystem->Update(mSceneManager->GetCurrentScene(), *mPhysicsSystem, mSceneManager->GetCamera());
-		mSceneManager->GetCamera().Update();
-		mAnimator->Update(deltaTime, mSceneManager->GetCurrentScene(), *mResourceManager);
+		mMovementSystem->Update(deltaTime);
+		world->GetCamera().Update();
+		mAnimator->Update(deltaTime);
 
 		// TODO: Debug draw axis
-		//_DrawAxis();
+		_DrawAxis();
 		// TODO: Debug draw model bones
 		//_DebugDrawBones();
 
 		mRenderContext->BeginFrame();
 
-		//game->Render();
-
-		if (mSceneManager->GetCurrentScene())
+		if (world)
 		{
-			mRenderContext->Render(mSceneManager->GetCamera(), mSceneManager->GetCurrentScene(), *mResourceManager);
+			mRenderSystem->Render(world.get());
 		}
 
 		// Render GUI last so menus draw on top
@@ -87,7 +90,7 @@ void Sandbox::Run() const
 		//GUISystem::RenderGuiElements();
 		if (mEditorGUI != nullptr)
 		{
-			mEditorGUI->Render(mSceneManager->GetCurrentScene(), *mResourceManager, *mRenderContext, *mInputHandler);
+			mEditorGUI->Render(deltaTime);
 		}
 		GUISystem::GUIEndFrame();
 
@@ -109,7 +112,7 @@ void Sandbox::SetGUIMenu(std::unique_ptr<GUIBase> gui)
 
 void Sandbox::_FixedUpdate(float dt) const
 {
-	mPhysicsSystem->Update(dt, mSceneManager->GetCurrentScene(), *mResourceManager);
+	mPhysicsSystem->Update(dt);
 }
 
 Sandbox::Sandbox(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
@@ -122,9 +125,8 @@ Sandbox::Sandbox(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
 	mEventPublisher = std::make_unique<EventPublisher>();
 	mMapRegistry = std::make_unique<MapRegistry>();
 	mLuaSystem = std::make_unique<LuaSystem>();
-	mRenderContext = std::make_unique<RenderContext>(screenSize, backgroundClearColor, usePerspective);
-	mMovementSystem = std::make_unique<MovementSystem>();
-	mPlayerSystem = std::make_unique<PlayerSystem>(*mInputHandler);
+	mRenderContext = std::make_unique<RenderContext>(screenSize, backgroundClearColor, usePerspective, title,
+	                                                 mInputHandler, transparent);
 
 	// Must be called before SceneManager sets up description factory
 	mDescriptionFactory->RegisterDescription<AnimationDescription>(AnimationDescription::JsonName);
@@ -138,62 +140,76 @@ Sandbox::Sandbox(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
 	mDescriptionFactory->RegisterDescription<TransformDescription>(TransformDescription::JsonName);
 
 	// Init all systems **with** dependencies
-	mAnimator = std::make_unique<Animator>(*mResourceManager);
 	mSceneManager = std::make_unique<SceneManager>(*mDescriptionFactory);
-	mPhysicsSystem = std::make_unique<PhysicsSystem>(*mRenderContext);
 
 	// Remaining system setup
 	mInputHandler->RegisterButtonUpHandler(LLGL::Key::Escape, [=]() { mRunning = false; });
 	GUISystem::InitGUI(*mRenderContext);
 	mResourceManager->LoadAllResources(mRenderContext->GetRenderSystem());
-	mRenderContext->InitPipelines(title, mInputHandler, *mResourceManager, transparent);
 
-	// TODO: Comment/uncomment for editor gui menu
-	mEditorGUI = std::make_unique<EditorGUI>(*mSceneManager, *mInputHandler);
+	mRenderSystem = std::make_unique<RenderSystem>(*mRenderContext, *mResourceManager);
+	// Gameplay systems
+	mAnimator = std::make_unique<AnimatorSystem>(*mResourceManager, mSceneManager->GetCurrentWorld());
+	mPhysicsSystem = std::make_unique<PhysicsSystem>(*mRenderSystem, *mResourceManager,
+	                                                 mSceneManager->GetCurrentWorld());
+	mMovementSystem = std::make_unique<MovementSystem>(*mPhysicsSystem, mSceneManager->GetCurrentWorld());
+	mPlayerSystem = std::make_unique<PlayerSystem>(*mInputHandler);
+	mEditorGUI = std::make_unique<EditorGUI>(*mInputHandler, mSceneManager->GetCurrentWorld(), *mRenderContext,
+	                                         *mResourceManager);
 
 	// loading new scene means setting up callbacks for various systems
-	mAnimator->SetSceneCallbacks(*mSceneManager);
-	mPhysicsSystem->SetSceneCallbacks(*mSceneManager);
-	mRenderContext->SetSceneCallbacks(*mSceneManager);
-	mPlayerSystem->SetSceneCallbacks(*mSceneManager);
+	mAnimator->SetSceneCallbacks();
+	mPhysicsSystem->SetSceneCallbacks();
+	mRenderSystem->SetSceneCallbacks(mSceneManager->GetCurrentWorld().get());
+	mPlayerSystem->SetSceneCallbacks(mSceneManager->GetCurrentWorld().get());
 }
 
 void Sandbox::ToggleEditorMode(bool toggle) const
 {
 	if (toggle)
 	{
-		if (mSceneManager->GetCurrentScene())
+		if (mSceneManager->GetCurrentWorld())
 		{
-			mInputHandler->AddEditorInputs(mSceneManager->GetCamera());
+			mInputHandler->AddEditorInputs(mSceneManager->GetCurrentWorld()->GetCamera());
 		}
 	}
 }
 
 void Sandbox::_DrawAxis() const
 {
-	/*
-	 * Draw the XYZ axis at 0,0,0
-	 * Note: Not ideal for debugging since the axises are drawn in world
-	 * space and don't follow the camera
-	 * Ideally, this could be draw directly to screen space and remain in the view
-	 * like UI
-	 */
+	mRenderSystem->ClearOverlay();
+	const glm::mat4& view = mSceneManager->GetCurrentWorld()->GetCamera().GetView();
+	auto cameraRotation = glm::mat3(glm::inverse(view));
+	glm::vec3 X = cameraRotation * glm::vec3{1, 0, 0};
+	glm::vec3 Y = cameraRotation * glm::vec3{0, 1, 0};
+	glm::vec3 Z = cameraRotation * glm::vec3{0, 0, 1};
+
+	auto origin = glm::vec2(0, 0); // bottom-left corner in pixels
+	float axisLength = 5.0;
+
+	auto project = [&](const glm::vec3& v)
+	{
+		return origin + glm::vec2(v.x, -v.y) * axisLength; // note Y flip
+	};
+
+	glm::vec2 xEnd = project(X);
+	glm::vec2 yEnd = project(Y);
+	glm::vec2 zEnd = project(Z);
+	// Draw the XYZ axis at 0,0,0
 	// X Axis: Red.  Box on positive end
-	mRenderContext->DrawLine({-1, 0, 0}, {1, 0, 0}, {255, 0, 0, 1});
-	mRenderContext->DrawBox({1, 0, 0}, {0.1f, 0.1f, 1.0f}, {255, 0, 0, 1}, false);
-
+	mRenderSystem->DrawOverlayLine(origin, xEnd, {255, 0, 0, 1});
 	// Y Axis: Green
-	mRenderContext->DrawLine({0, -1, 0}, {0, 1, 0}, {0, 255, 0, 1});
-	mRenderContext->DrawBox({0, 1, 0}, {0.1f, 0.1f, 1.0f}, {0, 255, 0, 1}, false);
-
+	//mRenderSystem->DrawOverlayLine(origin, yEnd, {0, 255, 0, 1});
 	// Z Axis: Blue
-	mRenderContext->DrawLine({0, 0, -1}, {0, 0, 1}, {0, 0, 255, 1});
-	mRenderContext->DrawBox({0, 0, 1}, {0.1f, 0.1f, 1.0f}, {0, 0, 255, 1}, false);
+	//mRenderSystem->DrawOverlayLine(origin, zEnd, {0, 0, 255, 1});
+
+	// Draw Floor Grid
+	//mRenderSystem->DrawGrid();
 }
 
 void Sandbox::_DebugDrawBones() const
 {
-	const auto modelView = mSceneManager->GetCurrentScene()->GetRegistry().view<const ModelComponent>();
+	const auto modelView = mSceneManager->GetCurrentWorld()->GetRegistry().view<const ModelComponent>();
 
 	// Should either be a sprite or basic color
 	modelView.each([=](const ModelComponent& modelComp)
@@ -230,7 +246,7 @@ void Sandbox::_RenderModelBones(Model& model, const ModelComponent& modelComp, i
 		color = {1, 0, 0, 1};
 	}
 
-	mRenderContext->DrawLine(bonePosition, endPosition, color);
+	mRenderSystem->DrawLine(bonePosition, endPosition, color);
 
 	for (const auto child : node->mChildren)
 	{

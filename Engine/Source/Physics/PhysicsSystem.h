@@ -7,22 +7,21 @@
 #include "PhysicsDebugDraw.h"
 
 class Entity;
-class MonScene;
-class RenderContext;
+class RenderSystem;
 class ResourceManager;
-class SceneManager;
+class World;
 
 class PhysicsSystem
 {
 public:
-	PhysicsSystem(RenderContext& renderContext);
+	PhysicsSystem(RenderSystem& renderSystem, ResourceManager& resourceManager, std::weak_ptr<World> world);
 
-	void RegisterCollider(Entity* entity, const ResourceManager& resourceManager);
+	void RegisterCollider(Entity* entity);
 	void AddEntityToInitialize(Entity* entity);
 
-	void Update(float deltaTime, MonScene* scene, const ResourceManager& resourceManager);
+	void Update(float dt);
 
-	void SetSceneCallbacks(const SceneManager& sceneManager);
+	void SetSceneCallbacks();
 
 	btDiscreteDynamicsWorld& GetDynamicWorld() const { return *mDynamicWorld; }
 
@@ -41,4 +40,6 @@ private:
 
 	std::unique_ptr<PhysicsDebugDraw> mPhysicsDebugDraw;
 	std::vector<Entity*> mEntitiesToInitialize;
+	ResourceManager& mResourceManager;
+	std::weak_ptr<World> mWorld;
 };

@@ -1,14 +1,14 @@
 #pragma once
 
-class MonScene;
 class ResourceManager;
+class World;
 
 struct TransformComponent;
 
 class ObjectGUI
 {
 public:
-	void RenderGUI(MonScene* scene, ResourceManager& resourceManager);
+	void RenderGUI(World* world, ResourceManager& resourceManager);
 
 private:
 	void _ObjectTransform(TransformComponent& transform);

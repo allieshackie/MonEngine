@@ -1,6 +1,5 @@
 #include "Input/InputHandler.h"
-#include "Core/Scene.h"
-#include "Core/SceneManager.h"
+#include "Core/World.h"
 #include "Entity/Components/TransformComponent.h"
 #include "Entity/Entity.h"
 #include "Graphics/RenderContext.h"
@@ -8,39 +7,46 @@
 
 #include "EntityMenu.h"
 
-EntityMenu::EntityMenu(const SceneManager& sceneManager, InputHandler& inputHandler)
+EntityMenu::EntityMenu(InputHandler& inputHandler, std::weak_ptr<World> world, RenderContext& renderContext)
+	: mWorld(std::move(world)), mRenderContext(renderContext)
 {
 	// TODO: Handle mouse hover + selection 
 	inputHandler.RegisterMouseMoveHandler([this](LLGL::Offset2D mousePos) { _HandleMouseMove(mousePos); });
 	inputHandler.RegisterButtonDownHandler(LLGL::Key::LButton, [this]() { QueueClick(); });
 
-	// All entities should have a transform
-	EventFunc addedFunc = [this](Entity* entity)
+	if (const auto sharedWorld = mWorld.lock())
 	{
-		OnEntityAdded(entity);
-	};
-	sceneManager.ConnectOnConstruct<TransformComponent>(addedFunc);
-	EventFunc destroyFunc = [this](Entity* entity)
-	{
-		OnEntityRemoved(entity);
-	};
-	sceneManager.ConnectOnDestroy<TransformComponent>(destroyFunc);
+		// All entities should have a transform
+		EventFunc addedFunc = [this](Entity* entity)
+		{
+			OnEntityAdded(entity);
+		};
+		sharedWorld->ConnectOnConstruct<TransformComponent>(addedFunc);
+		EventFunc destroyFunc = [this](Entity* entity)
+		{
+			OnEntityRemoved(entity);
+		};
+		sharedWorld->ConnectOnDestroy<TransformComponent>(destroyFunc);
+	}
 }
 
-void EntityMenu::Render(MonScene* scene, const RenderContext& renderContext)
+void EntityMenu::Render()
 {
 	if (mSelectedEntity == nullptr)
 	{
-		RenderEntitySelection(scene);
+		RenderEntitySelection();
 	}
 	else
 	{
-		RenderSelectedEntityMenu(scene);
+		RenderSelectedEntityMenu();
 	}
 
 	if (mQueuedClick)
 	{
-		_OnClick(renderContext, scene->GetCamera());
+		if (const auto world = mWorld.lock())
+		{
+			_OnClick(mRenderContext, world->GetCamera());
+		}
 		mQueuedClick = false;
 	}
 }
@@ -62,7 +68,7 @@ void EntityMenu::OnEntityRemoved(Entity* entity)
 	}
 }
 
-void EntityMenu::RenderSelectedEntityMenu(MonScene* scene)
+void EntityMenu::RenderSelectedEntityMenu()
 {
 	if (mSelectedEntity == nullptr) return;
 
@@ -76,7 +82,7 @@ void EntityMenu::RenderSelectedEntityMenu(MonScene* scene)
 	ImGui::End();
 }
 
-void EntityMenu::RenderEntitySelection(MonScene* scene)
+void EntityMenu::RenderEntitySelection()
 {
 	ImGui::Combo("Entities", &current_entity_selected, items.data(), items.size());
 	if (ImGui::Button("Open"))

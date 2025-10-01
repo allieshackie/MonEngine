@@ -1,20 +1,21 @@
 #pragma once
 
 class CollisionSystem;
-class MonScene;
 class MapSystem;
+class World;
 
 class MapCollisionSystem
 {
 public:
-	MapCollisionSystem(CollisionSystem& collisionSystem, MapSystem& mapSystem);
+	MapCollisionSystem(CollisionSystem& collisionSystem, MapSystem& mapSystem, std::weak_ptr<World> world);
 	~MapCollisionSystem() = default;
 
-	void Update(MonScene* scene);
+	void Update(float dt);
 
 private:
 	void _CheckForCollision();
 
 	CollisionSystem& mCollisionSystem;
 	MapSystem& mMapSystem;
+	std::weak_ptr<World> mWorld;
 };

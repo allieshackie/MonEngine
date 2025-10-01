@@ -26,12 +26,8 @@ void GUISystem::InitGUI(const RenderContext& renderContext)
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
 
-	io.DisplaySize = {800, 600};
-
-	io.KeyMap[ImGuiKey_LeftArrow] = static_cast<int>(LLGL::Key::Left);
-	io.KeyMap[ImGuiKey_RightArrow] = static_cast<int>(LLGL::Key::Right);
-	io.KeyMap[ImGuiKey_UpArrow] = static_cast<int>(LLGL::Key::Up);
-	io.KeyMap[ImGuiKey_DownArrow] = static_cast<int>(LLGL::Key::Down);
+	const auto resolution = renderContext.GetResolution();
+	io.DisplaySize = ImVec2{static_cast<float>(resolution.width), static_cast<float>(resolution.height)};
 
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();

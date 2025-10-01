@@ -2,9 +2,7 @@
 #include "Util/SerialUtil.h"
 
 class Entity;
-class Map;
-class MonScene;
-class PhysicsSystem;
+class World;
 
 struct MapData;
 
@@ -27,7 +25,7 @@ struct TextureData
 class MapRegistry
 {
 public:
-	void OpenMap(MonScene* scene, const MapData& mapData) const;
+	void OpenMap(World* world, const MapData& mapData) const;
 	void CloseMap(const std::string& mapId);
 
 private:

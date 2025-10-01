@@ -5,18 +5,17 @@
 
 class Camera;
 class InputHandler;
-class MonScene;
 class RenderContext;
 class ResourceManager;
-class SceneManager;
+class World;
 
 class EditorGUI
 {
 public:
-	EditorGUI(const SceneManager& sceneManager, InputHandler& inputHandler);
+	EditorGUI(InputHandler& inputHandler, std::weak_ptr<World> world, RenderContext& renderContext,
+	          ResourceManager& resourceManager);
 
-	void Render(MonScene* scene, ResourceManager& resourceManager, const RenderContext& renderContext,
-	            const InputHandler& inputHandler);
+	void Render(float dt);
 
 private:
 	void _MainMenu(Camera& camera) const;
@@ -28,5 +27,7 @@ private:
 	bool mOpen = true;
 	ImVec2 mSize = {250, 300};
 	ImGuiWindowFlags mWindowFlags = ImGuiWindowFlags_None;
-	//InputHandler& mInputHandler;
+
+	InputHandler& mInputHandler;
+	std::weak_ptr<World> mWorld;
 };

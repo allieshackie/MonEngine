@@ -4,23 +4,23 @@
 #include "Entity/Components/AnimationComponent.h"
 
 #include "Animation.h"
+#include "Core/ISystem.h"
 
 struct ModelComponent;
 
 class Entity;
 class Model;
-class MonScene;
-class SceneManager;
 class ResourceManager;
+class World;
 
-class Animator
+class AnimatorSystem : public ISystem
 {
 public:
-	Animator(ResourceManager& resourceManager);
-	// Interpolate bone positions
-	void Update(float deltaTime, MonScene* scene, const ResourceManager& resourceManager);
+	AnimatorSystem(ResourceManager& resourceManager, std::weak_ptr<World> world);
 
-	void SetSceneCallbacks(const SceneManager& sceneManager) const;
+	void Update(float dt) override;
+
+	void SetSceneCallbacks() const;
 
 private:
 	void _UpdateAnimation(float deltaTime, Model& model, AnimationComponent& animComp, ModelComponent& mesh);
@@ -46,5 +46,6 @@ private:
 	float mPrevAnimationTime = 0.0f;
 	float mCurrentAnimationTime = 0.0f;
 
+	std::weak_ptr<World> mWorld;
 	ResourceManager& mResourceManager;
 };

@@ -133,3 +133,18 @@ namespace gltfHelpers
 		return reinterpret_cast<T>(&(buffer.data[bufferView.byteOffset + accessor.byteOffset]));
 	}
 };
+
+namespace MonUtil
+{
+	static glm::vec3 CalculateModelPoint(glm::vec3 pos, glm::vec3 size, glm::vec3 basePoint = {0, 0, 0})
+	{
+		auto model = glm::mat4(1.0f);
+
+		model = glm::translate(model, pos);
+		model = glm::scale(model, size);
+
+		return model * glm::vec4(basePoint, 1.0);
+	}
+
+	const std::array<glm::vec3, 4> mBoxVertices{{{0, 1.0, 1.0}, {0, 0, 1.0}, {1.0, 1.0, 1.0}, {1.0, 0, 1.0}}};
+}

@@ -7,11 +7,12 @@
 
 class Entity;
 class SceneManager;
+class World;
 
 class Camera
 {
 public:
-	Camera(const SceneManager& sceneManager, glm::vec3 position, glm::vec3 front, glm::vec3 up, bool followCam = true);
+	Camera(const World* world, glm::vec3 position, glm::vec3 front, glm::vec3 up, bool followCam = true);
 
 	void Update();
 

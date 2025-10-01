@@ -5,21 +5,20 @@
 class Camera;
 class InputHandler;
 class Entity;
-class MonScene;
 class RenderContext;
-class SceneManager;
+class World;
 
 class EntityMenu
 {
 public:
-	EntityMenu(const SceneManager& sceneManager, InputHandler& inputHandler);
+	EntityMenu(InputHandler& inputHandler, std::weak_ptr<World> world, RenderContext& renderContext);
 
-	void Render(MonScene* scene, const RenderContext& renderContext);
+	void Render();
 
 	void OnEntityAdded(Entity* entity);
 	void OnEntityRemoved(Entity* entity);
-	void RenderSelectedEntityMenu(MonScene* scene);
-	void RenderEntitySelection(MonScene* scene);
+	void RenderSelectedEntityMenu();
+	void RenderEntitySelection();
 
 	void QueueClick();
 
@@ -40,4 +39,7 @@ private:
 	int current_entity_selected = 0;
 
 	bool mQueuedClick = false;
+
+	std::weak_ptr<World> mWorld;
+	RenderContext& mRenderContext;
 };

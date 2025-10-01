@@ -1,11 +1,16 @@
 #pragma once
 
-class Camera;
-class MonScene;
 class PhysicsSystem;
+class World;
 
 class MovementSystem
 {
 public:
-	void Update(MonScene* scene, PhysicsSystem& physicsSystem, const Camera& camera);
+	MovementSystem(PhysicsSystem& physicsSystem, std::weak_ptr<World> world);
+
+	void Update(float dt);
+
+private:
+	PhysicsSystem& mPhysicsSystem;
+	std::weak_ptr<World> mWorld;
 };
