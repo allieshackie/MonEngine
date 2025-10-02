@@ -16,7 +16,7 @@
 glm::vec3 rotateAxis(0.0f, 1.0f, 0.0f);
 
 MovementSystem::MovementSystem(PhysicsSystem& physicsSystem, std::weak_ptr<World> world)
-	: mPhysicsSystem(physicsSystem), mWorld(std::move(world))
+	: mPhysicsSystem(physicsSystem), mWorld(world)
 {
 }
 

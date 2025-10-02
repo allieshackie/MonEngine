@@ -11,7 +11,7 @@ class World;
 class EntityMenu
 {
 public:
-	EntityMenu(InputHandler& inputHandler, std::weak_ptr<World> world, RenderContext& renderContext);
+	EntityMenu(std::weak_ptr<InputHandler> inputHandler, std::weak_ptr<World> world, RenderContext& renderContext);
 
 	void Render();
 

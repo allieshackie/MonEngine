@@ -6,7 +6,7 @@
 
 MapCollisionSystem::MapCollisionSystem(CollisionSystem& collisionSystem, MapSystem& mapSystem,
                                        std::weak_ptr<World> world)
-	: mCollisionSystem(collisionSystem), mMapSystem(mapSystem), mWorld(std::move(world))
+	: mCollisionSystem(collisionSystem), mMapSystem(mapSystem), mWorld(world)
 {
 }
 

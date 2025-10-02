@@ -7,12 +7,16 @@
 
 #include "EntityMenu.h"
 
-EntityMenu::EntityMenu(InputHandler& inputHandler, std::weak_ptr<World> world, RenderContext& renderContext)
-	: mWorld(std::move(world)), mRenderContext(renderContext)
+EntityMenu::EntityMenu(std::weak_ptr<InputHandler> inputHandler, std::weak_ptr<World> world,
+                       RenderContext& renderContext)
+	: mWorld(world), mRenderContext(renderContext)
 {
-	// TODO: Handle mouse hover + selection 
-	inputHandler.RegisterMouseMoveHandler([this](LLGL::Offset2D mousePos) { _HandleMouseMove(mousePos); });
-	inputHandler.RegisterButtonDownHandler(LLGL::Key::LButton, [this]() { QueueClick(); });
+	// TODO: Handle mouse hover + selection
+	if (auto inputHandlerPtr = inputHandler.lock())
+	{
+		inputHandlerPtr->RegisterMouseMoveHandler([this](LLGL::Offset2D mousePos) { _HandleMouseMove(mousePos); });
+		inputHandlerPtr->RegisterButtonDownHandler(LLGL::Key::LButton, [this]() { QueueClick(); });
+	}
 
 	if (const auto sharedWorld = mWorld.lock())
 	{

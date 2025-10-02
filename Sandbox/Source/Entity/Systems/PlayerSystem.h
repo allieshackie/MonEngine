@@ -1,18 +1,17 @@
 #pragma once
+#include "Core/ISystem.h"
 
 class Entity;
 class InputHandler;
 class World;
 
-class PlayerSystem
+class PlayerSystem : public ISystem
 {
 public:
-	PlayerSystem(InputHandler& inputHandler);
+	PlayerSystem(std::weak_ptr<InputHandler> inputHandler, std::weak_ptr<World> world);
 
 	void SpawnPlayer(Entity* entity) const;
 
-	void SetSceneCallbacks(World* world) const;
-
 private:
-	InputHandler& mInputHandler;
+	std::weak_ptr<InputHandler> mInputHandler;
 };

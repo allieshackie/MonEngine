@@ -3,11 +3,12 @@
 
 #include "RenderSystem.h"
 
-RenderSystem::RenderSystem(RenderContext& context, const ResourceManager& resourceManager) : mContext(context)
+RenderSystem::RenderSystem(RenderContext& context, const ResourceManager& resourceManager, std::weak_ptr<World> world) :
+	mContext(context)
 {
 	mImmediatePipeline = std::make_unique<ImmediatePipeline>(mContext.GetRenderSystem());
 	mTextPipeline = std::make_unique<TextPipeline>(mContext.GetRenderSystem());
-	mMeshPipeline = std::make_unique<MeshPipeline>(mContext.GetRenderSystem(), resourceManager);
+	mMeshPipeline = std::make_unique<MeshPipeline>(mContext.GetRenderSystem(), resourceManager, world);
 	mOverlayPipeline = std::make_unique<OverlayPipeline>(mContext.GetRenderSystem());
 }
 
@@ -16,9 +17,14 @@ void RenderSystem::LoadFont(const char* fontFileName) const
 	mTextPipeline->LoadFont(fontFileName);
 }
 
-void RenderSystem::Render(World* world) const
+void RenderSystem::Render(std::weak_ptr<World> world)
 {
-	const auto projectionViewMat = mContext.GetProjection() * world->GetCamera().GetView();
+	auto worldPtr = world.lock();
+	if (worldPtr == nullptr)
+	{
+		return;
+	}
+	const auto projectionViewMat = mContext.GetProjection() * worldPtr->GetCamera().GetView();
 
 	mMeshPipeline->Render(mContext.GetCommands(), mContext.GetProjection(), world);
 	mOverlayPipeline->Render(mContext.GetCommands());
@@ -32,11 +38,6 @@ void RenderSystem::Render(World* world) const
 void RenderSystem::ClearOverlay() const
 {
 	mOverlayPipeline->ClearOverlay();
-}
-
-void RenderSystem::SetSceneCallbacks(const World* world) const
-{
-	mMeshPipeline->SetSceneCallbacks(world);
 }
 
 void RenderSystem::DrawTextFont(const char* text, glm::vec2 position, glm::vec2 size, glm::vec4 color) const

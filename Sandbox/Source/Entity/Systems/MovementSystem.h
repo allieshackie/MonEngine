@@ -3,12 +3,12 @@
 class PhysicsSystem;
 class World;
 
-class MovementSystem
+class MovementSystem : public ISystem
 {
 public:
 	MovementSystem(PhysicsSystem& physicsSystem, std::weak_ptr<World> world);
 
-	void Update(float dt);
+	void Update(float dt) override;
 
 private:
 	PhysicsSystem& mPhysicsSystem;

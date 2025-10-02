@@ -11,8 +11,13 @@
 
 #include "MeshPipeline.h"
 
-void MeshPipeline::Render(LLGL::CommandBuffer& commands, const glm::mat4 projection, World* world)
+void MeshPipeline::Render(LLGL::CommandBuffer& commands, const glm::mat4 projection, std::weak_ptr<World> world)
 {
+	auto worldPtr = world.lock();
+	if (worldPtr == nullptr)
+	{
+		return;
+	}
 	if (!mQueuedLightEntities.empty())
 	{
 		_ProcessLights();
@@ -20,14 +25,14 @@ void MeshPipeline::Render(LLGL::CommandBuffer& commands, const glm::mat4 project
 
 	commands.SetPipelineState(*mPipeline);
 
-	frameSettings.view = world->GetCamera().GetView();
+	frameSettings.view = worldPtr->GetCamera().GetView();
 	frameSettings.projection = projection;
 	commands.UpdateBuffer(*mFrameBuffer, 0, &frameSettings, sizeof(frameSettings));
 
-	const auto meshView = world->GetRegistry().view<const TransformComponent, const ModelComponent>();
+	const auto meshView = worldPtr->GetRegistry().view<const TransformComponent, const ModelComponent>();
 
 	// Should either be a sprite or basic color
-	meshView.each([this, &commands, &world](
+	meshView.each([this, &commands, &worldPtr](
 		const TransformComponent& transform, const ModelComponent& modelComponent)
 		{
 			commands.SetResourceHeap(*mResourceHeap);
@@ -48,9 +53,9 @@ void MeshPipeline::Render(LLGL::CommandBuffer& commands, const glm::mat4 project
 					lightSettings.numLights = lightsSize;
 					UpdateLightBuffer();
 				}
-				if (lightSettings.viewPos != world->GetCamera().GetPosition())
+				if (lightSettings.viewPos != worldPtr->GetCamera().GetPosition())
 				{
-					lightSettings.viewPos = world->GetCamera().GetPosition();
+					lightSettings.viewPos = worldPtr->GetCamera().GetPosition();
 				}
 
 				meshSettings.model = modelTransform;
@@ -88,9 +93,19 @@ void MeshPipeline::SetPipeline(LLGL::CommandBuffer& commands) const
 	commands.SetPipelineState(*mPipeline);
 }
 
-MeshPipeline::MeshPipeline(const LLGL::RenderSystemPtr& renderSystem, const ResourceManager& resourceManager)
+MeshPipeline::MeshPipeline(const LLGL::RenderSystemPtr& renderSystem, const ResourceManager& resourceManager,
+                           std::weak_ptr<World> world)
 	: PipelineBase(), mRenderSystem(renderSystem), mResourceManager(resourceManager)
 {
+	if (auto worldPtr = world.lock())
+	{
+		EventFunc func = [this](Entity* entity)
+		{
+			AddLight(entity);
+		};
+		worldPtr->ConnectOnConstruct<LightComponent>(func);
+	}
+
 	// Initialization
 	{
 		InitConstantBuffer<MeshSettings>(renderSystem, meshSettings);
@@ -199,15 +214,6 @@ void MeshPipeline::SetResourceHeapTexture(LLGL::CommandBuffer& commands, LLGL::T
 void MeshPipeline::AddLight(Entity* entity)
 {
 	mQueuedLightEntities.push_back(entity);
-}
-
-void MeshPipeline::SetSceneCallbacks(const World* world)
-{
-	EventFunc func = [this](Entity* entity)
-	{
-		AddLight(entity);
-	};
-	world->ConnectOnConstruct<LightComponent>(func);
 }
 
 void MeshPipeline::UpdateLightBuffer() const

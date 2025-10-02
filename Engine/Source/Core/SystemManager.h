@@ -8,24 +8,36 @@
 class SystemManager
 {
 public:
-	void RegisterSystem(std::unique_ptr<ISystem> system)
+	template <typename T, typename... Args>
+	T* RegisterSystem(Args&&... args)
 	{
+		static_assert(std::is_base_of_v<ISystem, T>, "T must derive from ISystem");
+
+		std::unique_ptr<T> system = std::make_unique<T>(std::forward<Args>(args)...);
+		T* rawPtr = system.get();
 		mSystems.emplace_back(std::move(system));
+
+		return rawPtr;
 	}
 
-	void FixedUpdate(double dt) const
+	void FixedUpdate(float dt) const
 	{
 		for (auto& sys : mSystems) sys->FixedUpdate(dt);
 	}
 
-	void Update(double dt) const
+	void Update(float dt) const
 	{
 		for (auto& sys : mSystems) sys->Update(dt);
 	}
 
-	void Render() const
+	void Render(std::weak_ptr<World> world) const
 	{
-		for (auto& sys : mSystems) sys->Render();
+		for (auto& sys : mSystems) sys->Render(world);
+	}
+
+	void RenderGUI() const
+	{
+		for (auto& sys : mSystems) sys->RenderGUI();
 	}
 
 private:

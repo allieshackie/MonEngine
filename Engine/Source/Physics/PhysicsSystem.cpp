@@ -10,7 +10,7 @@
 #include "PhysicsSystem.h"
 
 PhysicsSystem::PhysicsSystem(RenderSystem& renderSystem, ResourceManager& resourceManager, std::weak_ptr<World> world)
-	: mResourceManager(resourceManager), mWorld(std::move(world))
+	: mResourceManager(resourceManager), mWorld(world)
 {
 	mBroadPhase = std::make_unique<btDbvtBroadphase>();
 	mConstraintSolver = std::make_unique<btSequentialImpulseConstraintSolver>();
@@ -25,6 +25,15 @@ PhysicsSystem::PhysicsSystem(RenderSystem& renderSystem, ResourceManager& resour
 
 	// setup
 	mDynamicWorld->setGravity(mGravityConst);
+
+	if (const auto worldShared = mWorld.lock())
+	{
+		EventFunc func = [this](Entity* entity)
+		{
+			AddEntityToInitialize(entity);
+		};
+		worldShared->ConnectOnConstruct<CollisionComponent>(func);
+	}
 
 	// TODO: Uncomment to turn on debug draw
 	//mPhysicsDebugDraw = std::make_unique<PhysicsDebugDraw>(renderSystem);
@@ -120,7 +129,7 @@ void PhysicsSystem::RegisterCollider(Entity* entity)
 	collider.mRigidBody = rigidBody;
 }
 
-void PhysicsSystem::Update(float dt)
+void PhysicsSystem::FixedUpdate(float dt)
 {
 	for (auto it = mEntitiesToInitialize.begin(); it != mEntitiesToInitialize.end();)
 	{
@@ -160,18 +169,6 @@ void PhysicsSystem::Update(float dt)
 				transform.mRotation = _ConvertQuatToRadians(orn);
 			}
 		});
-	}
-}
-
-void PhysicsSystem::SetSceneCallbacks()
-{
-	if (const auto world = mWorld.lock())
-	{
-		EventFunc func = [this](Entity* entity)
-		{
-			AddEntityToInitialize(entity);
-		};
-		world->ConnectOnConstruct<CollisionComponent>(func);
 	}
 }
 

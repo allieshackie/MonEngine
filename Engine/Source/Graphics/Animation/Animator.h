@@ -20,8 +20,6 @@ public:
 
 	void Update(float dt) override;
 
-	void SetSceneCallbacks() const;
-
 private:
 	void _UpdateAnimation(float deltaTime, Model& model, AnimationComponent& animComp, ModelComponent& mesh);
 	void _UpdateBlend(float deltaTime, AnimationComponent& animComp);

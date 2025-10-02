@@ -11,11 +11,10 @@
 #include "Entity/Descriptions/TransformDescription.h"
 #include "Graphics/Core/Node.h"
 #include "Graphics/Animation/Animator.h"
+#include "Graphics/RenderSystem.h"
 #include "GUI/GUISystem.h"
 
 #include "Sandbox.h"
-
-#include "Graphics/RenderSystem.h"
 
 int main()
 {
@@ -30,7 +29,7 @@ int main()
 void Sandbox::Run()
 {
 	// TODO: Re-add font, make sure to have font for gui
-	//mEngine->LoadFont("PixelLettersFull.ttf");
+	//mRenderSystem->LoadFont("PixelLettersFull.ttf");
 	mRenderContext->SetBackgroundClearColor({0.1f, 0.1f, 0.1f});
 	// TODO: Data drive theming to make it easier to have different styles
 	//GUISystem::LoadGUITheme();
@@ -60,41 +59,39 @@ void Sandbox::Run()
 
 		while (timer->mAccumulator >= deltaTime)
 		{
-			_FixedUpdate(timer->mDT);
+			mSystemManager->FixedUpdate(timer->mDT);
 			timer->mAccumulator -= timer->mDT;
 		}
 
-		auto world = mSceneManager->GetCurrentWorld();
-
 		mInputHandler->Update();
-		mMovementSystem->Update(deltaTime);
-		world->GetCamera().Update();
-		mAnimator->Update(deltaTime);
+		mSystemManager->Update(timer->mDT);
 
-		// TODO: Debug draw axis
-		_DrawAxis();
-		// TODO: Debug draw model bones
-		//_DebugDrawBones();
-
-		mRenderContext->BeginFrame();
-
+		auto world = mSceneManager->GetCurrentWorld();
 		if (world)
 		{
-			mRenderSystem->Render(world.get());
-		}
+			world->GetCamera().Update();
 
-		// Render GUI last so menus draw on top
-		GUISystem::GUIStartFrame();
-		GUISystem::RenderMenus();
-		// TODO: Debug Gui menu
-		//GUISystem::RenderGuiElements();
-		if (mEditorGUI != nullptr)
-		{
-			mEditorGUI->Render(deltaTime);
-		}
-		GUISystem::GUIEndFrame();
+			// TODO: Debug draw axis
+			_DrawAxis();
+			// TODO: Debug draw model bones
+			//_DebugDrawBones();
 
-		mRenderContext->EndFrame();
+			mRenderContext->BeginFrame();
+
+			mSystemManager->Render(world);
+
+			// Render GUI last so menus draw on top
+			GUISystem::GUIStartFrame();
+			GUISystem::RenderMenus();
+			// TODO: Debug Gui menu
+			//GUISystem::RenderGuiElements();
+
+			mSystemManager->RenderGUI();
+
+			GUISystem::GUIEndFrame();
+
+			mRenderContext->EndFrame();
+		}
 
 		if (mLuaSystem->QueueCloseScripts())
 		{
@@ -110,16 +107,13 @@ void Sandbox::SetGUIMenu(std::unique_ptr<GUIBase> gui)
 	mGUIMenu = std::move(gui);
 }
 
-void Sandbox::_FixedUpdate(float dt) const
-{
-	mPhysicsSystem->Update(dt);
-}
-
 Sandbox::Sandbox(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
                  const LLGL::ColorRGBAf backgroundClearColor, bool usePerspective, bool transparent)
 {
-	// Init all systems **without** dependencies
+	mSystemManager = std::make_unique<SystemManager>();
 	mInputHandler = std::make_shared<InputHandler>();
+
+	// Init all systems **without** dependencies
 	mResourceManager = std::make_unique<ResourceManager>();
 	mDescriptionFactory = std::make_unique<DescriptionFactory>();
 	mEventPublisher = std::make_unique<EventPublisher>();
@@ -147,21 +141,14 @@ Sandbox::Sandbox(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
 	GUISystem::InitGUI(*mRenderContext);
 	mResourceManager->LoadAllResources(mRenderContext->GetRenderSystem());
 
-	mRenderSystem = std::make_unique<RenderSystem>(*mRenderContext, *mResourceManager);
+	auto world = mSceneManager->GetCurrentWorld();
+	mRenderSystem = mSystemManager->RegisterSystem<RenderSystem>(*mRenderContext, *mResourceManager, world);
 	// Gameplay systems
-	mAnimator = std::make_unique<AnimatorSystem>(*mResourceManager, mSceneManager->GetCurrentWorld());
-	mPhysicsSystem = std::make_unique<PhysicsSystem>(*mRenderSystem, *mResourceManager,
-	                                                 mSceneManager->GetCurrentWorld());
-	mMovementSystem = std::make_unique<MovementSystem>(*mPhysicsSystem, mSceneManager->GetCurrentWorld());
-	mPlayerSystem = std::make_unique<PlayerSystem>(*mInputHandler);
-	mEditorGUI = std::make_unique<EditorGUI>(*mInputHandler, mSceneManager->GetCurrentWorld(), *mRenderContext,
-	                                         *mResourceManager);
-
-	// loading new scene means setting up callbacks for various systems
-	mAnimator->SetSceneCallbacks();
-	mPhysicsSystem->SetSceneCallbacks();
-	mRenderSystem->SetSceneCallbacks(mSceneManager->GetCurrentWorld().get());
-	mPlayerSystem->SetSceneCallbacks(mSceneManager->GetCurrentWorld().get());
+	mSystemManager->RegisterSystem<AnimatorSystem>(*mResourceManager, world);
+	auto physicsSystem = mSystemManager->RegisterSystem<PhysicsSystem>(*mRenderSystem, *mResourceManager, world);
+	mSystemManager->RegisterSystem<MovementSystem>(*physicsSystem, world);
+	mSystemManager->RegisterSystem<PlayerSystem>(mInputHandler, world);
+	mSystemManager->RegisterSystem<EditorGUI>(mInputHandler, world, *mRenderContext, *mResourceManager);
 }
 
 void Sandbox::ToggleEditorMode(bool toggle) const

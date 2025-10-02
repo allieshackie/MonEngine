@@ -1,5 +1,6 @@
 #pragma once
 #include "MapEditor.h"
+#include "Core/ISystem.h"
 #include "ContextMenus/EntityMenu.h"
 #include "ObjectGUI.h"
 
@@ -9,13 +10,13 @@ class RenderContext;
 class ResourceManager;
 class World;
 
-class EditorGUI
+class EditorGUI : public ISystem
 {
 public:
-	EditorGUI(InputHandler& inputHandler, std::weak_ptr<World> world, RenderContext& renderContext,
+	EditorGUI(std::weak_ptr<InputHandler> inputHandler, std::weak_ptr<World> world, RenderContext& renderContext,
 	          ResourceManager& resourceManager);
 
-	void Render(float dt);
+	void RenderGUI() override;
 
 private:
 	void _MainMenu(Camera& camera) const;
@@ -28,6 +29,6 @@ private:
 	ImVec2 mSize = {250, 300};
 	ImGuiWindowFlags mWindowFlags = ImGuiWindowFlags_None;
 
-	InputHandler& mInputHandler;
+	std::weak_ptr<InputHandler> mInputHandler;
 	std::weak_ptr<World> mWorld;
 };

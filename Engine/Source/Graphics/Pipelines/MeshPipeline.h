@@ -16,13 +16,13 @@ struct TransformComponent;
 class MeshPipeline : public PipelineBase
 {
 public:
-	MeshPipeline(const LLGL::RenderSystemPtr& renderSystem, const ResourceManager& resourceManager);
+	MeshPipeline(const LLGL::RenderSystemPtr& renderSystem, const ResourceManager& resourceManager,
+	             std::weak_ptr<World> world);
 
-	void Render(LLGL::CommandBuffer& commands, const glm::mat4 projection, World* world);
+	void Render(LLGL::CommandBuffer& commands, const glm::mat4 projection, std::weak_ptr<World> world);
 
 	void SetPipeline(LLGL::CommandBuffer& commands) const;
 	void SetResourceHeapTexture(LLGL::CommandBuffer& commands, LLGL::Texture& texture) const;
-	void SetSceneCallbacks(const World* world);
 
 	void UpdateLightBuffer() const;
 	void AddLight(Entity* entity);

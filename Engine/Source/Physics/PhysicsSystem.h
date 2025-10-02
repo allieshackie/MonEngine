@@ -5,13 +5,14 @@
 #include <bullet/BulletSoftBody/btSoftRigidDynamicsWorld.h>
 
 #include "PhysicsDebugDraw.h"
+#include "Core/ISystem.h"
 
 class Entity;
 class RenderSystem;
 class ResourceManager;
 class World;
 
-class PhysicsSystem
+class PhysicsSystem : public ISystem
 {
 public:
 	PhysicsSystem(RenderSystem& renderSystem, ResourceManager& resourceManager, std::weak_ptr<World> world);
@@ -19,9 +20,7 @@ public:
 	void RegisterCollider(Entity* entity);
 	void AddEntityToInitialize(Entity* entity);
 
-	void Update(float dt);
-
-	void SetSceneCallbacks();
+	void FixedUpdate(float dt) override;
 
 	btDiscreteDynamicsWorld& GetDynamicWorld() const { return *mDynamicWorld; }
 

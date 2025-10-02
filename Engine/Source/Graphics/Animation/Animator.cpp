@@ -9,8 +9,16 @@
 #include "Animator.h"
 
 AnimatorSystem::AnimatorSystem(ResourceManager& resourceManager, std::weak_ptr<World> world) :
-	mWorld(std::move(world)), mResourceManager(resourceManager)
+	mWorld(world), mResourceManager(resourceManager)
 {
+	if (const auto worldShared = mWorld.lock())
+	{
+		EventFunc func = [this](Entity* entity)
+		{
+			_SetJointMatrixCount(entity);
+		};
+		worldShared->ConnectOnConstruct<ModelComponent>(func);
+	}
 }
 
 void AnimatorSystem::Update(float dt)
@@ -24,18 +32,6 @@ void AnimatorSystem::Update(float dt)
 			auto& model = mResourceManager.GetModelFromId(mesh.mModelPath);
 			_UpdateAnimation(dt, model, anim, mesh);
 		});
-	}
-}
-
-void AnimatorSystem::SetSceneCallbacks() const
-{
-	if (const auto world = mWorld.lock())
-	{
-		EventFunc func = [this](Entity* entity)
-		{
-			_SetJointMatrixCount(entity);
-		};
-		world->ConnectOnConstruct<ModelComponent>(func);
 	}
 }
 

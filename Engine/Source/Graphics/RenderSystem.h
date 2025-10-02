@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Core/ISystem.h"
 #include "Graphics/Pipelines/ImmediatePipeline.h"
 #include "Graphics/Pipelines/MeshPipeline.h"
 #include "Pipelines/OverlayPipeline.h"
@@ -11,14 +12,13 @@ class RenderContext;
 class ResourceManager;
 class World;
 
-class RenderSystem
+class RenderSystem : public ISystem
 {
 public:
-	RenderSystem(RenderContext& context, const ResourceManager& resourceManager);
+	RenderSystem(RenderContext& context, const ResourceManager& resourceManager, std::weak_ptr<World> world);
 
-	void Render(World* world) const;
+	void Render(std::weak_ptr<World> world) override;
 
-	void SetSceneCallbacks(const World* world) const;
 	void LoadFont(const char* fontFileName) const;
 	void ClearOverlay() const;
 

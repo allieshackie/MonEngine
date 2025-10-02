@@ -2,6 +2,7 @@
 
 #include "Core/EventListener.h"
 #include "Core/SceneManager.h"
+#include "Core/SystemManager.h"
 #include "Editor/EditorGUI.h"
 #include "Entity/Descriptions/DescriptionFactory.h"
 #include "Entity/Systems/MovementSystem.h"
@@ -35,8 +36,6 @@ public:
 	void ToggleEditorMode(bool toggle) const;
 
 private:
-	void _FixedUpdate(float dt) const;
-
 	// Debug
 	void _DrawAxis() const;
 	void _DebugDrawBones() const;
@@ -45,12 +44,7 @@ private:
 
 	std::unique_ptr<DescriptionFactory> mDescriptionFactory;
 	std::unique_ptr<RenderContext> mRenderContext;
-	std::unique_ptr<RenderSystem> mRenderSystem;
-
-	std::shared_ptr<InputHandler> mInputHandler;
-
 	std::unique_ptr<ResourceManager> mResourceManager;
-	std::unique_ptr<AnimatorSystem> mAnimator;
 
 	std::unique_ptr<SceneManager> mSceneManager;
 	std::unique_ptr<GUIBase> mGUIMenu;
@@ -58,12 +52,12 @@ private:
 	std::unique_ptr<EditorGUI> mEditorGUI;
 
 	std::unique_ptr<EventPublisher> mEventPublisher;
+	std::unique_ptr<SystemManager> mSystemManager;
+	std::unique_ptr<MapRegistry> mMapRegistry;
 
 	// systems
-	std::unique_ptr<MapRegistry> mMapRegistry;
-	std::unique_ptr<PhysicsSystem> mPhysicsSystem;
-	std::unique_ptr<MovementSystem> mMovementSystem;
-	std::unique_ptr<PlayerSystem> mPlayerSystem;
+	std::shared_ptr<InputHandler> mInputHandler;
+	RenderSystem* mRenderSystem;
 
 	bool mRunning = true;
 	bool mDebugDraw = false;

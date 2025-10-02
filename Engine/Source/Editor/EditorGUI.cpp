@@ -7,16 +7,16 @@
 
 #include "EditorGUI.h"
 
-EditorGUI::EditorGUI(InputHandler& inputHandler, std::weak_ptr<World> world, RenderContext& renderContext,
+EditorGUI::EditorGUI(std::weak_ptr<InputHandler> inputHandler, std::weak_ptr<World> world, RenderContext& renderContext,
                      ResourceManager& resourceManager)
-	: mInputHandler(inputHandler), mWorld(std::move(world))
+	: mInputHandler(inputHandler), mWorld(world)
 {
 	//mMapEditor = std::make_unique<MapEditor>(engineContext, inputHandler, levelManager, mapRegistry, renderContext);
 	mObjectGUI = std::make_unique<ObjectGUI>();
 	mEntityMenu = std::make_unique<EntityMenu>(inputHandler, mWorld, renderContext);
 }
 
-void EditorGUI::Render(float dt)
+void EditorGUI::RenderGUI()
 {
 	if (ImGui::Begin("Editor", &mOpen, mWindowFlags))
 	{
@@ -31,22 +31,28 @@ void EditorGUI::Render(float dt)
 			return;
 		}
 
+		auto inputHandlerPtr = mInputHandler.lock();
+		if (inputHandlerPtr == nullptr)
+		{
+			return;
+		}
+
 		// Inputs
 		ImGui::Text("Current Key: ");
-		const auto& keysPressed = mInputHandler.GetKeysPressed();
+		const auto& keysPressed = inputHandlerPtr->GetKeysPressed();
 		for (const auto& key : keysPressed)
 		{
 			ImGui::SameLine();
-			ImGui::Text(mInputHandler.GetNameForKey(key));
+			ImGui::Text(inputHandlerPtr->GetNameForKey(key));
 		}
 		ImGui::NewLine();
 
 		ImGui::Text("Previous Key: ");
-		const auto& previousKeysPressed = mInputHandler.GetPreviousKeysHeld();
+		const auto& previousKeysPressed = inputHandlerPtr->GetPreviousKeysHeld();
 		for (const auto& key : previousKeysPressed)
 		{
 			ImGui::SameLine();
-			ImGui::Text(mInputHandler.GetNameForKey(key));
+			ImGui::Text(inputHandlerPtr->GetNameForKey(key));
 		}
 		ImGui::NewLine();
 
