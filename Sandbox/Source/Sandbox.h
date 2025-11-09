@@ -5,23 +5,20 @@
 #include "Core/SystemManager.h"
 #include "Editor/EditorGUI.h"
 #include "Entity/Descriptions/DescriptionFactory.h"
-#include "Entity/Systems/MovementSystem.h"
-#include "Entity/Systems/PlayerSystem.h"
 #include "Graphics/RenderContext.h"
 #include "Graphics/Core/ResourceManager.h"
 #include "GUI/GUIBase.h"
 #include "Input/InputHandler.h"
 #include "Map/MapRegistry.h"
-#include "Physics/PhysicsSystem.h"
 #include "Scripting/LuaSystem.h"
 
 class Sandbox
 {
 public:
-	Sandbox(const LLGL::Extent2D screenSize = {800, 600},
+	Sandbox(const LLGL::Extent2D screenSize = {1200, 800},
 	        const LLGL::UTF8String& title = "Sandbox",
 	        const LLGL::ColorRGBAf backgroundClearColor = {0.0f, 0.0f, 0.0f, 1.0f},
-	        bool usePerspective = true, bool transparent = false);
+	        bool transparent = false);
 
 	void Run();
 
@@ -33,15 +30,9 @@ public:
 		mDescriptionFactory->RegisterDescription<T>(descriptionName);
 	}
 
-	void ToggleEditorMode(bool toggle) const;
+	void ToggleEditorMode(bool toggle);
 
 private:
-	// Debug
-	void _DrawAxis() const;
-	void _DebugDrawBones() const;
-	void _RenderModelBones(Model& model, const ModelComponent& modelComp, int nodeIndex,
-	                       const glm::mat4 parentTransform) const;
-
 	std::unique_ptr<DescriptionFactory> mDescriptionFactory;
 	std::unique_ptr<RenderContext> mRenderContext;
 	std::unique_ptr<ResourceManager> mResourceManager;
@@ -60,5 +51,4 @@ private:
 	RenderSystem* mRenderSystem;
 
 	bool mRunning = true;
-	bool mDebugDraw = false;
 };

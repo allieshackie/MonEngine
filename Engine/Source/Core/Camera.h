@@ -29,8 +29,16 @@ public:
 	const glm::vec3& GetFront() const { return mCameraFront; }
 	const glm::vec3& GetRight() const { return mCameraRight; }
 
-	void ToggleFollowCam() { mFollowCam = !mFollowCam; }
-	bool& GetFollowCamFlag() { return mFollowCam; } // Returns a reference
+	void ToggleFollowCam();
+
+	// Used for Editor menu
+	bool& GetFollowCamFlag() { return mFollowCam; }
+	float& GetCameraFollowOffsetX() { return mCameraFollowOffset.x; }
+	float& GetCameraFollowOffsetY() { return mCameraFollowOffset.y; }
+	float& GetCameraFollowOffsetZ() { return mCameraFollowOffset.z; }
+	float& GetCameraLookOffsetX() { return mCameraLookOffset.x; }
+	float& GetCameraLookOffsetY() { return mCameraLookOffset.y; }
+	float& GetCameraLookOffsetZ() { return mCameraLookOffset.z; }
 
 	void SetPosition(const glm::vec3 pos);
 	void SetFront(const glm::vec3 front);
@@ -43,6 +51,8 @@ public:
 private:
 	Entity* mCameraTargetEntity = nullptr;
 	glm::vec3 mCameraTarget = {0.0f, 0.0f, 0.0f};
+	glm::vec3 mCameraFollowTarget = {0.0f, 0.0f, 0.0f};
+
 	glm::vec3 mCameraFollowOffset = {0.0f, 10.0f, -20.0f};
 	glm::vec3 mCameraLookOffset = {0.0f, 6.0f, -1.0f};
 

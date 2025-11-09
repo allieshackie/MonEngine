@@ -12,7 +12,7 @@ struct ModelComponent
 	std::vector<glm::mat4> mFinalTransforms;
 
 	// debug runtime
-	int mCurrentBoneIndex = 0;
+	int mCurrentBoneIndex = -1;
 
 	template <class Archive>
 	void serialize(Archive& archive)

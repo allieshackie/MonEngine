@@ -7,10 +7,9 @@
 #include "RenderContext.h"
 
 RenderContext::RenderContext(const LLGL::Extent2D screenSize, const LLGL::ColorRGBAf backgroundColor,
-                             bool usePerspective, const LLGL::UTF8String& title,
-                             const std::shared_ptr<InputHandler>& inputHandler,
+                             const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler,
                              bool transparent)
-	: mBackgroundColor(backgroundColor), mUsePerspective(usePerspective)
+	: mBackgroundColor(backgroundColor)
 {
 	try
 	{
@@ -142,14 +141,12 @@ bool RenderContext::ProcessEvents() const
 void RenderContext::UpdateProjection()
 {
 	const auto res = mSwapChain->GetResolution();
-	const auto perspective = glm::perspective(glm::radians(45.0f),
+	mPerspectiveProjection = glm::perspective(glm::radians(45.0f),
 	                                          static_cast<float>(res.width) / static_cast<float>(res.height),
 	                                          0.1f, 100.0f);
 
-	const auto ortho = glm::ortho(0.0f, static_cast<float>(res.width), static_cast<float>(res.height), 0.0f, 0.1f,
+	mOrthoProjection = glm::ortho(0.0f, static_cast<float>(res.width), 0.0f, static_cast<float>(res.height), 0.1f,
 	                              100.0f);
-
-	mProjection = mUsePerspective ? perspective : ortho;
 }
 
 glm::vec3 RenderContext::NormalizedDeviceCoords(glm::vec3 vec) const
@@ -160,11 +157,6 @@ glm::vec3 RenderContext::NormalizedDeviceCoords(glm::vec3 vec) const
 		1.0f - (2.0f * vec.y) / res.height,
 		vec.z
 	};
-}
-
-glm::mat4 RenderContext::GetProjection() const
-{
-	return mProjection;
 }
 
 void RenderContext::ResizeBuffers(const LLGL::Extent2D& size) const

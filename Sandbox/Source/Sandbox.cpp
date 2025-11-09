@@ -9,16 +9,18 @@
 #include "Entity/Descriptions/PlayerDescription.h"
 #include "Entity/Descriptions/SpriteDescription.h"
 #include "Entity/Descriptions/TransformDescription.h"
-#include "Graphics/Core/Node.h"
+#include "Entity/Systems/MovementSystem.h"
+#include "Entity/Systems/PlayerSystem.h"
 #include "Graphics/Animation/Animator.h"
 #include "Graphics/RenderSystem.h"
 #include "GUI/GUISystem.h"
+#include "Physics/PhysicsSystem.h"
 
 #include "Sandbox.h"
 
 int main()
 {
-	const auto game = std::make_unique<Sandbox>(LLGL::Extent2D{800, 600}, "Sandbox",
+	const auto game = std::make_unique<Sandbox>(LLGL::Extent2D{1200, 800}, "Sandbox",
 	                                            LLGL::ColorRGBAf{1.0f, 0.5f, 1.0f});
 
 	game->Run();
@@ -71,10 +73,6 @@ void Sandbox::Run()
 		{
 			world->GetCamera().Update();
 
-			// TODO: Debug draw axis
-			_DrawAxis();
-			// TODO: Debug draw model bones
-			//_DebugDrawBones();
 
 			mRenderContext->BeginFrame();
 
@@ -83,7 +81,6 @@ void Sandbox::Run()
 			// Render GUI last so menus draw on top
 			GUISystem::GUIStartFrame();
 			GUISystem::RenderMenus();
-			// TODO: Debug Gui menu
 			//GUISystem::RenderGuiElements();
 
 			mSystemManager->RenderGUI();
@@ -108,7 +105,7 @@ void Sandbox::SetGUIMenu(std::unique_ptr<GUIBase> gui)
 }
 
 Sandbox::Sandbox(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
-                 const LLGL::ColorRGBAf backgroundClearColor, bool usePerspective, bool transparent)
+                 const LLGL::ColorRGBAf backgroundClearColor, bool transparent)
 {
 	mSystemManager = std::make_unique<SystemManager>();
 	mInputHandler = std::make_shared<InputHandler>();
@@ -119,8 +116,8 @@ Sandbox::Sandbox(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
 	mEventPublisher = std::make_unique<EventPublisher>();
 	mMapRegistry = std::make_unique<MapRegistry>();
 	mLuaSystem = std::make_unique<LuaSystem>();
-	mRenderContext = std::make_unique<RenderContext>(screenSize, backgroundClearColor, usePerspective, title,
-	                                                 mInputHandler, transparent);
+	mRenderContext = std::make_unique<RenderContext>(screenSize, backgroundClearColor, title, mInputHandler,
+	                                                 transparent);
 
 	// Must be called before SceneManager sets up description factory
 	mDescriptionFactory->RegisterDescription<AnimationDescription>(AnimationDescription::JsonName);
@@ -148,10 +145,10 @@ Sandbox::Sandbox(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
 	auto physicsSystem = mSystemManager->RegisterSystem<PhysicsSystem>(*mRenderSystem, *mResourceManager, world);
 	mSystemManager->RegisterSystem<MovementSystem>(*physicsSystem, world);
 	mSystemManager->RegisterSystem<PlayerSystem>(mInputHandler, world);
-	mSystemManager->RegisterSystem<EditorGUI>(mInputHandler, world, *mRenderContext, *mResourceManager);
+	mSystemManager->RegisterSystem<EditorGUI>(mInputHandler, world, *mRenderContext, *mResourceManager, *mRenderSystem);
 }
 
-void Sandbox::ToggleEditorMode(bool toggle) const
+void Sandbox::ToggleEditorMode(bool toggle)
 {
 	if (toggle)
 	{
@@ -159,84 +156,5 @@ void Sandbox::ToggleEditorMode(bool toggle) const
 		{
 			mInputHandler->AddEditorInputs(mSceneManager->GetCurrentWorld()->GetCamera());
 		}
-	}
-}
-
-void Sandbox::_DrawAxis() const
-{
-	mRenderSystem->ClearOverlay();
-	const glm::mat4& view = mSceneManager->GetCurrentWorld()->GetCamera().GetView();
-	auto cameraRotation = glm::mat3(glm::inverse(view));
-	glm::vec3 X = cameraRotation * glm::vec3{1, 0, 0};
-	glm::vec3 Y = cameraRotation * glm::vec3{0, 1, 0};
-	glm::vec3 Z = cameraRotation * glm::vec3{0, 0, 1};
-
-	auto origin = glm::vec2(0, 0); // bottom-left corner in pixels
-	float axisLength = 5.0;
-
-	auto project = [&](const glm::vec3& v)
-	{
-		return origin + glm::vec2(v.x, -v.y) * axisLength; // note Y flip
-	};
-
-	glm::vec2 xEnd = project(X);
-	glm::vec2 yEnd = project(Y);
-	glm::vec2 zEnd = project(Z);
-	// Draw the XYZ axis at 0,0,0
-	// X Axis: Red.  Box on positive end
-	mRenderSystem->DrawOverlayLine(origin, xEnd, {255, 0, 0, 1});
-	// Y Axis: Green
-	//mRenderSystem->DrawOverlayLine(origin, yEnd, {0, 255, 0, 1});
-	// Z Axis: Blue
-	//mRenderSystem->DrawOverlayLine(origin, zEnd, {0, 0, 255, 1});
-
-	// Draw Floor Grid
-	//mRenderSystem->DrawGrid();
-}
-
-void Sandbox::_DebugDrawBones() const
-{
-	const auto modelView = mSceneManager->GetCurrentWorld()->GetRegistry().view<const ModelComponent>();
-
-	// Should either be a sprite or basic color
-	modelView.each([=](const ModelComponent& modelComp)
-	{
-		auto model = mResourceManager->GetModelFromId(modelComp.mModelPath);
-		_RenderModelBones(model, modelComp, model.GetRootNodeIndex(), glm::mat4(1.0f));
-	});
-}
-
-void Sandbox::_RenderModelBones(Model& model, const ModelComponent& modelComp, int nodeIndex,
-                                const glm::mat4 parentTransform) const
-{
-	const auto node = model.GetNodeAt(nodeIndex);
-
-	if (node == nullptr)
-	{
-		return;
-	}
-
-	const auto jointNode = model.GetJointDataAt(node->mJointIndex);
-
-	glm::mat4 globalTransform = parentTransform * node->mTransform;
-	auto bonePosition = glm::vec3(globalTransform[3]);
-	auto parentPosition = glm::vec3(parentTransform[3]);
-
-	// Default length for visualization purposes
-	float defaultLength = 1.0f; // Adjust this as needed
-	glm::vec3 direction = glm::normalize(bonePosition - parentPosition) * defaultLength;
-	glm::vec3 endPosition = bonePosition + direction;
-
-	glm::vec4 color = {1, 1, 1, 1};
-	if (strcmp(jointNode->mId.c_str(), "Head") == 0)
-	{
-		color = {1, 0, 0, 1};
-	}
-
-	mRenderSystem->DrawLine(bonePosition, endPosition, color);
-
-	for (const auto child : node->mChildren)
-	{
-		_RenderModelBones(model, modelComp, child, globalTransform);
 	}
 }

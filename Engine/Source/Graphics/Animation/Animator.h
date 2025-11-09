@@ -36,6 +36,9 @@ private:
 
 	glm::mat4 _InterpolateMatrices(const glm::mat4& matA, const glm::mat4& matB, float blendFactor) const;
 
+	glm::mat4 _GetJointNodeTransformFromScene(Model& model, const glm::mat4 parentTransform, int nodeIndex,
+	                                          int jointNodeIndex);
+
 	void _ApplyBlendTime(const AnimationComponent& animComp);
 	void _SetJointMatrixCount(Entity* entity) const;
 
@@ -46,4 +49,5 @@ private:
 
 	std::weak_ptr<World> mWorld;
 	ResourceManager& mResourceManager;
+	glm::mat4 mJointRootTransform = glm::mat4(1.0f);
 };

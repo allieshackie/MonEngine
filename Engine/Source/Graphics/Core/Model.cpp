@@ -71,3 +71,13 @@ Node* Model::GetNodeAt(int nodeIndex) const
 
 	return mNodes[nodeIndex];
 }
+
+MeshData* Model::GetMeshAt(int nodeIndex) const
+{
+	if (nodeIndex > mMeshes.size())
+	{
+		return nullptr;
+	}
+
+	return mMeshes[nodeIndex];
+}

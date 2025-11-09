@@ -24,68 +24,84 @@ void MeshPipeline::Render(LLGL::CommandBuffer& commands, const glm::mat4 project
 	}
 
 	commands.SetPipelineState(*mPipeline);
+	commands.SetResourceHeap(*mResourceHeap);
 
 	frameSettings.view = worldPtr->GetCamera().GetView();
 	frameSettings.projection = projection;
 	commands.UpdateBuffer(*mFrameBuffer, 0, &frameSettings, sizeof(frameSettings));
 
 	const auto meshView = worldPtr->GetRegistry().view<const TransformComponent, const ModelComponent>();
-
-	// Should either be a sprite or basic color
 	meshView.each([this, &commands, &worldPtr](
 		const TransformComponent& transform, const ModelComponent& modelComponent)
 		{
-			commands.SetResourceHeap(*mResourceHeap);
 			const auto& model = mResourceManager.GetModelFromId(modelComponent.mModelPath);
 
-			for (const auto node : model.GetNodes())
-			{
-				// Mesh Settings
-				// Update
-				auto modelTransform = node->mTransform;
-				// TODO: auto calculatedSize = model.CalculateModelScaling(transform.mSize);
-				modelTransform = glm::scale(modelTransform, transform.mSize);
-
-				// Light Settings
-				int lightsSize = static_cast<int>(mLights.size());
-				if (lightsSize != lightSettings.numLights)
-				{
-					lightSettings.numLights = lightsSize;
-					UpdateLightBuffer();
-				}
-				if (lightSettings.viewPos != worldPtr->GetCamera().GetPosition())
-				{
-					lightSettings.viewPos = worldPtr->GetCamera().GetPosition();
-				}
-
-				meshSettings.model = modelTransform;
-				std::uint64_t transformOffset = 0;
-				for (const auto& finalTransform : modelComponent.mFinalTransforms)
-				{
-					mRenderSystem->WriteBuffer(*mBoneBuffer, transformOffset, &(finalTransform), sizeof(glm::mat4));
-					transformOffset += sizeof(glm::mat4);
-				}
-
-				commands.UpdateBuffer(*mLightConstantBuffer, 0, &lightSettings, sizeof(lightSettings));
-			}
-
-			// Set resources
-			for (const auto meshData : model.GetMeshes())
-			{
-				//meshSettings.solidColor = model.mColor;
-				meshSettings.hasBones = model.GetNumJoints() > 0;
-				meshSettings.hasTexture = meshData->mTextureId != -1;
-				meshSettings.gTargetBone = static_cast<float>(modelComponent.mCurrentBoneIndex);
-				commands.UpdateBuffer(*mConstantBuffer, 0, &meshSettings, sizeof(meshSettings));
-				auto& texture = mResourceManager.GetTexture(meshData->mTextureId);
-				auto& sampler = mResourceManager.GetSampler(meshData->mTextureId);
-				commands.SetResource(0, texture);
-				commands.SetResource(1, sampler);
-				commands.SetVertexBuffer(*meshData->mVertexBuffer);
-				commands.SetIndexBuffer(*meshData->mIndexBuffer);
-				commands.DrawIndexed(meshData->mNumIndices, 0);
-			}
+			_RenderNode(commands, model, model.GetRootSceneIndex(), transform, modelComponent, worldPtr);
 		});
+}
+
+void MeshPipeline::_RenderNode(LLGL::CommandBuffer& commands, const Model& model, int nodeIndex,
+                               const TransformComponent& transform, const ModelComponent& modelComponent,
+                               std::shared_ptr<World> world)
+{
+	const auto node = model.GetNodeAt(nodeIndex);
+
+	if (const auto meshData = model.GetMeshAt(node->mMeshIndex); meshData != nullptr)
+	{
+		// TODO: auto calculatedSize = model.CalculateModelScaling(transform.mSize);
+		// Update
+		auto modelTransform = glm::mat4(1.0f);
+
+		// Translation matrix
+		modelTransform = glm::translate(modelTransform, transform.mPosition);
+
+		// Apply rotation in ZXY order
+		modelTransform = glm::rotate(modelTransform, glm::radians(transform.mRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+		modelTransform = glm::rotate(modelTransform, glm::radians(transform.mRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+		modelTransform = glm::rotate(modelTransform, glm::radians(transform.mRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+
+		//auto calculatedSize = meshModel.CalculateModelScaling(transform.mSize);
+		modelTransform = glm::scale(modelTransform, transform.mSize);
+
+		int lightsSize = static_cast<int>(mLights.size());
+		if (lightsSize != lightSettings.numLights)
+		{
+			lightSettings.numLights = lightsSize;
+			UpdateLightBuffer();
+		}
+		if (lightSettings.viewPos != world->GetCamera().GetPosition())
+		{
+			lightSettings.viewPos = world->GetCamera().GetPosition();
+		}
+
+		meshSettings.model = modelTransform;
+		std::uint64_t transformOffset = 0;
+		for (const auto& finalTransform : modelComponent.mFinalTransforms)
+		{
+			mRenderSystem->WriteBuffer(*mBoneBuffer, transformOffset, &(finalTransform), sizeof(glm::mat4));
+			transformOffset += sizeof(glm::mat4);
+		}
+
+		commands.UpdateBuffer(*mLightConstantBuffer, 0, &lightSettings, sizeof(lightSettings));
+
+		//meshSettings.solidColor = model.mColor;
+		meshSettings.hasBones = model.GetNumJoints() > 0;
+		meshSettings.hasTexture = meshData->mTextureId != -1;
+		meshSettings.gTargetBone = static_cast<float>(modelComponent.mCurrentBoneIndex);
+		commands.UpdateBuffer(*mConstantBuffer, 0, &meshSettings, sizeof(meshSettings));
+		auto& texture = mResourceManager.GetTexture(meshData->mTextureId);
+		auto& sampler = mResourceManager.GetSampler(meshData->mTextureId);
+		commands.SetResource(0, texture);
+		commands.SetResource(1, sampler);
+		commands.SetVertexBuffer(*meshData->mVertexBuffer);
+		commands.SetIndexBuffer(*meshData->mIndexBuffer);
+		commands.DrawIndexed(meshData->mNumIndices, 0);
+	}
+
+	for (const auto& child : node->mChildren)
+	{
+		_RenderNode(commands, model, child, transform, modelComponent, world);
+	}
 }
 
 void MeshPipeline::SetPipeline(LLGL::CommandBuffer& commands) const
@@ -97,7 +113,7 @@ MeshPipeline::MeshPipeline(const LLGL::RenderSystemPtr& renderSystem, const Reso
                            std::weak_ptr<World> world)
 	: PipelineBase(), mRenderSystem(renderSystem), mResourceManager(resourceManager)
 {
-	if (auto worldPtr = world.lock())
+	if (const auto worldPtr = world.lock())
 	{
 		EventFunc func = [this](Entity* entity)
 		{

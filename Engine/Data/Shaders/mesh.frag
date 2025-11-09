@@ -79,9 +79,12 @@ void main()
         }
     }
 
-    fragColor = vec4(result * color.rgb, 1.0);
-    // Debug: Show bone weight
-    //fragColor = vBoneDebugColor;
+    if (gTargetBone != -1) {
+        fragColor = vBoneDebugColor;
+    }
+    else {
+        fragColor = vec4(result * color.rgb, 1.0);
+    }
     // Debug: Show UV color coords
     //fragColor = vec4(vTexCoord, 0.0, 1.0);  // Show UVs as colors
 }

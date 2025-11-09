@@ -40,7 +40,7 @@ void AnimatorSystem::_UpdateAnimation(float deltaTime, Model& model, AnimationCo
 	const auto animation = model.GetAnimation(animComp.mCurrentAnimState);
 	const auto prevAnimation = model.GetAnimation(animComp.mPrevAnimState);
 
-	mCurrentAnimationTime += deltaTime;
+	mCurrentAnimationTime += deltaTime * 0.6f; // TODO: 0.6f limits the animation timing
 	if (animComp.mUpdated)
 	{
 		_ApplyBlendTime(animComp);
@@ -64,7 +64,7 @@ void AnimatorSystem::_UpdateAnimation(float deltaTime, Model& model, AnimationCo
 		}
 	}
 
-	_UpdateJointHierarchy(model, animComp, mesh, animation, prevAnimation, model.GetRootNodeIndex(),
+	_UpdateJointHierarchy(model, animComp, mesh, animation, prevAnimation, model.GetRootSceneIndex(),
 	                      glm::mat4(1.0f));
 }
 
@@ -99,16 +99,16 @@ void AnimatorSystem::_UpdateJointHierarchy(Model& model, AnimationComponent& ani
                                            const glm::mat4 parentTransform)
 {
 	const auto node = model.GetNodeAt(nodeIndex);
-	const auto jointNode = model.GetJointDataAt(node->mJointIndex);
 
-	if (node == nullptr || jointNode == nullptr)
+	if (node == nullptr)
 	{
 		return;
 	}
+	const auto jointNode = model.GetJointDataAt(node->mJointIndex);
 
 	glm::mat4 transform = node->mTransform;
 
-	if (animation != nullptr)
+	if (jointNode && animation)
 	{
 		const auto nodeAnim = GetAnimNode(animation, nodeIndex);
 
@@ -138,7 +138,14 @@ void AnimatorSystem::_UpdateJointHierarchy(Model& model, AnimationComponent& ani
 
 	glm::mat4 globalTransform = parentTransform * transform;
 
-	mesh.mFinalTransforms[nodeIndex] = globalTransform * jointNode->mInverseBindMatrix;
+	if (jointNode)
+	{
+		mesh.mFinalTransforms[nodeIndex] = globalTransform * jointNode->mInverseBindMatrix;
+	}
+	else
+	{
+		mesh.mFinalTransforms[nodeIndex] = globalTransform;
+	}
 
 	for (const auto child : node->mChildren)
 	{
@@ -229,6 +236,34 @@ glm::mat4 AnimatorSystem::_InterpolateMatrices(const glm::mat4& matA, const glm:
 	return blendedMatrix;
 }
 
+glm::mat4 AnimatorSystem::_GetJointNodeTransformFromScene(Model& model, const glm::mat4 parentTransform, int nodeIndex,
+                                                          int jointNodeIndex)
+{
+	const auto node = model.GetNodeAt(nodeIndex);
+	if (!node)
+	{
+		return glm::mat4(1.0f);
+	}
+
+	const glm::mat4 modelTransform = parentTransform * node->mTransform;
+
+	// Found the target joint node — return its full scene transform
+	if (nodeIndex == jointNodeIndex)
+		return modelTransform;
+
+	// Recursively search through all children
+	for (const auto& child : node->mChildren)
+	{
+		glm::mat4 result = _GetJointNodeTransformFromScene(model, modelTransform, child, jointNodeIndex);
+		if (result != glm::mat4(1.0f)) // Found a valid path
+		{
+			return result;
+		}
+	}
+
+	return glm::mat4(1.0f);
+}
+
 const AnimNode* AnimatorSystem::GetAnimNode(const Animation* animation, int nodeId)
 {
 	for (const auto animNode : animation->mAnimNodes)
@@ -260,8 +295,8 @@ void AnimatorSystem::_SetJointMatrixCount(Entity* entity) const
 	auto& mesh = entity->GetComponent<ModelComponent>();
 	const auto& model = mResourceManager.GetModelFromId(mesh.mModelPath);
 
-	//if (mesh.mHasBones) TODO: Figure out how to re-introduce
-	//{
-	mesh.mFinalTransforms.resize(model.GetNumJoints());
-	//}
+	if (model.GetNumJoints() > 0)
+	{
+		mesh.mFinalTransforms.resize(model.GetNumJoints());
+	}
 }

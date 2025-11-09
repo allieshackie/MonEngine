@@ -24,20 +24,27 @@ void RenderSystem::Render(std::weak_ptr<World> world)
 	{
 		return;
 	}
-	const auto projectionViewMat = mContext.GetProjection() * worldPtr->GetCamera().GetView();
+	const auto projectionViewMat = mContext.GetPerspectiveProjection() * worldPtr->GetCamera().GetView();
 
-	mMeshPipeline->Render(mContext.GetCommands(), mContext.GetProjection(), world);
-	mOverlayPipeline->Render(mContext.GetCommands());
-	mImmediatePipeline->Render(mContext.GetCommands(), projectionViewMat);
+	mMeshPipeline->Render(mContext.GetCommands(), mContext.GetPerspectiveProjection(), world);
 	//mTextPipeline->Render(*mCommands, projectionViewMat);
-	// TODO: debug shader is loading in for some meshes for some reason? Timing maybe?
-
-	//mTextPipeline->Release(mRenderSystem);
+	mImmediatePipeline->Render(mContext.GetCommands(), projectionViewMat);
+	mOverlayPipeline->Render(mContext.GetCommands(), mContext.GetOrthoProjection());
 }
 
 void RenderSystem::ClearOverlay() const
 {
-	mOverlayPipeline->ClearOverlay();
+	mOverlayPipeline->ClearOverlays();
+}
+
+int RenderSystem::AddOverlay(const std::vector<DebugVertex>& vertices, glm::mat4 transform) const
+{
+	return mOverlayPipeline->AddOverlay(vertices, transform);
+}
+
+void RenderSystem::UpdateOverlayTransform(int id, glm::mat4 transform) const
+{
+	return mOverlayPipeline->UpdateOverlayTransform(id, transform);
 }
 
 void RenderSystem::DrawTextFont(const char* text, glm::vec2 position, glm::vec2 size, glm::vec4 color) const
@@ -70,12 +77,7 @@ void RenderSystem::DrawGrid() const
 	mImmediatePipeline->DrawGrid();
 }
 
-void RenderSystem::DrawOverlay(glm::vec2 pos, glm::vec4 color) const
-{
-	mOverlayPipeline->DrawOverlay(pos, color);
-}
-
-void RenderSystem::DrawOverlayLine(glm::vec2 from, glm::vec2 to, glm::vec4 color) const
+void RenderSystem::DrawOverlayLine(glm::vec3 from, glm::vec3 to, glm::vec4 color) const
 {
 	mOverlayPipeline->DrawLine(from, to, color);
 }

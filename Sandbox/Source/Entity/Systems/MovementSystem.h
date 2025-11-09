@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Core/ISystem.h"
+
 class PhysicsSystem;
 class World;
 

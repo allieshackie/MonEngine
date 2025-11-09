@@ -8,7 +8,7 @@ class InputHandler;
 class RenderContext
 {
 public:
-	RenderContext(const LLGL::Extent2D screenSize, const LLGL::ColorRGBAf backgroundColor, bool usePerspective,
+	RenderContext(const LLGL::Extent2D screenSize, const LLGL::ColorRGBAf backgroundColor,
 	              const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler,
 	              bool transparent);
 	~RenderContext();
@@ -31,7 +31,8 @@ public:
 	const LLGL::RenderSystemPtr& GetRenderSystem() const { return mRenderSystem; }
 	LLGL::Extent2D GetResolution() const;
 
-	glm::mat4 GetProjection() const;
+	glm::mat4 GetPerspectiveProjection() const { return mPerspectiveProjection; }
+	glm::mat4 GetOrthoProjection() const { return mOrthoProjection; }
 	void UpdateProjection();
 
 	// Color range from 0.0f - 1.0f
@@ -51,12 +52,11 @@ private:
 	LLGL::CommandBuffer* mCommands = nullptr; // Main command buffer
 	LLGL::CommandQueue* mCommandQueue = nullptr; // Command queue
 
-	glm::mat4 mProjection = glm::identity<glm::mat4>();
+	glm::mat4 mPerspectiveProjection = glm::identity<glm::mat4>();
+	glm::mat4 mOrthoProjection = glm::identity<glm::mat4>();
 
 	LLGL::ColorRGBAf mBackgroundColor = {0.0f, 0.0f, 0.0f, 1.0f};
 	std::uint32_t mSamplesCount = 1;
-
-	bool mUsePerspective = true;
 };
 
 class ResizeEventHandler : public LLGL::Window::EventListener

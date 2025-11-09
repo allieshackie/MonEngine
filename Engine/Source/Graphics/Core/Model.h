@@ -22,7 +22,8 @@ public:
 	void InitializeBuffers(const LLGL::RenderSystemPtr& renderSystem, const Shader& shader) const;
 
 	int GetId() const { return mId; }
-	int GetRootNodeIndex() const { return mRootNodeIndex; }
+	int GetRootJointIndex() const { return mRootJointIndex; }
+	int GetRootSceneIndex() const { return mRootSceneIndex; }
 	const std::vector<MeshData*>& GetMeshes() const { return mMeshes; }
 	const std::vector<Node*>& GetNodes() const { return mNodes; }
 
@@ -30,6 +31,7 @@ public:
 	size_t GetNumJoints() const { return mNumNodes; }
 
 	const Animation* GetAnimation(int index) const;
+	const std::vector<Animation*>& GetAllAnimations() const { return mAnimations; }
 
 	glm::vec3 CalculateModelScaling(const glm::vec3& targetSize) const;
 
@@ -38,15 +40,15 @@ public:
 
 	// Setup
 	void AddMesh(MeshData* mesh) { mMeshes.push_back(mesh); }
-	void SetRootNodeIndex(int index) { mRootNodeIndex = index; }
+	void SetRootJointIndex(int index) { mRootJointIndex = index; }
+	void SetRootSceneIndex(int index) { mRootSceneIndex = index; }
 	void AddBoneNameToIndex(const std::string& name, int index) { mBoneNameToIndex[name] = index; }
 	void AddJointData(int index, JointData* node) { mJointData[index] = node; }
 	void AddAnimation(Animation* modelAnim) { mAnimations.push_back(modelAnim); }
 
 	// Setup helpers
 	Node* GetNodeAt(int nodeIndex) const;
-	int GetMeshIndex(const std::string& name);
-	int GetJointIndex(const std::string& name);
+	MeshData* GetMeshAt(int nodeIndex) const;
 
 private:
 	int mId;
@@ -57,6 +59,7 @@ private:
 	std::vector<Animation*> mAnimations;
 
 	std::unordered_map<int, JointData*> mJointData;
-	int mRootNodeIndex = 0;
+	int mRootJointIndex = 0;
+	int mRootSceneIndex = 0;
 	size_t mNumNodes = 0;
 };

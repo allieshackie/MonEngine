@@ -65,10 +65,8 @@ vec4 getAppliedTransform(vec4 value)
     vec4 result = value;
     if (hasBones != 0) {
         for (int i = 0; i < MAX_BONE_INFLUENCE; i++) {
-            if (boneIds[i] != -1) {
-                mat4 boneTransform = boneMatrices[boneIds[i]];
-                result += weights[i] * (boneTransform * value);
-            }
+            mat4 boneTransform = boneMatrices[boneIds[i]];
+            result += weights[i] * (boneTransform * value);
         }
     }
 
@@ -78,9 +76,9 @@ vec4 getAppliedTransform(vec4 value)
 void main()
 {
     vBoneDebugColor = debugShowBoneWeights();
-    vPosition = vec3(model * getAppliedTransform(vec4(position, 1.0)));
-    vNormal = vec3(transpose(inverse(model)) * normalize(getAppliedTransform(vec4(normal, 0.0))));  
+    vPosition = vec3(getAppliedTransform(vec4(position, 1.0)));
+    vNormal = vec3(normalize(getAppliedTransform(vec4(normal, 0.0))));  
 	vTexCoord = texCoord;
     vTexCoord.y = 1.0 - vTexCoord.y;
-    gl_Position = projection * view * vec4(vPosition, 1.0);
+    gl_Position = projection * view * model * vec4(vPosition, 1.0);
 }

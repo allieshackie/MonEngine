@@ -11,6 +11,7 @@
 class Entity;
 class World;
 
+struct ModelComponent;
 struct TransformComponent;
 
 class MeshPipeline : public PipelineBase
@@ -28,6 +29,11 @@ public:
 	void AddLight(Entity* entity);
 
 private:
+	void _RenderStaticModel();
+	void _RenderAnimatedModel();
+	void _RenderNode(LLGL::CommandBuffer& commands, const Model& model, int nodeIndex,
+	                 const TransformComponent& transform, const ModelComponent& modelComponent,
+	                 std::shared_ptr<World> world);
 	void _ProcessLights();
 
 	LLGL::Buffer* mLightBuffer = nullptr;

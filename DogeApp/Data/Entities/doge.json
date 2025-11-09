@@ -13,12 +13,6 @@
             "collider_shape": "Capsule",
             "size": [1,1,1]
         },
-        // "animation": {
-        //     "entry": {
-        //         "name": "Walking",
-        //         "looping": true
-        //     }
-        // },
         "interact": {}
     }
 }

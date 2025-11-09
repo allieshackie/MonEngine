@@ -140,6 +140,7 @@ void ResourceManager::_LoadModel(const LLGL::RenderSystemPtr& renderSystem, cons
 	}
 
 	auto newModel = std::make_unique<Model>(modelId, model.nodes.size());
+	int meshIndex = 0;
 
 	for (int i = 0; i < model.nodes.size(); i++)
 	{
@@ -152,7 +153,7 @@ void ResourceManager::_LoadModel(const LLGL::RenderSystemPtr& renderSystem, cons
 		if (node.mesh != -1)
 		{
 			newModel->AddMesh(_ProcessMesh(renderSystem, model, node.mesh));
-			newNode->mMeshIndex = node.mesh;
+			newNode->mMeshIndex = meshIndex++;
 		}
 
 		if (node.skin != -1)
@@ -164,6 +165,7 @@ void ResourceManager::_LoadModel(const LLGL::RenderSystemPtr& renderSystem, cons
 	}
 
 	_ProcessAnimations(model, *newModel);
+	newModel->SetRootSceneIndex(model.scenes[0].nodes[0]);
 
 	mModels.push_back(std::move(newModel));
 }
@@ -333,7 +335,7 @@ void ResourceManager::_ProcessSkin(const tinygltf::Model& model, Model& newModel
 	const auto matrixData = gltfHelpers::GetgltfBuffer<const float*>(
 		model, skin.inverseBindMatrices, matrixByteOffset);
 
-	newModel.SetRootNodeIndex(skin.joints[0]);
+	newModel.SetRootJointIndex(skin.joints[0]);
 
 	// Loop over each bone node (joint) in the skin
 	for (size_t i = 0; i < skin.joints.size(); ++i)

@@ -29,6 +29,8 @@ void World::Init(MonScene* scene, EntityTemplateRegistry& templateRegistry, cons
 		mapRegistry.OpenMap(this, scene->GetMapData());
 	}
 
+	CreateCamera(scene);
+
 	for (const auto& entity : scene->GetEntityDefinitions())
 	{
 		auto& gameObj = CreateEntityFromTemplate(entity.mName.c_str(), templateRegistry);
@@ -44,8 +46,6 @@ void World::Init(MonScene* scene, EntityTemplateRegistry& templateRegistry, cons
 	{
 		luaSystem.LoadScript(script.c_str());
 	}
-
-	CreateCamera(scene);
 }
 
 Entity& World::CreateEntityFromTemplate(const char* templateName, EntityTemplateRegistry& templateRegistry)

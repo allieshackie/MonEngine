@@ -12,6 +12,8 @@ class RenderContext;
 class ResourceManager;
 class World;
 
+struct OverlayElement;
+
 class RenderSystem : public ISystem
 {
 public:
@@ -22,14 +24,16 @@ public:
 	void LoadFont(const char* fontFileName) const;
 	void ClearOverlay() const;
 
+	int AddOverlay(const std::vector<DebugVertex>& vertices, glm::mat4 transform) const;
+	void UpdateOverlayTransform(int id, glm::mat4 transform) const;
+
 	void DrawTextFont(const char* text, glm::vec2 position, glm::vec2 size, glm::vec4 color) const;
 	void DrawPoint(glm::vec3 pos, glm::vec4 color, float size) const;
 	void DrawLine(glm::vec3 from, glm::vec3 to, glm::vec4 color) const;
 	void DrawBox(glm::vec3 pos, glm::vec3 size, glm::vec4 color, bool filled) const;
 	void DrawCircle(glm::vec3 position, float radius, glm::vec4 color) const;
 	void DrawGrid() const;
-	void DrawOverlay(glm::vec2 pos, glm::vec4 color) const;
-	void DrawOverlayLine(glm::vec2 from, glm::vec2 to, glm::vec4 color) const;
+	void DrawOverlayLine(glm::vec3 from, glm::vec3 to, glm::vec4 color) const;
 
 private:
 	RenderContext& mContext;

@@ -1,5 +1,5 @@
-#include "Entity/Components/PlayerComponent.h"
 #include "Entity/Entity.h"
+#include "Entity/Components/PlayerComponent.h"
 #include "Entity/Components/TransformComponent.h"
 #include "World.h"
 
@@ -10,32 +10,28 @@ Camera::Camera(const World* world, glm::vec3 position, glm::vec3 front, glm::vec
 {
 	mFollowCam = followCam;
 
-	if (followCam)
+	EventFunc func = [this](Entity* entity)
 	{
-		EventFunc func = [this](Entity* entity)
-		{
-			SetLookTarget(entity);
-		};
-		world->ConnectOnConstruct<PlayerComponent>(func);
-	}
-	else
-	{
-		mCameraTarget = position + front;
-	}
+		SetLookTarget(entity);
+	};
+	world->ConnectOnConstruct<PlayerComponent>(func);
+
+	mCameraTarget = position + front;
+
 	UpdateView();
 }
 
 void Camera::Update()
 {
-	if (mFollowCam)
+	if (mFollowCam && mCameraTargetEntity != nullptr)
 	{
 		const auto& transform = mCameraTargetEntity->GetComponent<TransformComponent>();
 		if (transform.mPosition != mCameraPos)
 		{
 			mCameraPos = transform.mPosition;
+			mCameraFollowTarget = transform.mPosition;
 			mCameraPos += mCameraFollowOffset;
-			mCameraTarget = transform.mPosition;
-			mCameraTarget += mCameraLookOffset;
+			mCameraFollowTarget += mCameraLookOffset;
 			UpdateView();
 		}
 	}
@@ -83,6 +79,11 @@ void Camera::ZoomOut()
 	UpdateView();
 }
 
+void Camera::ToggleFollowCam()
+{
+	mFollowCam = !mFollowCam && mCameraTargetEntity != nullptr;
+}
+
 void Camera::SetPosition(const glm::vec3 pos)
 {
 	mCameraPos = pos;
@@ -120,7 +121,6 @@ void Camera::UpdateRight()
 void Camera::SetLookTarget(Entity* entity)
 {
 	mCameraTargetEntity = entity;
-	mFollowCam = true;
 }
 
 /*
@@ -131,6 +131,6 @@ void Camera::SetLookTarget(Entity* entity)
  */
 void Camera::UpdateView()
 {
-	mView = glm::lookAt(mCameraPos, mCameraTarget, mCameraUp);
+	mView = glm::lookAt(mCameraPos, mFollowCam ? mCameraFollowTarget : mCameraTarget, mCameraUp);
 	UpdateRight();
 }

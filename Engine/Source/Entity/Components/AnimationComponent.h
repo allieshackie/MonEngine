@@ -30,7 +30,7 @@ struct AnimationComponent
 	// runtime
 	bool mUpdated = false;
 	int mPrevAnimState = -1;
-	int mCurrentAnimState = 5;
+	int mCurrentAnimState = -1;
 	float mBlendFactor = 1.0f;
 
 	template <class Archive>

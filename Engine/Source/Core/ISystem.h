@@ -1,5 +1,6 @@
 #pragma once
 
+class ResourceManager;
 class World;
 
 class ISystem
