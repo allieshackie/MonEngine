@@ -8,11 +8,10 @@
 #include "EntityMenu.h"
 
 EntityMenu::EntityMenu(std::weak_ptr<InputHandler> inputHandler, std::weak_ptr<World> world,
-                       RenderContext& renderContext)
-	: mWorld(world), mRenderContext(renderContext)
+                       RenderContext& renderContext) : mWorld(world), mRenderContext(renderContext)
 {
 	// TODO: Handle mouse hover + selection
-	if (auto inputHandlerPtr = inputHandler.lock())
+	if (const auto inputHandlerPtr = inputHandler.lock())
 	{
 		inputHandlerPtr->RegisterMouseMoveHandler([this](LLGL::Offset2D mousePos) { _HandleMouseMove(mousePos); });
 		inputHandlerPtr->RegisterButtonDownHandler(LLGL::Key::LButton, [this]() { QueueClick(); });
@@ -36,14 +35,8 @@ EntityMenu::EntityMenu(std::weak_ptr<InputHandler> inputHandler, std::weak_ptr<W
 
 void EntityMenu::Render()
 {
-	if (mSelectedEntity == nullptr)
-	{
-		RenderEntitySelection();
-	}
-	else
-	{
-		RenderSelectedEntityMenu();
-	}
+	RenderEntitySelection();
+	RenderSelectedEntityMenu();
 
 	if (mQueuedClick)
 	{
@@ -74,23 +67,35 @@ void EntityMenu::OnEntityRemoved(Entity* entity)
 
 void EntityMenu::RenderSelectedEntityMenu()
 {
-	if (mSelectedEntity == nullptr) return;
+	const auto sharedWorld = mWorld.lock();
 
-	ImGui::SetNextWindowPos(ImVec2(0, 20));
-	ImGui::SetNextWindowSize(mSize);
+	if (!(sharedWorld && sharedWorld->GetRegistry().valid(mSelectedEntity)))
+	{
+		return;
+	}
 
-	if (ImGui::Begin("Entity", &mOpen, mWindowFlags))
+	/*
+	 *
+	if (ImGui::Begin("Entity"))
 	{
 		// Collapsible menu for each component
 	}
 	ImGui::End();
+	 */
 }
 
 void EntityMenu::RenderEntitySelection()
 {
-	ImGui::Combo("Entities", &current_entity_selected, items.data(), items.size());
-	if (ImGui::Button("Open"))
+	const auto sharedWorld = mWorld.lock();
+	if (!(sharedWorld && sharedWorld->GetRegistry().valid(mSelectedEntity)))
 	{
+		mSelectedEntity = mEntityList[current_entity_selected];
+		return;
+	}
+
+	if (ImGui::Combo("Entities", &current_entity_selected, items.data(), items.size()))
+	{
+		mSelectedEntity = mEntityList[current_entity_selected];
 	}
 }
 
@@ -109,7 +114,7 @@ glm::vec3 EntityMenu::_CalculateMouseRay(glm::vec2 mousePos, const RenderContext
 {
 	const auto normalizeCoords = renderContext.NormalizedDeviceCoords({mousePos.x, mousePos.y, 1.0});
 	const glm::vec4 homogenousClip = {normalizeCoords.x, normalizeCoords.y, -1.0f, 1.0f};
-	glm::vec4 eyeRay = glm::inverse(renderContext.GetProjection()) * homogenousClip;
+	glm::vec4 eyeRay = glm::inverse(renderContext.GetPerspectiveProjection()) * homogenousClip;
 	eyeRay = glm::vec4(eyeRay.x, eyeRay.y, -1.0f, 0.0f);
 	const auto ray = glm::normalize(glm::inverse(camera.GetView()) * eyeRay);
 	return ray;

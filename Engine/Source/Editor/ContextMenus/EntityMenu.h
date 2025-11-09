@@ -22,18 +22,17 @@ public:
 
 	void QueueClick();
 
+	entt::entity GetSelectedEntity() const { return mSelectedEntity; }
+
 private:
 	void _HandleMouseMove(LLGL::Offset2D mousePos);
 	glm::vec3 _CalculateMouseRay(glm::vec2 mousePos, const RenderContext& renderContext, const Camera& camera) const;
 	void _OnClick(const RenderContext& renderContext, const Camera& camera);
 
-	bool mOpen = true;
-	ImVec2 mSize = {250, 300};
-	ImGuiWindowFlags mWindowFlags = ImGuiWindowFlags_None;
 	glm::vec2 mMousePos = {0, 0};
 
 	// Entity Selection
-	Entity* mSelectedEntity = nullptr;
+	entt::entity mSelectedEntity;
 	std::vector<entt::entity> mEntityList;
 	std::vector<const char*> items;
 	int current_entity_selected = 0;
