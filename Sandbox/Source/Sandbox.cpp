@@ -30,11 +30,9 @@ int main()
 
 void Sandbox::Run()
 {
-	// TODO: Re-add font, make sure to have font for gui
-	//mRenderSystem->LoadFont("PixelLettersFull.ttf");
 	mRenderContext->SetBackgroundClearColor({0.1f, 0.1f, 0.1f});
-	// TODO: Data drive theming to make it easier to have different styles
-	//GUISystem::LoadGUITheme();
+	//mRenderSystem->LoadFont("PixelLettersFull.ttf");
+	//GUISystem::LoadGUITheme("LightStyle");
 	mSceneManager->LoadScene("game.json", *mMapRegistry, *mLuaSystem);
 
 	ToggleEditorMode(true);

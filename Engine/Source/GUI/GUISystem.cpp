@@ -2,11 +2,13 @@
 #include <imgui.h>
 #include "backends/imgui_impl_opengl3.h"
 #include "backends/imgui_impl_win32.h"
-#include "LLGL/Key.h"
 #include "LLGL/Platform/Win32/Win32NativeHandle.h"
 #include "Graphics/RenderContext.h"
 
 #include "GUISystem.h"
+
+#include "GUITheme.h"
+#include "Util/FileSystem.h"
 
 constexpr const char* GLSL_VERSION = "#version 460";
 
@@ -49,79 +51,109 @@ void GUISystem::CloseGUI()
 	ImGui::DestroyContext();
 }
 
-void GUISystem::LoadGUITheme()
+void GUISystem::LoadGUITheme(const std::string& themeName)
 {
 	ImGuiStyle& style = ImGui::GetStyle();
-	// light style from Pacôme Danhiez (user itamago)
-	// https://github.com/ocornut/imgui/pull/511#issuecomment-175719267
-	style.Alpha = 1.0f;
-	style.FrameRounding = 3.0f;
-	style.DisabledAlpha = 1.0f;
-	style.WindowPadding = ImVec2(12.0f, 12.0f);
-	style.WindowRounding = 11.5f;
-	style.WindowBorderSize = 0.0f;
-	style.WindowMinSize = ImVec2(20.0f, 20.0f);
-	style.WindowTitleAlign = ImVec2(0.5f, 0.5f);
-	style.WindowMenuButtonPosition = ImGuiDir_Right;
-	style.ChildRounding = 0.0f;
-	style.ChildBorderSize = 1.0f;
-	style.PopupRounding = 0.0f;
-	style.PopupBorderSize = 1.0f;
-	style.FramePadding = ImVec2(20.0f, 3.5f);
-	style.FrameBorderSize = 0.0f;
-	style.ItemSpacing = ImVec2(4.2f, 5.5f);
-	style.ItemInnerSpacing = ImVec2(7.0f, 2.0f);
-	style.CellPadding = ImVec2(12.0f, 9.0f);
-	style.IndentSpacing = 0.0f;
-	style.ColumnsMinSpacing = 5.0f;
-	style.ScrollbarSize = 11.5f;
-	style.ScrollbarRounding = 16.0f;
-	style.GrabMinSize = 3.5f;
-	style.GrabRounding = 20.0f;
-	style.TabRounding = 0.0f;
-	style.TabBorderSize = 0.0f;
-	style.ColorButtonPosition = ImGuiDir_Right;
-	style.ButtonTextAlign = ImVec2(0.5f, 0.5f);
-	style.SelectableTextAlign = ImVec2(0.0f, 0.0f);
-	style.Colors[ImGuiCol_Text] = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-	style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.6f, 0.6f, 0.6f, 1.0f);
-	style.Colors[ImGuiCol_WindowBg] = ImVec4(0.1f, 0.1f, 0.1f, 0.0f);
-	style.Colors[ImGuiCol_ChildBg] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
-	style.Colors[ImGuiCol_PopupBg] = ImVec4(1.0f, 1.0f, 1.0f, 0.94f);
-	style.Colors[ImGuiCol_Border] = ImVec4(0.1f, 0.1f, 0.1f, 1.0f);
-	style.Colors[ImGuiCol_BorderShadow] = ImVec4(1.0f, 1.00f, 1.0f, 0.1f);
-	style.Colors[ImGuiCol_FrameBg] = ImVec4(1.00f, 1.0f, 1.0f, 0.94f);
-	style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.4f);
-	style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.67f);
-	style.Colors[ImGuiCol_TitleBg] = ImVec4(0.96f, 0.96f, 0.96f, 1.00f);
-	style.Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(1.0f, 1.0f, 1.0f, 0.51f);
-	style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.82f, 0.82f, 0.82f, 1.0f);
-	style.Colors[ImGuiCol_MenuBarBg] = ImVec4(0.86f, 0.86f, 0.86f, 1.00f);
-	style.Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.98f, 0.98f, 0.98f, 0.53f);
-	style.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.69f, 0.69f, 0.69f, 1.0f);
-	style.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.59f, 0.59f, 0.59f, 1.0f);
-	style.Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.49f, 0.49f, 0.49f, 1.0f);
-	style.Colors[ImGuiCol_CheckMark] = ImVec4(0.26f, 0.59f, 0.98f, 1.0f);
-	style.Colors[ImGuiCol_SliderGrab] = ImVec4(0.24f, 0.52f, 0.88f, 1.0f);
-	style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.26f, 0.59f, 0.98f, 1.0f);
-	style.Colors[ImGuiCol_Button] = ImVec4(0.26f, 0.59f, 0.98f, 0.40f);
-	style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.26f, 0.59f, 0.98f, 1.0f);
-	style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.06f, 0.53f, 0.98f, 1.0f);
-	style.Colors[ImGuiCol_Header] = ImVec4(0.26f, 0.59f, 0.98f, 0.31f);
-	style.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.8f);
-	style.Colors[ImGuiCol_HeaderActive] = ImVec4(0.26f, 0.59f, 0.98f, 1.0f);
-	style.Colors[ImGuiCol_Separator] = ImVec4(0.39f, 0.39f, 0.39f, 1.0f);
-	style.Colors[ImGuiCol_SeparatorHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.78f);
-	style.Colors[ImGuiCol_SeparatorActive] = ImVec4(0.26f, 0.59f, 0.98f, 1.0f);
-	style.Colors[ImGuiCol_ResizeGrip] = ImVec4(1.00f, 1.00f, 1.00f, 0.50f);
-	style.Colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.67f);
-	style.Colors[ImGuiCol_ResizeGripActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.95f);
-	style.Colors[ImGuiCol_PlotLines] = ImVec4(0.39f, 0.39f, 0.39f, 1.0f);
-	style.Colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.0f, 0.43f, 0.35f, 1.0f);
-	style.Colors[ImGuiCol_PlotHistogram] = ImVec4(0.9f, 0.7f, 0.0f, 1.0f);
-	style.Colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.0f, 0.6f, 0.0f, 1.0f);
-	style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
-	style.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.2f, 0.2f, 0.20f, 0.35f);
+	const std::string guiPath = "GUI/" + themeName + ".json";
+	const std::string fullPath = ASSETS_FOLDER + guiPath;
+	const auto themeJson = FileSystem::ReadJson(fullPath);
+	GUITheme theme;
+	try
+	{
+		auto archive = FileSystem::CreateArchive(themeJson.dump());
+		theme.serialize(archive);
+	}
+	catch (const cereal::Exception& e)
+	{
+		std::cerr << "GUITheme deserialization error: " << e.what() << std::endl;
+		assert(false);
+	}
+
+	style.Alpha = theme.Alpha;
+	style.DisabledAlpha = theme.DisabledAlpha;
+
+	style.ChildRounding = theme.ChildRounding;
+	style.GrabRounding = theme.GrabRounding;
+	style.FrameRounding = theme.FrameRounding;
+	style.PopupRounding = theme.PopupRounding;
+	style.ScrollbarRounding = theme.ScrollbarRounding;
+	style.TabRounding = theme.TabRounding;
+	style.WindowRounding = theme.WindowRounding;
+
+	style.CellPadding = theme.CellPadding;
+	style.FramePadding = theme.FramePadding;
+	style.WindowPadding = theme.WindowPadding;
+
+	style.ChildBorderSize = theme.ChildBorderSize;
+	style.FrameBorderSize = theme.FrameBorderSize;
+	style.PopupBorderSize = theme.PopupBorderSize;
+	style.WindowBorderSize = theme.WindowBorderSize;
+
+	style.GrabMinSize = theme.GrabMinSize;
+	style.ScrollbarSize = theme.ScrollbarSize;
+	style.TabBorderSize = theme.TabBorderSize;
+	style.WindowMinSize = theme.WindowMinSize;
+
+	style.ButtonTextAlign = theme.ButtonTextAlign;
+	style.SelectableTextAlign = theme.SelectableTextAlign;
+	style.WindowTitleAlign = theme.WindowTitleAlign;
+
+	style.ColorButtonPosition = theme.ColorButtonPosition;
+	style.WindowMenuButtonPosition = theme.WindowMenuButtonPosition;
+
+	style.ColumnsMinSpacing = theme.ColumnsMinSpacing;
+	style.IndentSpacing = theme.IndentSpacing;
+	style.ItemSpacing = theme.ItemSpacing;
+	style.ItemInnerSpacing = theme.ItemInnerSpacing;
+
+	style.Colors[ImGuiCol_Text] = theme.Colors[0];
+	style.Colors[ImGuiCol_TextDisabled] = theme.Colors[1];
+
+	style.Colors[ImGuiCol_WindowBg] = theme.Colors[2];
+	style.Colors[ImGuiCol_ChildBg] = theme.Colors[3];
+	style.Colors[ImGuiCol_PopupBg] = theme.Colors[4];
+	style.Colors[ImGuiCol_FrameBg] = theme.Colors[5];
+	style.Colors[ImGuiCol_FrameBgHovered] = theme.Colors[6];
+	style.Colors[ImGuiCol_FrameBgActive] = theme.Colors[7];
+	style.Colors[ImGuiCol_TitleBg] = theme.Colors[8];
+	style.Colors[ImGuiCol_TitleBgCollapsed] = theme.Colors[9];
+	style.Colors[ImGuiCol_TitleBgActive] = theme.Colors[10];
+	style.Colors[ImGuiCol_MenuBarBg] = theme.Colors[11];
+	style.Colors[ImGuiCol_ScrollbarBg] = theme.Colors[12];
+	style.Colors[ImGuiCol_TextSelectedBg] = theme.Colors[13];
+	style.Colors[ImGuiCol_ModalWindowDimBg] = theme.Colors[14];
+
+	style.Colors[ImGuiCol_Border] = theme.Colors[15];
+	style.Colors[ImGuiCol_BorderShadow] = theme.Colors[16];
+
+	style.Colors[ImGuiCol_ScrollbarGrab] = theme.Colors[17];
+	style.Colors[ImGuiCol_ScrollbarGrabHovered] = theme.Colors[18];
+	style.Colors[ImGuiCol_ScrollbarGrabActive] = theme.Colors[19];
+	style.Colors[ImGuiCol_SliderGrab] = theme.Colors[20];
+	style.Colors[ImGuiCol_SliderGrabActive] = theme.Colors[21];
+
+	style.Colors[ImGuiCol_CheckMark] = theme.Colors[22];
+
+	style.Colors[ImGuiCol_Button] = theme.Colors[23];
+	style.Colors[ImGuiCol_ButtonHovered] = theme.Colors[24];
+	style.Colors[ImGuiCol_ButtonActive] = theme.Colors[25];
+
+	style.Colors[ImGuiCol_Header] = theme.Colors[26];
+	style.Colors[ImGuiCol_HeaderHovered] = theme.Colors[27];
+	style.Colors[ImGuiCol_HeaderActive] = theme.Colors[28];
+
+	style.Colors[ImGuiCol_Separator] = theme.Colors[29];
+	style.Colors[ImGuiCol_SeparatorHovered] = theme.Colors[30];
+	style.Colors[ImGuiCol_SeparatorActive] = theme.Colors[31];
+
+	style.Colors[ImGuiCol_ResizeGrip] = theme.Colors[32];
+	style.Colors[ImGuiCol_ResizeGripHovered] = theme.Colors[33];
+	style.Colors[ImGuiCol_ResizeGripActive] = theme.Colors[34];
+
+	style.Colors[ImGuiCol_PlotLines] = theme.Colors[35];
+	style.Colors[ImGuiCol_PlotLinesHovered] = theme.Colors[36];
+	style.Colors[ImGuiCol_PlotHistogram] = theme.Colors[37];
+	style.Colors[ImGuiCol_PlotHistogramHovered] = theme.Colors[38];
 }
 
 bool GUISystem::IsGUIContext()

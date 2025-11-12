@@ -1,6 +1,7 @@
 #pragma once
 #include <map>
 #include <glm/vec3.hpp>
+#include <imgui.h>
 #include <cereal/types/string.hpp>
 #include <cereal/types/vector.hpp>
 #include <cereal/archives/json.hpp>
@@ -42,6 +43,12 @@ namespace cereal
 
 	template <class Archive>
 	void serialize(Archive& archive, glm::vec4& v) { archive(v.x, v.y, v.z, v.w); }
+
+	template <class Archive>
+	void serialize(Archive& archive, ImVec2& v) { archive(v.x, v.y); }
+
+	template <class Archive>
+	void serialize(Archive& archive, ImVec4& v) { archive(v.x, v.y, v.z, v.w); }
 
 	template <>
 	struct specialize<JSONInputArchive, ColliderShapes, cereal::specialization::non_member_load_save>

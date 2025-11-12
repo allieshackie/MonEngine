@@ -11,7 +11,6 @@ public:
 	{
 	}
 
-	// TODO: Can't set position if we want the window to be movable
 	void Render() override
 	{
 		if (mWindowFlags & ImGuiWindowFlags_NoMove)
