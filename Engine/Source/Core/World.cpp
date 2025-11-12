@@ -1,6 +1,6 @@
 #include "Core/Scene.h"
 #include "Entity/Entity.h"
-#include "Entity/EntityTemplateRegistry.h"
+#include "Entity/PrefabRegistry.h"
 #include "Entity/Components/CollisionComponent.h"
 #include "Entity/Components/TransformComponent.h"
 #include "Entity/Descriptions/DescriptionBase.h"
@@ -20,7 +20,7 @@ void World::Close()
 	FlushEntities();
 }
 
-void World::Init(MonScene* scene, EntityTemplateRegistry& templateRegistry, const MapRegistry& mapRegistry,
+void World::Init(MonScene* scene, PrefabRegistry& prefabRegistry, const MapRegistry& mapRegistry,
                  LuaSystem& luaSystem)
 {
 	// Create Map
@@ -33,7 +33,7 @@ void World::Init(MonScene* scene, EntityTemplateRegistry& templateRegistry, cons
 
 	for (const auto& entity : scene->GetEntityDefinitions())
 	{
-		auto& gameObj = CreateEntityFromTemplate(entity.mName.c_str(), templateRegistry);
+		auto& gameObj = CreateEntityFromTemplate(entity.mName.c_str(), prefabRegistry);
 		auto& transformComponent = gameObj.GetComponent<TransformComponent>();
 		transformComponent.mPosition = entity.mPosition;
 		if (const auto collider = gameObj.TryGetComponent<CollisionComponent>(); collider != nullptr)
@@ -48,9 +48,9 @@ void World::Init(MonScene* scene, EntityTemplateRegistry& templateRegistry, cons
 	}
 }
 
-Entity& World::CreateEntityFromTemplate(const char* templateName, EntityTemplateRegistry& templateRegistry)
+Entity& World::CreateEntityFromTemplate(const char* templateName, PrefabRegistry& prefabRegistry)
 {
-	const auto& descriptions = templateRegistry.GetEntityTemplateDescriptions(templateName);
+	const auto& descriptions = prefabRegistry.GetPrefabsDescriptions(templateName);
 	auto id = mRegistry.create();
 	const auto entity = new Entity(id, mRegistry, *mEventPublisher, templateName);
 	mEntityMap[id] = entity;

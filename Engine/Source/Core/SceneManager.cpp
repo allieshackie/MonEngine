@@ -6,7 +6,7 @@
 
 SceneManager::SceneManager(DescriptionFactory& descriptionFactory)
 {
-	mEntityTemplateRegistry = std::make_unique<EntityTemplateRegistry>(descriptionFactory);
+	mPrefabRegistry = std::make_unique<PrefabRegistry>(descriptionFactory);
 
 	mSceneFileNames.clear();
 	for (const auto& entry : std::filesystem::directory_iterator(LEVELS_FOLDER))
@@ -54,7 +54,7 @@ void SceneManager::LoadScene(const std::string& SceneName, const MapRegistry& ma
 		return;
 	}
 
-	mCurrentWorld->Init(scene, *mEntityTemplateRegistry, mapRegistry, luaSystem);
+	mCurrentWorld->Init(scene, *mPrefabRegistry, mapRegistry, luaSystem);
 }
 
 const std::vector<const char*>& SceneManager::GetSceneNames() const

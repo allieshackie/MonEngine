@@ -35,7 +35,6 @@ public:
 
 	glm::vec3 CalculateModelScaling(const glm::vec3& targetSize) const;
 
-	// TODO: For Debug GUI
 	const std::unordered_map<std::string, int>& GetBoneNamesToIndex() const { return mBoneNameToIndex; }
 
 	// Setup

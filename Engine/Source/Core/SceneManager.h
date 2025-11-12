@@ -1,5 +1,5 @@
 #pragma once
-#include "Entity/EntityTemplateRegistry.h"
+#include "Entity/PrefabRegistry.h"
 #include "World.h"
 
 class DescriptionFactory;
@@ -21,7 +21,7 @@ private:
 	std::shared_ptr<World> mCurrentWorld = nullptr;
 
 	std::vector<const char*> mSceneFileNames;
-	std::unique_ptr<EntityTemplateRegistry> mEntityTemplateRegistry = nullptr;
+	std::unique_ptr<PrefabRegistry> mPrefabRegistry = nullptr;
 
 	const char* EDITOR_SCENE = "editor";
 };

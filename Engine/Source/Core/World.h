@@ -3,7 +3,7 @@
 #include "Core/Camera.h"
 #include "EventListener.h"
 
-class EntityTemplateRegistry;
+class PrefabRegistry;
 class LuaSystem;
 class MapRegistry;
 class MonScene;
@@ -15,14 +15,14 @@ public:
 
 	void Close();
 
-	void Init(MonScene* scene, EntityTemplateRegistry& templateRegistry, const MapRegistry& mapRegistry,
+	void Init(MonScene* scene, PrefabRegistry& prefabRegistry, const MapRegistry& mapRegistry,
 	          LuaSystem& luaSystem);
 	Camera& GetCamera() const { return *mCamera; }
 	entt::registry& GetRegistry() { return mRegistry; }
 	Entity* GetEntityForId(entt::entity id);
 
 	void CreateCamera(const MonScene* scene);
-	Entity& CreateEntityFromTemplate(const char* templateName, EntityTemplateRegistry& templateRegistry);
+	Entity& CreateEntityFromTemplate(const char* templateName, PrefabRegistry& prefabRegistry);
 	Entity& CreateEntity();
 	void RemoveEntity(const entt::entity id);
 	void FlushEntities();

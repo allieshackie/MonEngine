@@ -48,7 +48,6 @@ void MeshPipeline::_RenderNode(LLGL::CommandBuffer& commands, const Model& model
 
 	if (const auto meshData = model.GetMeshAt(node->mMeshIndex); meshData != nullptr)
 	{
-		// TODO: auto calculatedSize = model.CalculateModelScaling(transform.mSize);
 		// Update
 		auto modelTransform = glm::mat4(1.0f);
 

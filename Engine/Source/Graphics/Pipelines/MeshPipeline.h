@@ -28,9 +28,9 @@ public:
 	void UpdateLightBuffer() const;
 	void AddLight(Entity* entity);
 
+	void SetupMaterial();
+
 private:
-	void _RenderStaticModel();
-	void _RenderAnimatedModel();
 	void _RenderNode(LLGL::CommandBuffer& commands, const Model& model, int nodeIndex,
 	                 const TransformComponent& transform, const ModelComponent& modelComponent,
 	                 std::shared_ptr<World> world);
@@ -66,7 +66,7 @@ private:
 
 	LLGL::Buffer* mLightConstantBuffer = nullptr;
 
-	struct Material // TODO: Might need to be fixed for 16 byte alignment (emission could be vec3)
+	struct Material
 	{
 		glm::vec4 ambient = {0, 0, 0, 0};
 		glm::vec4 diffuse = {0, 0, 0, 0};
