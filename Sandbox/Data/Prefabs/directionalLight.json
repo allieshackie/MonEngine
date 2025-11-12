@@ -1,5 +1,5 @@
 {
-    "template_name": "pointLight", 
+    "prefab_name": "directionalLight", 
     "components" : {
         "transform" : {
             "position": [0,0,0],
@@ -10,8 +10,8 @@
             "ambient": [1,1,1,1],
             "diffuse": [1,1,1,1],
             "specular": [1,1,1,1],
-            "intensity": 2.0,
-            "light_type": 0
+            "intensity": 0.5,
+            "light_type": 1
         }
     }
 }

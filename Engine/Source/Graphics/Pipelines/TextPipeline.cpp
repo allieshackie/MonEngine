@@ -86,7 +86,8 @@ void TextPipeline::_UpdateUniforms(LLGL::CommandBuffer& commandBuffer, const glm
 
 void TextPipeline::LoadFont(const char* fontFile)
 {
-	std::string fullPath = FONTS_FOLDER;
+	const std::string fontPath = "Fonts/";
+	std::string fullPath = ASSETS_FOLDER + fontPath;
 	fullPath.append(fontFile);
 
 	ImGuiIO& io = ImGui::GetIO();

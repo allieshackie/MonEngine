@@ -18,7 +18,7 @@ LuaContext::~LuaContext()
 
 void LuaContext::Execute(const char* scriptFile, bool isModule) const
 {
-	std::string pathName = isModule ? LUA_MODULES_FOLDER : SCRIPTS_FOLDER;
+	std::string pathName = SCRIPTS_FOLDER;
 	pathName.append(scriptFile);
 	// Load and execute Lua script
 	if (luaL_dofile(mLuaState, pathName.c_str()) != 0)
@@ -51,7 +51,7 @@ void LuaContext::Execute(const char* scriptFile, bool isModule) const
 
 void LuaContext::LoadWithoutExecute(const char* scriptFile, bool isModule) const
 {
-	std::string pathName = isModule ? LUA_MODULES_FOLDER : SCRIPTS_FOLDER;
+	std::string pathName = SCRIPTS_FOLDER;
 	pathName.append(scriptFile);
 	// Load the file, but don't run yet
 	if (luaL_loadfile(mLuaState, pathName.c_str()) != LUA_OK)

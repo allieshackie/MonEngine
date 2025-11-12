@@ -1,5 +1,5 @@
 {
-    "template_name": "pointLightRed", 
+    "prefab_name": "pointLightRed", 
     "components" : {
         "transform" : {
             "position": [0,0,0],

@@ -56,7 +56,7 @@ bool ResourceManager::CreateSimpleOpenGLTexture(const std::string& filename, GLu
 	// Load from file
 	int image_width = 0;
 	int image_height = 0;
-	const std::string fullPath = TEXTURES_FOLDER + filename;
+	const std::string fullPath = ASSETS_FOLDER + filename;
 	unsigned char* image_data = stbi_load(fullPath.c_str(), &image_width, &image_height, nullptr, 4);
 	if (image_data == nullptr)
 		return false;
@@ -97,20 +97,25 @@ int ResourceManager::_LoadNewTexture(const LLGL::RenderSystemPtr& renderSystem, 
 void ResourceManager::_LoadAllModels(const LLGL::RenderSystemPtr& renderSystem)
 {
 	int modelId = 0;
-	for (const auto& entry : std::filesystem::directory_iterator(MODELS_FOLDER))
+	std::string modelPath = "Objects/";
+	std::string path = ASSETS_FOLDER + modelPath;
+	for (const auto& entry : std::filesystem::directory_iterator(path))
 	{
 		auto fullPath = entry.path().string();
-		_LoadModel(renderSystem, fullPath, modelId);
-
-		const size_t pos = fullPath.find(MODELS_FOLDER);
-
-		// Check if the substring was found
-		if (pos != std::string::npos)
+		if (fullPath.find(".gltf") != std::string::npos)
 		{
-			// Erase the substring from the original string
-			fullPath.erase(pos, std::strlen(MODELS_FOLDER));
+			_LoadModel(renderSystem, fullPath, modelId);
+
+			const size_t pos = fullPath.find(path);
+
+			// Check if the substring was found
+			if (pos != std::string::npos)
+			{
+				// Erase the substring from the original string
+				fullPath.erase(pos, std::strlen(path.c_str()));
+			}
+			mModelIds[entry.path().filename().string()] = modelId++;
 		}
-		mModelIds[entry.path().filename().string()] = modelId++;
 	}
 }
 

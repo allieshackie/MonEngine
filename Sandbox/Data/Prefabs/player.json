@@ -1,5 +1,5 @@
 {
-    "template_name": "player", 
+    "prefab_name": "player", 
     "components" : {
         "transform" : {
             "position": [0,0,0],

@@ -48,6 +48,8 @@ void MapEditor::RenderGUI(Camera& camera)
 
 void MapEditor::_GetAllMapFileNames()
 {
+	/*
+	 *
 	mapFileNames.clear();
 	for (const auto& entry : std::filesystem::directory_iterator(MAPS_FOLDER))
 	{
@@ -62,6 +64,7 @@ void MapEditor::_GetAllMapFileNames()
 	{
 		textureFileNames.push_back(_strdup(entry.path().filename().string().c_str()));
 	}
+	 */
 }
 
 // ====  MAP ====
@@ -108,6 +111,8 @@ void MapEditor::_NewMapMenu(bool* p_open, Camera& camera)
 			//	{MapHelpers::COLUMNS_STRING, texMapColumns},
 			//};
 
+			/*
+			 *
 			std::string mapJson = MAPS_FOLDER;
 			mapJson.append(fileName).append(".json");
 			std::ofstream mapWrite(mapJson);
@@ -138,6 +143,7 @@ void MapEditor::_NewMapMenu(bool* p_open, Camera& camera)
 			_LoadMap(openFileName.c_str(), camera);
 
 			show_new_map_menu = false;
+			 */
 		}
 	}
 	ImGui::End();

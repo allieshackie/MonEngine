@@ -36,15 +36,11 @@ add_definitions(-DGLM_ENABLE_EXPERIMENTAL)
 
 # Macros must be defined before subdirectories are added
 # ============== MACROS ===============
-add_compile_definitions(ENTITIES_FOLDER="${CMAKE_BINARY_DIR}/Data/Entities/")
-add_compile_definitions(FONTS_FOLDER="${CMAKE_BINARY_DIR}/Data/Fonts/")
-add_compile_definitions(LUA_MODULES_FOLDER="${CMAKE_BINARY_DIR}/Data/LuaModules/")
+add_compile_definitions(ASSETS_FOLDER="${CMAKE_BINARY_DIR}/Data/Assets/")
 add_compile_definitions(LEVELS_FOLDER="${CMAKE_BINARY_DIR}/Data/Levels/")
-add_compile_definitions(MAPS_FOLDER="${CMAKE_BINARY_DIR}/Data/Maps/")
-add_compile_definitions(MODELS_FOLDER="${CMAKE_BINARY_DIR}/Data/Models/")
+add_compile_definitions(PREFABS_FOLDER="${CMAKE_BINARY_DIR}/Data/Prefabs/")
 add_compile_definitions(SHADERS_FOLDER="${CMAKE_BINARY_DIR}/Data/Shaders/")
 add_compile_definitions(SCRIPTS_FOLDER="${CMAKE_BINARY_DIR}/Data/Scripts/")
-add_compile_definitions(TEXTURES_FOLDER="${CMAKE_BINARY_DIR}/Data/Textures/")
 
 # ============== ENGINE ==============
 message("=== BUILDING ENGINE ===")

@@ -27,7 +27,7 @@ void MapRegistry::CloseMap(const std::string& mapId)
 
 bool MapRegistry::_ParseMapData(const MapData& mapData, Entity& entity) const
 {
-	std::string fullMapPath = MAPS_FOLDER;
+	std::string fullMapPath = ASSETS_FOLDER;
 	fullMapPath.append(mapData.mName);
 
 	MapComponent mapComponent;
@@ -42,7 +42,7 @@ bool MapRegistry::_ParseMapData(const MapData& mapData, Entity& entity) const
 		assert(false);
 	}
 
-	std::string fullMapDataPath = MAPS_FOLDER;
+	std::string fullMapDataPath = ASSETS_FOLDER;
 	fullMapDataPath.append(mapComponent.mDataPath);
 	std::ifstream file(fullMapDataPath.c_str());
 
