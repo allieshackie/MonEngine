@@ -10,7 +10,7 @@
 #include "GUI/GUIBase.h"
 #include "Input/InputHandler.h"
 #include "Map/MapRegistry.h"
-#include "Scripting/LuaSystem.h"
+#include "Script/LuaSystem.h"
 
 class Sandbox
 {
@@ -40,7 +40,7 @@ private:
 	std::unique_ptr<SceneManager> mSceneManager;
 	std::unique_ptr<GUIBase> mGUIMenu;
 	std::unique_ptr<LuaSystem> mLuaSystem;
-	std::unique_ptr<EditorGUI> mEditorGUI;
+	std::shared_ptr<GUISystem> mGUISystem;
 
 	std::unique_ptr<EventPublisher> mEventPublisher;
 	std::unique_ptr<SystemManager> mSystemManager;

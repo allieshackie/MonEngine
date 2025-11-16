@@ -33,7 +33,7 @@ void Sandbox::Run()
 	mRenderContext->SetBackgroundClearColor({0.1f, 0.1f, 0.1f});
 	//mRenderSystem->LoadFont("PixelLettersFull.ttf");
 	//GUISystem::LoadGUITheme("LightStyle");
-	mSceneManager->LoadScene("game.json", *mMapRegistry, *mLuaSystem);
+	mSceneManager->LoadScene("game.json");
 
 	ToggleEditorMode(true);
 
@@ -71,19 +71,18 @@ void Sandbox::Run()
 		{
 			world->GetCamera().Update();
 
-
 			mRenderContext->BeginFrame();
 
 			mSystemManager->Render(world);
 
 			// Render GUI last so menus draw on top
-			GUISystem::GUIStartFrame();
-			GUISystem::RenderMenus();
-			//GUISystem::RenderGuiElements();
+			mGUISystem->GUIStartFrame();
+			mGUISystem->RenderMenus();
+			//GUISystem::RenderGuiElements(); // Demo menu
 
 			mSystemManager->RenderGUI();
 
-			GUISystem::GUIEndFrame();
+			mGUISystem->GUIEndFrame();
 
 			mRenderContext->EndFrame();
 		}
@@ -94,7 +93,7 @@ void Sandbox::Run()
 		}
 	}
 
-	GUISystem::CloseGUI();
+	mGUISystem->CloseGUI();
 }
 
 void Sandbox::SetGUIMenu(std::unique_ptr<GUIBase> gui)
@@ -105,17 +104,15 @@ void Sandbox::SetGUIMenu(std::unique_ptr<GUIBase> gui)
 Sandbox::Sandbox(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
                  const LLGL::ColorRGBAf backgroundClearColor, bool transparent)
 {
+	// Init all systems **without** dependencies
 	mSystemManager = std::make_unique<SystemManager>();
 	mInputHandler = std::make_shared<InputHandler>();
-
-	// Init all systems **without** dependencies
 	mResourceManager = std::make_unique<ResourceManager>();
 	mDescriptionFactory = std::make_unique<DescriptionFactory>();
 	mEventPublisher = std::make_unique<EventPublisher>();
 	mMapRegistry = std::make_unique<MapRegistry>();
 	mLuaSystem = std::make_unique<LuaSystem>();
-	mRenderContext = std::make_unique<RenderContext>(screenSize, backgroundClearColor, title, mInputHandler,
-	                                                 transparent);
+
 
 	// Must be called before SceneManager sets up description factory
 	mDescriptionFactory->RegisterDescription<AnimationDescription>(AnimationDescription::JsonName);
@@ -129,11 +126,14 @@ Sandbox::Sandbox(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
 	mDescriptionFactory->RegisterDescription<TransformDescription>(TransformDescription::JsonName);
 
 	// Init all systems **with** dependencies
-	mSceneManager = std::make_unique<SceneManager>(*mDescriptionFactory);
+	mRenderContext = std::make_unique<RenderContext>(screenSize, backgroundClearColor, title, mInputHandler,
+	                                                 transparent);
+	mGUISystem = std::make_shared<GUISystem>(*mRenderContext);
+	mSceneManager = std::make_unique<SceneManager>(*mDescriptionFactory, *mMapRegistry, *mLuaSystem);
 
 	// Remaining system setup
+	mInputHandler->SetGUISystem(mGUISystem);
 	mInputHandler->RegisterButtonUpHandler(LLGL::Key::Escape, [=]() { mRunning = false; });
-	GUISystem::InitGUI(*mRenderContext);
 	mResourceManager->LoadAllResources(mRenderContext->GetRenderSystem());
 
 	auto world = mSceneManager->GetCurrentWorld();
@@ -143,7 +143,7 @@ Sandbox::Sandbox(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
 	auto physicsSystem = mSystemManager->RegisterSystem<PhysicsSystem>(*mRenderSystem, *mResourceManager, world);
 	mSystemManager->RegisterSystem<MovementSystem>(*physicsSystem, world);
 	mSystemManager->RegisterSystem<PlayerSystem>(mInputHandler, world);
-	mSystemManager->RegisterSystem<EditorGUI>(mInputHandler, world, *mRenderContext, *mResourceManager, *mRenderSystem);
+	//mSystemManager->RegisterSystem<EditorGUI>(mInputHandler, world, *mRenderContext, *mResourceManager, *mRenderSystem);
 }
 
 void Sandbox::ToggleEditorMode(bool toggle)

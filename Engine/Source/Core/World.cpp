@@ -5,7 +5,7 @@
 #include "Entity/Components/TransformComponent.h"
 #include "Entity/Descriptions/DescriptionBase.h"
 #include "Map/MapRegistry.h"
-#include "Scripting/LuaSystem.h"
+#include "Script/LuaSystem.h"
 
 #include "World.h"
 

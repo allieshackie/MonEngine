@@ -2,7 +2,8 @@
     "camera": {
         "position": [0,0,10],
         "front": [0,0,-1],
-        "up": [0,1,0]
+        "up": [0,1,0],
+        "follow_cam": false
     },
     "scripts": [
         "mainMenu.lua"

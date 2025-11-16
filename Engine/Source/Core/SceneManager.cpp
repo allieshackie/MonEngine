@@ -4,7 +4,8 @@
 
 #include "SceneManager.h"
 
-SceneManager::SceneManager(DescriptionFactory& descriptionFactory)
+SceneManager::SceneManager(DescriptionFactory& descriptionFactory, MapRegistry& mapRegistry, LuaSystem& luaSystem)
+	: mMapRegistry(mapRegistry), mLuaSystem(luaSystem)
 {
 	mPrefabRegistry = std::make_unique<PrefabRegistry>(descriptionFactory);
 
@@ -24,7 +25,7 @@ std::shared_ptr<World> SceneManager::GetCurrentWorld() const
 	return mCurrentWorld;
 }
 
-void SceneManager::LoadScene(const std::string& SceneName, const MapRegistry& mapRegistry, LuaSystem& luaSystem) const
+void SceneManager::LoadScene(const std::string& SceneName) const
 {
 	if (mCurrentWorld != nullptr)
 	{
@@ -54,7 +55,7 @@ void SceneManager::LoadScene(const std::string& SceneName, const MapRegistry& ma
 		return;
 	}
 
-	mCurrentWorld->Init(scene, *mPrefabRegistry, mapRegistry, luaSystem);
+	mCurrentWorld->Init(scene, *mPrefabRegistry, mMapRegistry, mLuaSystem);
 }
 
 const std::vector<const char*>& SceneManager::GetSceneNames() const

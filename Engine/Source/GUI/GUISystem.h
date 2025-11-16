@@ -9,25 +9,26 @@ struct ImVec4;
 class GUISystem
 {
 public:
-	static void InitGUI(const RenderContext& renderContext);
-	static void CloseGUI();
+	GUISystem(const RenderContext& renderContext);
 
-	static void LoadGUITheme(const std::string& themeName);
+	void CloseGUI() const;
 
-	static bool IsGUIContext();
+	void LoadGUITheme(const std::string& themeName) const;
 
-	static void RenderGuiElements();
+	bool IsGUIContext() const;
 
-	static void GUIStartFrame();
-	static void GUIEndFrame();
+	void RenderGuiElements() const;
 
-	static void RenderMenus();
+	void GUIStartFrame() const;
+	void GUIEndFrame() const;
 
-	static void AddMenu(std::unique_ptr<GUIMenuBase> element);
-	static void FlushMenus();
+	void RenderMenus() const;
+
+	void AddMenu(std::unique_ptr<GUIMenuBase> element);
+	void FlushMenus();
 
 private:
 	// example
 	static bool show_demo_window;
-	static std::vector<std::unique_ptr<GUIMenuBase>> mMenus;
+	std::vector<std::unique_ptr<GUIMenuBase>> mMenus;
 };

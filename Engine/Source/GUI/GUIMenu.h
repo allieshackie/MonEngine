@@ -1,5 +1,6 @@
 #pragma once
 #include <imgui.h>
+#include <glm/vec2.hpp>
 
 #include "GUIMenuBase.h"
 

@@ -3,7 +3,7 @@
         "position": [0,5,10],
         "front": [0,0,1],
         "up": [0,1,0],
-        "follow_cam": false
+        "follow_cam": true
     },
     "entities": [
         {

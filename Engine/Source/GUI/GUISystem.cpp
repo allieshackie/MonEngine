@@ -12,10 +12,9 @@
 
 constexpr const char* GLSL_VERSION = "#version 460";
 
-bool GUISystem::show_demo_window = true;
-std::vector<std::unique_ptr<GUIMenuBase>> GUISystem::mMenus;
+bool GUISystem::show_demo_window = false;
 
-void GUISystem::InitGUI(const RenderContext& renderContext)
+GUISystem::GUISystem(const RenderContext& renderContext)
 {
 	//Initialize Glad
 	if (gladLoadGL() == 0)
@@ -42,7 +41,7 @@ void GUISystem::InitGUI(const RenderContext& renderContext)
 	ImGui_ImplOpenGL3_Init(GLSL_VERSION);
 }
 
-void GUISystem::CloseGUI()
+void GUISystem::CloseGUI() const
 {
 	// Cleanup
 	ImGui_ImplOpenGL3_Shutdown();
@@ -51,7 +50,7 @@ void GUISystem::CloseGUI()
 	ImGui::DestroyContext();
 }
 
-void GUISystem::LoadGUITheme(const std::string& themeName)
+void GUISystem::LoadGUITheme(const std::string& themeName) const
 {
 	ImGuiStyle& style = ImGui::GetStyle();
 	const std::string guiPath = "GUI/" + themeName + ".json";
@@ -156,32 +155,32 @@ void GUISystem::LoadGUITheme(const std::string& themeName)
 	style.Colors[ImGuiCol_PlotHistogramHovered] = theme.Colors[38];
 }
 
-bool GUISystem::IsGUIContext()
+bool GUISystem::IsGUIContext() const
 {
 	const ImGuiIO& io = ImGui::GetIO();
 	return io.WantCaptureKeyboard || io.WantCaptureMouse;
 }
 
-void GUISystem::RenderGuiElements()
+void GUISystem::RenderGuiElements() const
 {
 	ImGui::ShowDemoWindow(&show_demo_window);
 }
 
-void GUISystem::GUIStartFrame()
+void GUISystem::GUIStartFrame() const
 {
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 }
 
-void GUISystem::GUIEndFrame()
+void GUISystem::GUIEndFrame() const
 {
 	// Rendering
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-void GUISystem::RenderMenus()
+void GUISystem::RenderMenus() const
 {
 	for (const auto& menu : mMenus)
 	{

@@ -10,11 +10,11 @@ class MapRegistry;
 class SceneManager
 {
 public:
-	SceneManager(DescriptionFactory& descriptionFactory);
+	SceneManager(DescriptionFactory& descriptionFactory, MapRegistry& mapRegistry, LuaSystem& luaSystem);
 
 	std::shared_ptr<World> GetCurrentWorld() const;
 
-	void LoadScene(const std::string& sceneName, const MapRegistry& mapRegistry, LuaSystem& luaSystem) const;
+	void LoadScene(const std::string& sceneName) const;
 	const std::vector<const char*>& GetSceneNames() const;
 
 private:
@@ -22,6 +22,9 @@ private:
 
 	std::vector<const char*> mSceneFileNames;
 	std::unique_ptr<PrefabRegistry> mPrefabRegistry = nullptr;
+
+	MapRegistry& mMapRegistry;
+	LuaSystem& mLuaSystem;
 
 	const char* EDITOR_SCENE = "editor";
 };
