@@ -12,7 +12,7 @@ class RenderSystem;
 
 struct JointData;
 struct MeshData;
-struct Node;
+struct MeshNode;
 
 class Model
 {
@@ -25,7 +25,7 @@ public:
 	int GetRootJointIndex() const { return mRootJointIndex; }
 	int GetRootSceneIndex() const { return mRootSceneIndex; }
 	const std::vector<MeshData*>& GetMeshes() const { return mMeshes; }
-	const std::vector<Node*>& GetNodes() const { return mNodes; }
+	const std::vector<MeshNode*>& GetNodes() const { return mNodes; }
 
 	JointData* GetJointDataAt(int nodeIndex) const;
 	size_t GetNumJoints() const { return mNumNodes; }
@@ -46,12 +46,12 @@ public:
 	void AddAnimation(Animation* modelAnim) { mAnimations.push_back(modelAnim); }
 
 	// Setup helpers
-	Node* GetNodeAt(int nodeIndex) const;
+	MeshNode* GetNodeAt(int nodeIndex) const;
 	MeshData* GetMeshAt(int nodeIndex) const;
 
 private:
 	int mId;
-	std::vector<Node*> mNodes;
+	std::vector<MeshNode*> mNodes;
 	std::vector<MeshData*> mMeshes;
 
 	std::unordered_map<std::string, int> mBoneNameToIndex;

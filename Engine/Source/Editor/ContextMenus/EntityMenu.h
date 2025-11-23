@@ -1,5 +1,4 @@
 #pragma once
-#include <imgui.h>
 #include "LLGL/Types.h"
 
 class Camera;
@@ -32,7 +31,7 @@ private:
 	glm::vec2 mMousePos = {0, 0};
 
 	// Entity Selection
-	entt::entity mSelectedEntity;
+	entt::entity mSelectedEntity = entt::entity();
 	std::vector<entt::entity> mEntityList;
 	std::vector<const char*> items;
 	int current_entity_selected = 0;

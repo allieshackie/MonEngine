@@ -3,7 +3,7 @@
 
 using Clock = std::chrono::high_resolution_clock;
 using Duration = std::chrono::duration<double>;
-using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
+using TimePoint = std::chrono::time_point<Clock>;
 
 struct Timer
 {

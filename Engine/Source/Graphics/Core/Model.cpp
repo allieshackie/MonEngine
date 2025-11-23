@@ -14,7 +14,7 @@ Model::Model(int id, size_t nodesSize): mId(id), mNumNodes(nodesSize)
 {
 	for (int i = 0; i < nodesSize; i++)
 	{
-		mNodes.push_back(new Node());
+		mNodes.push_back(new MeshNode());
 	}
 }
 
@@ -62,7 +62,7 @@ glm::vec3 Model::CalculateModelScaling(const glm::vec3& targetSize) const
 	return targetSize / size;
 }
 
-Node* Model::GetNodeAt(int nodeIndex) const
+MeshNode* Model::GetNodeAt(int nodeIndex) const
 {
 	if (nodeIndex > mNodes.size())
 	{

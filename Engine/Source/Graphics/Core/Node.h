@@ -8,7 +8,7 @@ namespace LLGL
 	class Buffer;
 }
 
-struct Node
+struct MeshNode
 {
 	std::string mName;
 
