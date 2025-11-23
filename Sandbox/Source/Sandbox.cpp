@@ -41,11 +41,13 @@ void Sandbox::Run()
 	auto timer = new Timer();
 	timer->mCurrentTime = Clock::now();
 
+	double frames = 0;
+	double fps = 0;
+
 	while (mRenderContext->ProcessEvents() && mRunning)
 	{
-		auto frameTime = Clock::now();
-		Duration elapsed = frameTime - timer->mCurrentTime;
-		timer->mCurrentTime = frameTime;
+		auto currentTime = Clock::now();
+		Duration elapsed = currentTime - timer->mCurrentTime;
 
 		double deltaTime = elapsed.count();
 		if (deltaTime > 0.25)
@@ -53,6 +55,14 @@ void Sandbox::Run()
 			// Clamp large deltaTime to prevent "spiral of death"
 			// where we could potentially always be "catching up"
 			deltaTime = 0.25;
+		}
+
+		frames++;
+		if (elapsed.count() >= 1.0)
+		{
+			fps = frames / elapsed.count();
+			frames = 0;
+			timer->mCurrentTime = currentTime;
 		}
 
 		timer->mAccumulator += deltaTime;
@@ -77,7 +87,12 @@ void Sandbox::Run()
 
 			// Render GUI last so menus draw on top
 			mGUISystem->GUIStartFrame();
-			mGUISystem->RenderMenus();
+			if (ImGui::Begin("Test"))
+			{
+				ImGui::Text("FPS: %.1f", fps);
+			}
+			ImGui::End();
+			//mGUISystem->RenderMenus();
 			//GUISystem::RenderGuiElements(); // Demo menu
 
 			mSystemManager->RenderGUI();
@@ -96,11 +111,6 @@ void Sandbox::Run()
 	mGUISystem->CloseGUI();
 }
 
-void Sandbox::SetGUIMenu(std::unique_ptr<GUIBase> gui)
-{
-	mGUIMenu = std::move(gui);
-}
-
 Sandbox::Sandbox(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
                  const LLGL::ColorRGBAf backgroundClearColor, bool transparent)
 {
@@ -112,7 +122,6 @@ Sandbox::Sandbox(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
 	mEventPublisher = std::make_unique<EventPublisher>();
 	mMapRegistry = std::make_unique<MapRegistry>();
 	mLuaSystem = std::make_unique<LuaSystem>();
-
 
 	// Must be called before SceneManager sets up description factory
 	mDescriptionFactory->RegisterDescription<AnimationDescription>(AnimationDescription::JsonName);
@@ -143,7 +152,7 @@ Sandbox::Sandbox(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
 	auto physicsSystem = mSystemManager->RegisterSystem<PhysicsSystem>(*mRenderSystem, *mResourceManager, world);
 	mSystemManager->RegisterSystem<MovementSystem>(*physicsSystem, world);
 	mSystemManager->RegisterSystem<PlayerSystem>(mInputHandler, world);
-	//mSystemManager->RegisterSystem<EditorGUI>(mInputHandler, world, *mRenderContext, *mResourceManager, *mRenderSystem);
+	mSystemManager->RegisterSystem<EditorGUI>(mInputHandler, world, *mRenderContext, *mResourceManager, *mRenderSystem);
 }
 
 void Sandbox::ToggleEditorMode(bool toggle)

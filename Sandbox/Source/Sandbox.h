@@ -7,7 +7,6 @@
 #include "Entity/Descriptions/DescriptionFactory.h"
 #include "Graphics/RenderContext.h"
 #include "Graphics/Core/ResourceManager.h"
-#include "GUI/GUIBase.h"
 #include "Input/InputHandler.h"
 #include "Map/MapRegistry.h"
 #include "Script/LuaSystem.h"
@@ -21,8 +20,6 @@ public:
 	        bool transparent = false);
 
 	void Run();
-
-	void SetGUIMenu(std::unique_ptr<GUIBase> gui);
 
 	template <typename T>
 	void RegisterDescription(const std::string& descriptionName) const
@@ -38,7 +35,6 @@ private:
 	std::unique_ptr<ResourceManager> mResourceManager;
 
 	std::unique_ptr<SceneManager> mSceneManager;
-	std::unique_ptr<GUIBase> mGUIMenu;
 	std::unique_ptr<LuaSystem> mLuaSystem;
 	std::shared_ptr<GUISystem> mGUISystem;
 
