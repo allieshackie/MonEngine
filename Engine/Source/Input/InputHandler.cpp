@@ -99,9 +99,14 @@ void InputHandler::Update()
 	}
 }
 
+void InputHandler::SetGUISystem(std::weak_ptr<GUISystem> system)
+{
+	mGUISystemWPtr = system;
+}
+
 void InputHandler::OnKeyDown(LLGL::Window& sender, LLGL::Key keyCode)
 {
-	if (GUISystem::IsGUIContext())
+	if (const auto guiSystem = mGUISystemWPtr.lock(); guiSystem->IsGUIContext())
 	{
 		_handleKeyDownGUI(keyCode);
 	}
@@ -127,7 +132,7 @@ void InputHandler::OnKeyDown(LLGL::Window& sender, LLGL::Key keyCode)
 
 void InputHandler::OnKeyUp(LLGL::Window& sender, LLGL::Key keyCode)
 {
-	if (GUISystem::IsGUIContext())
+	if (const auto guiSystem = mGUISystemWPtr.lock(); guiSystem->IsGUIContext())
 	{
 		_handleKeyUpGUI(keyCode);
 	}
@@ -154,7 +159,7 @@ void InputHandler::OnKeyUp(LLGL::Window& sender, LLGL::Key keyCode)
 
 void InputHandler::OnWheelMotion(LLGL::Window& sender, int motion)
 {
-	if (GUISystem::IsGUIContext())
+	if (const auto guiSystem = mGUISystemWPtr.lock(); guiSystem->IsGUIContext())
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		if (motion > 0)
@@ -196,7 +201,7 @@ void InputHandler::OnLocalMotion(LLGL::Window& sender, const LLGL::Offset2D& pos
 
 void InputHandler::OnChar(LLGL::Window& sender, wchar_t chr)
 {
-	if (GUISystem::IsGUIContext())
+	if (const auto guiSystem = mGUISystemWPtr.lock(); guiSystem->IsGUIContext())
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		io.AddInputCharacterUTF16(chr);

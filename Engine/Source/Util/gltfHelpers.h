@@ -10,13 +10,13 @@
 namespace gltfHelpers
 {
 	template <typename T>
-	static T Lerp(T a, T b, float t)
+	T Lerp(T a, T b, float t)
 	{
 		return a + t * (b - a);
 	}
 
 	// Function to extract the transformation matrix of a glTF node
-	static glm::mat4 GetNodeTransform(const tinygltf::Node& gltfNode)
+	inline glm::mat4 GetNodeTransform(const tinygltf::Node& gltfNode)
 	{
 		auto transform = glm::mat4(1.0f); // Default to identity matrix
 
@@ -63,7 +63,7 @@ namespace gltfHelpers
 		return transform;
 	}
 
-	static glm::vec4 _GenerateRandomColor()
+	inline glm::vec4 _GenerateRandomColor()
 	{
 		// Create a random number generator
 		std::random_device rd;
@@ -76,7 +76,7 @@ namespace gltfHelpers
 		};
 	}
 
-	static std::vector<float> GetKeyframeTimes(const tinygltf::Accessor& accessor, const unsigned char* buffer)
+	inline std::vector<float> GetKeyframeTimes(const tinygltf::Accessor& accessor, const unsigned char* buffer)
 	{
 		std::vector<float> times;
 		auto timeData = reinterpret_cast<const float*>(buffer);
@@ -87,7 +87,7 @@ namespace gltfHelpers
 		return times;
 	}
 
-	static std::vector<glm::vec3> GetVec3Keyframes(const tinygltf::Accessor& accessor, const unsigned char* buffer)
+	inline std::vector<glm::vec3> GetVec3Keyframes(const tinygltf::Accessor& accessor, const unsigned char* buffer)
 	{
 		std::vector<glm::vec3> values;
 		auto data = reinterpret_cast<const float*>(buffer);
@@ -99,7 +99,7 @@ namespace gltfHelpers
 		return values;
 	}
 
-	static std::vector<glm::quat> GetQuatKeyframes(const tinygltf::Accessor& accessor, const unsigned char* buffer)
+	inline std::vector<glm::quat> GetQuatKeyframes(const tinygltf::Accessor& accessor, const unsigned char* buffer)
 	{
 		std::vector<glm::quat> values;
 		auto data = reinterpret_cast<const float*>(buffer);
@@ -112,7 +112,7 @@ namespace gltfHelpers
 	}
 
 	template <typename T>
-	static T GetgltfBuffer(const tinygltf::Model& model, int attributeIndex, int& accessorCount)
+	T GetgltfBuffer(const tinygltf::Model& model, int attributeIndex, int& accessorCount)
 	{
 		const tinygltf::Accessor& accessor = model.accessors[attributeIndex];
 		const tinygltf::BufferView& bufferView = model.bufferViews[accessor.bufferView];
@@ -124,7 +124,7 @@ namespace gltfHelpers
 	}
 
 	template <typename T>
-	static T GetgltfBuffer(const tinygltf::Model& model, int attributeIndex)
+	T GetgltfBuffer(const tinygltf::Model& model, int attributeIndex)
 	{
 		const tinygltf::Accessor& accessor = model.accessors[attributeIndex];
 		const tinygltf::BufferView& bufferView = model.bufferViews[accessor.bufferView];
@@ -136,7 +136,7 @@ namespace gltfHelpers
 
 namespace MonUtil
 {
-	static glm::vec3 CalculateModelPoint(glm::vec3 pos, glm::vec3 size, glm::vec3 basePoint = {0, 0, 0})
+	inline glm::vec3 CalculateModelPoint(glm::vec3 pos, glm::vec3 size, glm::vec3 basePoint = {0, 0, 0})
 	{
 		auto model = glm::mat4(1.0f);
 
@@ -146,5 +146,5 @@ namespace MonUtil
 		return model * glm::vec4(basePoint, 1.0);
 	}
 
-	const std::array<glm::vec3, 4> mBoxVertices{{{0, 1.0, 1.0}, {0, 0, 1.0}, {1.0, 1.0, 1.0}, {1.0, 0, 1.0}}};
+	inline const std::array<glm::vec3, 4> mBoxVertices{{{0, 1.0, 1.0}, {0, 0, 1.0}, {1.0, 1.0, 1.0}, {1.0, 0, 1.0}}};
 }

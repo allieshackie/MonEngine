@@ -16,50 +16,110 @@ LuaContext::~LuaContext()
 	lua_close(mLuaState);
 }
 
-void LuaContext::Execute(const char* scriptFile, bool isModule) const
+void LuaContext::Execute(const char* scriptFile) const
 {
 	std::string pathName = SCRIPTS_FOLDER;
 	pathName.append(scriptFile);
-	// Load and execute Lua script
-	if (luaL_dofile(mLuaState, pathName.c_str()) != 0)
+	// [ ] loads chunk then cleans up
+	if (luaL_dofile(mLuaState, pathName.c_str()) != LUA_OK)
 	{
-		// Handle errors (e.g., print the error message)
 		fprintf(stderr, "Error: %s\n", lua_tostring(mLuaState, -1));
-		lua_pop(mLuaState, 1); // Pop the error message from the stack
+		// [ ] pops error, failure already pops chunk
+		lua_pop(mLuaState, 1);
 		lua_close(mLuaState);
 	}
 
-	// Call a specific Lua function
+	// [ function ]
 	lua_getglobal(mLuaState, "Initialize");
 
-	// Check if the Lua function is callable
 	if (lua_isfunction(mLuaState, -1))
 	{
-		// Call the Lua function with arguments and expect one result
-		if (lua_pcall(mLuaState, 0, 0, 0) != 0)
+		// [ ] pops function
+		if (lua_pcall(mLuaState, 0, 0, 0) != LUA_OK)
 		{
-			// Handle errors (e.g., print the error message)
 			fprintf(stderr, "Error: %s\n", lua_tostring(mLuaState, -1));
-			lua_pop(mLuaState, 1); // Pop the error message from the stack
+			// [ ] pops error, failure already pops function
+			lua_pop(mLuaState, 1);
 		}
 	}
 	else
 	{
 		fprintf(stderr, "Error: Function not found\n");
+		// [ ] cleanup function on failure
+		lua_pop(mLuaState, 1);
 	}
 }
 
-void LuaContext::LoadWithoutExecute(const char* scriptFile, bool isModule) const
+void LuaContext::ExecuteWithInstance(const char* scriptFile, int tableRefIndex) const
 {
 	std::string pathName = SCRIPTS_FOLDER;
 	pathName.append(scriptFile);
-	// Load the file, but don't run yet
+	// [ chunk ]
 	if (luaL_loadfile(mLuaState, pathName.c_str()) != LUA_OK)
 	{
-		// Handle script loading or execution errors
-		const char* errorMessage = lua_tostring(mLuaState, -1);
-		fprintf(stderr, "Error loading Lua script: %s\n", errorMessage);
+		fprintf(stderr, "Error: %s\n", lua_tostring(mLuaState, -1));
+		// [ ] pops error, failure already pops chunk
+		lua_pop(mLuaState, 1);
+		return;
 	}
+
+	// [ chunk, table ]
+	lua_rawgeti(mLuaState, LUA_REGISTRYINDEX, tableRefIndex);
+
+	// [ chunk ], pops table
+	lua_setupvalue(mLuaState, -2, 1);
+
+	// [ ], pops chunk
+	if (lua_pcall(mLuaState, 0, 0, 0) != LUA_OK)
+	{
+		fprintf(stderr, "Error: %s\n", lua_tostring(mLuaState, -1));
+		// [ ] pops error, failure already pops chunk
+		lua_pop(mLuaState, 1);
+	}
+}
+
+void LuaContext::Initialize(int tableRefIndex) const
+{
+	// [ table ]
+	lua_rawgeti(mLuaState, LUA_REGISTRYINDEX, tableRefIndex);
+	// [ table, function ]
+	lua_getfield(mLuaState, -1, "Initialize");
+
+	if (!lua_isfunction(mLuaState, -1))
+	{
+		fprintf(stderr, "Error: Initialize is not a function\n");
+		// [ ] pops error and table, function value would be nil in this case
+		lua_pop(mLuaState, 2);
+		return;
+	}
+
+	// [ table ] pops function
+	lua_pcall(mLuaState, 0, 0, 0);
+
+	// [ ] pops table
+	lua_pop(mLuaState, 1);
+}
+
+void LuaContext::Update(int tableRefIndex) const
+{
+	// [ table ]
+	lua_rawgeti(mLuaState, LUA_REGISTRYINDEX, tableRefIndex);
+	// [ table, function ]
+	lua_getfield(mLuaState, -1, "Update");
+
+	if (!lua_isfunction(mLuaState, -1))
+	{
+		fprintf(stderr, "Error: Update is not a function\n");
+		// [ ] pops error and table, function value would be nil in this case
+		lua_pop(mLuaState, 2);
+		return;
+	}
+
+	// [ table ] pops function
+	lua_pcall(mLuaState, 0, 0, 0);
+
+	// [ ] pops table
+	lua_pop(mLuaState, 1);
 }
 
 lua_State* LuaContext::GetState() const

@@ -6,6 +6,7 @@
 #include "LLGL/Window.h"
 
 class Camera;
+class GUISystem;
 class Window;
 
 enum class KeyStates
@@ -60,6 +61,8 @@ public:
 
 	void Update();
 
+	void SetGUISystem(std::weak_ptr<GUISystem> system);
+
 protected:
 	void OnKeyDown(LLGL::Window& sender, LLGL::Key keyCode) override;
 	void OnKeyUp(LLGL::Window& sender, LLGL::Key keyCode) override;
@@ -103,4 +106,6 @@ private:
 		{LLGL::Key::Space, "Space"},
 		{LLGL::Key::C, "C"},
 	};
+
+	std::weak_ptr<GUISystem> mGUISystemWPtr;
 };

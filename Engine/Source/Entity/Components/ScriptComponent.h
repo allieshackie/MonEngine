@@ -6,6 +6,9 @@ struct ScriptComponent
 {
 	std::string mPath;
 
+	// runtime
+	int mLuaTableRef = -1;
+
 	template <class Archive>
 	void serialize(Archive& archive)
 	{

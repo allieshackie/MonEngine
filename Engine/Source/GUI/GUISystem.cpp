@@ -3,18 +3,19 @@
 #include "backends/imgui_impl_opengl3.h"
 #include "backends/imgui_impl_win32.h"
 #include "LLGL/Platform/Win32/Win32NativeHandle.h"
+
 #include "Graphics/RenderContext.h"
+#include "Util/FileSystem.h"
+#include "Util/LuaUtil.h"
+#include "GUITheme.h"
 
 #include "GUISystem.h"
-
-#include "GUITheme.h"
-#include "Util/FileSystem.h"
 
 constexpr const char* GLSL_VERSION = "#version 460";
 
 bool GUISystem::show_demo_window = false;
 
-GUISystem::GUISystem(const RenderContext& renderContext)
+GUISystem::GUISystem(const RenderContext& renderContext) : LuaBindable("GUISystem")
 {
 	//Initialize Glad
 	if (gladLoadGL() == 0)
@@ -39,6 +40,16 @@ GUISystem::GUISystem(const RenderContext& renderContext)
 
 	ImGui_ImplWin32_Init(mainWindowHandle.window);
 	ImGui_ImplOpenGL3_Init(GLSL_VERSION);
+}
+
+void GUISystem::BindMethods(lua_State* state)
+{
+	LuaUtil::RegisterMethod<GUISystem, &GUISystem::CreatePopup>(state, "CreatePopup");
+}
+
+void GUISystem::BindInstanceGetter(lua_State* state)
+{
+	LuaUtil::RegisterInstanceGetter(state, "GetGUISystem", this);
 }
 
 void GUISystem::CloseGUI() const
@@ -161,7 +172,7 @@ bool GUISystem::IsGUIContext() const
 	return io.WantCaptureKeyboard || io.WantCaptureMouse;
 }
 
-void GUISystem::RenderGuiElements() const
+void GUISystem::DemoWindow() const
 {
 	ImGui::ShowDemoWindow(&show_demo_window);
 }
@@ -180,20 +191,6 @@ void GUISystem::GUIEndFrame() const
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-void GUISystem::RenderMenus() const
+void GUISystem::CreatePopup(const std::string& name)
 {
-	for (const auto& menu : mMenus)
-	{
-		menu->Render();
-	}
-}
-
-void GUISystem::AddMenu(std::unique_ptr<GUIMenuBase> element)
-{
-	mMenus.push_back(std::move(element));
-}
-
-void GUISystem::FlushMenus()
-{
-	mMenus.clear();
 }

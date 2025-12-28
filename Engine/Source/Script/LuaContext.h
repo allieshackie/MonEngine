@@ -9,10 +9,19 @@ public:
 	LuaContext();
 	~LuaContext();
 
-	void Execute(const char* scriptFile, bool isModule = false) const;
-	void LoadWithoutExecute(const char* scriptFile, bool isModule = false) const;
+	// Copy constructor/assignment operator
+	LuaContext(const LuaContext& other) = default;
+	LuaContext& operator=(const LuaContext& other) = default;
+	// Move constructor/assignment operator
+	LuaContext(LuaContext&& other) noexcept = default;
+	LuaContext& operator=(LuaContext&& rhs) noexcept = default;
 
 	lua_State* GetState() const;
+	void Execute(const char* scriptFile) const;
+	void ExecuteWithInstance(const char* scriptFile, int tableRefIndex) const;
+
+	void Initialize(int tableRefIndex) const;
+	void Update(int tableRefIndex) const;
 
 private:
 	lua_State* mLuaState = nullptr;

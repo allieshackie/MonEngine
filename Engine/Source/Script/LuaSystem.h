@@ -1,42 +1,19 @@
 #pragma once
-extern "C" {
-#include <lua.h>
-#include <lauxlib.h>
-}
+#include "Core/ISystem.h"
 
 #include "LuaContext.h"
 
-namespace LUA_UTIL
-{
-	template <typename T, typename... Args>
-	void BindFunction(lua_State* state, Args&&... args)
-	{
-	}
-
-	template <typename T>
-	void BindValue(lua_State* state, T& value)
-	{
-	}
-
-	template <typename T>
-	void BindInstance(lua_State* state)
-	{
-	}
-}
-
-class LuaSystem
+class LuaSystem : public ISystem
 {
 public:
-	LuaSystem();
+	LuaSystem(std::weak_ptr<World> world);
 
-	void LoadScript(const char* scriptFile);
+	lua_State* GetState() const;
 
-	void QueueClose();
-	void CloseAllScripts();
-
-	bool QueueCloseScripts() const;
+	void LoadScript(const char* scriptFile) const;
+	void Update(float dt) override;
 
 private:
 	std::unique_ptr<LuaContext> mLuaContext;
-	bool mQueueClose = false;
+	std::weak_ptr<World> mWorld;
 };

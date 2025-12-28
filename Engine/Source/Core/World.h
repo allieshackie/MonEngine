@@ -16,7 +16,7 @@ public:
 	void Close();
 
 	void Init(MonScene* scene, PrefabRegistry& prefabRegistry, const MapRegistry& mapRegistry,
-	          LuaSystem& luaSystem);
+	          std::weak_ptr<LuaSystem> luaSystem);
 	Camera& GetCamera() const { return *mCamera; }
 	entt::registry& GetRegistry() { return mRegistry; }
 	Entity* GetEntityForId(entt::entity id);

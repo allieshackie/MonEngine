@@ -9,7 +9,6 @@
 #include "Graphics/Core/ResourceManager.h"
 #include "Input/InputHandler.h"
 #include "Map/MapRegistry.h"
-#include "Script/LuaSystem.h"
 
 class Sandbox
 {
@@ -35,7 +34,6 @@ private:
 	std::unique_ptr<ResourceManager> mResourceManager;
 
 	std::unique_ptr<SceneManager> mSceneManager;
-	std::unique_ptr<LuaSystem> mLuaSystem;
 	std::shared_ptr<GUISystem> mGUISystem;
 
 	std::unique_ptr<EventPublisher> mEventPublisher;
@@ -44,7 +42,7 @@ private:
 
 	// systems
 	std::shared_ptr<InputHandler> mInputHandler;
-	RenderSystem* mRenderSystem;
+	std::shared_ptr<RenderSystem> mRenderSystem;
 
 	bool mRunning = true;
 };

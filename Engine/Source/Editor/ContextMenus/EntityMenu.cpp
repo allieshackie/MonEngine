@@ -86,6 +86,10 @@ void EntityMenu::RenderSelectedEntityMenu()
 
 void EntityMenu::RenderEntitySelection()
 {
+	if (mEntityList.empty())
+	{
+		return;
+	}
 	const auto sharedWorld = mWorld.lock();
 	if (!(sharedWorld && sharedWorld->GetRegistry().valid(mSelectedEntity)))
 	{

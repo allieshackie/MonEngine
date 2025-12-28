@@ -6,6 +6,6 @@
         "follow_cam": false
     },
     "scripts": [
-        "mainMenu.lua"
+        "startGame.lua"
     ]
 }

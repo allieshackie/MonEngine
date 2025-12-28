@@ -7,6 +7,7 @@
 #include "Entity/Descriptions/ModelDescription.h"
 #include "Entity/Descriptions/PhysicsDescription.h"
 #include "Entity/Descriptions/PlayerDescription.h"
+#include "Entity/Descriptions/ScriptDescription.h"
 #include "Entity/Descriptions/SpriteDescription.h"
 #include "Entity/Descriptions/TransformDescription.h"
 #include "Entity/Systems/MovementSystem.h"
@@ -15,6 +16,7 @@
 #include "Graphics/RenderSystem.h"
 #include "GUI/GUISystem.h"
 #include "Physics/PhysicsSystem.h"
+#include "Script/LuaSystem.h"
 
 #include "Sandbox.h"
 
@@ -33,7 +35,7 @@ void Sandbox::Run()
 	mRenderContext->SetBackgroundClearColor({0.1f, 0.1f, 0.1f});
 	//mRenderSystem->LoadFont("PixelLettersFull.ttf");
 	//GUISystem::LoadGUITheme("LightStyle");
-	mSceneManager->LoadScene("game.json");
+	mSceneManager->LoadScene("menu.json");
 
 	ToggleEditorMode(true);
 
@@ -101,11 +103,6 @@ void Sandbox::Run()
 
 			mRenderContext->EndFrame();
 		}
-
-		if (mLuaSystem->QueueCloseScripts())
-		{
-			mLuaSystem->CloseAllScripts();
-		}
 	}
 
 	mGUISystem->CloseGUI();
@@ -121,7 +118,6 @@ Sandbox::Sandbox(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
 	mDescriptionFactory = std::make_unique<DescriptionFactory>();
 	mEventPublisher = std::make_unique<EventPublisher>();
 	mMapRegistry = std::make_unique<MapRegistry>();
-	mLuaSystem = std::make_unique<LuaSystem>();
 
 	// Must be called before SceneManager sets up description factory
 	mDescriptionFactory->RegisterDescription<AnimationDescription>(AnimationDescription::JsonName);
@@ -131,6 +127,7 @@ Sandbox::Sandbox(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
 	mDescriptionFactory->RegisterDescription<ModelDescription>(ModelDescription::JsonName);
 	mDescriptionFactory->RegisterDescription<PhysicsDescription>(PhysicsDescription::JsonName);
 	mDescriptionFactory->RegisterDescription<PlayerDescription>(PlayerDescription::JsonName);
+	mDescriptionFactory->RegisterDescription<ScriptDescription>(ScriptDescription::JsonName);
 	mDescriptionFactory->RegisterDescription<SpriteDescription>(SpriteDescription::JsonName);
 	mDescriptionFactory->RegisterDescription<TransformDescription>(TransformDescription::JsonName);
 
@@ -138,7 +135,7 @@ Sandbox::Sandbox(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
 	mRenderContext = std::make_unique<RenderContext>(screenSize, backgroundClearColor, title, mInputHandler,
 	                                                 transparent);
 	mGUISystem = std::make_shared<GUISystem>(*mRenderContext);
-	mSceneManager = std::make_unique<SceneManager>(*mDescriptionFactory, *mMapRegistry, *mLuaSystem);
+	mSceneManager = std::make_unique<SceneManager>(*mDescriptionFactory, *mMapRegistry);
 
 	// Remaining system setup
 	mInputHandler->SetGUISystem(mGUISystem);
@@ -149,10 +146,19 @@ Sandbox::Sandbox(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
 	mRenderSystem = mSystemManager->RegisterSystem<RenderSystem>(*mRenderContext, *mResourceManager, world);
 	// Gameplay systems
 	mSystemManager->RegisterSystem<AnimatorSystem>(*mResourceManager, world);
-	auto physicsSystem = mSystemManager->RegisterSystem<PhysicsSystem>(*mRenderSystem, *mResourceManager, world);
+	const auto physicsSystem = mSystemManager->RegisterSystem<PhysicsSystem>(*mRenderSystem, *mResourceManager, world);
 	mSystemManager->RegisterSystem<MovementSystem>(*physicsSystem, world);
 	mSystemManager->RegisterSystem<PlayerSystem>(mInputHandler, world);
 	mSystemManager->RegisterSystem<EditorGUI>(mInputHandler, world, *mRenderContext, *mResourceManager, *mRenderSystem);
+	const auto luaSystem = mSystemManager->RegisterSystem<LuaSystem>(world);
+
+	mSceneManager->SetLuaSystem(luaSystem);
+
+	mSceneManager->Bind(luaSystem->GetState());
+	mGUISystem->Bind(luaSystem->GetState());
+
+	// Slightly different since there will be multiple instances
+	Entity::Bind(luaSystem->GetState());
 }
 
 void Sandbox::ToggleEditorMode(bool toggle)

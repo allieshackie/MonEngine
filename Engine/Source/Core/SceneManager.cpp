@@ -1,11 +1,12 @@
 #include "Scene.h"
 #include "Entity/Descriptions/DescriptionFactory.h"
 #include "Util/FileSystem.h"
+#include "Util/LuaUtil.h"
 
 #include "SceneManager.h"
 
-SceneManager::SceneManager(DescriptionFactory& descriptionFactory, MapRegistry& mapRegistry, LuaSystem& luaSystem)
-	: mMapRegistry(mapRegistry), mLuaSystem(luaSystem)
+SceneManager::SceneManager(DescriptionFactory& descriptionFactory, MapRegistry& mapRegistry)
+	: LuaBindable("SceneManager"), mMapRegistry(mapRegistry)
 {
 	mPrefabRegistry = std::make_unique<PrefabRegistry>(descriptionFactory);
 
@@ -25,7 +26,7 @@ std::shared_ptr<World> SceneManager::GetCurrentWorld() const
 	return mCurrentWorld;
 }
 
-void SceneManager::LoadScene(const std::string& SceneName) const
+void SceneManager::LoadScene(const std::string& sceneName) const
 {
 	if (mCurrentWorld != nullptr)
 	{
@@ -34,7 +35,7 @@ void SceneManager::LoadScene(const std::string& SceneName) const
 
 	// parse and serialize JSON
 	std::string fullFileName = LEVELS_FOLDER;
-	fullFileName.append(SceneName);
+	fullFileName.append(sceneName);
 
 	auto scene = new MonScene();
 
@@ -61,4 +62,14 @@ void SceneManager::LoadScene(const std::string& SceneName) const
 const std::vector<const char*>& SceneManager::GetSceneNames() const
 {
 	return mSceneFileNames;
+}
+
+void SceneManager::BindMethods(lua_State* state)
+{
+	LuaUtil::RegisterMethod<SceneManager, &SceneManager::LoadScene>(state, "LoadScene");
+}
+
+void SceneManager::BindInstanceGetter(lua_State* state)
+{
+	LuaUtil::RegisterInstanceGetter(state, "GetSceneManager", this);
 }

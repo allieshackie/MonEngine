@@ -1,12 +1,12 @@
 #pragma once
-#include "GUIMenuBase.h"
+#include "Script/LuaBindable.h"
 
 class RenderContext;
 
 struct InputEvent;
 struct ImVec4;
 
-class GUISystem
+class GUISystem : public LuaBindable
 {
 public:
 	GUISystem(const RenderContext& renderContext);
@@ -17,18 +17,19 @@ public:
 
 	bool IsGUIContext() const;
 
-	void RenderGuiElements() const;
-
 	void GUIStartFrame() const;
 	void GUIEndFrame() const;
 
-	void RenderMenus() const;
+	void CreatePopup(const std::string& name);
+	void AddButton();
 
-	void AddMenu(std::unique_ptr<GUIMenuBase> element);
-	void FlushMenus();
+	// Debug
+	void DemoWindow() const;
 
+	void BindMethods(lua_State* state) override;
+	void BindInstanceGetter(lua_State* state) override;
+	static constexpr char LuaName[] = "GUISystem";
 private:
 	// example
 	static bool show_demo_window;
-	std::vector<std::unique_ptr<GUIMenuBase>> mMenus;
 };

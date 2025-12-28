@@ -21,7 +21,7 @@ void World::Close()
 }
 
 void World::Init(MonScene* scene, PrefabRegistry& prefabRegistry, const MapRegistry& mapRegistry,
-                 LuaSystem& luaSystem)
+                 std::weak_ptr<LuaSystem> luaSystem)
 {
 	// Create Map
 	if (!scene->GetMapData().mName.empty())
@@ -42,9 +42,12 @@ void World::Init(MonScene* scene, PrefabRegistry& prefabRegistry, const MapRegis
 		}
 	}
 
-	for (const auto& script : scene->GetScripts())
+	if (const auto luaPtr = luaSystem.lock())
 	{
-		luaSystem.LoadScript(script.c_str());
+		for (const auto& script : scene->GetScripts())
+		{
+			luaPtr->LoadScript(script.c_str());
+		}
 	}
 }
 
@@ -52,7 +55,8 @@ Entity& World::CreateEntityFromTemplate(const char* templateName, PrefabRegistry
 {
 	const auto& descriptions = prefabRegistry.GetPrefabsDescriptions(templateName);
 	auto id = mRegistry.create();
-	const auto entity = new Entity(id, mRegistry, *mEventPublisher, templateName);
+	std::string name = templateName + std::to_string(mEntityMap.size());
+	const auto entity = new Entity(id, mRegistry, *mEventPublisher, name);
 	mEntityMap[id] = entity;
 	mEntityNameIdMap[std::to_string(static_cast<uint32_t>(id))] = id;
 

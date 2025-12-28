@@ -9,15 +9,14 @@ class SystemManager
 {
 public:
 	template <typename T, typename... Args>
-	T* RegisterSystem(Args&&... args)
+	std::shared_ptr<T> RegisterSystem(Args&&... args)
 	{
 		static_assert(std::is_base_of_v<ISystem, T>, "T must derive from ISystem");
 
-		std::unique_ptr<T> system = std::make_unique<T>(std::forward<Args>(args)...);
-		T* rawPtr = system.get();
-		mSystems.emplace_back(std::move(system));
+		std::shared_ptr<T> system = std::make_unique<T>(std::forward<Args>(args)...);
+		mSystems.emplace_back(system);
 
-		return rawPtr;
+		return system;
 	}
 
 	void FixedUpdate(float dt) const
@@ -41,5 +40,5 @@ public:
 	}
 
 private:
-	std::vector<std::unique_ptr<ISystem>> mSystems;
+	std::vector<std::shared_ptr<ISystem>> mSystems;
 };

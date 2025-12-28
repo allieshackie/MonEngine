@@ -1,12 +1,13 @@
 #pragma once
 #include <entt/entt.hpp>
 #include "Core/EventListener.h"
+#include "Util/LuaUtil.h"
 
 class Entity
 {
 public:
 	Entity(entt::entity id, entt::registry& registry, EventPublisher& eventPub, const std::string name = "")
-		: mRegistry(registry), mEventPublisher(eventPub), mId(id), mName(name)
+		: mRegistry(registry), mEventPublisher(eventPub), mId(id), mName(std::move(name))
 	{
 	}
 
@@ -59,6 +60,19 @@ public:
 		return mRegistry.all_of<Components>(mId);
 	}
 
+	static void Bind(lua_State* state)
+	{
+		luaL_newmetatable(state, LuaName);
+
+		LuaUtil::RegisterMethod<Entity, &Entity::GetName>(state, "GetName");
+
+		lua_pushvalue(state, -1);
+		lua_setfield(state, -2, "__index");
+
+		lua_pop(state, 1);
+	}
+
+	static constexpr char LuaName[] = "Entity";
 private:
 	entt::registry& mRegistry;
 	EventPublisher& mEventPublisher;
