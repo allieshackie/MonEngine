@@ -1,7 +1,4 @@
 
-[submodule "ThirdParty/vcpkg"]
-	path = ThirdParty/vcpkg
-	url = https://github.com/microsoft/vcpkg
 [submodule "ThirdParty/LLGL"]
 	path = ThirdParty/LLGL
 	url = https://github.com/LukasBanana/LLGL
@@ -11,3 +8,6 @@
 [submodule "ThirdParty/imgui"]
 	path = ThirdParty/imgui
 	url = https://github.com/ocornut/imgui
+[submodule "ThirdParty/vcpkg"]
+	path = ThirdParty/vcpkg
+	url = https://github.com/microsoft/vcpkg
