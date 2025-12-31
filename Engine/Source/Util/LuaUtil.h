@@ -6,9 +6,62 @@ extern "C" {
 #include <lauxlib.h>
 }
 
+template <typename T>
+struct is_shared_ptr : std::false_type
+{
+};
+
+template <typename T>
+struct is_shared_ptr<std::shared_ptr<T>> : std::true_type
+{
+};
+
+template <typename T>
+inline constexpr bool is_shared_ptr_v = is_shared_ptr<T>::value;
+
 namespace LuaUtil
 {
 	inline std::string mGameData = "gGameData";
+
+	struct LuaCallback
+	{
+		LuaCallback(lua_State* L, int ref) : mState(L), mFuncRef(ref)
+		{
+		}
+
+		LuaCallback(const LuaCallback& other) = delete;
+		LuaCallback& operator=(const LuaCallback& other) = delete;
+		LuaCallback& operator=(LuaCallback&& rhs) noexcept = delete;
+
+		LuaCallback(LuaCallback&& other) noexcept : mState(other.mState), mFuncRef(other.mFuncRef)
+		{
+			other.mFuncRef = LUA_NOREF;
+		}
+
+		~LuaCallback()
+		{
+			if (mFuncRef != LUA_NOREF)
+			{
+				luaL_unref(mState, LUA_REGISTRYINDEX, mFuncRef);
+			}
+		}
+
+		void operator()() const
+		{
+			lua_rawgeti(mState, LUA_REGISTRYINDEX, mFuncRef);
+
+			if (lua_pcall(mState, 0, 0, 0) != LUA_OK)
+			{
+				fprintf(stderr, "Error: %s\n", lua_tostring(mState, -1));
+				// [ ] pops error, failure already pops chunk
+				lua_pop(mState, 1);
+			}
+		}
+
+	private:
+		lua_State* mState = nullptr;
+		int mFuncRef = LUA_NOREF;
+	};
 
 	template <typename T>
 	void PushValue(lua_State* state, T value)
@@ -30,9 +83,18 @@ namespace LuaUtil
 		{
 			lua_pushlstring(state, value.c_str(), value.size());
 		}
+		else if constexpr (is_shared_ptr_v<T>)
+		{
+			void* udata = lua_newuserdata(state, sizeof(T));
+			new(udata) T(value);
+
+			luaL_getmetatable(state, T::element_type::LuaName);
+			lua_setmetatable(state, -2);
+		}
 		else
 		{
-			MON_WARN("No push for value type");
+			static_assert(!std::is_same_v<T, T>, "No push for value type");
+			//MON_WARN("No push for value type");
 		}
 	}
 
@@ -55,6 +117,42 @@ namespace LuaUtil
 		{
 			const char* s = luaL_checkstring(state, index);
 			return std::string(s);
+		}
+		else if constexpr (std::is_same_v<T, glm::vec2>)
+		{
+			// Validates that param is in {x, y} format
+			luaL_checktype(state, index, LUA_TTABLE);
+
+			glm::vec2 result;
+
+			lua_rawgeti(state, index, 1);
+			result.x = static_cast<float>(luaL_checknumber(state, -1));
+			lua_pop(state, 1);
+
+			lua_rawgeti(state, index, 2);
+			result.y = static_cast<float>(luaL_checknumber(state, -1));
+			lua_pop(state, 1);
+
+			return result;
+		}
+		else if constexpr (std::is_same_v<T, LuaCallback>)
+		{
+			// Validates function
+			luaL_checktype(state, index, LUA_TFUNCTION);
+
+			lua_pushvalue(state, index);
+			int ref = luaL_ref(state, LUA_REGISTRYINDEX);
+
+			return LuaCallback{state, ref};
+		}
+		else if constexpr (std::is_same_v<T, std::vector<const char*>>)
+		{
+			// Validates that param is table {"", "", etc.}
+			luaL_checktype(state, index, LUA_TTABLE);
+
+			std::vector<const char*> list;
+
+			return list;
 		}
 		else
 		{

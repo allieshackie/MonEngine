@@ -1,7 +1,7 @@
 # Generate Solution -> cmake -B ./Build
 # cmake -B ./Build -DMON_DEV_BUILD_SANDBOX=ON
 
-cmake_minimum_required(VERSION 3.18.2)
+cmake_minimum_required(VERSION 4.2.1)
 
 #  ============== PROJECT ================
 project(MonDev)

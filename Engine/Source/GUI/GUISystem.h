@@ -1,6 +1,7 @@
 #pragma once
 #include "Script/LuaBindable.h"
 
+class GUIMenu;
 class RenderContext;
 
 struct InputEvent;
@@ -11,6 +12,8 @@ class GUISystem : public LuaBindable
 public:
 	GUISystem(const RenderContext& renderContext);
 
+	void RenderMenus();
+
 	void CloseGUI() const;
 
 	void LoadGUITheme(const std::string& themeName) const;
@@ -20,8 +23,7 @@ public:
 	void GUIStartFrame() const;
 	void GUIEndFrame() const;
 
-	void CreatePopup(const std::string& name);
-	void AddButton();
+	std::shared_ptr<GUIMenu> CreatePopup(const std::string& name, glm::vec2 pos, glm::vec2 size);
 
 	// Debug
 	void DemoWindow() const;
@@ -32,4 +34,5 @@ public:
 private:
 	// example
 	static bool show_demo_window;
+	std::vector<std::shared_ptr<GUIMenu>> mGUIMenus;
 };

@@ -6,7 +6,7 @@
 class Entity
 {
 public:
-	Entity(entt::entity id, entt::registry& registry, EventPublisher& eventPub, const std::string name = "")
+	Entity(entt::entity id, entt::registry& registry, EventPublisher& eventPub, std::string name = "")
 		: mRegistry(registry), mEventPublisher(eventPub), mId(id), mName(std::move(name))
 	{
 	}

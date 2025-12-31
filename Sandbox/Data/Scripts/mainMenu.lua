@@ -1,20 +1,23 @@
+local mainMenu = nil
+
 local function StartGame()
-    gEngineContext:LoadLevel("game.json")
-    print("Start Game")
+    _G.print("Start Game")
+    mainMenu:Close()
+    local sceneManager = gGameData.GetSceneManager()
+    sceneManager:LoadScene("game.json")
 end
 
 local function OpenOptions()
-    print("Open options")
+    _G.print("Open options")
 end
 
 local function ExitGame()
-    print("Exit Game")
+    _G.print("Exit Game")
 end
 
 function Initialize()
-    local levelsMenu = MonUI.CreateMenuPopup("Main Menu", 100, 100, 250, 300)
+    local guiSystem = gGameData.GetGUISystem()
 
-    levelsMenu:AddButton("Play", 50.0, 50.0, 125.0, 40.0, StartGame)
-    levelsMenu:AddButton("Options", 50.0, 100.0, 125.0, 40.0, OpenOptions)
-    levelsMenu:AddButton("Exit", 50.0, 150.0, 125.0, 40.0, ExitGame)
+    mainMenu = guiSystem:CreatePopup("Main Menu", {20,20}, {200, 200})
+    mainMenu:AddButton("Play", {10, 10}, {200, 60}, function() StartGame() end)
 end

@@ -7,6 +7,7 @@
 #include "Graphics/RenderContext.h"
 #include "Util/FileSystem.h"
 #include "Util/LuaUtil.h"
+#include "GUIMenu.h"
 #include "GUITheme.h"
 
 #include "GUISystem.h"
@@ -40,6 +41,20 @@ GUISystem::GUISystem(const RenderContext& renderContext) : LuaBindable("GUISyste
 
 	ImGui_ImplWin32_Init(mainWindowHandle.window);
 	ImGui_ImplOpenGL3_Init(GLSL_VERSION);
+}
+
+void GUISystem::RenderMenus()
+{
+	for (auto it = mGUIMenus.begin(); it != mGUIMenus.end();)
+	{
+		if ((*it)->ShouldClose())
+		{
+			it = mGUIMenus.erase(it);
+			continue;
+		}
+		(*it)->Render();
+		++it;
+	}
 }
 
 void GUISystem::BindMethods(lua_State* state)
@@ -191,6 +206,11 @@ void GUISystem::GUIEndFrame() const
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-void GUISystem::CreatePopup(const std::string& name)
+std::shared_ptr<GUIMenu> GUISystem::CreatePopup(const std::string& name, glm::vec2 pos, glm::vec2 size)
 {
+	auto menu = std::make_shared<GUIMenu>(name, pos, size);
+
+	mGUIMenus.push_back(menu);
+
+	return menu;
 }

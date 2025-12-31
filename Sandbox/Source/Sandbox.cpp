@@ -15,6 +15,7 @@
 #include "Graphics/Animation/Animator.h"
 #include "Graphics/RenderSystem.h"
 #include "GUI/GUISystem.h"
+#include "GUI/GUIMenu.h"
 #include "Physics/PhysicsSystem.h"
 #include "Script/LuaSystem.h"
 
@@ -94,8 +95,8 @@ void Sandbox::Run()
 				ImGui::Text("FPS: %.1f", fps);
 			}
 			ImGui::End();
-			//mGUISystem->RenderMenus();
-			//GUISystem::RenderGuiElements(); // Demo menu
+
+			mGUISystem->RenderMenus();
 
 			mSystemManager->RenderGUI();
 
@@ -159,6 +160,7 @@ Sandbox::Sandbox(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
 
 	// Slightly different since there will be multiple instances
 	Entity::Bind(luaSystem->GetState());
+	GUIMenu::Bind(luaSystem->GetState());
 }
 
 void Sandbox::ToggleEditorMode(bool toggle)

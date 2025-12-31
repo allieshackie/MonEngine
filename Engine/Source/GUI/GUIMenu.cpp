@@ -18,7 +18,31 @@ void GUIMenu::Render()
 	ImGui::End();
 }
 
-void GUIMenu::AddElement(std::unique_ptr<GUIElement> element)
+void GUIMenu::Close()
 {
+	mShouldClose = true;
+}
+
+std::shared_ptr<GUIElement> GUIMenu::AddLayout(bool horizontal)
+{
+	auto layout = std::make_shared<GUILayout>(horizontal ? GUILayout::Layout::Horizontal : GUILayout::Layout::Vertical);
+	mElements.push_back(layout);
+
+	return layout;
+}
+
+void GUIMenu::AddButton(std::string label, glm::vec2 offset, glm::vec2 size, LuaUtil::LuaCallback clickCallback)
+{
+	auto element = std::make_unique<GUIButton>(std::move(label), offset, size, std::move(clickCallback));
 	mElements.push_back(std::move(element));
+}
+
+void GUIMenu::AddCombo(std::string label, std::vector<const char*> items, LuaUtil::LuaCallback onChange)
+{
+	auto element = std::make_unique<GUICombo>(std::move(label), std::move(items), std::move(onChange));
+	mElements.push_back(std::move(element));
+}
+
+void GUIMenu::_RecalculateElementLayout()
+{
 }
