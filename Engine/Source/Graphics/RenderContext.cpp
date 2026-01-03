@@ -159,9 +159,10 @@ glm::vec3 RenderContext::NormalizedDeviceCoords(glm::vec3 vec) const
 	};
 }
 
-void RenderContext::ResizeBuffers(const LLGL::Extent2D& size) const
+void RenderContext::ResizeBuffers(const LLGL::Extent2D& size)
 {
 	mSwapChain->ResizeBuffers(size);
+	mViewportSizeChanged = true;
 }
 
 void RenderContext::_CreateWindow(const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler,

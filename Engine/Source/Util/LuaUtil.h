@@ -16,6 +16,22 @@ struct is_shared_ptr<std::shared_ptr<T>> : std::true_type
 {
 };
 
+enum class HorizontalAnchor
+{
+	None,
+	Left,
+	Center,
+	Right
+};
+
+enum class VerticalAnchor
+{
+	None,
+	Top,
+	Center,
+	Bottom,
+};
+
 template <typename T>
 inline constexpr bool is_shared_ptr_v = is_shared_ptr<T>::value;
 
@@ -105,13 +121,21 @@ namespace LuaUtil
 		{
 			return static_cast<T>(luaL_checknumber(state, index));
 		}
+		else if constexpr (std::is_same_v<T, bool>)
+		{
+			return lua_toboolean(state, index) != 0;
+		}
 		else if constexpr (std::is_integral_v<T>)
 		{
 			return static_cast<T>(luaL_checkinteger(state, index));
 		}
-		else if constexpr (std::is_same_v<T, bool>)
+		else if constexpr (std::is_same_v<T, HorizontalAnchor>)
 		{
-			return lua_toboolean(state, index) != 0;
+			return static_cast<HorizontalAnchor>(luaL_checkinteger(state, index));
+		}
+		else if constexpr (std::is_same_v<T, VerticalAnchor>)
+		{
+			return static_cast<VerticalAnchor>(luaL_checkinteger(state, index));
 		}
 		else if constexpr (std::is_same_v<T, std::string>)
 		{

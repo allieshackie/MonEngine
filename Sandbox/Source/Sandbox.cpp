@@ -161,6 +161,7 @@ Sandbox::Sandbox(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
 	// Slightly different since there will be multiple instances
 	Entity::Bind(luaSystem->GetState());
 	GUIMenu::Bind(luaSystem->GetState());
+	GUILayout::Bind(luaSystem->GetState());
 }
 
 void Sandbox::ToggleEditorMode(bool toggle)

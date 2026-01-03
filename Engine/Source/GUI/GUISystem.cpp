@@ -16,7 +16,7 @@ constexpr const char* GLSL_VERSION = "#version 460";
 
 bool GUISystem::show_demo_window = false;
 
-GUISystem::GUISystem(const RenderContext& renderContext) : LuaBindable("GUISystem")
+GUISystem::GUISystem(RenderContext& renderContext) : LuaBindable("GUISystem"), mRenderContext(renderContext)
 {
 	//Initialize Glad
 	if (gladLoadGL() == 0)
@@ -32,6 +32,8 @@ GUISystem::GUISystem(const RenderContext& renderContext) : LuaBindable("GUISyste
 	const auto resolution = renderContext.GetResolution();
 	io.DisplaySize = ImVec2{static_cast<float>(resolution.width), static_cast<float>(resolution.height)};
 
+	mViewportSize = { resolution.width , resolution.height };
+
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
 
@@ -45,6 +47,14 @@ GUISystem::GUISystem(const RenderContext& renderContext) : LuaBindable("GUISyste
 
 void GUISystem::RenderMenus()
 {
+	bool hasChanged = false;
+	if (mRenderContext.HasViewportSizeChanged()) 
+	{
+		hasChanged = true;
+		mRenderContext.SetViewportSizeChanged(false);
+		const auto resolution = mRenderContext.GetResolution();
+		mViewportSize = { resolution.width , resolution.height };
+	}
 	for (auto it = mGUIMenus.begin(); it != mGUIMenus.end();)
 	{
 		if ((*it)->ShouldClose())
@@ -52,7 +62,7 @@ void GUISystem::RenderMenus()
 			it = mGUIMenus.erase(it);
 			continue;
 		}
-		(*it)->Render();
+		(*it)->Render(mViewportSize, hasChanged);
 		++it;
 	}
 }

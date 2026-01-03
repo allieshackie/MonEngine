@@ -125,13 +125,7 @@ target_include_directories(MonEngine PRIVATE ${GAUSSIANLIB_INCLUDE_DIRS})
 
 ## LUA
 message("=== BUILDING LUA ===")
-file(GLOB_RECURSE LUA_SOURCES "${THIRD_PARTY_DIR}/Lua/src/*.c")
-source_group(TREE "${THIRD_PARTY_DIR}/Lua/src" FILES ${LUA_SOURCES})
-add_library(lua STATIC ${LUA_SOURCES})
-set_property(TARGET lua PROPERTY FOLDER "ThirdParty")
-target_include_directories(lua PUBLIC
-    ${THIRD_PARTY_DIR}/Lua/src
-)
+find_package(lua CONFIG REQUIRED)
 target_link_libraries(MonEngine PUBLIC lua)
 
 ## BULLET PHYSICS

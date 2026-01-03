@@ -37,9 +37,12 @@ public:
 
 	// Color range from 0.0f - 1.0f
 	glm::vec3 NormalizedDeviceCoords(glm::vec3 vec) const;
-	void ResizeBuffers(const LLGL::Extent2D& size) const;
+	void ResizeBuffers(const LLGL::Extent2D& size);
 
 	void SetBackgroundClearColor(const LLGL::ColorRGBAf color);
+
+	bool HasViewportSizeChanged() { return mViewportSizeChanged; }
+	void SetViewportSizeChanged(bool changed) { mViewportSizeChanged = changed; }
 
 private:
 	void _CreateWindow(const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler,
@@ -57,6 +60,8 @@ private:
 
 	LLGL::ColorRGBAf mBackgroundColor = {0.0f, 0.0f, 0.0f, 1.0f};
 	std::uint32_t mSamplesCount = 1;
+
+	bool mViewportSizeChanged = false;
 };
 
 class ResizeEventHandler : public LLGL::Window::EventListener

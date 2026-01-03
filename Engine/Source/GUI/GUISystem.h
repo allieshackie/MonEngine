@@ -10,7 +10,7 @@ struct ImVec4;
 class GUISystem : public LuaBindable
 {
 public:
-	GUISystem(const RenderContext& renderContext);
+	GUISystem(RenderContext& renderContext);
 
 	void RenderMenus();
 
@@ -35,4 +35,7 @@ private:
 	// example
 	static bool show_demo_window;
 	std::vector<std::shared_ptr<GUIMenu>> mGUIMenus;
+	RenderContext& mRenderContext;
+
+	glm::vec2 mViewportSize = { 0,0 };
 };
