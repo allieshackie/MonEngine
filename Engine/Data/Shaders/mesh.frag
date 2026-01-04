@@ -43,8 +43,6 @@ layout(std430) buffer MaterialBuffer
     Material material;
 };
 
-const vec4 solidColor = vec4(1,1,1,1);
-
 in vec3 vPosition;
 in vec3 vNormal;
 in vec2 vTexCoord;
@@ -61,8 +59,8 @@ void main()
     vec3 norm = normalize(vNormal);
     vec3 viewDir = normalize(viewPos - vPosition);
     vec3 color = texture(colorMap, vTexCoord).rgb;
-    vec3 result = vec3(0.0);
 
+    vec3 result = vec3(0.0);
     for(int i = 0; i < numLights; i++) {
         if (lights[i].lightType[0] == 0) {
             result += CalcPointLight(lights[i], norm, vPosition, viewDir);  
@@ -76,7 +74,7 @@ void main()
         fragColor = vBoneDebugColor;
     }
     else {
-        fragColor = vec4(result, 1.0);
+        fragColor = vec4(result * color, 1.0);
     }
     // Debug: Show UV color coords
     //fragColor = vec4(vTexCoord, 0.0, 1.0);  // Show UVs as colors
