@@ -83,10 +83,10 @@ void MeshPipeline::_RenderNode(LLGL::CommandBuffer& commands, const Model& model
 
 		commands.UpdateBuffer(*mLightConstantBuffer, 0, &lightSettings, sizeof(lightSettings));
 
-		//meshSettings.solidColor = model.mColor;
-		meshSettings.hasBones = model.GetNumJoints() > 0;
-		meshSettings.hasTexture = meshData->mTextureId != -1;
-		meshSettings.gTargetBone = static_cast<float>(modelComponent.mCurrentBoneIndex);
+		// x = hasTexture, y = hasBones, z = gTargetBone
+		meshSettings.params.x = meshData->mTextureId != -1;
+		meshSettings.params.y = model.GetNumJoints() > 0;
+		meshSettings.params.z = static_cast<float>(modelComponent.mCurrentBoneIndex);
 		commands.UpdateBuffer(*mConstantBuffer, 0, &meshSettings, sizeof(meshSettings));
 		auto& texture = mResourceManager.GetTexture(meshData->mTextureId);
 		auto& sampler = mResourceManager.GetSampler(meshData->mTextureId);

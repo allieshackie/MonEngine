@@ -51,11 +51,7 @@ private:
 	struct MeshSettings
 	{
 		glm::mat4 model = glm::mat4();
-		float hasTexture = 0;
-		float hasBones = 0;
-		float gTargetBone = -1;
-		float _padding = 0;
-		glm::vec4 solidColor = {1, 1, 1, 1};
+		glm::vec4 params = { 0, 0, -1, 0 }; // x = hasTexture, y = hasBones, z = gTargetBone 
 	} meshSettings = {};
 
 	struct LightSettings
