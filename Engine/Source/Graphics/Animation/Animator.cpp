@@ -40,7 +40,7 @@ void AnimatorSystem::_UpdateAnimation(float deltaTime, Model& model, AnimationCo
 	const auto animation = model.GetAnimation(animComp.mCurrentAnimState);
 	const auto prevAnimation = model.GetAnimation(animComp.mPrevAnimState);
 
-	mCurrentAnimationTime += deltaTime * 0.6f; // TODO: 0.6f limits the animation timing
+	mCurrentAnimationTime += deltaTime; 
 	if (animComp.mUpdated)
 	{
 		_ApplyBlendTime(animComp);

@@ -7,7 +7,7 @@ using TimePoint = std::chrono::time_point<Clock>;
 
 struct Timer
 {
-	const float mDT = 0.01f;
+	const float mDT = 1.0f / 60.0f;
 	const double mAccumulatorMax = 0.1;
 
 	TimePoint mCurrentTime;

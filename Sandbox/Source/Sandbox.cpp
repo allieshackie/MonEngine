@@ -46,13 +46,15 @@ void Sandbox::Run()
 
 	double frames = 0;
 	double fps = 0;
+	double fpsTimer = 0.0;
 
 	while (mRenderContext->ProcessEvents() && mRunning)
 	{
-		auto currentTime = Clock::now();
-		Duration elapsed = currentTime - timer->mCurrentTime;
+		auto newTime = Clock::now();
+		Duration frameDuration = newTime - timer->mCurrentTime;
+		timer->mCurrentTime = newTime;
 
-		double deltaTime = elapsed.count();
+		double deltaTime = frameDuration.count();
 		if (deltaTime > 0.25)
 		{
 			// Clamp large deltaTime to prevent "spiral of death"
@@ -60,24 +62,30 @@ void Sandbox::Run()
 			deltaTime = 0.25;
 		}
 
+		fpsTimer += deltaTime;
 		frames++;
-		if (elapsed.count() >= 1.0)
+
+		if (fpsTimer >= 1.0)
 		{
-			fps = frames / elapsed.count();
-			frames = 0;
-			timer->mCurrentTime = currentTime;
+			fps = frames / fpsTimer;
+			frames = 0.0;
+			fpsTimer = 0.0;
 		}
 
 		timer->mAccumulator += deltaTime;
+		if (timer->mAccumulator > timer->mAccumulatorMax)
+		{
+			timer->mAccumulator = timer->mAccumulatorMax;
+		}
 
-		while (timer->mAccumulator >= deltaTime)
+		while (timer->mAccumulator >= timer->mDT)
 		{
 			mSystemManager->FixedUpdate(timer->mDT);
 			timer->mAccumulator -= timer->mDT;
 		}
 
 		mInputHandler->Update();
-		mSystemManager->Update(timer->mDT);
+		mSystemManager->Update(deltaTime);
 
 		auto world = mSceneManager->GetCurrentWorld();
 		if (world)
@@ -97,9 +105,7 @@ void Sandbox::Run()
 			ImGui::End();
 
 			mGUISystem->RenderMenus();
-
 			mSystemManager->RenderGUI();
-
 			mGUISystem->GUIEndFrame();
 
 			mRenderContext->EndFrame();
