@@ -23,12 +23,9 @@ struct Material
 
 struct LightUniform 
 {
-    vec4 ambient;
-    vec4 diffuse;
-    vec4 specular;
-    vec3 position; 
-    float intensity;
-    vec4 lightType;
+    vec4 color;
+    vec4 position; 
+    vec4 params; // x = intensity, y = lightType
 };
 
 uniform sampler2D colorMap;

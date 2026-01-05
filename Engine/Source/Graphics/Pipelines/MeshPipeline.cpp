@@ -249,10 +249,7 @@ void MeshPipeline::_ProcessLights()
 		const auto transform = (*it)->TryGetComponent<TransformComponent>();
 		if (transform != nullptr)
 		{
-			mLights.push_back({
-				light.mAmbient, light.mDiffuse, light.mSpecular, transform->mPosition, light.mIntensity,
-				{static_cast<int>(light.mLightType), 0, 0, 0}
-			});
+			mLights.push_back( { light.mColor, glm::vec4(transform->mPosition, 1.0), {light.mIntensity, static_cast<int>(light.mLightType), 0, 0}});
 			it = mQueuedLightEntities.erase(it);
 		}
 		else
