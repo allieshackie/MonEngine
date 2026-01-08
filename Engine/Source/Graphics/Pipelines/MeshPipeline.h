@@ -14,6 +14,13 @@ class World;
 struct ModelComponent;
 struct TransformComponent;
 
+struct Material
+{
+	glm::vec4 emission = { 0, 0, 0, 0 };
+	glm::vec4 params1 = { 0, 0, 0, 0 }; // x = shade_wrap, y = ambient_floor, z = spec_size, w = spec_strength
+	glm::vec4 params2 = { 0, 0, 0, 0 }; // x = shininess, y = toon_steps, z = toon_smoothness
+};
+
 class MeshPipeline : public PipelineBase
 {
 public:
@@ -28,7 +35,10 @@ public:
 	void UpdateLightBuffer() const;
 	void AddLight(Entity* entity);
 
-	void SetupMaterial();
+	Material& GetMaterial();
+	void UpdateMaterialBuffer() const;
+
+	void UpdateLights() { mUpdateLights = true; }
 
 private:
 	void _RenderNode(LLGL::CommandBuffer& commands, const Model& model, int nodeIndex,
@@ -62,23 +72,13 @@ private:
 
 	LLGL::Buffer* mLightConstantBuffer = nullptr;
 
-	struct Material
-	{
-		glm::vec4 ambient = {0, 0, 0, 0};
-		glm::vec4 diffuse = {0, 0, 0, 0};
-		glm::vec4 specular = {0, 0, 0, 0};
-		glm::vec4 emission = {0, 0, 0, 0};
-		float shininess = 0.0f;
-		glm::vec3 _padding = {0, 0, 0};
+	Material startingMaterial = {
+		{0.0, 0.0, 0.0, 0.0},
+		{0.35, 0.4, 11.0, 0.19},
+		{56.0,2,0.07,0}
 	};
 
-	Material material = {
-		{1.0, 1.0, 1.0, 1.0},
-		{0.8, 0.8, 0.8, 1.0},
-		{0.5, 0.5, 0.5, 1.0},
-		{0.0, 0.0, 0.0, 1.0},
-		359.9f
-	};
+	Material mCurrentMaterial = startingMaterial;
 
 	struct LightUniform
 	{
@@ -88,6 +88,7 @@ private:
 	};
 
 	std::vector<LightUniform> mLights;
+	bool mUpdateLights = false;
 
 	std::vector<Entity*> mQueuedLightEntities;
 

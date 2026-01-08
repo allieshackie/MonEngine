@@ -15,6 +15,9 @@ layout(std140) uniform MeshSettings
     vec4 params; // x = hasTexture, y = hasBones, z = gTargetBone
 };
 
+#define HAS_BONES   params.y
+#define TARGET_BONE params.z
+
 layout(std430) buffer BoneBuffer
 {
     mat4 boneMatrices[MAX_BONES];
@@ -40,9 +43,9 @@ const vec3 boneColors[4] = vec3[](vec3(1.0, 0.0, 0.0),  // Red for Bone 0
 vec4 debugShowBoneWeights() 
 {
     vec4 weightColor;
-    if (params.z != -1) {
+    if (TARGET_BONE != -1) {
         for (int i = 0 ; i < 4; i++) {
-            if (boneIds[i] == params.z) {
+            if (boneIds[i] == TARGET_BONE) {
                 if (weights[i] >= 0.7) {
                     weightColor = vec4(1.0, 0.0, 0.0, 1.0) * weights[i];
                 } else if (weights[i] >= 0.4 && weights[i] <= 0.6) {
@@ -60,7 +63,7 @@ vec4 debugShowBoneWeights()
 vec4 getAppliedTransform(vec4 value) 
 {
     vec4 result = value;
-    if (params.y != 0) {
+    if (HAS_BONES != 0) {
         for (int i = 0; i < MAX_BONE_INFLUENCE; i++) {
             mat4 boneTransform = boneMatrices[boneIds[i]];
             result += weights[i] * (boneTransform * value);

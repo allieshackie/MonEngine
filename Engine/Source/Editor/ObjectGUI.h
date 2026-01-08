@@ -15,6 +15,8 @@ public:
 	void RenderBonesOutline(std::weak_ptr<World> weakWorld, ResourceManager& resourceManager,
 	                        RenderSystem& renderSystem, entt::entity selectedEntity);
 
+	void RenderMaterialGUI(RenderSystem& renderSystem);
+
 private:
 	void _RenderModelBones(RenderSystem& renderSystem, Model& model, const ModelComponent& modelComp, int nodeIndex,
 	                       const glm::mat4 parentTransform);

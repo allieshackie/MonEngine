@@ -81,3 +81,13 @@ void RenderSystem::DrawOverlayLine(glm::vec3 from, glm::vec3 to, glm::vec4 color
 {
 	mOverlayPipeline->DrawLine(from, to, color);
 }
+
+Material& RenderSystem::GetMaterial()
+{
+	return mMeshPipeline->GetMaterial();
+}
+
+void RenderSystem::UpdateLights()
+{
+	mMeshPipeline->UpdateLights();
+}

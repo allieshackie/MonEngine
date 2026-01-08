@@ -3,6 +3,7 @@
 #include "Entity/Components/TransformComponent.h"
 #include "Entity/Entity.h"
 #include "Graphics/RenderContext.h"
+#include "Graphics/RenderSystem.h"
 #include "Graphics/Core/ResourceManager.h"
 
 #include "EntityMenu.h"
@@ -33,10 +34,10 @@ EntityMenu::EntityMenu(std::weak_ptr<InputHandler> inputHandler, std::weak_ptr<W
 	}
 }
 
-void EntityMenu::Render()
+void EntityMenu::Render(RenderSystem& renderSystem)
 {
 	RenderEntitySelection();
-	RenderSelectedEntityMenu();
+	RenderSelectedEntityMenu(renderSystem);
 
 	if (mQueuedClick)
 	{
@@ -65,7 +66,7 @@ void EntityMenu::OnEntityRemoved(Entity* entity)
 	}
 }
 
-void EntityMenu::RenderSelectedEntityMenu()
+void EntityMenu::RenderSelectedEntityMenu(RenderSystem& renderSystem)
 {
 	const auto sharedWorld = mWorld.lock();
 
@@ -74,14 +75,39 @@ void EntityMenu::RenderSelectedEntityMenu()
 		return;
 	}
 
-	/*
-	 *
-	if (ImGui::Begin("Entity"))
+	auto entity = sharedWorld->GetEntityForId(mSelectedEntity);
+	auto transform = entity->TryGetComponent<TransformComponent>();
+	if (transform)
 	{
-		// Collapsible menu for each component
+		ImGui::Text("Transform: ");
+		if (ImGui::DragFloat("TransformX", &transform->mPosition.x, 0.1f, -100.0f, 100.0f)) 
+		{
+			renderSystem.UpdateLights();
+		}
+		if (ImGui::DragFloat("TransformY", &transform->mPosition.y, 0.1f, -100.0f, 100.0f))
+		{
+			renderSystem.UpdateLights();
+		}
+		if (ImGui::DragFloat("TransformZ", &transform->mPosition.z, 0.1f, -100.0f, 100.0f))
+		{
+			renderSystem.UpdateLights();
+		}
+		ImGui::NewLine();
+
+		ImGui::Text("Rotation: ");
+		if (ImGui::DragFloat("RotationX", &transform->mRotation.x, 0.1f, -100.0f, 100.0f))
+		{
+			renderSystem.UpdateLights();
+		}
+		if (ImGui::DragFloat("RotationY", &transform->mRotation.y, 0.1f, -100.0f, 100.0f))
+		{
+			renderSystem.UpdateLights();
+		}
+		if (ImGui::DragFloat("RotationZ", &transform->mRotation.z, 0.1f, -100.0f, 100.0f))
+		{
+			renderSystem.UpdateLights();
+		}
 	}
-	ImGui::End();
-	 */
 }
 
 void EntityMenu::RenderEntitySelection()

@@ -101,6 +101,29 @@ void ObjectGUI::RenderBonesOutline(std::weak_ptr<World> weakWorld, ResourceManag
 	_RenderModelBones(renderSystem, model, *modelComponent, model.GetRootJointIndex(), glm::mat4(1.0f));
 }
 
+void ObjectGUI::RenderMaterialGUI(RenderSystem& renderSystem)
+{
+	auto& material = renderSystem.GetMaterial();
+	ImGui::Text("Material");
+	ImGui::NewLine();
+	ImGui::Text("Emission: ");
+	ImGui::DragFloat("X", &material.emission.x, 0.01f, 0.0f, 1.0f);
+	ImGui::DragFloat("Y", &material.emission.y, 0.01f, 0.0f, 1.0f);
+	ImGui::DragFloat("Z", &material.emission.z, 0.01f, 0.0f, 1.0f);
+	ImGui::DragFloat("W", &material.emission.w, 0.01f, 0.0f, 1.0f);
+	ImGui::NewLine();
+
+	ImGui::DragFloat("ShadeWrap", &material.params1.x, 0.01f, 0.0f, 1.0f);
+	ImGui::DragFloat("Ambient Floor", &material.params1.y, 0.01f, 0.0f, 1.0f);
+	ImGui::DragFloat("Spec Size", &material.params1.z, 1.0f, 0.0f, 100.0f);
+	ImGui::DragFloat("Spec Strength", &material.params1.w, 0.01f, 0.0f, 1.0f);
+	ImGui::NewLine();
+
+	ImGui::DragFloat("Shininess", &material.params2.x, 1.0f, 0.0f, 1000.0f);
+	ImGui::DragFloat("Toon Steps", &material.params2.y, 1.0f, 0.0f, 10.0f);
+	ImGui::DragFloat("Toon Smoothness", &material.params2.z, 0.01f, 0.0f, 1.0f);
+}
+
 void ObjectGUI::_RenderModelBones(RenderSystem& renderSystem, Model& model, const ModelComponent& modelComp,
                                   int nodeIndex,
                                   const glm::mat4 parentTransform)

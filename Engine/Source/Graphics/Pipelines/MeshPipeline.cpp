@@ -63,14 +63,21 @@ void MeshPipeline::_RenderNode(LLGL::CommandBuffer& commands, const Model& model
 		modelTransform = glm::scale(modelTransform, transform.mSize);
 
 		int lightsSize = static_cast<int>(mLights.size());
-		if (lightsSize != lightSettings.numLights)
+		if (lightsSize != lightSettings.numLights || mUpdateLights)
 		{
 			lightSettings.numLights = lightsSize;
+			mUpdateLights = false;
 			UpdateLightBuffer();
 		}
 		if (lightSettings.viewPos != world->GetCamera().GetPosition())
 		{
 			lightSettings.viewPos = world->GetCamera().GetPosition();
+		}
+
+		if (mCurrentMaterial.emission != startingMaterial.emission || mCurrentMaterial.params1 != startingMaterial.params1 || mCurrentMaterial.params2 != startingMaterial.params2)
+		{
+			startingMaterial = mCurrentMaterial;
+			UpdateMaterialBuffer();
 		}
 
 		meshSettings.model = modelTransform;
@@ -209,7 +216,7 @@ MeshPipeline::MeshPipeline(const LLGL::RenderSystemPtr& renderSystem, const Reso
 		}
 		mBoneBuffer = renderSystem->CreateBuffer(boneBufferDesc);
 
-		renderSystem->WriteBuffer(*mMaterialBuffer, 0, &(material), sizeof(Material));
+		renderSystem->WriteBuffer(*mMaterialBuffer, 0, &(mCurrentMaterial), sizeof(Material));
 
 		const std::vector<LLGL::ResourceViewDescriptor> resourceViews = {
 			mFrameBuffer, mConstantBuffer, mLightConstantBuffer, mBoneBuffer, mLightBuffer, mMaterialBuffer
@@ -231,6 +238,11 @@ void MeshPipeline::AddLight(Entity* entity)
 	mQueuedLightEntities.push_back(entity);
 }
 
+Material& MeshPipeline::GetMaterial()
+{
+	return mCurrentMaterial;
+}
+
 void MeshPipeline::UpdateLightBuffer() const
 {
 	std::uint64_t lightOffset = 0;
@@ -239,6 +251,11 @@ void MeshPipeline::UpdateLightBuffer() const
 		mRenderSystem->WriteBuffer(*mLightBuffer, lightOffset, &(light), sizeof(LightUniform));
 		lightOffset += sizeof(LightUniform);
 	}
+}
+
+void MeshPipeline::UpdateMaterialBuffer() const
+{
+	mRenderSystem->WriteBuffer(*mMaterialBuffer, 0, &(mCurrentMaterial), sizeof(Material));
 }
 
 void MeshPipeline::_ProcessLights()

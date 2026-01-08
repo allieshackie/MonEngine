@@ -35,6 +35,9 @@ public:
 	void DrawGrid() const;
 	void DrawOverlayLine(glm::vec3 from, glm::vec3 to, glm::vec4 color) const;
 
+	Material& GetMaterial();
+	void UpdateLights();
+
 private:
 	RenderContext& mContext;
 	std::unique_ptr<MeshPipeline> mMeshPipeline;

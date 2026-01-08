@@ -5,6 +5,7 @@ class Camera;
 class InputHandler;
 class Entity;
 class RenderContext;
+class RenderSystem;
 class World;
 
 class EntityMenu
@@ -12,11 +13,11 @@ class EntityMenu
 public:
 	EntityMenu(std::weak_ptr<InputHandler> inputHandler, std::weak_ptr<World> world, RenderContext& renderContext);
 
-	void Render();
+	void Render(RenderSystem& renderSystem);
 
 	void OnEntityAdded(Entity* entity);
 	void OnEntityRemoved(Entity* entity);
-	void RenderSelectedEntityMenu();
+	void RenderSelectedEntityMenu(RenderSystem& renderSystem);
 	void RenderEntitySelection();
 
 	void QueueClick();

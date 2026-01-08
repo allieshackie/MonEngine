@@ -32,6 +32,7 @@ void EditorGUI::RenderGUI()
 			ImGui::MenuItem("Animation", nullptr, &showAnimationSection);
 			ImGui::MenuItem("Bones Outline", nullptr, &showBonesOutline);
 			ImGui::MenuItem("Axis", nullptr, &showAxis);
+			ImGui::MenuItem("Material", nullptr, &showMaterialSection);
 			ImGui::EndMenu();
 		}
 		ImGui::EndMainMenuBar();
@@ -108,7 +109,13 @@ void EditorGUI::RenderGUI()
 		{
 			ImGui::NewLine();
 			ImGui::Separator();
-			mEntityMenu->Render();
+			mEntityMenu->Render(mRenderSystem);
+		}
+		if (showMaterialSection)
+		{
+			ImGui::NewLine();
+			ImGui::Separator();
+			mObjectGUI->RenderMaterialGUI(mRenderSystem);
 		}
 
 		RenderAxis();

@@ -20,11 +20,11 @@
         },
         {
             "name": "pointLightRed",
-            "position": [0,2,0]
+            "position": [2,4,0]
         },
         {
             "name": "directionalLight",
-            "position": [0,-100,0]
+            "position": [0,100,0]
         }
     ]
 }

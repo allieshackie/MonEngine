@@ -43,4 +43,5 @@ private:
 	bool showAnimationSection = true;
 	bool showAxis = true;
 	bool showBonesOutline = false;
+	bool showMaterialSection = true;
 };
