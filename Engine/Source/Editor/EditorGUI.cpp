@@ -97,24 +97,28 @@ void EditorGUI::RenderGUI()
 		{
 			ImGui::NewLine();
 			ImGui::Separator();
+			ImGui::NewLine();
 			mObjectGUI->RenderBonesGUI(mWorld, mResourceManager, mEntityMenu->GetSelectedEntity());
 		}
 		if (showAnimationSection)
 		{
 			ImGui::NewLine();
 			ImGui::Separator();
+			ImGui::NewLine();
 			mObjectGUI->RenderAnimationsGUI(mWorld, mResourceManager, mEntityMenu->GetSelectedEntity());
 		}
 		if (showEntitySection)
 		{
 			ImGui::NewLine();
 			ImGui::Separator();
+			ImGui::NewLine();
 			mEntityMenu->Render(mRenderSystem);
 		}
 		if (showMaterialSection)
 		{
 			ImGui::NewLine();
 			ImGui::Separator();
+			ImGui::NewLine();
 			mObjectGUI->RenderMaterialGUI(mRenderSystem);
 		}
 

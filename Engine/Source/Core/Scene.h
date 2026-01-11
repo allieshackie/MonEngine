@@ -8,7 +8,7 @@ struct MapData
 	glm::vec3 mPosition = {0, 0, 0};
 	glm::vec3 mSize = {0, 0, 0};
 	glm::vec3 mRotation = {0, 0, 0};
-	bool mHasDimension = false;
+	bool mIsTerrain = false;
 
 	template <class Archive>
 	void save(Archive& ar) const
@@ -17,7 +17,7 @@ struct MapData
 		   cereal::make_nvp("position", mPosition),
 		   cereal::make_nvp("size", mSize),
 		   cereal::make_nvp("rotation", mRotation),
-		   cereal::make_nvp("has_dimension", mHasDimension));
+			cereal::make_nvp("is_terrain", mIsTerrain));
 	}
 
 	template <class Archive>
@@ -27,7 +27,7 @@ struct MapData
 		   cereal::make_nvp("position", mPosition),
 		   cereal::make_nvp("size", mSize),
 		   cereal::make_nvp("rotation", mRotation),
-		   cereal::make_nvp("has_dimension", mHasDimension));
+		   cereal::make_nvp("is_terrain", mIsTerrain));
 	}
 };
 

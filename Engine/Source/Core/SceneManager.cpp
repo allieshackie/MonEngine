@@ -5,8 +5,8 @@
 
 #include "SceneManager.h"
 
-SceneManager::SceneManager(DescriptionFactory& descriptionFactory, MapRegistry& mapRegistry)
-	: LuaBindable("SceneManager"), mMapRegistry(mapRegistry)
+SceneManager::SceneManager(DescriptionFactory& descriptionFactory, MapRegistry& mapRegistry, ResourceManager& resourceManager)
+	: LuaBindable("SceneManager"), mMapRegistry(mapRegistry), mResourceManager(resourceManager)
 {
 	mPrefabRegistry = std::make_unique<PrefabRegistry>(descriptionFactory);
 
@@ -14,7 +14,10 @@ SceneManager::SceneManager(DescriptionFactory& descriptionFactory, MapRegistry& 
 	for (const auto& entry : std::filesystem::directory_iterator(LEVELS_FOLDER))
 	{
 		const auto fileName = entry.path().filename().string();
-		if (fileName.find(EDITOR_SCENE) != std::string::npos) continue;
+		if (fileName.find(EDITOR_SCENE) != std::string::npos)
+		{
+			continue;
+		}
 		mSceneFileNames.push_back(_strdup(fileName.c_str()));
 	}
 
@@ -56,7 +59,7 @@ void SceneManager::LoadScene(const std::string& sceneName) const
 		return;
 	}
 
-	mCurrentWorld->Init(scene, *mPrefabRegistry, mMapRegistry, mLuaSystem);
+	mCurrentWorld->Init(scene, *mPrefabRegistry, mMapRegistry, mResourceManager, mLuaSystem);
 }
 
 const std::vector<const char*>& SceneManager::GetSceneNames() const

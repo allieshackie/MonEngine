@@ -6,11 +6,12 @@
 class DescriptionFactory;
 class Entity;
 class MapRegistry;
+class ResourceManager;
 
 class SceneManager : public LuaBindable
 {
 public:
-	SceneManager(DescriptionFactory& descriptionFactory, MapRegistry& mapRegistry);
+	SceneManager(DescriptionFactory& descriptionFactory, MapRegistry& mapRegistry, ResourceManager& resourceManager);
 
 	std::shared_ptr<World> GetCurrentWorld() const;
 	void SetLuaSystem(std::weak_ptr<LuaSystem> luaSystem) { mLuaSystem = luaSystem; }
@@ -30,6 +31,7 @@ private:
 
 	MapRegistry& mMapRegistry;
 	std::weak_ptr<LuaSystem> mLuaSystem;
+	ResourceManager& mResourceManager;
 
 	const char* EDITOR_SCENE = "editor";
 };

@@ -25,6 +25,8 @@ public:
 	static bool CreateSimpleOpenGLTexture(const std::string& filename, GLuint* out_texture, int* out_width,
 	                                      int* out_height);
 
+	std::vector<std::vector<float>> CreateHeightMap(const std::string& fileName);
+
 private:
 	int _LoadNewTexture(const LLGL::RenderSystemPtr& renderSystem, const tinygltf::Image& image);
 	void _LoadAllModels(const LLGL::RenderSystemPtr& renderSystem);

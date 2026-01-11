@@ -54,12 +54,13 @@ bool ResourceManager::CreateSimpleOpenGLTexture(const std::string& filename, GLu
                                                 int* out_height)
 {
 	// Load from file
-	int image_width = 0;
-	int image_height = 0;
+	int image_width, image_height = 0;
 	const std::string fullPath = ASSETS_FOLDER + filename;
 	unsigned char* image_data = stbi_load(fullPath.c_str(), &image_width, &image_height, nullptr, 4);
 	if (image_data == nullptr)
+	{
 		return false;
+	}
 
 	// Create a OpenGL texture identifier
 	GLuint image_texture;
@@ -85,6 +86,30 @@ bool ResourceManager::CreateSimpleOpenGLTexture(const std::string& filename, GLu
 	*out_height = image_height;
 
 	return true;
+}
+
+std::vector<std::vector<float>> ResourceManager::CreateHeightMap(const std::string& fileName)
+{
+	// Load from file
+	int image_width, image_height = 0;
+	const std::string fullPath = ASSETS_FOLDER + fileName;
+	unsigned char* image_data = stbi_load(fullPath.c_str(), &image_width, &image_height, nullptr, 4);
+	if (image_data == nullptr)
+	{
+		return {};
+	}
+	std::vector<std::vector<float>> heightMap(image_width, std::vector<float>(image_height));
+	for (int i = 0; i < image_width; i++) 
+	{
+		for (int j = 0; j < image_height; j++)
+		{
+			heightMap[i][j] = image_data[j * image_width + i] / 255.0f;
+		}
+	}
+
+	stbi_image_free(image_data);
+
+	return heightMap;
 }
 
 int ResourceManager::_LoadNewTexture(const LLGL::RenderSystemPtr& renderSystem, const tinygltf::Image& image)
