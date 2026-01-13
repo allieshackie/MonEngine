@@ -1,5 +1,6 @@
-# Generate Solution -> cmake -B ./Build
-# cmake -B ./Build -DMON_DEV_BUILD_SANDBOX=ON
+# cmake -B ./Build
+# Building Sandbox: cmake -B ./Build -DPROJ_TO_BUILD=sandbox
+# Building Game: cmake -B ./Build -DPROJ_TO_BUILD=game
 
 cmake_minimum_required(VERSION 4.2.1)
 
@@ -7,6 +8,8 @@ cmake_minimum_required(VERSION 4.2.1)
 project(MonDev)
 
 set(PROJ_TO_BUILD "sandbox" CACHE STRING "Which game to build")
+set(DCMAKE_TOOLCHAIN_FILE "ThirdParty/vcpkg/scripts/buildsystems/vcpkg.cmake")
+set(DVCPKG_MANIFEST_MODE ON)
 
 # ============== CONFIG ================
 
@@ -51,7 +54,7 @@ if(PROJ_TO_BUILD STREQUAL "sandbox")
   message("=== BUILDING SANDBOX ===")
   add_subdirectory(${PROJECT_SOURCE_DIR}/Sandbox)
   set(PROJ_NAME "Sandbox")
-elseif(PROJ_TO_BUILD STREQUAL "Game")
+elseif(PROJ_TO_BUILD STREQUAL "game")
   message("=== BUILDING GAME ===")
   add_subdirectory(${PROJECT_SOURCE_DIR}/Game)
   set(PROJ_NAME "Game")
@@ -165,5 +168,3 @@ endif()
 # target_include_directories = Include Directories
 # target_link_libraries = Additional Dependencies (lib)
 # link_directories = Additional Library Directories (dll) x64
-
-#  cmake -B ./Build -DPROJ_TO_BUILD=game -DCMAKE_TOOLCHAIN_FILE=ThirdParty/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_MANIFEST_MODE=ON
