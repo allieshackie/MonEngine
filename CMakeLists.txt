@@ -51,10 +51,10 @@ if(PROJ_TO_BUILD STREQUAL "sandbox")
   message("=== BUILDING SANDBOX ===")
   add_subdirectory(${PROJECT_SOURCE_DIR}/Sandbox)
   set(PROJ_NAME "Sandbox")
-elseif(PROJ_TO_BUILD STREQUAL "dogeapp")
-  message("=== BUILDING DOGEAPP ===")
-  add_subdirectory(${PROJECT_SOURCE_DIR}/DogeApp)
-  set(PROJ_NAME "DogeApp")
+elseif(PROJ_TO_BUILD STREQUAL "Game")
+  message("=== BUILDING GAME ===")
+  add_subdirectory(${PROJECT_SOURCE_DIR}/Game)
+  set(PROJ_NAME "Game")
 else()
   message("Unknown Proj to build")
   set(PROJ_NAME "MonEngine")
@@ -166,4 +166,4 @@ endif()
 # target_link_libraries = Additional Dependencies (lib)
 # link_directories = Additional Library Directories (dll) x64
 
-#  cmake -B ./Build -DPROJ_TO_BUILD=dogeapp -DCMAKE_TOOLCHAIN_FILE=ThirdParty/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_MANIFEST_MODE=ON
+#  cmake -B ./Build -DPROJ_TO_BUILD=game -DCMAKE_TOOLCHAIN_FILE=ThirdParty/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_MANIFEST_MODE=ON
