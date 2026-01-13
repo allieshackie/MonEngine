@@ -419,6 +419,5 @@ FodyWeavers.xsd
 # Ignore 
 /Build
 /bin
-/ThirdParty
 /Game
 .vscode
