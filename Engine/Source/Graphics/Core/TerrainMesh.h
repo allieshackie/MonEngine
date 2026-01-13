@@ -1,6 +1,9 @@
 #pragma once 
 #include <glm/mat4x4.hpp>
+#include <LLGL/LLGL.h>
 #include "Node.h"
+
+class Shader;
 
 class TerrainMesh 
 {

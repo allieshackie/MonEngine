@@ -142,7 +142,7 @@ Sandbox::Sandbox(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
 	mRenderContext = std::make_unique<RenderContext>(screenSize, backgroundClearColor, title, mInputHandler,
 	                                                 transparent);
 	mGUISystem = std::make_shared<GUISystem>(*mRenderContext);
-	mSceneManager = std::make_unique<SceneManager>(*mDescriptionFactory, *mMapRegistry);
+	mSceneManager = std::make_unique<SceneManager>(*mDescriptionFactory, *mMapRegistry, *mResourceManager);
 
 	// Remaining system setup
 	mInputHandler->SetGUISystem(mGUISystem);
