@@ -420,4 +420,5 @@ FodyWeavers.xsd
 /Build
 /bin
 /ThirdParty
+/Game
 .vscode
