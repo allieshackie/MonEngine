@@ -1,0 +1,11 @@
+@PACKAGE_INIT@
+
+set(MonEngine_VERSION "1.0.0")
+
+# Provide legacy variables for backwards compatibility
+set(MonEngine_LIBRARIES MonEngine::MonEngine)
+set(MonEngine_INCLUDE_DIRS "@CMAKE_INSTALL_FULL_INCLUDEDIR@")
+
+include("${CMAKE_CURRENT_LIST_DIR}/MonEngineTargets.cmake")
+
+check_required_components(MonEngine)
