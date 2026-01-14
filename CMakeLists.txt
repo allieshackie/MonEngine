@@ -7,6 +7,13 @@ cmake_minimum_required(VERSION 4.2.1)
 #  ============== PROJECT ================
 project(MonDev)
 
+# Check if this is being used as a submodule
+if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
+    set(MONDEV_STANDALONE TRUE)
+else()
+    set(MONDEV_STANDALONE FALSE)
+endif()
+
 set(DCMAKE_TOOLCHAIN_FILE "ThirdParty/vcpkg/scripts/buildsystems/vcpkg.cmake")
 
 # ============== CONFIG ================
@@ -48,38 +55,42 @@ message("=== BUILDING ENGINE ===")
 add_subdirectory(${PROJECT_SOURCE_DIR}/Engine)
 
 # ====== BUILD SELECTED GAME =========
-if(PROJ_TO_BUILD STREQUAL "sandbox")
-  message("=== BUILDING SANDBOX ===")
-  add_subdirectory(${PROJECT_SOURCE_DIR}/Sandbox)
-  set(PROJ_NAME "Sandbox")
-elseif(PROJ_TO_BUILD STREQUAL "game")
-  message("=== BUILDING GAME ===")
-  add_subdirectory(${PROJECT_SOURCE_DIR}/Game)
-  set(PROJ_NAME "Game")
+if(MONDEV_STANDALONE)
+    if(PROJ_TO_BUILD STREQUAL "sandbox")
+      message("=== BUILDING SANDBOX ===")
+      add_subdirectory(${PROJECT_SOURCE_DIR}/Sandbox)
+      set(PROJ_NAME "Sandbox")
+    elseif(PROJ_TO_BUILD STREQUAL "game")
+      message("=== BUILDING GAME ===")
+      add_subdirectory(${PROJECT_SOURCE_DIR}/Game)
+      set(PROJ_NAME "Game")
+    else()
+      message("Unknown Proj to build")
+      set(PROJ_NAME "MonEngine")
+    endif()
+
+    set_property(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJ_NAME})
+
+    # ================== DATA COPY ==================
+    set(GAME_DATA_DIR "${PROJECT_SOURCE_DIR}/${PROJ_NAME}/Data")
+
+    if (EXISTS ${GAME_DATA_DIR})
+        file(GLOB_RECURSE GAME_DATA_FILES "${GAME_DATA_DIR}/*")
+
+        add_custom_target(copy_data ALL
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/Data"
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+                    "${GAME_DATA_DIR}"
+                    "${CMAKE_BINARY_DIR}/Data"
+            DEPENDS ${GAME_DATA_FILES}
+        )
+
+        add_dependencies(${PROJ_NAME} copy_data)
+    else()
+        message(WARNING "No Data folder found for ${PROJ_NAME}")
+    endif()
 else()
-  message("Unknown Proj to build")
-  set(PROJ_NAME "MonEngine")
-endif()
-
-set_property(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJ_NAME})
-
-# ================== DATA COPY ==================
-set(GAME_DATA_DIR "${PROJECT_SOURCE_DIR}/${PROJ_NAME}/Data")
-
-if (EXISTS ${GAME_DATA_DIR})
-    file(GLOB_RECURSE GAME_DATA_FILES "${GAME_DATA_DIR}/*")
-
-    add_custom_target(copy_data ALL
-        COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/Data"
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-                "${GAME_DATA_DIR}"
-                "${CMAKE_BINARY_DIR}/Data"
-        DEPENDS ${GAME_DATA_FILES}
-    )
-
-    add_dependencies(${PROJ_NAME} copy_data)
-else()
-    message(WARNING "No Data folder found for ${PROJ_NAME}")
+    message("MonDev used as submodule - Engine library available as 'MonEngine'")
 endif()
 
 # target_include_directories = Include Directories

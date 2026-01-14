@@ -1,13 +1,13 @@
 # Example of how to use MonEngine as a submodule in your project
 # This file shows different ways to integrate MonEngine
 
-# Method 1: Using add_subdirectory (recommended for development)
+# Method 1: Using add_subdirectory for the entire MonDev (includes Engine as submodule)
 # Add this to your main CMakeLists.txt:
 #
-# add_subdirectory(path/to/MonEngine)
+# add_subdirectory(path/to/MonDev)
 # target_link_libraries(YourTarget PRIVATE MonEngine)
 #
-# Your target will automatically get all necessary include directories and dependencies
+# This includes the entire MonDev as a submodule but only builds the Engine library
 
 # Method 2: Using find_package (after installing MonEngine)
 # First install MonEngine:
