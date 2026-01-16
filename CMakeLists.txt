@@ -1,20 +1,15 @@
 # cmake -B ./Build
 # Building Sandbox: cmake -B ./Build -DPROJ_TO_BUILD=sandbox
 # Building Game: cmake -B ./Build -DPROJ_TO_BUILD=game
+# set -DMONDEV_STANDALONE=TRUE for submodule
 
 cmake_minimum_required(VERSION 4.2.1)
 
+set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/vcpkg/scripts/buildsystems/vcpkg.cmake")
+set(VCPKG_MANIFEST_MODE ON)
+
 #  ============== PROJECT ================
 project(MonDev)
-
-# Check if this is being used as a submodule
-if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
-    set(MONDEV_STANDALONE TRUE)
-else()
-    set(MONDEV_STANDALONE FALSE)
-endif()
-
-set(DCMAKE_TOOLCHAIN_FILE "ThirdParty/vcpkg/scripts/buildsystems/vcpkg.cmake")
 
 # ============== CONFIG ================
 
@@ -55,7 +50,7 @@ message("=== BUILDING ENGINE ===")
 add_subdirectory(${PROJECT_SOURCE_DIR}/Engine)
 
 # ====== BUILD SELECTED GAME =========
-if(MONDEV_STANDALONE)
+if(!MONENGINE_STANDALONE)
     if(PROJ_TO_BUILD STREQUAL "sandbox")
       message("=== BUILDING SANDBOX ===")
       add_subdirectory(${PROJECT_SOURCE_DIR}/Sandbox)

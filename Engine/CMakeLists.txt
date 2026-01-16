@@ -5,15 +5,12 @@ cmake_minimum_required(VERSION 3.18.2)
 # Set up project if this is the top-level CMakeLists.txt (submodule usage)
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
     project(MonEngine)
-    set(MONENGINE_STANDALONE TRUE)
 
     # Set up vcpkg for standalone builds
     if(NOT DEFINED CMAKE_TOOLCHAIN_FILE AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/vcpkg/scripts/buildsystems/vcpkg.cmake")
         set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
-        #set(VCPKG_MANIFEST_MODE ON)  Should automatically detect if a vcpkg.json files exists
+        set(VCPKG_MANIFEST_MODE ON)
     endif()
-else()
-    set(MONENGINE_STANDALONE FALSE)
 endif()
 
 # Include CMake utilities if available (for non-standalone builds)
@@ -62,7 +59,8 @@ if(NOT MONENGINE_STANDALONE)
 endif()
 
 target_include_directories(glad PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/Lib/glad/include
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Lib/glad/include>
+    $<INSTALL_INTERFACE:include>
 )
 
 # Precompiled headers
@@ -110,18 +108,19 @@ if(NOT MONENGINE_STANDALONE)
 endif()
 
 target_include_directories(imgui PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/imgui
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/imgui>
+    $<INSTALL_INTERFACE:include>
 )
 
 target_link_libraries(MonEngine PUBLIC imgui)
 
 # Build TINYGLTF
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/tinygltf ${CMAKE_BINARY_DIR}/ThirdParty/tinygltf)
+set(TINYGLTF_TARGETS
+    tinygltf
+    loader_example
+)
 if(NOT MONENGINE_STANDALONE)
-    set(TINYGLTF_TARGETS
-        tinygltf
-        loader_example
-    )
     set_target_folder_prop(TINYGLTF_TARGETS ThirdParty)
 endif()
 
@@ -149,13 +148,13 @@ target_link_libraries(MonEngine PUBLIC
 
 # Build LLGL
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/LLGL ${CMAKE_BINARY_DIR}/ThirdParty/LLGL)
+set(LLGL_TARGETS
+    LLGL
+    LLGL_Direct3D11
+    LLGL_Null
+    LLGL_OpenGL
+)
 if(NOT MONENGINE_STANDALONE)
-    set(LLGL_TARGETS
-        LLGL
-        LLGL_Direct3D11
-        LLGL_Null
-        LLGL_OpenGL
-    )
     set_target_folder_prop(LLGL_TARGETS LLGL)
 endif()
 target_link_libraries(MonEngine PUBLIC LLGL)
@@ -170,7 +169,7 @@ endif()
 # Export the library for easy inclusion (only for standalone builds)
 if(MONENGINE_STANDALONE)
     include(GNUInstallDirs)
-    install(TARGETS MonEngine
+    install(TARGETS MonEngine glad imgui ${TINYGLTF_TARGETS} ${LLGL_TARGETS}
         EXPORT MonEngineTargets
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -179,6 +178,16 @@ if(MONENGINE_STANDALONE)
     )
 
     install(DIRECTORY Source/
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        FILES_MATCHING PATTERN "*.h"
+    )
+
+    install(DIRECTORY Lib/glad/include/
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        FILES_MATCHING PATTERN "*.h"
+    )
+
+    install(DIRECTORY ../ThirdParty/imgui/
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
         FILES_MATCHING PATTERN "*.h"
     )
