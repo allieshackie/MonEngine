@@ -3,14 +3,14 @@
 cmake_minimum_required(VERSION 3.18.2)
 
 # Set up project if this is the top-level CMakeLists.txt (submodule usage)
-if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
-    project(MonEngine)
-
+if(${MONENGINE_STANDALONE})
     # Set up vcpkg for standalone builds
     if(NOT DEFINED CMAKE_TOOLCHAIN_FILE AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/vcpkg/scripts/buildsystems/vcpkg.cmake")
         set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
         set(VCPKG_MANIFEST_MODE ON)
     endif()
+
+    project(MonEngine)
 endif()
 
 # Include CMake utilities if available (for non-standalone builds)

@@ -1,13 +1,12 @@
 {
+    "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg/master/scripts/vcpkg.schema.json",
     "name": "mondev",
-    "version-string": "0.1.0",
+    "version": "1.0.0",
     "dependencies": [
-        "bullet3",
-        "cereal",
         "entt",
-        "gaussianlib",
-        "glm",
         "nlohmann-json",
-        "lua"
+        "glm",
+        "lua",
+        "bullet3"
     ]
 }

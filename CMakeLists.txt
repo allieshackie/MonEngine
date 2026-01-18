@@ -5,8 +5,12 @@
 
 cmake_minimum_required(VERSION 4.2.1)
 
-set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/vcpkg/scripts/buildsystems/vcpkg.cmake")
-set(VCPKG_MANIFEST_MODE ON)
+# Only set vcpkg toolchain if building MonDev standalone
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/vcpkg/scripts/buildsystems/vcpkg.cmake"
+        CACHE STRING "Vcpkg toolchain file")
+    set(VCPKG_MANIFEST_MODE ON)
+endif()
 
 #  ============== PROJECT ================
 project(MonDev)
@@ -50,7 +54,7 @@ message("=== BUILDING ENGINE ===")
 add_subdirectory(${PROJECT_SOURCE_DIR}/Engine)
 
 # ====== BUILD SELECTED GAME =========
-if(!MONENGINE_STANDALONE)
+if(NOT MONENGINE_STANDALONE)
     if(PROJ_TO_BUILD STREQUAL "sandbox")
       message("=== BUILDING SANDBOX ===")
       add_subdirectory(${PROJECT_SOURCE_DIR}/Sandbox)
