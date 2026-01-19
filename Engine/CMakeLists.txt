@@ -132,6 +132,7 @@ find_package(nlohmann_json CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(lua CONFIG REQUIRED)
 find_package(bullet CONFIG REQUIRED)
+find_package(cereal CONFIG REQUIRED)
 
 target_link_libraries(MonEngine PUBLIC
     EnTT::EnTT
@@ -144,6 +145,7 @@ target_link_libraries(MonEngine PUBLIC
     BulletCollision
     BulletDynamics
     BulletSoftBody
+    cereal::cereal
 )
 
 # Build LLGL
