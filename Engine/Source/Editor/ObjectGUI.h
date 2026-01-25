@@ -1,5 +1,7 @@
 #pragma once
 
+class Model;
+class ModelComponent;
 class RenderSystem;
 class ResourceManager;
 class World;

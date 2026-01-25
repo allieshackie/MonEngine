@@ -123,9 +123,9 @@ void TextPipeline::LoadFont(const char* fontFile)
 	_CreateResourceHeap();
 }
 
-void TextPipeline::CreateTextMesh(const std::string& text, glm::vec2 pos, glm::vec2 size, glm::vec4 color)
+std::shared_ptr<TextMesh> TextPipeline::CreateTextMesh(const std::string& text, glm::vec2 pos, glm::vec2 size, glm::vec4 color)
 {
-	auto textMesh = std::make_unique<TextMesh>();
+	auto textMesh = std::make_shared<TextMesh>();
 	textMesh->mPosition = {pos, 1.0f};
 	textMesh->mSize = {size, 1.0f};
 
@@ -175,6 +175,8 @@ void TextPipeline::CreateTextMesh(const std::string& text, glm::vec2 pos, glm::v
 	);
 
 	mTextMeshes.push_back(std::move(textMesh));
+
+	return textMesh;
 }
 
 GlyphInfo TextPipeline::_GenerateGlyphInfo(uint32_t character, float offsetX, float offsetY)

@@ -5,7 +5,7 @@
 # Add this to your main CMakeLists.txt:
 #
 # add_subdirectory(path/to/MonDev)
-# target_link_libraries(YourTarget PRIVATE MonEngine)
+# target_link_libraries(YourTarget PRIVATE Engine)
 
 # need to include a copy of vcpkg.json in main project root
 # Your project structure should look like:

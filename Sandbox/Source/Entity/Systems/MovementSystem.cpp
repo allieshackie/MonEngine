@@ -1,6 +1,5 @@
 #include <glm/geometric.hpp>
 #include <glm/vec3.hpp>
-#include <glm/gtx/quaternion.hpp>
 #include "BulletCollision/CollisionDispatch/btCollisionWorld.h"
 
 #include "Core/Camera.h"

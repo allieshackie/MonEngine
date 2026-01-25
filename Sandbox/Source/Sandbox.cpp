@@ -23,8 +23,7 @@
 
 int main()
 {
-	const auto game = std::make_unique<Sandbox>(LLGL::Extent2D{1200, 800}, "Sandbox",
-	                                            LLGL::ColorRGBAf{1.0f, 0.5f, 1.0f});
+	const auto game = std::make_unique<Sandbox>(LLGL::Extent2D{1200, 800}, "Sandbox", LLGL::ColorRGBAf{1.0f, 0.5f, 1.0f});
 
 	game->Run();
 
@@ -47,6 +46,8 @@ void Sandbox::Run()
 	double frames = 0;
 	double fps = 0;
 	double fpsTimer = 0.0;
+
+	//auto text = mRenderSystem->DrawTextFont("Text", { 0,0 }, { 0.1,0.1 }, { 1,1,1,1 });
 
 	while (mRenderContext->ProcessEvents() && mRunning)
 	{

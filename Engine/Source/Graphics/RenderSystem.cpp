@@ -27,9 +27,9 @@ void RenderSystem::Render(std::weak_ptr<World> world)
 	const auto projectionViewMat = mContext.GetPerspectiveProjection() * worldPtr->GetCamera().GetView();
 
 	mMeshPipeline->Render(mContext.GetCommands(), mContext.GetPerspectiveProjection(), world);
-	//mTextPipeline->Render(*mCommands, projectionViewMat);
-	mImmediatePipeline->Render(mContext.GetCommands(), projectionViewMat);
-	mOverlayPipeline->Render(mContext.GetCommands(), mContext.GetOrthoProjection());
+	//mTextPipeline->Render(mContext.GetCommands(), projectionViewMat);
+	//mImmediatePipeline->Render(mContext.GetCommands(), projectionViewMat);
+	//mOverlayPipeline->Render(mContext.GetCommands(), mContext.GetOrthoProjection());
 }
 
 void RenderSystem::ClearOverlay() const
@@ -47,9 +47,9 @@ void RenderSystem::UpdateOverlayTransform(int id, glm::mat4 transform) const
 	return mOverlayPipeline->UpdateOverlayTransform(id, transform);
 }
 
-void RenderSystem::DrawTextFont(const char* text, glm::vec2 position, glm::vec2 size, glm::vec4 color) const
+std::shared_ptr<TextMesh> RenderSystem::DrawTextFont(const char* text, glm::vec2 position, glm::vec2 size, glm::vec4 color) const
 {
-	mTextPipeline->CreateTextMesh(text, position, size, color);
+	return mTextPipeline->CreateTextMesh(text, position, size, color);
 }
 
 void RenderSystem::DrawPoint(glm::vec3 pos, glm::vec4 color, float size) const

@@ -43,7 +43,7 @@ public:
 	void Release();
 
 	void LoadFont(const char* fontFile);
-	void CreateTextMesh(const std::string& text, glm::vec2 pos,
+	std::shared_ptr<TextMesh> CreateTextMesh(const std::string& text, glm::vec2 pos,
 	                    glm::vec2 size, glm::vec4 color);
 
 private:
@@ -67,7 +67,7 @@ private:
 	guiSettings = {};
 
 	LLGL::Buffer* mConstantBuffer = nullptr;
-	std::vector<std::unique_ptr<TextMesh>> mTextMeshes;
+	std::vector<std::shared_ptr<TextMesh>> mTextMeshes;
 
 	const LLGL::RenderSystemPtr& mRenderSystem;
 };

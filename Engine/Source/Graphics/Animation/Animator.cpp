@@ -160,7 +160,7 @@ glm::mat4 AnimatorSystem::_InterpolatePosition(float animationTime, const AnimNo
 
 glm::mat4 AnimatorSystem::_InterpolateRotation(float animationTime, const AnimNode* nodeData) const
 {
-	return glm::toMat4(_InterpolateQuat(animationTime, nodeData->mRotations));
+	return glm::mat4_cast(_InterpolateQuat(animationTime, nodeData->mRotations));
 }
 
 glm::mat4 AnimatorSystem::_InterpolateScale(float animationTime, const AnimNode* nodeData) const
