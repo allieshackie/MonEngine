@@ -27,9 +27,9 @@ void RenderSystem::Render(std::weak_ptr<World> world)
 	const auto projectionViewMat = mContext.GetPerspectiveProjection() * worldPtr->GetCamera().GetView();
 
 	mMeshPipeline->Render(mContext.GetCommands(), mContext.GetPerspectiveProjection(), world);
-	//mTextPipeline->Render(mContext.GetCommands(), projectionViewMat);
-	//mImmediatePipeline->Render(mContext.GetCommands(), projectionViewMat);
-	//mOverlayPipeline->Render(mContext.GetCommands(), mContext.GetOrthoProjection());
+	mTextPipeline->Render(mContext.GetCommands(), projectionViewMat);
+	mImmediatePipeline->Render(mContext.GetCommands(), projectionViewMat);
+	mOverlayPipeline->Render(mContext.GetCommands(), mContext.GetOrthoProjection());
 }
 
 void RenderSystem::ClearOverlay() const
@@ -45,11 +45,6 @@ int RenderSystem::AddOverlay(const std::vector<DebugVertex>& vertices, glm::mat4
 void RenderSystem::UpdateOverlayTransform(int id, glm::mat4 transform) const
 {
 	return mOverlayPipeline->UpdateOverlayTransform(id, transform);
-}
-
-std::shared_ptr<TextMesh> RenderSystem::DrawTextFont(const char* text, glm::vec2 position, glm::vec2 size, glm::vec4 color) const
-{
-	return mTextPipeline->CreateTextMesh(text, position, size, color);
 }
 
 void RenderSystem::DrawPoint(glm::vec3 pos, glm::vec4 color, float size) const
@@ -80,6 +75,31 @@ void RenderSystem::DrawGrid() const
 void RenderSystem::DrawOverlayLine(glm::vec3 from, glm::vec3 to, glm::vec4 color) const
 {
 	mOverlayPipeline->DrawLine(from, to, color);
+}
+
+uint32_t RenderSystem::AddText(const char* text, glm::vec2 position, glm::vec2 size, glm::vec4 color) const
+{
+	return mTextPipeline->AddText(text, position, size, color);
+}
+
+void RenderSystem::UpdateText(uint32_t index, const std::string& text)
+{
+	mTextPipeline->UpdateText(index, text);
+}
+
+void RenderSystem::SetVisible(uint32_t index, bool visible)
+{
+	mTextPipeline->SetVisible(index, visible);
+}
+
+void RenderSystem::SetPosition(uint32_t index, glm::vec2 pos)
+{
+	mTextPipeline->SetPosition(index, pos);
+}
+
+void RenderSystem::RemoveText(uint32_t index)
+{
+	mTextPipeline->RemoveText(index);
 }
 
 Material& RenderSystem::GetMaterial()

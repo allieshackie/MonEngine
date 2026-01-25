@@ -33,7 +33,7 @@ int main()
 void Sandbox::Run()
 {
 	mRenderContext->SetBackgroundClearColor({0.1f, 0.1f, 0.1f});
-	//mRenderSystem->LoadFont("PixelLettersFull.ttf");
+	mRenderSystem->LoadFont("PixelLettersFull.ttf");
 	//GUISystem::LoadGUITheme("LightStyle");
 	mSceneManager->LoadScene("menu.json");
 
@@ -47,7 +47,9 @@ void Sandbox::Run()
 	double fps = 0;
 	double fpsTimer = 0.0;
 
-	//auto text = mRenderSystem->DrawTextFont("Text", { 0,0 }, { 0.1,0.1 }, { 1,1,1,1 });
+	auto text = mRenderSystem->AddText("Text", { 0,0 }, { -0.05,-0.05 }, { 1,1,1,1 });
+
+	mInputHandler->RegisterButtonUpHandler(LLGL::Key::P, [=]() { mRenderSystem->UpdateText(text, "Wooooo"); });
 
 	while (mRenderContext->ProcessEvents() && mRunning)
 	{

@@ -23,3 +23,10 @@ struct StaticVertex
 	glm::vec3 normal = { 0, 0, 0 };
 	glm::vec2 texCoord = { 0, 0 };
 };
+
+struct TextVertex
+{
+	glm::vec2 position = { 0, 0 };
+	glm::vec2 texCoord = { 0, 0 };
+	glm::vec4 color = { 0, 0, 0, 0 };
+};
