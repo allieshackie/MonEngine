@@ -23,9 +23,9 @@
 
 int main()
 {
-	const auto game = std::make_unique<Sandbox>(LLGL::Extent2D{1200, 800}, "Sandbox", LLGL::ColorRGBAf{1.0f, 0.5f, 1.0f});
+	Sandbox game = Sandbox(LLGL::Extent2D{1200, 800}, "Sandbox", LLGL::ColorRGBAf{1.0f, 0.5f, 1.0f});
 
-	game->Run();
+	game.Run();
 
 	return 0;
 }
