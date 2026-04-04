@@ -5,8 +5,8 @@
 #include "Entity/Components/TransformComponent.h"
 #include "Entity/Descriptions/DescriptionBase.h"
 #include "Graphics/Core/ResourceManager.h"
-#include "Map/MapRegistry.h"
 #include "Script/LuaSystem.h"
+#include "Terrain/TerrainSystem.h"
 
 #include "World.h"
 
@@ -21,21 +21,15 @@ void World::Close()
 	FlushEntities();
 }
 
-void World::Init(MonScene* scene, PrefabRegistry& prefabRegistry, const MapRegistry& mapRegistry, ResourceManager& resourceManager,
+void World::Init(MonScene* scene, PrefabRegistry& prefabRegistry, const TerrainSystem& terrainSystem, ResourceManager& resourceManager,
                  std::weak_ptr<LuaSystem> luaSystem)
 {
 	// Create Map
-	if (!scene->GetMapData().mName.empty())
+	if (!scene->GetTerrainData().mName.empty())
 	{
-		if (scene->GetMapData().mIsTerrain) 
-		{
-			auto heightMap = resourceManager.CreateHeightMap(scene->GetMapData().mName);
-			mTerrain = std::make_unique<TerrainMesh>(heightMap);
-		}
-		else 
-		{
-			mapRegistry.OpenMap(this, scene->GetMapData());
-		}
+		//auto heightMap = resourceManager.CreateHeightMap(scene->GetTerrainData().mName);
+		//mTerrain = std::make_unique<TerrainMesh>(heightMap);
+		terrainSystem.CreateTerrain(this, scene->GetTerrainData());
 	}
 
 	CreateCamera(scene);

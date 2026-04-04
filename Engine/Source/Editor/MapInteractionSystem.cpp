@@ -3,7 +3,6 @@
 #include "Core/Camera.h"
 #include "Graphics/RenderContext.h"
 #include "Input/InputHandler.h"
-#include "Map/MapRegistry.h"
 
 #include "MapInteractionSystem.h"
 
@@ -17,7 +16,6 @@ MapInteractionSystem::MapInteractionSystem(Camera& camera, InputHandler& inputHa
 
 // Debug draw intersection point
 //DebugDrawManager::GetInstance()->DrawBox(mIntersectionPoint, {.05, .05, .05}, {100, 50, 20});
-
 
 void MapInteractionSystem::SetPaletteBrush(int brushIndex)
 {

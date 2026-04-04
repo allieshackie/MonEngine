@@ -2,13 +2,12 @@
 #include <glm/vec3.hpp>
 #include "Util/SerialUtil.h"
 
-struct MapData
+struct TerrainData
 {
 	std::string mName;
 	glm::vec3 mPosition = {0, 0, 0};
 	glm::vec3 mSize = {0, 0, 0};
 	glm::vec3 mRotation = {0, 0, 0};
-	bool mIsTerrain = false;
 
 	template <class Archive>
 	void save(Archive& ar) const
@@ -16,8 +15,7 @@ struct MapData
 		ar(cereal::make_nvp("name", mName),
 		   cereal::make_nvp("position", mPosition),
 		   cereal::make_nvp("size", mSize),
-		   cereal::make_nvp("rotation", mRotation),
-			cereal::make_nvp("is_terrain", mIsTerrain));
+		   cereal::make_nvp("rotation", mRotation));
 	}
 
 	template <class Archive>
@@ -26,8 +24,7 @@ struct MapData
 		ar(cereal::make_nvp("name", mName),
 		   cereal::make_nvp("position", mPosition),
 		   cereal::make_nvp("size", mSize),
-		   cereal::make_nvp("rotation", mRotation),
-		   cereal::make_nvp("is_terrain", mIsTerrain));
+		   cereal::make_nvp("rotation", mRotation));
 	}
 };
 
@@ -75,7 +72,7 @@ struct EntityData
 class MonScene
 {
 public:
-	const MapData& GetMapData() const { return mMapData; }
+	const TerrainData& GetTerrainData() const { return mTerrainData; }
 	const CameraData& GetCameraData() const { return mCameraData; }
 	const std::vector<EntityData>& GetEntityDefinitions() const { return mEntityDefinitions; }
 	const std::vector<std::string>& GetScripts() const { return mScripts; }
@@ -83,10 +80,10 @@ public:
 	template <class Archive>
 	void save(Archive& ar) const
 	{
-		ar(cereal::make_nvp("maps", mMapData),
-		   cereal::make_nvp("camera", mCameraData),
+		ar(cereal::make_nvp("camera", mCameraData),
 		   cereal::make_nvp("entities", mEntityDefinitions),
-		   cereal::make_nvp("scripts", mScripts)
+		   cereal::make_nvp("terrain", mTerrainData),
+		   cereal::make_nvp("scripts", mScripts),
 		);
 	}
 
@@ -95,13 +92,13 @@ public:
 	{
 		ar(cereal::make_nvp("camera", mCameraData));
 
-		cereal::make_optional_nvp(ar, "maps", mMapData);
+		cereal::make_optional_nvp(ar, "terrain", mTerrainData);
 		cereal::make_optional_nvp(ar, "entities", mEntityDefinitions);
 		cereal::make_optional_nvp(ar, "scripts", mScripts);
 	}
 
 private:
-	MapData mMapData;
+	TerrainData mTerrainData;
 	CameraData mCameraData;
 	std::vector<EntityData> mEntityDefinitions;
 	std::vector<std::string> mScripts;

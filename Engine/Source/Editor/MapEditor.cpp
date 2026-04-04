@@ -4,7 +4,6 @@
 #include "Core/SceneManager.h"
 #include "Graphics/RenderContext.h"
 #include "Graphics/Core/ResourceManager.h"
-#include "Map/MapRegistry.h"
 
 #include "MapEditor.h"
 

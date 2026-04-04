@@ -5,13 +5,13 @@
 
 class DescriptionFactory;
 class Entity;
-class MapRegistry;
+class TerrainSystem;
 class ResourceManager;
 
 class SceneManager : public LuaBindable
 {
 public:
-	SceneManager(DescriptionFactory& descriptionFactory, MapRegistry& mapRegistry, ResourceManager& resourceManager);
+	SceneManager(DescriptionFactory& descriptionFactory, TerrainSystem& terrainSystem, ResourceManager& resourceManager);
 
 	std::shared_ptr<World> GetCurrentWorld() const;
 	void SetLuaSystem(std::weak_ptr<LuaSystem> luaSystem) { mLuaSystem = luaSystem; }
@@ -29,7 +29,7 @@ private:
 	std::vector<const char*> mSceneFileNames;
 	std::unique_ptr<PrefabRegistry> mPrefabRegistry = nullptr;
 
-	MapRegistry& mMapRegistry;
+	TerrainSystem& mTerrainSystem;
 	std::weak_ptr<LuaSystem> mLuaSystem;
 	ResourceManager& mResourceManager;
 

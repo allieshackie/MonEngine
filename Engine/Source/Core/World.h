@@ -5,9 +5,9 @@
 #include "Graphics/Core/TerrainMesh.h"
 
 class LuaSystem;
-class MapRegistry;
 class MonScene;
 class PrefabRegistry;
+class TerrainSystem;
 class ResourceManager;
 
 class World
@@ -17,7 +17,7 @@ public:
 
 	void Close();
 
-	void Init(MonScene* scene, PrefabRegistry& prefabRegistry, const MapRegistry& mapRegistry, ResourceManager& resourceManager,
+	void Init(MonScene* scene, PrefabRegistry& prefabRegistry, const TerrainSystem& terrainSystem, ResourceManager& resourceManager,
 	          std::weak_ptr<LuaSystem> luaSystem);
 	Camera& GetCamera() const { return *mCamera; }
 	entt::registry& GetRegistry() { return mRegistry; }
