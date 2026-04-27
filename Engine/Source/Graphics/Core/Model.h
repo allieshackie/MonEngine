@@ -34,6 +34,7 @@ public:
 	const std::vector<Animation*>& GetAllAnimations() const { return mAnimations; }
 
 	glm::vec3 CalculateModelScaling(const glm::vec3& targetSize) const;
+	glm::vec3 CalculateWorldBounds(const glm::vec3& targetSize) const;
 
 	const std::unordered_map<std::string, int>& GetBoneNamesToIndex() const { return mBoneNameToIndex; }
 
@@ -49,6 +50,12 @@ public:
 	MeshNode* GetNodeAt(int nodeIndex) const;
 	MeshData* GetMeshAt(int nodeIndex) const;
 
+	glm::vec3 GetMinBounds() const { return mMinBounds; }
+	glm::vec3 GetMaxBounds() const { return mMaxBounds; }
+
+	void SetMinBounds(glm::vec3 v) { mMinBounds = v; }
+	void SetMaxBounds(glm::vec3 v) { mMaxBounds = v; }
+
 private:
 	int mId;
 	std::vector<MeshNode*> mNodes;
@@ -61,4 +68,7 @@ private:
 	int mRootJointIndex = 0;
 	int mRootSceneIndex = 0;
 	size_t mNumNodes = 0;
+
+	glm::vec3 mMinBounds;
+	glm::vec3 mMaxBounds;
 };

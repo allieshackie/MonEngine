@@ -57,9 +57,30 @@ const Animation* Model::GetAnimation(int index) const
 
 glm::vec3 Model::CalculateModelScaling(const glm::vec3& targetSize) const
 {
-	glm::vec3 size = mMeshes[0]->mMaxBounds - mMeshes[0]->mMinBounds;
-	// Scale uniformly to fit within targetSize (e.g., 1x1x1 meters)
-	return targetSize / size;
+	glm::vec3 modelSize = mMaxBounds - mMinBounds;
+
+	glm::vec3 axisScales = targetSize / modelSize;
+	float uniformScale = glm::min(axisScales.x, glm::min(axisScales.y, axisScales.z));
+
+	return glm::vec3(uniformScale);
+}
+
+// Returns actual world-space size after applying target size
+glm::vec3 Model::CalculateWorldBounds(const glm::vec3& targetSize) const
+{
+	glm::vec3 globalMin = glm::vec3(FLT_MAX);
+	glm::vec3 globalMax = glm::vec3(-FLT_MAX);
+
+	for (const auto& mesh : mMeshes)
+	{
+		globalMin = glm::min(globalMin, mesh->mMinBounds);
+		globalMax = glm::max(globalMax, mesh->mMaxBounds);
+	}
+
+	glm::vec3 modelSize = globalMax - globalMin;
+	float modelHeight = modelSize.y;
+	float uniformScale = targetSize.y / modelHeight;  // height-driven, stays proportional
+	return modelSize * uniformScale;
 }
 
 MeshNode* Model::GetNodeAt(int nodeIndex) const

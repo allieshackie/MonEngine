@@ -72,7 +72,6 @@ struct EntityData
 class MonScene
 {
 public:
-	const TerrainData& GetTerrainData() const { return mTerrainData; }
 	const CameraData& GetCameraData() const { return mCameraData; }
 	const std::vector<EntityData>& GetEntityDefinitions() const { return mEntityDefinitions; }
 	const std::vector<std::string>& GetScripts() const { return mScripts; }
@@ -82,7 +81,6 @@ public:
 	{
 		ar(cereal::make_nvp("camera", mCameraData),
 		   cereal::make_nvp("entities", mEntityDefinitions),
-		   cereal::make_nvp("terrain", mTerrainData),
 		   cereal::make_nvp("scripts", mScripts),
 		);
 	}
@@ -92,13 +90,11 @@ public:
 	{
 		ar(cereal::make_nvp("camera", mCameraData));
 
-		cereal::make_optional_nvp(ar, "terrain", mTerrainData);
 		cereal::make_optional_nvp(ar, "entities", mEntityDefinitions);
 		cereal::make_optional_nvp(ar, "scripts", mScripts);
 	}
 
 private:
-	TerrainData mTerrainData;
 	CameraData mCameraData;
 	std::vector<EntityData> mEntityDefinitions;
 	std::vector<std::string> mScripts;

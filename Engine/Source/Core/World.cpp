@@ -24,6 +24,8 @@ void World::Close()
 void World::Init(MonScene* scene, PrefabRegistry& prefabRegistry, const TerrainSystem& terrainSystem, ResourceManager& resourceManager,
                  std::weak_ptr<LuaSystem> luaSystem)
 {
+	/* 
+	*  NOTE: Terrain is essentially a regular entity with no physics, so treat it normally? 
 	// Create Map
 	if (!scene->GetTerrainData().mName.empty())
 	{
@@ -31,6 +33,7 @@ void World::Init(MonScene* scene, PrefabRegistry& prefabRegistry, const TerrainS
 		//mTerrain = std::make_unique<TerrainMesh>(heightMap);
 		terrainSystem.CreateTerrain(this, scene->GetTerrainData());
 	}
+	*/
 
 	CreateCamera(scene);
 

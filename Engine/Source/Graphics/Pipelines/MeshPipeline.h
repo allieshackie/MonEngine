@@ -62,6 +62,7 @@ private:
 	{
 		glm::mat4 model = glm::mat4();
 		glm::vec4 params = { 0, 0, -1, 0 }; // x = hasTexture, y = hasBones, z = gTargetBone 
+		glm::vec4 meshColor = { 0.8,0.8,0.8,1 };
 	} meshSettings = {};
 
 	struct LightSettings

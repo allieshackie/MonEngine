@@ -13,6 +13,7 @@ layout(std140) uniform MeshSettings
 {
     mat4 model;
     vec4 params; // x = hasTexture, y = hasBones, z = gTargetBone
+    vec4 meshColor;
 };
 
 #define HAS_BONES   params.y

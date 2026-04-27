@@ -1,6 +1,7 @@
 #pragma once
 #include <glm/vec3.hpp>
 #include "Util/SerialUtil.h"
+#include <bullet/btBulletDynamicsCommon.h>
 #include <bullet/BulletDynamics/Dynamics/btRigidBody.h>
 
 struct CollisionComponent
@@ -21,4 +22,6 @@ struct CollisionComponent
 	btRigidBody* mRigidBody = nullptr;
 	bool mInitialized = false;
 	float mSimulateTimeout = 5.0f;
+	btTriangleMesh* mTriMeshData = nullptr;
+	btBvhTriangleMeshShape* mTriMeshBase = nullptr;
 };

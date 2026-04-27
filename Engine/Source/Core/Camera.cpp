@@ -114,7 +114,7 @@ void Camera::UpdateRight()
 	else
 	{
 		// Calculate mCameraRight normally
-		mCameraRight = glm::normalize(glm::cross(mCameraFront, mCameraUp));
+		mCameraRight = glm::normalize(glm::cross(mCameraUp, mCameraFront));
 	}
 }
 
@@ -131,6 +131,10 @@ void Camera::SetLookTarget(Entity* entity)
  */
 void Camera::UpdateView()
 {
-	mView = glm::lookAt(mCameraPos, mFollowCam ? mCameraFollowTarget : mCameraTarget, mCameraUp);
+	glm::vec3 actualTarget = mFollowCam ? mCameraFollowTarget : mCameraTarget;
+	mView = glm::lookAt(mCameraPos, actualTarget, mCameraUp);
+
+	mCameraFront = glm::normalize(actualTarget - mCameraPos);
+
 	UpdateRight();
 }

@@ -4,8 +4,10 @@ layout(std140) uniform MeshSettings
 {
     mat4 model;
     vec4 params; // x = hasTexture, y = hasBones, z = gTargetBone
+    vec4 meshColor;
 };
 
+#define HAS_TEXTURE params.x
 #define TARGET_BONE params.z
 
 layout(std140) uniform LightSettings 
@@ -122,7 +124,13 @@ void main()
     // properties
     vec3 norm = normalize(vNormal);
     vec3 viewDir = normalize(viewPos - vPosition);
-    vec3 color = texture(colorMap, vTexCoord).rgb;
+    vec3 color = vec3(0.0);
+    if (HAS_TEXTURE != 0) {
+        color = texture(colorMap, vTexCoord).rgb;
+    }
+    else {
+        color = meshColor.rgb;
+    }
 
     vec3 result = vec3(0.0);
     for(int i = 0; i < numLights; i++) {

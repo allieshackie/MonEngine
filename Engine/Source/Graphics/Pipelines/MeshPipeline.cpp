@@ -59,8 +59,8 @@ void MeshPipeline::_RenderNode(LLGL::CommandBuffer& commands, const Model& model
 		modelTransform = glm::rotate(modelTransform, glm::radians(transform.mRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
 		modelTransform = glm::rotate(modelTransform, glm::radians(transform.mRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
 
-		//auto calculatedSize = meshModel.CalculateModelScaling(transform.mSize);
-		modelTransform = glm::scale(modelTransform, transform.mSize);
+		auto calculatedSize = model.CalculateModelScaling(transform.mSize);
+		modelTransform = glm::scale(modelTransform, calculatedSize);
 
 		int lightsSize = static_cast<int>(mLights.size());
 		if (lightsSize != lightSettings.numLights || mUpdateLights)

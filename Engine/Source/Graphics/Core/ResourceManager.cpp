@@ -196,6 +196,17 @@ void ResourceManager::_LoadModel(const LLGL::RenderSystemPtr& renderSystem, cons
 
 	_ProcessAnimations(model, *newModel);
 	newModel->SetRootSceneIndex(model.scenes[0].nodes[0]);
+	glm::vec3 globalMin = glm::vec3(FLT_MAX);
+	glm::vec3 globalMax = glm::vec3(-FLT_MAX);
+
+	for (const auto& mesh : newModel->GetMeshes())
+	{
+		globalMin = glm::min(globalMin, mesh->mMinBounds);
+		globalMax = glm::max(globalMax, mesh->mMaxBounds);
+	}
+
+	newModel->SetMinBounds(globalMin);
+	newModel->SetMaxBounds(globalMax);
 
 	mModels.push_back(std::move(newModel));
 }

@@ -36,9 +36,9 @@ PhysicsSystem::PhysicsSystem(RenderSystem& renderSystem, ResourceManager& resour
 	}
 
 	// Uncomment to turn on debug draw
-	//mPhysicsDebugDraw = std::make_unique<PhysicsDebugDraw>(renderSystem);
-	//mDynamicWorld->setDebugDrawer(mPhysicsDebugDraw.get());
-	//mDynamicWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe | btIDebugDraw::DBG_DrawAabb);
+	mPhysicsDebugDraw = std::make_unique<PhysicsDebugDraw>(renderSystem);
+	mDynamicWorld->setDebugDrawer(mPhysicsDebugDraw.get());
+	mDynamicWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe | btIDebugDraw::DBG_DrawAabb);
 }
 
 void PhysicsSystem::RegisterCollider(Entity* entity)
@@ -52,20 +52,24 @@ void PhysicsSystem::RegisterCollider(Entity* entity)
 	const auto& size = transform.mSize;
 	const auto& rotation = transform.mRotation;
 	const auto& model = mResourceManager.GetModelFromId(mesh.mModelPath);
-	auto calculatedSize = model.CalculateModelScaling(size);
+	glm::vec3 worldBounds = model.CalculateWorldBounds(size) + collider.mSize;
+	glm::vec3 halfExtents = worldBounds * 0.5f;
+	glm::vec3 modelCenter = (model.GetMaxBounds() + model.GetMinBounds()) * 0.5f;
+	glm::vec3 scale = model.CalculateModelScaling(size);
+	glm::vec3 scaledCenter = modelCenter * scale;
 
 	btCollisionShape* shape = nullptr;
 
 	switch (collider.mColliderShape)
 	{
 	case ColliderShapes::BOX:
-		shape = new btBoxShape(btVector3{size.x / 2, size.y / 2, size.z / 2});
+		shape = new btBoxShape(btVector3{ halfExtents.x, halfExtents.y, halfExtents.z});
 		break;
 	case ColliderShapes::SPHERE:
-		shape = new btSphereShape(calculatedSize.x * 2);
+		shape = new btSphereShape(halfExtents.x);
 		break;
 	case ColliderShapes::CAPSULE:
-		shape = new btCapsuleShape(calculatedSize.x * 2, calculatedSize.y * 3);
+		shape = new btCapsuleShape(halfExtents.x, worldBounds.y - (halfExtents.x * 2.0f));
 		break;
 	case ColliderShapes::CONVEX:
 		{
@@ -74,8 +78,8 @@ void PhysicsSystem::RegisterCollider(Entity* entity)
 			{
 				for (const auto& v : modelMesh->mVertices)
 				{
-					auto convexPos = btVector3(v.position.x, v.position.y - size.y, v.position.z) * btVector3(
-						calculatedSize.x, calculatedSize.y, calculatedSize.z);
+					auto convexPos = btVector3(v.position.x, v.position.y - halfExtents.y, v.position.z) * btVector3(
+						halfExtents.x, halfExtents.y, halfExtents.z);
 					convex->addPoint(convexPos);
 				}
 			}
@@ -84,17 +88,34 @@ void PhysicsSystem::RegisterCollider(Entity* entity)
 		}
 	case ColliderShapes::TRI_MESH:
 		{
-			const auto modelMesh = model.GetMeshes()[0];
+			const auto meshes = model.GetMeshes();
 			auto triangleMesh = new btTriangleMesh();
-			for (int i = 0; i < modelMesh->mIndices.size(); i += 3)
+			for (const auto& mesh : meshes)
 			{
-				const auto& v0 = modelMesh->mVertices[modelMesh->mIndices[i]].position * calculatedSize;
-				const auto& v1 = modelMesh->mVertices[modelMesh->mIndices[i + 1]].position * calculatedSize;
-				const auto& v2 = modelMesh->mVertices[modelMesh->mIndices[i + 2]].position * calculatedSize;
-				triangleMesh->addTriangle({v0.x, v0.y, v0.z}, {v1.x, v1.y, v1.z}, {v2.x, v2.y, v2.z});
+				const auto& verts = mesh->mVertices;
+				const auto& indices = mesh->mIndices;
+				for (int i = 0; i + 2 < indices.size(); i += 3)
+				{
+					auto& v0 = verts[indices[i]].position;
+					auto& v1 = verts[indices[i + 1]].position;
+					auto& v2 = verts[indices[i + 2]].position;
+
+					triangleMesh->addTriangle(
+						btVector3(v0.x, v0.y, v0.z),
+						btVector3(v1.x, v1.y, v1.z),
+						btVector3(v2.x, v2.y, v2.z)
+					);
+				}
 			}
 
-			shape = new btBvhTriangleMeshShape(triangleMesh, true);
+			auto baseShape = new btBvhTriangleMeshShape(triangleMesh, true);
+			glm::vec3 scale = model.CalculateModelScaling(size);
+
+			collider.mTriMeshData = triangleMesh;
+			collider.mTriMeshBase = baseShape;
+
+			shape = new btScaledBvhTriangleMeshShape(baseShape, btVector3(scale.x, scale.y, scale.z));
+			break;
 		}
 	}
 
@@ -111,7 +132,11 @@ void PhysicsSystem::RegisterCollider(Entity* entity)
 
 	btTransform boxTransform;
 	boxTransform.setIdentity();
-	boxTransform.setOrigin(btVector3{position.x, position.y + (size.y / 2), position.z});
+	boxTransform.setOrigin(btVector3(
+		position.x + scaledCenter.x,
+		position.y - (scaledCenter.y / 2),
+		position.z + scaledCenter.z
+	));
 	boxTransform.setRotation(_ConvertDegreesToQuat(rotation));
 
 	const auto motionState = new btDefaultMotionState(boxTransform);
@@ -122,7 +147,7 @@ void PhysicsSystem::RegisterCollider(Entity* entity)
 	if (physics != nullptr)
 	{
 		rigidBody->setDamping(0.8f, 0.6f);
-		rigidBody->setAngularFactor(btVector3(0, 0, 0));
+		rigidBody->setAngularFactor(btVector3(0, 1, 0));
 	}
 	mDynamicWorld->addRigidBody(rigidBody);
 
