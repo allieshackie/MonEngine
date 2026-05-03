@@ -26,7 +26,6 @@ public:
 
 private:
 	btQuaternion _ConvertDegreesToQuat(glm::vec3 rot);
-	glm::vec3 _ConvertQuatToRadians(btQuaternion quat);
 
 	std::unique_ptr<btBroadphaseInterface> mBroadPhase;
 	std::unique_ptr<btCollisionDispatcher> mCollisionDispatcher;

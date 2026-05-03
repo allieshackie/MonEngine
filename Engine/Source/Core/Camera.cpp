@@ -26,11 +26,10 @@ void Camera::Update()
 	if (mFollowCam && mCameraTargetEntity != nullptr)
 	{
 		const auto& transform = mCameraTargetEntity->GetComponent<TransformComponent>();
-		if (transform.mPosition != mCameraPos)
+		if (transform.mPosition != mCameraFollowTarget)
 		{
-			mCameraPos = transform.mPosition;
 			mCameraFollowTarget = transform.mPosition;
-			mCameraPos += mCameraFollowOffset;
+			mCameraPos = transform.mPosition + mCameraFollowOffset;
 			mCameraFollowTarget += mCameraLookOffset;
 			UpdateView();
 		}
@@ -106,16 +105,7 @@ void Camera::SetUp(const glm::vec3 up)
 
 void Camera::UpdateRight()
 {
-	if (glm::abs(glm::dot(mCameraFront, mCameraUp)) > 0.9999f)
-	{
-		// mCameraFront and mCameraUp are nearly parallel; set mCameraRight to a fixed perpendicular vector
-		mCameraRight = glm::vec3(1.0f, 0.0f, 0.0f); // or (0.0f, 0.0f, 1.0f) if more suitable for your system
-	}
-	else
-	{
-		// Calculate mCameraRight normally
-		mCameraRight = glm::normalize(glm::cross(mCameraUp, mCameraFront));
-	}
+	mCameraRight = glm::normalize(glm::cross(mCameraUp, mCameraFront));
 }
 
 void Camera::SetLookTarget(Entity* entity)

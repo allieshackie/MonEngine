@@ -147,7 +147,7 @@ void PhysicsSystem::RegisterCollider(Entity* entity)
 	if (physics != nullptr)
 	{
 		rigidBody->setDamping(0.8f, 0.6f);
-		rigidBody->setAngularFactor(btVector3(0, 1, 0));
+		rigidBody->setAngularFactor(btVector3(0, 0, 0));
 	}
 	mDynamicWorld->addRigidBody(rigidBody);
 
@@ -188,10 +188,7 @@ void PhysicsSystem::FixedUpdate(float dt)
 				body->getMotionState()->getWorldTransform(worldTransform);
 
 				btVector3 pos = worldTransform.getOrigin();
-				btQuaternion orn = worldTransform.getRotation();
-
 				transform.mPosition = {pos.x(), pos.y() - (size.y / 2), pos.z()};
-				transform.mRotation = _ConvertQuatToRadians(orn);
 			}
 		});
 	}
@@ -204,14 +201,6 @@ btQuaternion PhysicsSystem::_ConvertDegreesToQuat(glm::vec3 rot)
 	q.setEuler(radianConversion.y, radianConversion.x, radianConversion.z);
 
 	return q;
-}
-
-glm::vec3 PhysicsSystem::_ConvertQuatToRadians(btQuaternion quat)
-{
-	glm::vec3 radians;
-	quat.getEulerZYX(radians.z, radians.y, radians.x);
-	const auto degreeConversion = glm::degrees(radians);
-	return degreeConversion;
 }
 
 void PhysicsSystem::AddEntityToInitialize(Entity* entity)

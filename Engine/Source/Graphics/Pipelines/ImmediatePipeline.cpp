@@ -47,7 +47,11 @@ void ImmediatePipeline::UpdateProjectionViewUniform(LLGL::CommandBuffer& command
 
 void ImmediatePipeline::_RenderPoints(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat)
 {
-	// If point size change is needed, confirm works  
+	if (mFramePointVertices.empty())
+	{
+		return;
+	}
+	// If point size change is needed, confirm works
 	// glPointSize(5.0);
 	commandBuffer.UpdateBuffer(*mPointVertexBuffer, 0, mFramePointVertices.data(),
 	                           static_cast<std::uint16_t>(mFramePointVertices.size() * sizeof(
@@ -63,7 +67,11 @@ void ImmediatePipeline::_RenderPoints(LLGL::CommandBuffer& commandBuffer, const 
 
 void ImmediatePipeline::_RenderLines(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat)
 {
-	// If point size change is needed, confirm works  
+	if (mFrameLineVertices.empty())
+	{
+		return;
+	}
+	// If point size change is needed, confirm works
 	// glPointSize(5.0);
 	commandBuffer.UpdateBuffer(*mLineVertexBuffer, 0, mFrameLineVertices.data(),
 	                           static_cast<std::uint16_t>(mFrameLineVertices.size() * sizeof(
@@ -79,7 +87,11 @@ void ImmediatePipeline::_RenderLines(LLGL::CommandBuffer& commandBuffer, const g
 
 void ImmediatePipeline::_RenderCircles(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat)
 {
-	// If point size change is needed, confirm works  
+	if (mFrameCircleVertices.empty())
+	{
+		return;
+	}
+	// If point size change is needed, confirm works
 	// glPointSize(5.0);
 	commandBuffer.UpdateBuffer(*mCircleVertexBuffer, 0, mFrameCircleVertices.data(),
 	                           static_cast<std::uint16_t>(mFrameCircleVertices.size() * sizeof(
