@@ -2,14 +2,14 @@
 #include "Core/World.h"
 #include "Entity/Components/TransformComponent.h"
 #include "Entity/Entity.h"
-#include "Graphics/RenderContext.h"
+#include "Graphics/WindowContext.h"
 #include "Graphics/RenderSystem.h"
 #include "Graphics/Core/ResourceManager.h"
 
 #include "EntityMenu.h"
 
 EntityMenu::EntityMenu(std::weak_ptr<InputHandler> inputHandler, std::weak_ptr<World> world,
-                       RenderContext& renderContext) : mWorld(world), mRenderContext(renderContext)
+                       WindowContext& windowContext) : mWorld(world), mWindowContext(windowContext)
 {
 	// TODO: Handle mouse hover + selection
 	if (const auto inputHandlerPtr = inputHandler.lock())
@@ -43,7 +43,7 @@ void EntityMenu::Render(RenderSystem& renderSystem)
 	{
 		if (const auto world = mWorld.lock())
 		{
-			_OnClick(mRenderContext, world->GetCamera());
+			_OnClick(mWindowContext, world->GetCamera());
 		}
 		mQueuedClick = false;
 	}
@@ -139,22 +139,22 @@ void EntityMenu::_HandleMouseMove(LLGL::Offset2D mousePos)
 	mMousePos = {mousePos.x, mousePos.y};
 }
 
-glm::vec3 EntityMenu::_CalculateMouseRay(glm::vec2 mousePos, const RenderContext& renderContext,
+glm::vec3 EntityMenu::_CalculateMouseRay(glm::vec2 mousePos, const WindowContext& windowContext,
                                          const Camera& camera) const
 {
-	const auto normalizeCoords = renderContext.NormalizedDeviceCoords({mousePos.x, mousePos.y, 1.0});
+	const auto normalizeCoords = windowContext.NormalizedDeviceCoords({mousePos.x, mousePos.y, 1.0});
 	const glm::vec4 homogenousClip = {normalizeCoords.x, normalizeCoords.y, -1.0f, 1.0f};
-	glm::vec4 eyeRay = glm::inverse(renderContext.GetPerspectiveProjection()) * homogenousClip;
+	glm::vec4 eyeRay = glm::inverse(windowContext.GetPerspectiveProjection()) * homogenousClip;
 	eyeRay = glm::vec4(eyeRay.x, eyeRay.y, -1.0f, 0.0f);
 	const auto ray = glm::normalize(glm::inverse(camera.GetView()) * eyeRay);
 	return ray;
 }
 
-void EntityMenu::_OnClick(const RenderContext& renderContext, const Camera& camera)
+void EntityMenu::_OnClick(const WindowContext& windowContext, const Camera& camera)
 {
 	/*
 	 *
-	const auto ray = _CalculateMouseRay(mMousePos, renderContext, camera);
+	const auto ray = _CalculateMouseRay(mMousePos, WindowContext, camera);
 	//int i = 0;
 
 	for (auto& map : mMapRegistry.GetAllMaps())

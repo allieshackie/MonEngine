@@ -1,9 +1,9 @@
 #include "Core/World.h"
-#include "RenderContext.h"
+#include "WindowContext.h"
 
 #include "RenderSystem.h"
 
-RenderSystem::RenderSystem(RenderContext& context, const ResourceManager& resourceManager, std::weak_ptr<World> world) :
+RenderSystem::RenderSystem(WindowContext& context, const ResourceManager& resourceManager, std::weak_ptr<World> world) :
 	mContext(context)
 {
 	mImmediatePipeline = std::make_unique<ImmediatePipeline>(mContext.GetRenderSystem());

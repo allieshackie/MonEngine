@@ -4,7 +4,7 @@
 #include "backends/imgui_impl_win32.h"
 #include "LLGL/Platform/Win32/Win32NativeHandle.h"
 
-#include "Graphics/RenderContext.h"
+#include "Graphics/WindowContext.h"
 #include "Util/FileSystem.h"
 #include "Util/LuaUtil.h"
 #include "GUIMenu.h"
@@ -16,7 +16,7 @@ constexpr const char* GLSL_VERSION = "#version 460";
 
 bool GUISystem::show_demo_window = false;
 
-GUISystem::GUISystem(RenderContext& renderContext) : LuaBindable("GUISystem"), mRenderContext(renderContext)
+GUISystem::GUISystem(WindowContext& windowContext) : LuaBindable("GUISystem"), mWindowContext(windowContext)
 {
 	//Initialize Glad
 	if (gladLoadGL() == 0)
@@ -29,7 +29,7 @@ GUISystem::GUISystem(RenderContext& renderContext) : LuaBindable("GUISystem"), m
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
 
-	const auto resolution = renderContext.GetResolution();
+	const auto resolution = windowContext.GetResolution();
 	io.DisplaySize = ImVec2{static_cast<float>(resolution.width), static_cast<float>(resolution.height)};
 
 	mViewportSize = { resolution.width , resolution.height };
@@ -39,7 +39,7 @@ GUISystem::GUISystem(RenderContext& renderContext) : LuaBindable("GUISystem"), m
 
 	// Setup Renderer backend
 	LLGL::NativeHandle mainWindowHandle;
-	renderContext.GetSurfaceNativeHandle(&mainWindowHandle, sizeof(mainWindowHandle));
+	windowContext.GetSurfaceNativeHandle(&mainWindowHandle, sizeof(mainWindowHandle));
 
 	ImGui_ImplWin32_Init(mainWindowHandle.window);
 	ImGui_ImplOpenGL3_Init(GLSL_VERSION);
@@ -48,11 +48,11 @@ GUISystem::GUISystem(RenderContext& renderContext) : LuaBindable("GUISystem"), m
 void GUISystem::RenderMenus()
 {
 	bool hasChanged = false;
-	if (mRenderContext.HasViewportSizeChanged()) 
+	if (mWindowContext.HasViewportSizeChanged()) 
 	{
 		hasChanged = true;
-		mRenderContext.SetViewportSizeChanged(false);
-		const auto resolution = mRenderContext.GetResolution();
+		mWindowContext.SetViewportSizeChanged(false);
+		const auto resolution = mWindowContext.GetResolution();
 		mViewportSize = { resolution.width , resolution.height };
 	}
 	for (auto it = mGUIMenus.begin(); it != mGUIMenus.end();)

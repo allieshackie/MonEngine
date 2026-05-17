@@ -4,9 +4,9 @@
 
 #include "Input/InputHandler.h"
 
-#include "RenderContext.h"
+#include "WindowContext.h"
 
-RenderContext::RenderContext(const LLGL::Extent2D screenSize, const LLGL::ColorRGBAf backgroundColor,
+WindowContext::WindowContext(const LLGL::Extent2D screenSize, const LLGL::ColorRGBAf backgroundColor,
                              const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler,
                              bool transparent)
 	: mBackgroundColor(backgroundColor)
@@ -72,7 +72,7 @@ RenderContext::RenderContext(const LLGL::Extent2D screenSize, const LLGL::ColorR
 	_CreateWindow(title, inputHandler, transparent);
 }
 
-RenderContext::~RenderContext()
+WindowContext::~WindowContext()
 {
 	mRenderSystem->Release(*mSwapChain);
 	mSwapChain = nullptr;
@@ -81,32 +81,32 @@ RenderContext::~RenderContext()
 	mCommands = nullptr;
 }
 
-bool RenderContext::GetSurfaceNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const
+bool WindowContext::GetSurfaceNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const
 {
 	return mSwapChain->GetSurface().GetNativeHandle(nativeHandle, nativeHandleSize);
 }
 
-bool RenderContext::GetBackendNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const
+bool WindowContext::GetBackendNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const
 {
 	return mRenderSystem->GetNativeHandle(nativeHandle, nativeHandleSize);
 }
 
-bool RenderContext::GetCommandBufferNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const
+bool WindowContext::GetCommandBufferNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const
 {
 	return mCommands->GetNativeHandle(nativeHandle, nativeHandleSize);
 }
 
-LLGL::Extent2D RenderContext::GetResolution() const
+LLGL::Extent2D WindowContext::GetResolution() const
 {
 	return mSwapChain->GetResolution();
 }
 
-void RenderContext::SetBackgroundClearColor(const LLGL::ColorRGBAf color)
+void WindowContext::SetBackgroundClearColor(const LLGL::ColorRGBAf color)
 {
 	mBackgroundColor = color;
 }
 
-void RenderContext::BeginFrame() const
+void WindowContext::BeginFrame() const
 {
 	// Render Commands to Queue
 	mCommands->Begin();
@@ -120,7 +120,7 @@ void RenderContext::BeginFrame() const
 	mCommands->BeginRenderPass(*mSwapChain);
 }
 
-void RenderContext::EndFrame() const
+void WindowContext::EndFrame() const
 {
 	mCommands->EndRenderPass();
 
@@ -131,14 +131,14 @@ void RenderContext::EndFrame() const
 	mSwapChain->Present();
 }
 
-bool RenderContext::ProcessEvents() const
+bool WindowContext::ProcessEvents() const
 {
 	const LLGL::Window& window = LLGL::CastTo<LLGL::Window>(mSwapChain->GetSurface());
 	return mSwapChain->GetSurface().ProcessEvents() && !window.HasQuit();
 }
 
 // Called on window resize
-void RenderContext::UpdateProjection()
+void WindowContext::UpdateProjection()
 {
 	const auto res = mSwapChain->GetResolution();
 	mPerspectiveProjection = glm::perspective(glm::radians(45.0f),
@@ -149,7 +149,7 @@ void RenderContext::UpdateProjection()
 	                              100.0f);
 }
 
-glm::vec3 RenderContext::NormalizedDeviceCoords(glm::vec3 vec) const
+glm::vec3 WindowContext::NormalizedDeviceCoords(glm::vec3 vec) const
 {
 	const auto res = mSwapChain->GetResolution();
 	return {
@@ -159,13 +159,13 @@ glm::vec3 RenderContext::NormalizedDeviceCoords(glm::vec3 vec) const
 	};
 }
 
-void RenderContext::ResizeBuffers(const LLGL::Extent2D& size)
+void WindowContext::ResizeBuffers(const LLGL::Extent2D& size)
 {
 	mSwapChain->ResizeBuffers(size);
 	mViewportSizeChanged = true;
 }
 
-void RenderContext::_CreateWindow(const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler,
+void WindowContext::_CreateWindow(const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler,
                                   bool transparent)
 {
 	// get window from context surface
@@ -202,7 +202,7 @@ void RenderContext::_CreateWindow(const LLGL::UTF8String& title, const std::shar
 	window.Show();
 }
 
-LLGL::Extent2D RenderContext::_ScaleResolution(const LLGL::Extent2D& res, float scale)
+LLGL::Extent2D WindowContext::_ScaleResolution(const LLGL::Extent2D& res, float scale)
 {
 	const float wScaled = static_cast<float>(res.width) * scale;
 	const float hScaled = static_cast<float>(res.height) * scale;

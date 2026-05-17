@@ -5,20 +5,20 @@
 
 class InputHandler;
 
-class RenderContext
+class WindowContext
 {
 public:
-	RenderContext(const LLGL::Extent2D screenSize, const LLGL::ColorRGBAf backgroundColor,
+	WindowContext(const LLGL::Extent2D screenSize, const LLGL::ColorRGBAf backgroundColor,
 	              const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler,
 	              bool transparent);
-	~RenderContext();
+	~WindowContext();
 
 	// Copy constructor/assignment operator
-	RenderContext(const RenderContext& other) = delete;
-	RenderContext& operator=(const RenderContext& other) = delete;
+	WindowContext(const WindowContext& other) = delete;
+	WindowContext& operator=(const WindowContext& other) = delete;
 	// Move constructor/assignment operator
-	RenderContext(RenderContext&& other) noexcept = default;
-	RenderContext& operator=(RenderContext&& rhs) noexcept = default;
+	WindowContext(WindowContext&& other) noexcept = default;
+	WindowContext& operator=(WindowContext&& rhs) noexcept = default;
 
 	void BeginFrame() const;
 	void EndFrame() const;
@@ -67,7 +67,7 @@ private:
 class ResizeEventHandler : public LLGL::Window::EventListener
 {
 public:
-	ResizeEventHandler(RenderContext& cxt) : mRenderContext(cxt)
+	ResizeEventHandler(WindowContext& cxt) : mWindowContext(cxt)
 	{
 	}
 
@@ -76,11 +76,11 @@ public:
 		if (clientAreaSize.width >= 4 && clientAreaSize.height >= 4)
 		{
 			// Update swap buffers
-			mRenderContext.ResizeBuffers(clientAreaSize);
-			mRenderContext.UpdateProjection();
+			mWindowContext.ResizeBuffers(clientAreaSize);
+			mWindowContext.UpdateProjection();
 		}
 	}
 
 private:
-	RenderContext& mRenderContext;
+	WindowContext& mWindowContext;
 };

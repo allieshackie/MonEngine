@@ -2,13 +2,13 @@
 #include "imgui.h"
 #include "Core/Camera.h"
 #include "Core/SceneManager.h"
-#include "Graphics/RenderContext.h"
+#include "Graphics/WindowContext.h"
 #include "Graphics/Core/ResourceManager.h"
 
 #include "MapEditor.h"
 
-MapEditor::MapEditor(InputHandler& inputHandler, MapRegistry& mapRegistry, RenderContext& renderContext)
-	: mInputHandler(inputHandler), mMapRegistry(mapRegistry), mRenderContext(renderContext)
+MapEditor::MapEditor(InputHandler& inputHandler, MapRegistry& mapRegistry, WindowContext& windowContext)
+	: mInputHandler(inputHandler), mMapRegistry(mapRegistry), mWindowContext(windowContext)
 {
 	_GetAllMapFileNames();
 }
@@ -172,7 +172,7 @@ void MapEditor::_LoadMap(const char* mapName, Camera& camera)
 {
 	//mMapRegistry.OpenMap(mapName);
 	mMapInteractionSystem = std::make_unique<MapInteractionSystem>(camera, mInputHandler, mMapRegistry,
-	                                                               mRenderContext);
+	                                                               mWindowContext);
 
 	/*
 	 *

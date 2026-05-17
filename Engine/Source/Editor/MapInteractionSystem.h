@@ -8,13 +8,13 @@ class DrawData;
 class InputHandler;
 class Map;
 class MapRegistry;
-class RenderContext;
+class WindowContext;
 
 class MapInteractionSystem
 {
 public:
 	MapInteractionSystem(Camera& camera, InputHandler& inputHandler, MapRegistry& mapRegistry,
-	                     RenderContext& renderContext);
+	                     WindowContext& windowContext);
 
 	void SetPaletteBrush(int brushIndex);
 
@@ -31,7 +31,7 @@ private:
 	glm::vec2 mMousePos = {0, 0};
 	glm::vec3 mIntersectionPoint = {0, 0, 0};
 
-	RenderContext& mRenderContext;
+	WindowContext& mWindowContext;
 	MapRegistry& mMapRegistry;
 
 	std::shared_ptr<DrawData> mDebugBox;

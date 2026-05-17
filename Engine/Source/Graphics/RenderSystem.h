@@ -8,7 +8,7 @@
 
 class Camera;
 class InputHandler;
-class RenderContext;
+class WindowContext;
 class ResourceManager;
 class World;
 
@@ -17,7 +17,7 @@ struct OverlayElement;
 class RenderSystem : public ISystem
 {
 public:
-	RenderSystem(RenderContext& context, const ResourceManager& resourceManager, std::weak_ptr<World> world);
+	RenderSystem(WindowContext& context, const ResourceManager& resourceManager, std::weak_ptr<World> world);
 
 	void Render(std::weak_ptr<World> world) override;
 
@@ -44,7 +44,7 @@ public:
 	void UpdateLights();
 
 private:
-	RenderContext& mContext;
+	WindowContext& mContext;
 	std::unique_ptr<MeshPipeline> mMeshPipeline;
 	std::unique_ptr<OverlayPipeline> mOverlayPipeline;
 	std::unique_ptr<ImmediatePipeline> mImmediatePipeline;

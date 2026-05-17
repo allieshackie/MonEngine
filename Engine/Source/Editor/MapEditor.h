@@ -5,14 +5,14 @@
 class Camera;
 class InputHandler;
 class MapRegistry;
-class RenderContext;
+class WindowContext;
 
 using GLuint = unsigned int;
 
 class MapEditor
 {
 public:
-	MapEditor(InputHandler& inputHandler, MapRegistry& mapRegistry, RenderContext& renderContext);
+	MapEditor(InputHandler& inputHandler, MapRegistry& mapRegistry, WindowContext& windowContext);
 
 	void RenderGUI(Camera& camera);
 
@@ -62,7 +62,7 @@ private:
 
 	InputHandler& mInputHandler;
 	MapRegistry& mMapRegistry;
-	RenderContext& mRenderContext;
+	WindowContext& mWindowContext;
 
 	std::unique_ptr<MapInteractionSystem> mMapInteractionSystem;
 };

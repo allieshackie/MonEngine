@@ -6,14 +6,14 @@
 
 class Camera;
 class InputHandler;
-class RenderContext;
+class WindowContext;
 class ResourceManager;
 class World;
 
 class EditorGUI : public ISystem
 {
 public:
-	EditorGUI(std::weak_ptr<InputHandler> inputHandler, std::weak_ptr<World> world, RenderContext& renderContext,
+	EditorGUI(std::weak_ptr<InputHandler> inputHandler, std::weak_ptr<World> world, WindowContext& windowContext,
 	          ResourceManager& resourceManager, RenderSystem& renderSystem);
 
 	void RenderGUI() override;
@@ -32,7 +32,7 @@ private:
 	std::weak_ptr<InputHandler> mInputHandler;
 	std::weak_ptr<World> mWorld;
 	ResourceManager& mResourceManager;
-	RenderContext& mRenderContext;
+	WindowContext& mWindowContext;
 	RenderSystem& mRenderSystem;
 
 	int mAxisElement = -1;

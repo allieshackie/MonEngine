@@ -5,19 +5,19 @@
 #include "ContextMenus/EntityMenu.h"
 #include "Input/InputHandler.h"
 #include "Graphics/Core/ResourceManager.h"
-#include "Graphics/RenderContext.h"
+#include "Graphics/WindowContext.h"
 #include "Graphics/RenderSystem.h"
 
 #include "EditorGUI.h"
 
-EditorGUI::EditorGUI(std::weak_ptr<InputHandler> inputHandler, std::weak_ptr<World> world, RenderContext& renderContext,
+EditorGUI::EditorGUI(std::weak_ptr<InputHandler> inputHandler, std::weak_ptr<World> world, WindowContext& windowContext,
                      ResourceManager& resourceManager, RenderSystem& renderSystem)
-	: mInputHandler(inputHandler), mWorld(world), mResourceManager(resourceManager), mRenderContext(renderContext),
+	: mInputHandler(inputHandler), mWorld(world), mResourceManager(resourceManager), mWindowContext(windowContext),
 	  mRenderSystem(renderSystem)
 {
-	//mMapEditor = std::make_unique<MapEditor>(engineContext, inputHandler, levelManager, mapRegistry, renderContext);
+	//mMapEditor = std::make_unique<MapEditor>(engineContext, inputHandler, levelManager, mapRegistry, WindowContext);
 	mObjectGUI = std::make_unique<ObjectGUI>();
-	mEntityMenu = std::make_unique<EntityMenu>(inputHandler, mWorld, renderContext);
+	mEntityMenu = std::make_unique<EntityMenu>(inputHandler, mWorld, windowContext);
 }
 
 void EditorGUI::RenderGUI()
@@ -38,7 +38,7 @@ void EditorGUI::RenderGUI()
 		ImGui::EndMainMenuBar();
 	}
 	ImGui::SetNextWindowSize(mSize);
-	ImGui::SetNextWindowPos({mRenderContext.GetResolution().width - 250.0f, 20});
+	ImGui::SetNextWindowPos({mWindowContext.GetResolution().width - 250.0f, 20});
 	if (ImGui::Begin("Editor", &mOpen, mWindowFlags))
 	{
 		if (auto world = mWorld.lock())

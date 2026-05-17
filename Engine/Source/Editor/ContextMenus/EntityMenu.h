@@ -4,14 +4,14 @@
 class Camera;
 class InputHandler;
 class Entity;
-class RenderContext;
+class WindowContext;
 class RenderSystem;
 class World;
 
 class EntityMenu
 {
 public:
-	EntityMenu(std::weak_ptr<InputHandler> inputHandler, std::weak_ptr<World> world, RenderContext& renderContext);
+	EntityMenu(std::weak_ptr<InputHandler> inputHandler, std::weak_ptr<World> world, WindowContext& windowContext);
 
 	void Render(RenderSystem& renderSystem);
 
@@ -26,8 +26,8 @@ public:
 
 private:
 	void _HandleMouseMove(LLGL::Offset2D mousePos);
-	glm::vec3 _CalculateMouseRay(glm::vec2 mousePos, const RenderContext& renderContext, const Camera& camera) const;
-	void _OnClick(const RenderContext& renderContext, const Camera& camera);
+	glm::vec3 _CalculateMouseRay(glm::vec2 mousePos, const WindowContext& windowContext, const Camera& camera) const;
+	void _OnClick(const WindowContext& windowContext, const Camera& camera);
 
 	glm::vec2 mMousePos = {0, 0};
 
@@ -40,5 +40,5 @@ private:
 	bool mQueuedClick = false;
 
 	std::weak_ptr<World> mWorld;
-	RenderContext& mRenderContext;
+	WindowContext& mWindowContext;
 };

@@ -2,7 +2,7 @@
 #include "Script/LuaBindable.h"
 
 class GUIMenu;
-class RenderContext;
+class WindowContext;
 
 struct InputEvent;
 struct ImVec4;
@@ -10,7 +10,7 @@ struct ImVec4;
 class GUISystem : public LuaBindable
 {
 public:
-	GUISystem(RenderContext& renderContext);
+	GUISystem(WindowContext& windowContext);
 
 	void RenderMenus();
 
@@ -35,7 +35,7 @@ private:
 	// example
 	static bool show_demo_window;
 	std::vector<std::shared_ptr<GUIMenu>> mGUIMenus;
-	RenderContext& mRenderContext;
+	WindowContext& mWindowContext;
 
 	glm::vec2 mViewportSize = { 0,0 };
 };
