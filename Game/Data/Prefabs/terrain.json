@@ -1,0 +1,17 @@
+{
+    "prefab_name": "terrain", 
+    "components" : {
+        "transform" : {
+            "position": [0,0,0],
+            "size": [1000,2,1000],
+            "rotation": [0,0,0]
+        },
+        "model": {
+            "model_path": "dogeTerrain.gltf" 
+        },
+        "collider": {
+            "collider_shape": "TriMesh", 
+            "size": [0,0,0]
+        }
+    }
+}

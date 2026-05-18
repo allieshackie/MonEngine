@@ -1,0 +1,15 @@
+{
+    "prefab_name": "pointLight", 
+    "components" : {
+        "transform" : {
+            "position": [0,0,0],
+            "size": [1,1,1],
+            "rotation": [0,0,0]
+        },
+        "light": {
+            "color": [1,1,1,1],
+            "intensity": 2.0,
+            "light_type": 0
+        }
+    }
+}

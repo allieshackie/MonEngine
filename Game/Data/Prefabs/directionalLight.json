@@ -1,0 +1,15 @@
+{
+    "prefab_name": "directionalLight", 
+    "components" : {
+        "transform" : {
+            "position": [0,0,0],
+            "size": [1,1,1],
+            "rotation": [0,0,0]
+        },
+        "light": {
+            "color": [1,1,1,1],
+            "intensity": 0.5,
+            "light_type": 1
+        }
+    }
+}

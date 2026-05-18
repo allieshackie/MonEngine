@@ -1,0 +1,26 @@
+{
+    "camera": {
+        "position": [0,5,10],
+        "front": [0,0,1],
+        "up": [0,1,0],
+        "follow_cam": true
+    },
+    "entities": [
+        {
+            "name": "player",
+            "position": [0,2,0]
+        },
+        {
+            "name": "pointLightRed",
+            "position": [2,4,0]
+        },
+        {
+            "name": "directionalLight",
+            "position": [0,100,0]
+        },
+        {
+            "name": "terrain",
+            "position": [0,0,0]
+        }
+    ]
+}
