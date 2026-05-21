@@ -24,8 +24,7 @@ struct Material
 class MeshPipeline : public PipelineBase
 {
 public:
-	MeshPipeline(const LLGL::RenderSystemPtr& renderSystem, const ResourceManager& resourceManager,
-	             std::weak_ptr<World> world);
+	MeshPipeline(const LLGL::RenderSystemPtr& renderSystem, const ResourceManager& resourceManager);
 
 	void Render(LLGL::CommandBuffer& commands, const glm::mat4 projection, std::weak_ptr<World> world);
 
@@ -39,6 +38,8 @@ public:
 	void UpdateMaterialBuffer() const;
 
 	void UpdateLights() { mUpdateLights = true; }
+
+	void OnWorldCreated(std::weak_ptr<World> world);
 
 private:
 	void _RenderNode(LLGL::CommandBuffer& commands, const Model& model, int nodeIndex,

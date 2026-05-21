@@ -1,15 +1,43 @@
+#include <LLGL/LLGL.h>
 #include "Core/World.h"
 #include "WindowContext.h"
 
 #include "RenderSystem.h"
 
-RenderSystem::RenderSystem(WindowContext& context, const ResourceManager& resourceManager, std::weak_ptr<World> world) :
-	mContext(context)
+RenderSystem::RenderSystem(ResourceManager& resourceManager)
 {
-	mImmediatePipeline = std::make_unique<ImmediatePipeline>(mContext.GetRenderSystem());
-	mTextPipeline = std::make_unique<TextPipeline>(mContext.GetRenderSystem());
-	mMeshPipeline = std::make_unique<MeshPipeline>(mContext.GetRenderSystem(), resourceManager, world);
-	mOverlayPipeline = std::make_unique<OverlayPipeline>(mContext.GetRenderSystem());
+	try
+	{
+		LLGL::Report report;
+		// Load render system module (hard code to OpenGL for now)
+		mSystem = LLGL::RenderSystem::Load("OpenGL", &report);
+		// Set report callback to standard output
+		LLGL::Log::RegisterCallbackStd();
+
+		const auto display = LLGL::Display::GetPrimary();
+
+		LLGL::CommandBufferDescriptor cmdBufferDesc;
+		{
+			cmdBufferDesc.flags = LLGL::CommandBufferFlags::ImmediateSubmit;
+		}
+		// Create command buffer to submit graphics commands
+		mCommands = mSystem->CreateCommandBuffer(cmdBufferDesc);
+	}
+	catch (const std::exception& e)
+	{
+		std::cerr << e.what() << std::endl;
+	}
+
+	mImmediatePipeline = std::make_unique<ImmediatePipeline>(mSystem);
+	mTextPipeline = std::make_unique<TextPipeline>(mSystem);
+	mMeshPipeline = std::make_unique<MeshPipeline>(mSystem, resourceManager);
+	mOverlayPipeline = std::make_unique<OverlayPipeline>(mSystem);
+}
+
+RenderSystem::~RenderSystem()
+{
+	mSystem->Release(*mCommands);
+	mCommands = nullptr;
 }
 
 void RenderSystem::LoadFont(const char* fontFileName) const
@@ -24,12 +52,12 @@ void RenderSystem::Render(std::weak_ptr<World> world)
 	{
 		return;
 	}
-	const auto projectionViewMat = mContext.GetPerspectiveProjection() * worldPtr->GetCamera().GetView();
+	const auto projectionViewMat = mPerspectiveProjection * worldPtr->GetCamera().GetView();
 
-	mMeshPipeline->Render(mContext.GetCommands(), mContext.GetPerspectiveProjection(), world);
-	mTextPipeline->Render(mContext.GetCommands(), projectionViewMat);
-	mImmediatePipeline->Render(mContext.GetCommands(), projectionViewMat);
-	mOverlayPipeline->Render(mContext.GetCommands(), projectionViewMat);
+	mMeshPipeline->Render(*mCommands, mPerspectiveProjection, world);
+	mTextPipeline->Render(*mCommands, projectionViewMat);
+	mImmediatePipeline->Render(*mCommands, projectionViewMat);
+	mOverlayPipeline->Render(*mCommands, projectionViewMat);
 }
 
 void RenderSystem::ClearOverlay() const
@@ -110,4 +138,35 @@ Material& RenderSystem::GetMaterial()
 void RenderSystem::UpdateLights()
 {
 	mMeshPipeline->UpdateLights();
+}
+
+void RenderSystem::UpdateProjections(const LLGL::Extent2D res)
+{
+	mPerspectiveProjection = glm::perspective(glm::radians(45.0f),
+		static_cast<float>(res.width) / static_cast<float>(res.height),
+		0.1f, 100.0f);
+
+	mOrthoProjection = glm::ortho(0.0f, static_cast<float>(res.width), 0.0f, static_cast<float>(res.height), 0.1f,
+		100.0f);
+}
+
+bool RenderSystem::GetBackendNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const
+{
+	return mSystem->GetNativeHandle(nativeHandle, nativeHandleSize);
+}
+
+bool RenderSystem::GetCommandBufferNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const
+{
+	return mCommands->GetNativeHandle(nativeHandle, nativeHandleSize);
+}
+
+void RenderSystem::OnWorldCreated(std::weak_ptr<World> world)
+{
+	mMeshPipeline->OnWorldCreated(world);
+}
+
+void RenderSystem::OnWindowCreated()
+{
+	// Get command queue to record and submit command buffers
+	mCommandQueue = mSystem->GetCommandQueue();
 }

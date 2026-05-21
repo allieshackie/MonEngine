@@ -1,10 +1,9 @@
 #include <glm/ext/matrix_transform.hpp>
+#include "Util/gltfHelpers.h"
 #include "LLGL/Utils/Parse.h"
 #include "LLGL/Utils/Utility.h"
 
 #include "ImmediatePipeline.h"
-
-#include "Util/gltfHelpers.h"
 
 void ImmediatePipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat)
 {

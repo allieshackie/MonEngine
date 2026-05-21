@@ -8,7 +8,6 @@
 
 class Camera;
 class InputHandler;
-class WindowContext;
 class ResourceManager;
 class World;
 
@@ -17,7 +16,8 @@ struct OverlayElement;
 class RenderSystem : public ISystem
 {
 public:
-	RenderSystem(WindowContext& context, const ResourceManager& resourceManager, std::weak_ptr<World> world);
+	RenderSystem(ResourceManager& resourceManager);
+	~RenderSystem();
 
 	void Render(std::weak_ptr<World> world) override;
 
@@ -40,11 +40,33 @@ public:
 	void SetPosition(uint32_t index, glm::vec2 pos);
 	void RemoveText(uint32_t index);
 
+	const Shader& GetMeshShader() const { return mMeshPipeline->GetShader(); }
+
 	Material& GetMaterial();
 	void UpdateLights();
 
+	LLGL::CommandBuffer& GetCommands() const { return *mCommands; }
+	LLGL::CommandQueue& GetCommandQueue() const { return *mCommandQueue; }
+	const LLGL::RenderSystemPtr& GetSystem() const { return mSystem; }
+	glm::mat4 GetPerspectiveProjection() const { return mPerspectiveProjection; }
+	glm::mat4 GetOrthoProjection() const { return mOrthoProjection; }
+
+	void UpdateProjections(const LLGL::Extent2D res);
+
+	bool GetBackendNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const;
+	bool GetCommandBufferNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const;
+
+	void OnWorldCreated(std::weak_ptr<World> world);
+	void OnWindowCreated();
+
 private:
-	WindowContext& mContext;
+
+	LLGL::RenderSystemPtr mSystem; // Render system
+	LLGL::CommandBuffer* mCommands = nullptr; // Main command buffer
+	LLGL::CommandQueue* mCommandQueue = nullptr; // Command queue
+	glm::mat4 mPerspectiveProjection = glm::identity<glm::mat4>();
+	glm::mat4 mOrthoProjection = glm::identity<glm::mat4>();
+
 	std::unique_ptr<MeshPipeline> mMeshPipeline;
 	std::unique_ptr<OverlayPipeline> mOverlayPipeline;
 	std::unique_ptr<ImmediatePipeline> mImmediatePipeline;

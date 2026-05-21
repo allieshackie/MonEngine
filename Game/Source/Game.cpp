@@ -37,7 +37,7 @@ void Game::Run()
 	//GUISystem::LoadGUITheme("LightStyle");
 
 	mSceneManager->LoadScene("menu.json");
-	//mRenderSystem->OnWorldCreated(mSceneManager->GetCurrentWorld());
+	mRenderSystem->OnWorldCreated(mSceneManager->GetCurrentWorld());
 
 	ToggleEditorMode(true);
 
@@ -97,7 +97,7 @@ void Game::Run()
 		{
 			world->GetCamera().Update();
 
-			mWindowContext->BeginFrame();
+			mWindowContext->BeginFrame(mRenderSystem->GetCommands());
 
 			mSystemManager->Render(world);
 
@@ -113,7 +113,7 @@ void Game::Run()
 			mSystemManager->RenderGUI();
 			mGUISystem->GUIEndFrame();
 
-			mWindowContext->EndFrame();
+			mWindowContext->EndFrame(mRenderSystem->GetCommands(), mRenderSystem->GetCommandQueue());
 		}
 	}
 
@@ -158,18 +158,18 @@ void Game::RegisterDescriptions()
 void Game::InitDependentSystems(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
 	const LLGL::ColorRGBAf backgroundClearColor, bool transparent)
 {
-	mWindowContext = std::make_unique<WindowContext>(screenSize, backgroundClearColor, title, mInputHandler, transparent);
-	mResourceManager->LoadAllResources(mWindowContext->GetRenderSystem());
+	mRenderSystem = mSystemManager->RegisterSystem<RenderSystem>(*mResourceManager);
+	mWindowContext = std::make_unique<WindowContext>(*mRenderSystem, screenSize, backgroundClearColor, title, mInputHandler, transparent);
 	mGUISystem = std::make_shared<GUISystem>(*mWindowContext);
 	mSceneManager = std::make_unique<SceneManager>(*mDescriptionFactory, *mTerrainSystem, *mResourceManager);
 	mInputHandler->SetGUISystem(mGUISystem);
 	mInputHandler->RegisterButtonUpHandler(LLGL::Key::Escape, [=]() { mRunning = false; });
+	mResourceManager->LoadAllResources(*mRenderSystem);
 }
 
 void Game::InitGameplaySystems()
 {
 	auto world = mSceneManager->GetCurrentWorld();
-	mRenderSystem = mSystemManager->RegisterSystem<RenderSystem>(*mWindowContext, *mResourceManager, world);
 	// Gameplay systems
 	mSystemManager->RegisterSystem<AnimatorSystem>(*mResourceManager, world);
 	const auto physicsSystem = mSystemManager->RegisterSystem<PhysicsSystem>(*mRenderSystem, *mResourceManager, world);

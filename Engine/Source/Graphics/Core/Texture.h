@@ -17,13 +17,13 @@ public:
 	glm::vec2 GetTextureSize() const;
 
 private:
-	bool _LoadFromFile(const LLGL::RenderSystemPtr& renderer, const std::string& path);
-	bool _ConvertFromGltf(const LLGL::RenderSystemPtr& renderer, const tinygltf::Image& image);
-	bool _CreateRGBAFromData(const LLGL::RenderSystemPtr& renderer, const unsigned char* imageData,
+	bool _LoadFromFile(const LLGL::RenderSystemPtr& renderSystem, const std::string& path);
+	bool _ConvertFromGltf(const LLGL::RenderSystemPtr& renderSystem, const tinygltf::Image& image);
+	bool _CreateRGBAFromData(const LLGL::RenderSystemPtr& renderSystem, const unsigned char* imageData,
 	                         int width, int height);
-	bool _CreateSingleChannelTextureFromData(const LLGL::RenderSystemPtr& renderer,
+	bool _CreateSingleChannelTextureFromData(const LLGL::RenderSystemPtr& renderSystem,
 	                                         const unsigned char* imageData, int width, int height);
-	void _CreateSampler(const LLGL::RenderSystemPtr& renderer);
+	void _CreateSampler(const LLGL::RenderSystemPtr& renderSystem);
 
 	LLGL::Texture* mTexture = nullptr;
 	LLGL::Sampler* mSampler = nullptr;

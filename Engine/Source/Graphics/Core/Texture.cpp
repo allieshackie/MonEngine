@@ -2,30 +2,30 @@
 
 #include "Texture.h"
 
-Texture::Texture(const LLGL::RenderSystemPtr& renderer, const std::string& path)
+Texture::Texture(const LLGL::RenderSystemPtr& renderSystem, const std::string& path)
 {
-	_LoadFromFile(renderer, path);
-	_CreateSampler(renderer);
+	_LoadFromFile(renderSystem, path);
+	_CreateSampler(renderSystem);
 }
 
-Texture::Texture(const LLGL::RenderSystemPtr& renderer, const tinygltf::Image& image)
+Texture::Texture(const LLGL::RenderSystemPtr& renderSystem, const tinygltf::Image& image)
 {
-	_ConvertFromGltf(renderer, image);
-	_CreateSampler(renderer);
+	_ConvertFromGltf(renderSystem, image);
+	_CreateSampler(renderSystem);
 }
 
-Texture::Texture(const LLGL::RenderSystemPtr& renderer, const unsigned char* imageData, int width,
+Texture::Texture(const LLGL::RenderSystemPtr& renderSystem, const unsigned char* imageData, int width,
                  int height, bool singleChannel)
 {
 	if (singleChannel)
 	{
-		_CreateSingleChannelTextureFromData(renderer, imageData, width, height);
+		_CreateSingleChannelTextureFromData(renderSystem, imageData, width, height);
 	}
 	else
 	{
-		_CreateRGBAFromData(renderer, imageData, width, height);
+		_CreateRGBAFromData(renderSystem, imageData, width, height);
 	}
-	_CreateSampler(renderer);
+	_CreateSampler(renderSystem);
 }
 
 LLGL::Texture& Texture::GetTextureData() const
@@ -43,7 +43,7 @@ glm::vec2 Texture::GetTextureSize() const
 	return {mTextureWidth, mTextureHeight};
 }
 
-bool Texture::_LoadFromFile(const LLGL::RenderSystemPtr& renderer, const std::string& path)
+bool Texture::_LoadFromFile(const LLGL::RenderSystemPtr& renderSystem, const std::string& path)
 {
 	// uncompressed texture
 	int texComponents = 0;
@@ -78,7 +78,7 @@ bool Texture::_LoadFromFile(const LLGL::RenderSystemPtr& renderer, const std::st
 			texDesc.miscFlags = LLGL::MiscFlags::GenerateMips;
 		}
 
-		mTexture = renderer->CreateTexture(texDesc, &imageDesc);
+		mTexture = renderSystem->CreateTexture(texDesc, &imageDesc);
 	}
 
 	stbi_image_free(imageBuffer);
@@ -86,7 +86,7 @@ bool Texture::_LoadFromFile(const LLGL::RenderSystemPtr& renderer, const std::st
 	return true;
 }
 
-bool Texture::_ConvertFromGltf(const LLGL::RenderSystemPtr& renderer, const tinygltf::Image& image)
+bool Texture::_ConvertFromGltf(const LLGL::RenderSystemPtr& renderSystem, const tinygltf::Image& image)
 {
 	mTextureWidth = image.width;
 	mTextureHeight = image.height;
@@ -113,13 +113,13 @@ bool Texture::_ConvertFromGltf(const LLGL::RenderSystemPtr& renderer, const tiny
 			texDesc.miscFlags = LLGL::MiscFlags::GenerateMips;
 		}
 
-		mTexture = renderer->CreateTexture(texDesc, &imageDesc);
+		mTexture = renderSystem->CreateTexture(texDesc, &imageDesc);
 	}
 
 	return true;
 }
 
-bool Texture::_CreateRGBAFromData(const LLGL::RenderSystemPtr& renderer, const unsigned char* imageData,
+bool Texture::_CreateRGBAFromData(const LLGL::RenderSystemPtr& renderSystem, const unsigned char* imageData,
                                   int width, int height)
 {
 	mTextureWidth = width;
@@ -148,14 +148,14 @@ bool Texture::_CreateRGBAFromData(const LLGL::RenderSystemPtr& renderer, const u
 			texDesc.miscFlags = LLGL::MiscFlags::GenerateMips;
 		}
 
-		mTexture = renderer->CreateTexture(texDesc, &imageDesc);
+		mTexture = renderSystem->CreateTexture(texDesc, &imageDesc);
 	}
 
 
 	return true;
 }
 
-bool Texture::_CreateSingleChannelTextureFromData(const LLGL::RenderSystemPtr& renderer,
+bool Texture::_CreateSingleChannelTextureFromData(const LLGL::RenderSystemPtr& renderSystem,
                                                   const unsigned char* imageData, int width, int height)
 {
 	mTextureWidth = width;
@@ -185,14 +185,14 @@ bool Texture::_CreateSingleChannelTextureFromData(const LLGL::RenderSystemPtr& r
 			texDesc.mipLevels = 1;
 		}
 
-		mTexture = renderer->CreateTexture(texDesc, &imageDesc);
+		mTexture = renderSystem->CreateTexture(texDesc, &imageDesc);
 	}
 
 
 	return true;
 }
 
-void Texture::_CreateSampler(const LLGL::RenderSystemPtr& renderer)
+void Texture::_CreateSampler(const LLGL::RenderSystemPtr& renderSystem)
 {
 	// Set sampler filters to have different effects
 	LLGL::SamplerDescriptor samplerDesc;
@@ -208,5 +208,5 @@ void Texture::_CreateSampler(const LLGL::RenderSystemPtr& renderer)
 		samplerDesc.minLOD = 4;
 		samplerDesc.maxLOD = 4;
 	}
-	mSampler = renderer->CreateSampler(samplerDesc);
+	mSampler = renderSystem->CreateSampler(samplerDesc);
 }

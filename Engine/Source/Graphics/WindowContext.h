@@ -4,11 +4,12 @@
 #include <glm/gtc/matrix_transform.hpp> //translate, rotate, scale, perspective
 
 class InputHandler;
+class RenderSystem;
 
 class WindowContext
 {
 public:
-	WindowContext(const LLGL::Extent2D screenSize, const LLGL::ColorRGBAf backgroundColor,
+	WindowContext(RenderSystem& system, const LLGL::Extent2D screenSize, const LLGL::ColorRGBAf backgroundColor,
 	              const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler,
 	              bool transparent);
 	~WindowContext();
@@ -20,19 +21,13 @@ public:
 	WindowContext(WindowContext&& other) noexcept = default;
 	WindowContext& operator=(WindowContext&& rhs) noexcept = default;
 
-	void BeginFrame() const;
-	void EndFrame() const;
+	void BeginFrame(LLGL::CommandBuffer& commands) const;
+	void EndFrame(LLGL::CommandBuffer& commands, LLGL::CommandQueue& queue) const;
 	bool ProcessEvents() const;
 
-	LLGL::CommandBuffer& GetCommands() const { return *mCommands; }
 	bool GetSurfaceNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const;
-	bool GetBackendNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const;
-	bool GetCommandBufferNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const;
-	const LLGL::RenderSystemPtr& GetRenderSystem() const { return mRenderSystem; }
 	LLGL::Extent2D GetResolution() const;
 
-	glm::mat4 GetPerspectiveProjection() const { return mPerspectiveProjection; }
-	glm::mat4 GetOrthoProjection() const { return mOrthoProjection; }
 	void UpdateProjection();
 
 	// Color range from 0.0f - 1.0f
@@ -50,13 +45,9 @@ private:
 
 	static LLGL::Extent2D _ScaleResolution(const LLGL::Extent2D& res, float scale);
 
-	LLGL::RenderSystemPtr mRenderSystem; // Render system
-	LLGL::SwapChain* mSwapChain = nullptr; // Main render context
-	LLGL::CommandBuffer* mCommands = nullptr; // Main command buffer
-	LLGL::CommandQueue* mCommandQueue = nullptr; // Command queue
 
-	glm::mat4 mPerspectiveProjection = glm::identity<glm::mat4>();
-	glm::mat4 mOrthoProjection = glm::identity<glm::mat4>();
+	RenderSystem& mSystem;
+	LLGL::SwapChain* mSwapChain = nullptr; // Main render context
 
 	LLGL::ColorRGBAf mBackgroundColor = {0.0f, 0.0f, 0.0f, 1.0f};
 	std::uint32_t mSamplesCount = 1;

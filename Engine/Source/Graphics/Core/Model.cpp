@@ -3,6 +3,7 @@
 #include "LLGL/RenderSystem.h"
 #include "LLGL/Utils/Utility.h"
 
+#include "Graphics/RenderSystem.h"
 #include "Graphics/Core/Node.h"
 #include "Graphics/Core/Shader.h"
 #include "Graphics/Core/Vertex.h"
@@ -18,15 +19,15 @@ Model::Model(int id, size_t nodesSize): mId(id), mNumNodes(nodesSize)
 	}
 }
 
-void Model::InitializeBuffers(const LLGL::RenderSystemPtr& renderSystem, const Shader& shader) const
+void Model::InitializeBuffers(const RenderSystem& renderSystem) const
 {
 	for (const auto mesh : mMeshes)
 	{
-		mesh->mVertexBuffer = renderSystem->CreateBuffer(
+		mesh->mVertexBuffer = renderSystem.GetSystem()->CreateBuffer(
 			LLGL::VertexBufferDesc(static_cast<std::uint32_t>(mesh->mVertices.size() * sizeof(Vertex)),
-			                       shader.GetVertexFormat()), mesh->mVertices.data());
+			                       renderSystem.GetMeshShader().GetVertexFormat()), mesh->mVertices.data());
 
-		mesh->mIndexBuffer = renderSystem->CreateBuffer(
+		mesh->mIndexBuffer = renderSystem.GetSystem()->CreateBuffer(
 			LLGL::IndexBufferDesc(static_cast<std::uint32_t>(mesh->mIndices.size() * sizeof(uint32_t)),
 			                      LLGL::Format::R32UInt),
 			mesh->mIndices.data());

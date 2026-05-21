@@ -3,20 +3,23 @@
 #include <filesystem>
 #include <stb_image.h>
 
+#include "Graphics/RenderSystem.h"
 #include "Graphics/Core/Node.h"
 #include "Util/gltfHelpers.h"
+
 #include "ResourceManager.h"
 
-void ResourceManager::LoadAllResources(const LLGL::RenderSystemPtr& renderSystem)
+void ResourceManager::LoadAllResources(const RenderSystem& renderSystem)
 {
 	_LoadAllModels(renderSystem);
+	InitModelVertexBuffers(renderSystem);
 }
 
-void ResourceManager::InitModelVertexBuffers(const LLGL::RenderSystemPtr& renderSystem, const Shader& shader) const
+void ResourceManager::InitModelVertexBuffers(const RenderSystem& renderSystem) const
 {
 	for (auto& model : mModels)
 	{
-		model->InitializeBuffers(renderSystem, shader);
+		model->InitializeBuffers(renderSystem);
 	}
 }
 
@@ -112,14 +115,14 @@ std::vector<std::vector<float>> ResourceManager::CreateHeightMap(const std::stri
 	return heightMap;
 }
 
-int ResourceManager::_LoadNewTexture(const LLGL::RenderSystemPtr& renderSystem, const tinygltf::Image& image)
+int ResourceManager::_LoadNewTexture(const RenderSystem& renderSystem, const tinygltf::Image& image)
 {
-	mTextures.push_back(std::make_unique<Texture>(renderSystem, image));
+	mTextures.push_back(std::make_unique<Texture>(renderSystem.GetSystem(), image));
 	mTextureIds[image.name] = textureNum++;
 	return mTextureIds[image.name];
 }
 
-void ResourceManager::_LoadAllModels(const LLGL::RenderSystemPtr& renderSystem)
+void ResourceManager::_LoadAllModels(const RenderSystem& renderSystem)
 {
 	int modelId = 0;
 	std::string modelPath = "Objects/";
@@ -144,7 +147,7 @@ void ResourceManager::_LoadAllModels(const LLGL::RenderSystemPtr& renderSystem)
 	}
 }
 
-void ResourceManager::_LoadModel(const LLGL::RenderSystemPtr& renderSystem, const std::string& fullPath, int modelId)
+void ResourceManager::_LoadModel(const RenderSystem& renderSystem, const std::string& fullPath, int modelId)
 {
 	tinygltf::TinyGLTF gltf_ctx;
 	std::string err;
@@ -211,7 +214,7 @@ void ResourceManager::_LoadModel(const LLGL::RenderSystemPtr& renderSystem, cons
 	mModels.push_back(std::move(newModel));
 }
 
-MeshData* ResourceManager::_ProcessMesh(const LLGL::RenderSystemPtr& renderSystem, const tinygltf::Model& model,
+MeshData* ResourceManager::_ProcessMesh(const RenderSystem& renderSystem, const tinygltf::Model& model,
                                         int meshIndex)
 {
 	const auto& mesh = model.meshes[meshIndex];

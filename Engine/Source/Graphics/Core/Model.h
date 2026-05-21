@@ -19,7 +19,7 @@ class Model
 public:
 	Model(int id, size_t nodesSize);
 
-	void InitializeBuffers(const LLGL::RenderSystemPtr& renderSystem, const Shader& shader) const;
+	void InitializeBuffers(const RenderSystem& renderSystem) const;
 
 	int GetId() const { return mId; }
 	int GetRootJointIndex() const { return mRootJointIndex; }

@@ -7,14 +7,15 @@
 using GLuint = unsigned int;
 
 class Animator;
+class RenderSystem;
 
 class ResourceManager
 {
 public:
 	ResourceManager() = default;
 
-	void LoadAllResources(const LLGL::RenderSystemPtr& renderSystem);
-	void InitModelVertexBuffers(const LLGL::RenderSystemPtr& renderSystem, const Shader& shader) const;
+	void LoadAllResources(const RenderSystem& renderSystem);
+	void InitModelVertexBuffers(const RenderSystem& renderSystem) const;
 
 	const std::vector<std::unique_ptr<Texture>>& GetTextures() const { return mTextures; }
 	LLGL::Texture& GetTexture(int textureId) const;
@@ -28,12 +29,12 @@ public:
 	std::vector<std::vector<float>> CreateHeightMap(const std::string& fileName);
 
 private:
-	int _LoadNewTexture(const LLGL::RenderSystemPtr& renderSystem, const tinygltf::Image& image);
-	void _LoadAllModels(const LLGL::RenderSystemPtr& renderSystem);
+	int _LoadNewTexture(const RenderSystem& renderSystem, const tinygltf::Image& image);
+	void _LoadAllModels(const RenderSystem& renderSystem);
 
 	// Process GLTF Models
-	void _LoadModel(const LLGL::RenderSystemPtr& renderSystem, const std::string& fullPath, int modelId);
-	MeshData* _ProcessMesh(const LLGL::RenderSystemPtr& renderSystem, const tinygltf::Model& model,
+	void _LoadModel(const RenderSystem& renderSystem, const std::string& fullPath, int modelId);
+	MeshData* _ProcessMesh(const RenderSystem& renderSystem, const tinygltf::Model& model,
 	                       int meshIndex);
 	void _ProcessSkin(const tinygltf::Model& model, Model& newModel, int skinIndex) const;
 	void _ProcessAnimations(const tinygltf::Model& model, Model& newModel) const;

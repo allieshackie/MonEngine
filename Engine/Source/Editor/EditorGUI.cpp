@@ -17,7 +17,7 @@ EditorGUI::EditorGUI(std::weak_ptr<InputHandler> inputHandler, std::weak_ptr<Wor
 {
 	//mMapEditor = std::make_unique<MapEditor>(engineContext, inputHandler, levelManager, mapRegistry, WindowContext);
 	mObjectGUI = std::make_unique<ObjectGUI>();
-	mEntityMenu = std::make_unique<EntityMenu>(inputHandler, mWorld, windowContext);
+	mEntityMenu = std::make_unique<EntityMenu>(inputHandler, mWorld, renderSystem);
 }
 
 void EditorGUI::RenderGUI()

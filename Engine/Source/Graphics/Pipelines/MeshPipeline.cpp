@@ -40,6 +40,18 @@ void MeshPipeline::Render(LLGL::CommandBuffer& commands, const glm::mat4 project
 		});
 }
 
+void MeshPipeline::OnWorldCreated(std::weak_ptr<World> world)
+{
+	if (const auto worldPtr = world.lock())
+	{
+		EventFunc func = [this](Entity* entity)
+			{
+				AddLight(entity);
+			};
+		worldPtr->ConnectOnConstruct<LightComponent>(func);
+	}
+}
+
 void MeshPipeline::_RenderNode(LLGL::CommandBuffer& commands, const Model& model, int nodeIndex,
                                const TransformComponent& transform, const ModelComponent& modelComponent,
                                std::shared_ptr<World> world)
@@ -115,19 +127,9 @@ void MeshPipeline::SetPipeline(LLGL::CommandBuffer& commands) const
 	commands.SetPipelineState(*mPipeline);
 }
 
-MeshPipeline::MeshPipeline(const LLGL::RenderSystemPtr& renderSystem, const ResourceManager& resourceManager,
-                           std::weak_ptr<World> world)
+MeshPipeline::MeshPipeline(const LLGL::RenderSystemPtr& renderSystem, const ResourceManager& resourceManager)
 	: PipelineBase(), mRenderSystem(renderSystem), mResourceManager(resourceManager)
 {
-	if (const auto worldPtr = world.lock())
-	{
-		EventFunc func = [this](Entity* entity)
-		{
-			AddLight(entity);
-		};
-		worldPtr->ConnectOnConstruct<LightComponent>(func);
-	}
-
 	// Initialization
 	{
 		InitConstantBuffer<MeshSettings>(renderSystem, meshSettings);
@@ -223,8 +225,6 @@ MeshPipeline::MeshPipeline(const LLGL::RenderSystemPtr& renderSystem, const Reso
 		};
 		InitResourceHeap(renderSystem, resourceViews);
 	}
-
-	resourceManager.InitModelVertexBuffers(renderSystem, *mShader);
 }
 
 void MeshPipeline::SetResourceHeapTexture(LLGL::CommandBuffer& commands, LLGL::Texture& texture) const

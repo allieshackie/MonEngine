@@ -3,82 +3,58 @@
 #include <glm/ext/matrix_clip_space.hpp>
 
 #include "Input/InputHandler.h"
+#include "RenderSystem.h"
 
 #include "WindowContext.h"
 
-WindowContext::WindowContext(const LLGL::Extent2D screenSize, const LLGL::ColorRGBAf backgroundColor,
+WindowContext::WindowContext(RenderSystem& system, const LLGL::Extent2D screenSize, const LLGL::ColorRGBAf backgroundColor,
                              const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler,
                              bool transparent)
-	: mBackgroundColor(backgroundColor)
+	: mBackgroundColor(backgroundColor), mSystem(system)
 {
-	try
+	const auto display = LLGL::Display::GetPrimary();
+
+	// Create swap-chain
+	LLGL::SwapChainDescriptor swapChainDesc;
 	{
-		LLGL::Report report;
-		// Load render system module (hard code to OpenGL for now)
-		mRenderSystem = LLGL::RenderSystem::Load("OpenGL", &report);
-		// Set report callback to standard output
-		LLGL::Log::RegisterCallbackStd();
-
-		const auto display = LLGL::Display::GetPrimary();
-
-		// Create swap-chain
-		LLGL::SwapChainDescriptor swapChainDesc;
-		{
-			swapChainDesc.resolution = display != nullptr
-				                           ? _ScaleResolution(screenSize, display->GetScale())
-				                           : screenSize;
-			swapChainDesc.samples = mSamplesCount;
-		}
-		mSwapChain = mRenderSystem->CreateSwapChain(swapChainDesc);
-
-		mSwapChain->SetVsyncInterval(1);
-		mSwapChain->SetName("SwapChain");
-
-		LLGL::CommandBufferDescriptor cmdBufferDesc;
-		{
-			cmdBufferDesc.flags = LLGL::CommandBufferFlags::ImmediateSubmit;
-		}
-		// Create command buffer to submit graphics commands
-		mCommands = mRenderSystem->CreateCommandBuffer(cmdBufferDesc);
-
-		// Get command queue to record and submit command buffers
-		mCommandQueue = mRenderSystem->GetCommandQueue();
-
-		// Print renderer information
-		const auto& info = mRenderSystem->GetRendererInfo();
-		const auto swapChainRes = mSwapChain->GetResolution();
-
-		std::cout << "render system:" << std::endl;
-		std::cout << "  renderer:           " << info.rendererName << std::endl;
-		std::cout << "  device:             " << info.deviceName << std::endl;
-		std::cout << "  vendor:             " << info.vendorName << std::endl;
-		std::cout << "  shading language:   " << info.shadingLanguageName << std::endl;
-		std::cout << std::endl;
-		std::cout << "swap-chain:" << std::endl;
-		std::cout << "  resolution:         " << swapChainRes.width << " x " << swapChainRes.height << std::endl;
-		std::cout << "  samples:            " << mSwapChain->GetSamples() << std::endl;
-		std::cout << "  colorFormat:        " << LLGL::ToString(mSwapChain->GetColorFormat()) << std::endl;
-		std::cout << "  depthStencilFormat: " << LLGL::ToString(mSwapChain->GetDepthStencilFormat()) << std::endl;
-		std::cout << std::endl;
-		// ============================
+		swapChainDesc.resolution = display != nullptr
+			? _ScaleResolution(screenSize, display->GetScale())
+			: screenSize;
+		swapChainDesc.samples = mSamplesCount;
 	}
-	catch (const std::exception& e)
-	{
-		std::cerr << e.what() << std::endl;
-	}
+	mSwapChain = system.GetSystem()->CreateSwapChain(swapChainDesc);
+
+	mSwapChain->SetVsyncInterval(1);
+	mSwapChain->SetName("SwapChain");
+
+	// Print renderer information
+	const auto& info = system.GetSystem()->GetRendererInfo();
+	const auto swapChainRes = mSwapChain->GetResolution();
+
+	std::cout << "render system:" << std::endl;
+	std::cout << "  renderer:           " << info.rendererName << std::endl;
+	std::cout << "  device:             " << info.deviceName << std::endl;
+	std::cout << "  vendor:             " << info.vendorName << std::endl;
+	std::cout << "  shading language:   " << info.shadingLanguageName << std::endl;
+	std::cout << std::endl;
+	std::cout << "swap-chain:" << std::endl;
+	std::cout << "  resolution:         " << swapChainRes.width << " x " << swapChainRes.height << std::endl;
+	std::cout << "  samples:            " << mSwapChain->GetSamples() << std::endl;
+	std::cout << "  colorFormat:        " << LLGL::ToString(mSwapChain->GetColorFormat()) << std::endl;
+	std::cout << "  depthStencilFormat: " << LLGL::ToString(mSwapChain->GetDepthStencilFormat()) << std::endl;
+	std::cout << std::endl;
 
 	// NOTE: Projection update must occur after debug shader is initialized
 	UpdateProjection();
 	_CreateWindow(title, inputHandler, transparent);
+
+	system.OnWindowCreated();
 }
 
 WindowContext::~WindowContext()
 {
-	mRenderSystem->Release(*mSwapChain);
-	mSwapChain = nullptr;
-
-	mRenderSystem->Release(*mCommands);
-	mCommands = nullptr;
+	//mRenderSystem->Release(*mSwapChain);
+	//mSwapChain = nullptr;
 }
 
 bool WindowContext::GetSurfaceNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const
@@ -86,15 +62,6 @@ bool WindowContext::GetSurfaceNativeHandle(void* nativeHandle, std::size_t nativ
 	return mSwapChain->GetSurface().GetNativeHandle(nativeHandle, nativeHandleSize);
 }
 
-bool WindowContext::GetBackendNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const
-{
-	return mRenderSystem->GetNativeHandle(nativeHandle, nativeHandleSize);
-}
-
-bool WindowContext::GetCommandBufferNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const
-{
-	return mCommands->GetNativeHandle(nativeHandle, nativeHandleSize);
-}
 
 LLGL::Extent2D WindowContext::GetResolution() const
 {
@@ -106,26 +73,26 @@ void WindowContext::SetBackgroundClearColor(const LLGL::ColorRGBAf color)
 	mBackgroundColor = color;
 }
 
-void WindowContext::BeginFrame() const
+void WindowContext::BeginFrame(LLGL::CommandBuffer& commands) const
 {
 	// Render Commands to Queue
-	mCommands->Begin();
+	commands.Begin();
 
-	mCommands->Clear(LLGL::ClearFlags::ColorDepth | LLGL::ClearFlags::Color, {
+	commands.Clear(LLGL::ClearFlags::ColorDepth | LLGL::ClearFlags::Color, {
 		                 mBackgroundColor.r, mBackgroundColor.g, mBackgroundColor.b, mBackgroundColor.a
 	                 });
 	// set viewport and scissor rectangle
-	mCommands->SetViewport(mSwapChain->GetResolution());
+	commands.SetViewport(mSwapChain->GetResolution());
 
-	mCommands->BeginRenderPass(*mSwapChain);
+	commands.BeginRenderPass(*mSwapChain);
 }
 
-void WindowContext::EndFrame() const
+void WindowContext::EndFrame(LLGL::CommandBuffer& commands, LLGL::CommandQueue& queue) const
 {
-	mCommands->EndRenderPass();
+	commands.EndRenderPass();
 
-	mCommands->End();
-	mCommandQueue->Submit(*mCommands);
+	commands.End();
+	queue.Submit(commands);
 
 	// Present results on screen
 	mSwapChain->Present();
@@ -137,16 +104,9 @@ bool WindowContext::ProcessEvents() const
 	return mSwapChain->GetSurface().ProcessEvents() && !window.HasQuit();
 }
 
-// Called on window resize
 void WindowContext::UpdateProjection()
 {
-	const auto res = mSwapChain->GetResolution();
-	mPerspectiveProjection = glm::perspective(glm::radians(45.0f),
-	                                          static_cast<float>(res.width) / static_cast<float>(res.height),
-	                                          0.1f, 100.0f);
-
-	mOrthoProjection = glm::ortho(0.0f, static_cast<float>(res.width), 0.0f, static_cast<float>(res.height), 0.1f,
-	                              100.0f);
+	mSystem.UpdateProjections(mSwapChain->GetResolution());
 }
 
 glm::vec3 WindowContext::NormalizedDeviceCoords(glm::vec3 vec) const
