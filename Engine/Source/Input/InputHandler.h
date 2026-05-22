@@ -2,6 +2,7 @@
 
 #include <queue>
 #include <unordered_set>
+#include <imgui.h>
 
 #include "LLGL/Window.h"
 
@@ -71,6 +72,8 @@ protected:
 	// Global motion is mouse direction, not screen position
 	//void OnGlobalMotion(LLGL::Window& sender, const LLGL::Offset2D& position) override;
 	void OnChar(LLGL::Window& sender, wchar_t chr) override;
+
+	ImGuiKey LLGLKeyToImGuiKey(LLGL::Key key);
 
 private:
 	void _handleKeyDown(LLGL::Key keyCode);
