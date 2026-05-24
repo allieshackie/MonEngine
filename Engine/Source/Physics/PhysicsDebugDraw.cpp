@@ -33,7 +33,7 @@ void PhysicsDebugDraw::drawLine(const btVector3& from1, const btVector3& to1, co
 	}
 
 	mRenderSystem.DrawLine(glm::vec3(from1.x(), from1.y(), from1.z()), glm::vec3(to1.x(), to1.y(), to1.z()),
-	                       glm::vec4(color1.x(), color1.y(), color1.z(), 255));
+	                       glm::vec4(color1.x(), color1.y(), color1.z(), 1.0f));
 
 	/*
 	 *

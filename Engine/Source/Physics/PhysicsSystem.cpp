@@ -171,9 +171,6 @@ void PhysicsSystem::FixedUpdate(float dt)
 		}
 	}
 
-	mDynamicWorld->stepSimulation(dt, 10, 1.0f / 60.0f);
-	mDynamicWorld->debugDrawWorld();
-
 	if (const auto world = mWorld.lock())
 	{
 		const auto view = world->GetRegistry().view<CollisionComponent, TransformComponent>();
@@ -192,6 +189,12 @@ void PhysicsSystem::FixedUpdate(float dt)
 			}
 		});
 	}
+}
+
+void PhysicsSystem::Update(float dt)
+{
+	mDynamicWorld->stepSimulation(dt, 10, 1.0f / 60.0f);
+	mDynamicWorld->debugDrawWorld();
 }
 
 btQuaternion PhysicsSystem::_ConvertDegreesToQuat(glm::vec3 rot)

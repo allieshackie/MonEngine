@@ -492,6 +492,9 @@ void ResourceManager::_ProcessAnimations(const tinygltf::Model& model, Model& ne
 			}
 		}
 
-		newModel.AddAnimation(modelAnim);
+		if (modelAnim->mAnimNodes.size() > 1)
+		{
+			newModel.AddAnimation(modelAnim);
+		}
 	}
 }

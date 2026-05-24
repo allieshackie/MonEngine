@@ -21,6 +21,7 @@ public:
 	void AddEntityToInitialize(Entity* entity);
 
 	void FixedUpdate(float dt) override;
+	void Update(float dt) override;
 
 	btDiscreteDynamicsWorld& GetDynamicWorld() const { return *mDynamicWorld; }
 

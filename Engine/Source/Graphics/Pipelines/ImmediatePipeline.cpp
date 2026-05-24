@@ -53,7 +53,7 @@ void ImmediatePipeline::_RenderPoints(LLGL::CommandBuffer& commandBuffer, const 
 	// If point size change is needed, confirm works
 	// glPointSize(5.0);
 	commandBuffer.UpdateBuffer(*mPointVertexBuffer, 0, mFramePointVertices.data(),
-	                           static_cast<std::uint16_t>(mFramePointVertices.size() * sizeof(
+	                           static_cast<std::uint32_t>(mFramePointVertices.size() * sizeof(
 		                           DebugVertex)));
 
 	// set graphics pipeline
@@ -73,7 +73,7 @@ void ImmediatePipeline::_RenderLines(LLGL::CommandBuffer& commandBuffer, const g
 	// If point size change is needed, confirm works
 	// glPointSize(5.0);
 	commandBuffer.UpdateBuffer(*mLineVertexBuffer, 0, mFrameLineVertices.data(),
-	                           static_cast<std::uint16_t>(mFrameLineVertices.size() * sizeof(
+	                           static_cast<std::uint32_t>(mFrameLineVertices.size() * sizeof(
 		                           DebugVertex)));
 
 	// set graphics pipeline
@@ -93,7 +93,7 @@ void ImmediatePipeline::_RenderCircles(LLGL::CommandBuffer& commandBuffer, const
 	// If point size change is needed, confirm works
 	// glPointSize(5.0);
 	commandBuffer.UpdateBuffer(*mCircleVertexBuffer, 0, mFrameCircleVertices.data(),
-	                           static_cast<std::uint16_t>(mFrameCircleVertices.size() * sizeof(
+	                           static_cast<std::uint32_t>(mFrameCircleVertices.size() * sizeof(
 		                           DebugVertex)));
 
 	// set graphics pipeline
@@ -128,8 +128,8 @@ void ImmediatePipeline::DrawPoint(glm::vec3 pos, glm::vec4 color, float size)
 
 void ImmediatePipeline::DrawLine(glm::vec3 from, glm::vec3 to, glm::vec4 color)
 {
-	mFrameLineVertices.push_back({MonUtil::CalculateModelPoint(from, {1.0f, 1.0f, 1.0f}), color});
-	mFrameLineVertices.push_back({MonUtil::CalculateModelPoint(to, {1.0f, 1.0f, 1.0f}), color});
+	mFrameLineVertices.push_back({ from, color });
+	mFrameLineVertices.push_back({ to, color });
 }
 
 void ImmediatePipeline::DrawBox(glm::vec3 pos, glm::vec3 size, glm::vec4 color, bool filled)
@@ -287,7 +287,7 @@ ImmediatePipeline::ImmediatePipeline(const LLGL::RenderSystemPtr& renderSystem)
 		pointPipelineDesc.blend.targets[0].blendEnabled = true;
 	}
 	mPointPipeline = renderSystem->CreatePipelineState(pointPipelineDesc);
-	// pre-allocate the buffer with 500 vertices 
+	// pre-allocate the buffer with 200 vertices 
 	mPointVertexBuffer = renderSystem->CreateBuffer(
 		VertexBufferDesc(static_cast<std::uint32_t>(200 * sizeof(DebugVertex)),
 		                 mShader->GetVertexFormat()));
@@ -303,7 +303,7 @@ ImmediatePipeline::ImmediatePipeline(const LLGL::RenderSystemPtr& renderSystem)
 		linePipelineDesc.blend.targets[0].blendEnabled = true;
 	}
 	mLinePipeline = renderSystem->CreatePipelineState(linePipelineDesc);
-	// pre-allocate the buffer with 500 vertices 
+	// pre-allocate the buffer with 2000 vertices 
 	mLineVertexBuffer = renderSystem->CreateBuffer(
 		VertexBufferDesc(static_cast<std::uint32_t>(2000 * sizeof(DebugVertex)),
 		                 mShader->GetVertexFormat()));
@@ -319,7 +319,7 @@ ImmediatePipeline::ImmediatePipeline(const LLGL::RenderSystemPtr& renderSystem)
 		circlePipelineDesc.blend.targets[0].blendEnabled = true;
 	}
 	mCirclePipeline = renderSystem->CreatePipelineState(circlePipelineDesc);
-	// pre-allocate the buffer with 500 vertices 
+	// pre-allocate the buffer with 1000 vertices 
 	mCircleVertexBuffer = renderSystem->CreateBuffer(
 		VertexBufferDesc(static_cast<std::uint32_t>(1000 * sizeof(DebugVertex)),
 		                 mShader->GetVertexFormat()));

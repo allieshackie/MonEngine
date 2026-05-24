@@ -106,13 +106,10 @@ static void _ApplyMovementForce(const PhysicsComponent& physics, const Collision
 		glm::vec3 flatDir = glm::normalize(glm::vec3(moveDir.x, 0.0f, moveDir.z));
 		transform.mRotation.y = glm::degrees(atan2(-flatDir.x, -flatDir.z));
 
-		system("CLS");
-		std::cout << "MoveDir: " << moveDir.x << "," << moveDir.y << "," << moveDir.z << std::endl;
-		std::cout << "Rotation: " << transform.mRotation.y;
-
 		// Actually move in direction
 		btVector3 currentVel = collider.mRigidBody->getLinearVelocity();
 		btVector3 moveVelocity(physics.mVelocity.x * speed, currentVel.y(), physics.mVelocity.z * speed);
+		collider.mRigidBody->activate(true);
 		collider.mRigidBody->setLinearVelocity(moveVelocity);
 	}
 }
@@ -121,10 +118,10 @@ static void _UpdateMovementAnim(AnimationComponent& anim, const PhysicsComponent
 {
 	if (glm::length(physics.mVelocity) > 0.0f)
 	{
-		//anim.TryTriggerAnimation(1);
+		anim.TryTriggerAnimation(2);
 	}
 	else
 	{
-		//anim.TryTriggerAnimation(0);
+		anim.TryTriggerAnimation(-1);
 	}
 }
