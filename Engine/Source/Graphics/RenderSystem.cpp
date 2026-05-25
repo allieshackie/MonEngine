@@ -4,7 +4,7 @@
 
 #include "RenderSystem.h"
 
-RenderSystem::RenderSystem(ResourceManager& resourceManager)
+RenderSystem::RenderSystem()
 {
 	try
 	{
@@ -27,11 +27,6 @@ RenderSystem::RenderSystem(ResourceManager& resourceManager)
 	{
 		std::cerr << e.what() << std::endl;
 	}
-
-	mImmediatePipeline = std::make_unique<ImmediatePipeline>(mSystem);
-	mTextPipeline = std::make_unique<TextPipeline>(mSystem);
-	mMeshPipeline = std::make_unique<MeshPipeline>(mSystem, resourceManager);
-	mOverlayPipeline = std::make_unique<OverlayPipeline>(mSystem);
 }
 
 RenderSystem::~RenderSystem()
@@ -165,8 +160,13 @@ void RenderSystem::OnWorldCreated(std::weak_ptr<World> world)
 	mMeshPipeline->OnWorldCreated(world);
 }
 
-void RenderSystem::OnWindowCreated()
+void RenderSystem::OnWindowCreated(ResourceManager& resourceManager)
 {
 	// Get command queue to record and submit command buffers
 	mCommandQueue = mSystem->GetCommandQueue();
+
+	mImmediatePipeline = std::make_unique<ImmediatePipeline>(mSystem);
+	mTextPipeline = std::make_unique<TextPipeline>(mSystem);
+	mMeshPipeline = std::make_unique<MeshPipeline>(mSystem, resourceManager);
+	mOverlayPipeline = std::make_unique<OverlayPipeline>(mSystem);
 }

@@ -16,7 +16,7 @@ struct OverlayElement;
 class RenderSystem : public ISystem
 {
 public:
-	RenderSystem(ResourceManager& resourceManager);
+	RenderSystem();
 	~RenderSystem();
 
 	void Render(std::weak_ptr<World> world) override;
@@ -57,7 +57,7 @@ public:
 	bool GetCommandBufferNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const;
 
 	void OnWorldCreated(std::weak_ptr<World> world);
-	void OnWindowCreated();
+	void OnWindowCreated(ResourceManager& resourceManager);
 
 private:
 

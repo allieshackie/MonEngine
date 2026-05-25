@@ -158,8 +158,9 @@ void Game::RegisterDescriptions()
 void Game::InitDependentSystems(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
 	const LLGL::ColorRGBAf backgroundClearColor, bool transparent)
 {
-	mRenderSystem = mSystemManager->RegisterSystem<RenderSystem>(*mResourceManager);
+	mRenderSystem = mSystemManager->RegisterSystem<RenderSystem>();
 	mWindowContext = std::make_unique<WindowContext>(*mRenderSystem, screenSize, backgroundClearColor, title, mInputHandler, transparent);
+	mRenderSystem->OnWindowCreated(*mResourceManager);
 	mGUISystem = std::make_shared<GUISystem>(*mWindowContext);
 	mSceneManager = std::make_unique<SceneManager>(*mDescriptionFactory, *mTerrainSystem, *mResourceManager);
 	mInputHandler->SetGUISystem(mGUISystem);

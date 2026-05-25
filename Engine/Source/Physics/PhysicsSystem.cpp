@@ -36,9 +36,9 @@ PhysicsSystem::PhysicsSystem(RenderSystem& renderSystem, ResourceManager& resour
 	}
 
 	// Uncomment to turn on debug draw
-	//mPhysicsDebugDraw = std::make_unique<PhysicsDebugDraw>(renderSystem);
-	//mDynamicWorld->setDebugDrawer(mPhysicsDebugDraw.get());
-	//mDynamicWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe | btIDebugDraw::DBG_DrawAabb);
+	mPhysicsDebugDraw = std::make_unique<PhysicsDebugDraw>(renderSystem);
+	mDynamicWorld->setDebugDrawer(mPhysicsDebugDraw.get());
+	mDynamicWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
 }
 
 void PhysicsSystem::RegisterCollider(Entity* entity)
@@ -146,7 +146,8 @@ void PhysicsSystem::RegisterCollider(Entity* entity)
 	auto rigidBody = new btRigidBody(rbInfo);
 	if (physics != nullptr)
 	{
-		rigidBody->setDamping(0.8f, 0.6f);
+		rigidBody->setFriction(1.0f);
+		rigidBody->setDamping(0.9f, 0.9f);
 		rigidBody->setAngularFactor(btVector3(0, 0, 0));
 	}
 	mDynamicWorld->addRigidBody(rigidBody);
@@ -185,6 +186,7 @@ void PhysicsSystem::FixedUpdate(float dt)
 				body->getMotionState()->getWorldTransform(worldTransform);
 
 				btVector3 pos = worldTransform.getOrigin();
+				btQuaternion orn = worldTransform.getRotation();
 				transform.mPosition = {pos.x(), pos.y() - (size.y / 2), pos.z()};
 			}
 		});

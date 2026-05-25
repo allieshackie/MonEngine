@@ -47,8 +47,6 @@ WindowContext::WindowContext(RenderSystem& system, const LLGL::Extent2D screenSi
 	// NOTE: Projection update must occur after debug shader is initialized
 	UpdateProjection();
 	_CreateWindow(title, inputHandler, transparent);
-
-	system.OnWindowCreated();
 }
 
 WindowContext::~WindowContext()

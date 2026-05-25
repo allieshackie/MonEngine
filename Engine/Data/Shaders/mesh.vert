@@ -77,9 +77,15 @@ vec4 getAppliedTransform(vec4 value)
 void main()
 {
     vBoneDebugColor = debugShowBoneWeights();
-    vPosition = vec3(getAppliedTransform(vec4(position, 1.0)));
-    vNormal = vec3(normalize(getAppliedTransform(vec4(normal, 0.0))));  
+    
+    vec4 localPosition = getAppliedTransform(vec4(position, 1.0));
+    vec4 localNormal = getAppliedTransform(vec4(normal, 0.0));
+
+    vPosition = vec3(model * localPosition);
+    vNormal = normalize(mat3(transpose(inverse(model))) * vec3(localNormal));
+
 	vTexCoord = texCoord;
     vTexCoord.y = 1.0 - vTexCoord.y;
-    gl_Position = projection * view * model * vec4(vPosition, 1.0);
+
+    gl_Position = projection * view * vec4(vPosition, 1.0);
 }
