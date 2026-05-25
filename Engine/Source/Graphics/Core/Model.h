@@ -69,6 +69,6 @@ private:
 	int mRootSceneIndex = 0;
 	size_t mNumNodes = 0;
 
-	glm::vec3 mMinBounds;
-	glm::vec3 mMaxBounds;
+	glm::vec3 mMinBounds = glm::vec3();
+	glm::vec3 mMaxBounds = glm::vec3();
 };

@@ -22,6 +22,4 @@ struct CollisionComponent
 	btRigidBody* mRigidBody = nullptr;
 	bool mInitialized = false;
 	float mSimulateTimeout = 5.0f;
-	btTriangleMesh* mTriMeshData = nullptr;
-	btBvhTriangleMeshShape* mTriMeshBase = nullptr;
 };

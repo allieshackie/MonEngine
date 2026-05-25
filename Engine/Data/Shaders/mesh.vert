@@ -63,15 +63,15 @@ vec4 debugShowBoneWeights()
 
 vec4 getAppliedTransform(vec4 value) 
 {
-    vec4 result = value;
     if (HAS_BONES != 0) {
+        vec4 result = vec4(0.0); 
         for (int i = 0; i < MAX_BONE_INFLUENCE; i++) {
             mat4 boneTransform = boneMatrices[boneIds[i]];
-            result += weights[i] * (boneTransform * value);
+            result += weights[i] * (boneTransform * value);  
         }
+        return result;
     }
-
-    return result;
+    return value;
 }
 
 void main()

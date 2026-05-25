@@ -1,4 +1,4 @@
-#include "Core/World.h"
+﻿#include "Core/World.h"
 #include "Entity/Entity.h"
 #include "Entity/Components/CollisionComponent.h"
 #include "Entity/Components/ModelComponent.h"
@@ -15,7 +15,6 @@ PhysicsSystem::PhysicsSystem(RenderSystem& renderSystem, ResourceManager& resour
 	mBroadPhase = std::make_unique<btDbvtBroadphase>();
 	mConstraintSolver = std::make_unique<btSequentialImpulseConstraintSolver>();
 
-	// create
 	mCollisionConfiguration = std::make_unique<btDefaultCollisionConfiguration>();
 	mCollisionDispatcher = std::make_unique<btCollisionDispatcher>(mCollisionConfiguration.get());
 	mDynamicWorld = std::make_unique<btDiscreteDynamicsWorld>(mCollisionDispatcher.get(),
@@ -23,7 +22,6 @@ PhysicsSystem::PhysicsSystem(RenderSystem& renderSystem, ResourceManager& resour
 	                                                          mConstraintSolver.get(),
 	                                                          mCollisionConfiguration.get());
 
-	// setup
 	mDynamicWorld->setGravity(mGravityConst);
 
 	if (const auto worldShared = mWorld.lock())
@@ -36,9 +34,9 @@ PhysicsSystem::PhysicsSystem(RenderSystem& renderSystem, ResourceManager& resour
 	}
 
 	// Uncomment to turn on debug draw
-	mPhysicsDebugDraw = std::make_unique<PhysicsDebugDraw>(renderSystem);
-	mDynamicWorld->setDebugDrawer(mPhysicsDebugDraw.get());
-	mDynamicWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
+	//mPhysicsDebugDraw = std::make_unique<PhysicsDebugDraw>(renderSystem);
+	//mDynamicWorld->setDebugDrawer(mPhysicsDebugDraw.get());
+	//mDynamicWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
 }
 
 void PhysicsSystem::RegisterCollider(Entity* entity)
@@ -101,20 +99,15 @@ void PhysicsSystem::RegisterCollider(Entity* entity)
 					auto& v2 = verts[indices[i + 2]].position;
 
 					triangleMesh->addTriangle(
-						btVector3(v0.x, v0.y, v0.z),
-						btVector3(v1.x, v1.y, v1.z),
-						btVector3(v2.x, v2.y, v2.z)
+						btVector3(v0.x * scale.x, v0.y * scale.y, v0.z * scale.z),
+						btVector3(v1.x * scale.x, v1.y * scale.y, v1.z * scale.z),
+						btVector3(v2.x * scale.x, v2.y * scale.y, v2.z * scale.z)
 					);
 				}
 			}
 
 			auto baseShape = new btBvhTriangleMeshShape(triangleMesh, true);
-			glm::vec3 scale = model.CalculateModelScaling(size);
-
-			collider.mTriMeshData = triangleMesh;
-			collider.mTriMeshBase = baseShape;
-
-			shape = new btScaledBvhTriangleMeshShape(baseShape, btVector3(scale.x, scale.y, scale.z));
+			shape = baseShape;
 			break;
 		}
 	}
@@ -130,11 +123,13 @@ void PhysicsSystem::RegisterCollider(Entity* entity)
 		collider.mIsDynamic = true;
 	}
 
+	float originY = collider.mColliderShape == ColliderShapes::TRI_MESH ? position.y : position.y - (scaledCenter.y / 2);
+
 	btTransform boxTransform;
 	boxTransform.setIdentity();
 	boxTransform.setOrigin(btVector3(
 		position.x + scaledCenter.x,
-		position.y - (scaledCenter.y / 2),
+		originY,
 		position.z + scaledCenter.z
 	));
 	boxTransform.setRotation(_ConvertDegreesToQuat(rotation));
@@ -167,7 +162,6 @@ void PhysicsSystem::FixedUpdate(float dt)
 		}
 		else
 		{
-			// Move to the next element
 			++it;
 		}
 	}

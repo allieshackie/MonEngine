@@ -104,7 +104,7 @@ void MeshPipeline::_RenderNode(LLGL::CommandBuffer& commands, const Model& model
 
 		// x = hasTexture, y = hasBones, z = gTargetBone
 		meshSettings.params.x = meshData->mTextureId != -1;
-		meshSettings.params.y = model.GetNumJoints() > 0;
+		meshSettings.params.y = model.GetNumJoints() > 1;
 		meshSettings.params.z = static_cast<float>(modelComponent.mCurrentBoneIndex);
 		commands.UpdateBuffer(*mConstantBuffer, 0, &meshSettings, sizeof(meshSettings));
 		auto& texture = mResourceManager.GetTexture(meshData->mTextureId);
