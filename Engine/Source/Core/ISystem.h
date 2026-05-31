@@ -24,4 +24,9 @@ public:
 	virtual void RenderGUI(float dt)
 	{
 	}
+
+	virtual void Shutdown()
+	{
+
+	}
 };

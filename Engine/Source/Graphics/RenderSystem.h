@@ -17,9 +17,10 @@ class RenderSystem : public ISystem
 {
 public:
 	RenderSystem();
-	~RenderSystem();
 
 	void Render(std::weak_ptr<World> world) override;
+
+	void Shutdown() override;
 
 	void LoadFont(const char* fontFileName) const;
 	void ClearOverlay() const;

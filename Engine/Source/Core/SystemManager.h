@@ -39,6 +39,11 @@ public:
 		for (auto& sys : mSystems) sys->RenderGUI(dt);
 	}
 
+	void Shutdown()
+	{
+		for (auto& sys : mSystems) sys->Shutdown();
+	}
+
 private:
 	std::vector<std::shared_ptr<ISystem>> mSystems;
 };

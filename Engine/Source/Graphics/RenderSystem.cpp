@@ -29,12 +29,6 @@ RenderSystem::RenderSystem()
 	}
 }
 
-RenderSystem::~RenderSystem()
-{
-	mSystem->Release(*mCommands);
-	mCommands = nullptr;
-}
-
 void RenderSystem::LoadFont(const char* fontFileName) const
 {
 	mTextPipeline->LoadFont(fontFileName);
@@ -53,6 +47,12 @@ void RenderSystem::Render(std::weak_ptr<World> world)
 	mTextPipeline->Render(*mCommands, projectionViewMat);
 	mImmediatePipeline->Render(*mCommands, projectionViewMat);
 	mOverlayPipeline->Render(*mCommands, mOrthoProjection);
+}
+
+void RenderSystem::Shutdown()
+{
+	mSystem->Release(*mCommands);
+	mCommands = nullptr;
 }
 
 void RenderSystem::ClearOverlay() const

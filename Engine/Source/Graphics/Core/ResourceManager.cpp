@@ -115,6 +115,15 @@ std::vector<std::vector<float>> ResourceManager::CreateHeightMap(const std::stri
 	return heightMap;
 }
 
+void ResourceManager::Shutdown()
+{
+	mModels.clear();
+	mModelIds.clear();
+
+	mTextures.clear();
+	mTextureIds.clear();
+}
+
 int ResourceManager::_LoadNewTexture(const RenderSystem& renderSystem, const tinygltf::Image& image)
 {
 	mTextures.push_back(std::make_unique<Texture>(renderSystem.GetSystem(), image));

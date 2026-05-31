@@ -28,6 +28,8 @@ public:
 
 	std::vector<std::vector<float>> CreateHeightMap(const std::string& fileName);
 
+	void Shutdown();
+
 private:
 	int _LoadNewTexture(const RenderSystem& renderSystem, const tinygltf::Image& image);
 	void _LoadAllModels(const RenderSystem& renderSystem);

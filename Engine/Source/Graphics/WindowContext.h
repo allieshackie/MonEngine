@@ -12,7 +12,7 @@ public:
 	WindowContext(RenderSystem& system, const LLGL::Extent2D screenSize, const LLGL::ColorRGBAf backgroundColor,
 	              const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler,
 	              bool transparent);
-	~WindowContext();
+	~WindowContext() = default;
 
 	// Copy constructor/assignment operator
 	WindowContext(const WindowContext& other) = delete;
@@ -75,3 +75,20 @@ public:
 private:
 	WindowContext& mWindowContext;
 };
+
+class OnQuitEventHandler : public LLGL::Window::EventListener
+{
+public:
+	OnQuitEventHandler(WindowContext& cxt) : mWindowContext(cxt)
+	{}
+
+	void OnQuit(LLGL::Window& sender, bool& veto) override
+	{
+		veto = true;
+		// will handle shutdown order manually
+	}
+
+private:
+	WindowContext& mWindowContext;
+};
+

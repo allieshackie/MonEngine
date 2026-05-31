@@ -49,12 +49,6 @@ WindowContext::WindowContext(RenderSystem& system, const LLGL::Extent2D screenSi
 	_CreateWindow(title, inputHandler, transparent);
 }
 
-WindowContext::~WindowContext()
-{
-	//mRenderSystem->Release(*mSwapChain);
-	//mSwapChain = nullptr;
-}
-
 bool WindowContext::GetSurfaceNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const
 {
 	return mSwapChain->GetSurface().GetNativeHandle(nativeHandle, nativeHandleSize);

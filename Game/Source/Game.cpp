@@ -114,6 +114,8 @@ void Game::Run()
 	}
 
 	mGUISystem->CloseGUI();
+	mResourceManager->Shutdown();
+	mSystemManager->Shutdown();
 }
 
 Game::Game(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
