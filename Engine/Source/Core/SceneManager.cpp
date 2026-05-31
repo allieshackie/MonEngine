@@ -45,7 +45,7 @@ void SceneManager::LoadScene(const std::string& sceneName) const
 	try
 	{
 		auto archive = FileSystem::CreateArchive(fullFileName, true);
-		scene->load(archive);
+		scene->serialize(archive);
 	}
 	catch (const cereal::Exception& e)
 	{

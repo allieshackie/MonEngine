@@ -9,15 +9,7 @@ struct SpriteComponent
 	int mColumns = 0;
 
 	template <class Archive>
-	void save(Archive& archive) const
-	{
-		archive(cereal::make_nvp("resource_path", mTexturePath),
-		        cereal::make_nvp("rows", mRows),
-		        cereal::make_nvp("columns", mColumns));
-	}
-
-	template <class Archive>
-	void load(Archive& archive)
+	void serialize(Archive& archive)
 	{
 		archive(cereal::make_nvp("resource_path", mTexturePath));
 

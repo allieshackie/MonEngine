@@ -34,13 +34,7 @@ struct AnimationComponent
 	float mBlendFactor = 1.0f;
 
 	template <class Archive>
-	void save(Archive& archive) const
-	{
-		archive(cereal::make_nvp("transitions", mTransitions));
-	}
-
-	template <class Archive>
-	void load(Archive& archive)
+	void serialize(Archive& archive)
 	{
 		cereal::make_optional_nvp(archive, "transitions", mTransitions);
 	}

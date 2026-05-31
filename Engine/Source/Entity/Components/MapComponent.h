@@ -20,18 +20,7 @@ struct MapComponent
 	int mGeneratedTextureId = -1;
 
 	template <class Archive>
-	void save(Archive& archive) const
-	{
-		archive(cereal::make_nvp("id", mId),
-		        cereal::make_nvp("mesh_path", mModelPath),
-		        cereal::make_nvp("texture_path", mTexturePath),
-		        cereal::make_nvp("texture_size", mTextureSize),
-		        cereal::make_nvp("texture_tiling", mTextureTiling),
-		        cereal::make_nvp("data_path", mDataPath));
-	}
-
-	template <class Archive>
-	void load(Archive& archive)
+	void serialize(Archive& archive)
 	{
 		archive(cereal::make_nvp("id", mId), cereal::make_nvp("mesh_path", mModelPath));
 
