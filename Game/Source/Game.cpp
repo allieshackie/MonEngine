@@ -34,7 +34,7 @@ void Game::Run()
 {
 	mWindowContext->SetBackgroundClearColor({0.1f, 0.1f, 0.1f});
 	mRenderSystem->LoadFont("PixelLettersFull.ttf");
-	//GUISystem::LoadGUITheme("LightStyle");
+	mGUISystem->LoadGUITheme("DarkStyle");
 
 	mSceneManager->LoadScene("menu.json");
 	mRenderSystem->OnWorldCreated(mSceneManager->GetCurrentWorld());

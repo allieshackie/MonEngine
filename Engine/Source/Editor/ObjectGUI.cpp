@@ -105,8 +105,6 @@ void ObjectGUI::RenderBonesOutline(std::weak_ptr<World> weakWorld, ResourceManag
 void ObjectGUI::RenderMaterialGUI(RenderSystem& renderSystem)
 {
 	auto& material = renderSystem.GetMaterial();
-	ImGui::Text("Material");
-	ImGui::NewLine();
 	ImGui::Text("Emission: ");
 	ImGui::DragFloat("X", &material.emission.x, 0.01f, 0.0f, 1.0f);
 	ImGui::DragFloat("Y", &material.emission.y, 0.01f, 0.0f, 1.0f);

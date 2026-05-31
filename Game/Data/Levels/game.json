@@ -17,10 +17,6 @@
             "position": [2,4,0]
         },
         {
-            "name": "directionalLight",
-            "position": [0,100,0]
-        },
-        {
             "name": "terrain",
             "position": [0,0,0]
         }

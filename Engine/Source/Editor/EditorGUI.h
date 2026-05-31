@@ -21,13 +21,18 @@ public:
 	void RenderAxis();
 
 private:
+	void _RenderCameraWindow();
+	void _RenderInputWindow();
+
+	void _RenderPropertiesWindow();
+
 	std::unique_ptr<MapEditor> mMapEditor;
 	std::unique_ptr<ObjectGUI> mObjectGUI;
 	std::unique_ptr<EntityMenu> mEntityMenu;
 
 	bool mOpen = true;
 	ImVec2 mSize = {250, 780};
-	ImGuiWindowFlags mWindowFlags = ImGuiWindowFlags_NoMove;
+	ImGuiWindowFlags mWindowFlags = ImGuiWindowFlags_None;
 
 	std::weak_ptr<InputHandler> mInputHandler;
 	std::weak_ptr<World> mWorld;
@@ -37,11 +42,9 @@ private:
 
 	int mAxisElement = -1;
 
-	bool showInputSection = true;
-	bool showEntitySection = true;
-	bool showBonesSection = true;
-	bool showAnimationSection = true;
-	bool showAxis = true;
+	bool showCameraWindow = false;
+	bool showInputWindow = false;
+	bool showEntityWindow = false;
+	bool showAxis = false;
 	bool showBonesOutline = false;
-	bool showMaterialSection = true;
 };

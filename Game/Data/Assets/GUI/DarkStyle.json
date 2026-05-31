@@ -1,0 +1,80 @@
+{
+    "Alpha": 1.0,
+    "DisabledAlpha": 1.0,
+
+    "ChildRounding": 0.0,
+    "GrabRounding": 0.0,
+    "FrameRounding": 2.3,
+    "PopupRounding": 0.0,
+    "ScrollbarRounding": 0.0,
+    "TabRounding": 0.0,
+    "WindowRounding": 5.3,
+
+    "CellPadding": [4.0, 2.0],
+    "FramePadding": [4.0, 3.0],
+    "WindowPadding": [8.0, 8.0],
+
+    "ChildBorderSize": 1.0,
+    "FrameBorderSize": 0.0,
+    "PopupBorderSize": 1.0,
+    "WindowBorderSize": 0.0,
+
+    "GrabMinSize": 10.0,
+    "ScrollbarSize": 14.0,
+    "TabBorderSize": 0.0,
+    "WindowMinSize": [20.0, 20.0],
+
+    "ButtonTextAlign": [0.5, 0.5],
+    "SelectableTextAlign": [0.0, 0.0],
+    "WindowTitleAlign": [0.0, 0.5],
+
+    "ColorButtonPosition": 1,
+    "WindowMenuButtonPosition": 0,
+
+    "ColumnsMinSpacing": 6.0,
+    "IndentSpacing": 21.0,
+    "ItemSpacing": [8.0, 4.0],
+    "ItemInnerSpacing": [4.0, 4.0],
+
+    "Colors": [
+        [0.90, 0.90, 0.90, 0.90], // ImGuiCol_Text
+        [0.60, 0.60, 0.60, 1.00], // ImGuiCol_TextDisabled
+        [0.09, 0.09, 0.15, 1.00], // ImGuiCol_WindowBg
+        [0.00, 0.00, 0.00, 0.00], // ImGuiCol_ChildBg
+        [0.05, 0.05, 0.10, 0.85], // ImGuiCol_PopupBg
+        [0.00, 0.00, 0.01, 1.00], // ImGuiCol_FrameBg
+        [0.90, 0.80, 0.80, 0.40], // ImGuiCol_FrameBgHovered
+        [0.90, 0.65, 0.65, 0.45], // ImGuiCol_FrameBgActive
+        [0.00, 0.00, 0.00, 0.83], // ImGuiCol_TitleBg
+        [0.40, 0.40, 0.80, 0.20], // ImGuiCol_TitleBgCollapsed
+        [0.00, 0.00, 0.00, 0.87], // ImGuiCol_TitleBgActive
+        [0.01, 0.01, 0.02, 0.80], // ImGuiCol_MenuBarBg
+        [0.20, 0.25, 0.30, 0.60], // ImGuiCol_ScrollbarBg
+        [0.00, 0.00, 1.00, 0.35], // ImGuiCol_TextSelectedBg
+        [0.20, 0.20, 0.20, 0.35], // ImGuiCol_ModalWindowDimBg
+        [0.70, 0.70, 0.70, 0.65], // ImGuiCol_Border
+        [0.00, 0.00, 0.00, 0.00], // ImGuiCol_BorderShadow
+        [0.55, 0.53, 0.55, 0.51], // ImGuiCol_ScrollbarGrab
+        [0.56, 0.56, 0.56, 1.00], // ImGuiCol_ScrollbarGrabHovered
+        [0.56, 0.56, 0.56, 0.91], // ImGuiCol_ScrollbarGrabActive
+        [0.70, 0.70, 0.70, 0.62], // ImGuiCol_SliderGrab
+        [0.30, 0.30, 0.30, 0.84], // ImGuiCol_SliderGrabActive
+        [0.90, 0.90, 0.90, 0.83], // ImGuiCol_CheckMark
+        [0.48, 0.72, 0.89, 0.49], // ImGuiCol_Button
+        [0.50, 0.69, 0.99, 0.68], // ImGuiCol_ButtonHovered
+        [0.80, 0.50, 0.50, 1.00], // ImGuiCol_ButtonActive
+        [0.30, 0.69, 1.00, 0.53], // ImGuiCol_Header
+        [0.44, 0.61, 0.86, 1.00], // ImGuiCol_HeaderHovered
+        [0.38, 0.62, 0.83, 1.00], // ImGuiCol_HeaderActive
+        [0.50, 0.50, 0.50, 1.00], // ImGuiCol_Separator
+        [0.70, 0.60, 0.60, 1.00], // ImGuiCol_SeparatorHovered
+        [0.90, 0.70, 0.70, 1.00], // ImGuiCol_SeparatorActive
+        [1.00, 1.00, 1.00, 0.85], // ImGuiCol_ResizeGrip
+        [1.00, 1.00, 1.00, 0.60], // ImGuiCol_ResizeGripHovered
+        [1.00, 1.00, 1.00, 0.90], // ImGuiCol_ResizeGripActive
+        [1.00, 1.00, 1.00, 1.00], // ImGuiCol_PlotLines
+        [0.90, 0.70, 0.00, 1.00], // ImGuiCol_PlotLinesHovered
+        [0.90, 0.70, 0.00, 1.00], // ImGuiCol_PlotHistogram
+        [1.00, 0.60, 0.00, 1.00]  // ImGuiCol_PlotHistogramHovered
+    ]
+}

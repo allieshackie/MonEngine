@@ -35,7 +35,9 @@ EntityMenu::EntityMenu(std::weak_ptr<InputHandler> inputHandler, std::weak_ptr<W
 
 void EntityMenu::Render(RenderSystem& renderSystem)
 {
+	ImGui::SeparatorText("Select Entity");
 	RenderEntitySelection();
+	ImGui::SeparatorText("Entity Transforms");
 	RenderSelectedEntityMenu(renderSystem);
 
 	if (mQueuedClick)
@@ -78,16 +80,16 @@ void EntityMenu::RenderSelectedEntityMenu(RenderSystem& renderSystem)
 	auto transform = entity->TryGetComponent<TransformComponent>();
 	if (transform)
 	{
-		ImGui::Text("Transform: ");
-		if (ImGui::DragFloat("TransformX", &transform->mPosition.x, 0.1f, -100.0f, 100.0f)) 
+		ImGui::Text("Position: ");
+		if (ImGui::DragFloat("PositionX", &transform->mPosition.x, 0.1f, -100.0f, 100.0f)) 
 		{
 			renderSystem.UpdateLights();
 		}
-		if (ImGui::DragFloat("TransformY", &transform->mPosition.y, 0.1f, -100.0f, 100.0f))
+		if (ImGui::DragFloat("PositionY", &transform->mPosition.y, 0.1f, -100.0f, 100.0f))
 		{
 			renderSystem.UpdateLights();
 		}
-		if (ImGui::DragFloat("TransformZ", &transform->mPosition.z, 0.1f, -100.0f, 100.0f))
+		if (ImGui::DragFloat("PositionZ", &transform->mPosition.z, 0.1f, -100.0f, 100.0f))
 		{
 			renderSystem.UpdateLights();
 		}
@@ -103,6 +105,21 @@ void EntityMenu::RenderSelectedEntityMenu(RenderSystem& renderSystem)
 			renderSystem.UpdateLights();
 		}
 		if (ImGui::DragFloat("RotationZ", &transform->mRotation.z, 0.1f, -100.0f, 100.0f))
+		{
+			renderSystem.UpdateLights();
+		}
+
+		ImGui::NewLine();
+		ImGui::Text("Size: ");
+		if (ImGui::DragFloat("SizeX", &transform->mSize.x, 0.1f, 0.1f, 200.0f))
+		{
+			renderSystem.UpdateLights();
+		}
+		if (ImGui::DragFloat("SizeY", &transform->mSize.y, 0.1f, 0.1f, 200.0f))
+		{
+			renderSystem.UpdateLights();
+		}
+		if (ImGui::DragFloat("SizeZ", &transform->mSize.z, 0.1f, 0.1f, 200.0f))
 		{
 			renderSystem.UpdateLights();
 		}

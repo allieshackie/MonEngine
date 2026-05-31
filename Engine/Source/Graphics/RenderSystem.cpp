@@ -52,7 +52,7 @@ void RenderSystem::Render(std::weak_ptr<World> world)
 	mMeshPipeline->Render(*mCommands, mPerspectiveProjection, world);
 	mTextPipeline->Render(*mCommands, projectionViewMat);
 	mImmediatePipeline->Render(*mCommands, projectionViewMat);
-	mOverlayPipeline->Render(*mCommands, projectionViewMat);
+	mOverlayPipeline->Render(*mCommands, mOrthoProjection);
 }
 
 void RenderSystem::ClearOverlay() const
