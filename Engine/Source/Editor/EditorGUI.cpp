@@ -20,10 +20,22 @@ EditorGUI::EditorGUI(std::weak_ptr<InputHandler> inputHandler, std::weak_ptr<Wor
 	mEntityMenu = std::make_unique<EntityMenu>(inputHandler, mWorld, renderSystem);
 }
 
-void EditorGUI::RenderGUI()
+void EditorGUI::RenderGUI(float dt)
 {
 	if (ImGui::BeginMainMenuBar())
 	{
+		if (ImGui::BeginMenu("Level"))
+		{
+			if (ImGui::MenuItem("Restart"))
+			{
+
+			}
+			if (ImGui::MenuItem("Save"))
+			{
+
+			}
+			ImGui::EndMenu();
+		}
 		if (ImGui::BeginMenu("Editor"))
 		{
 			ImGui::MenuItem("Axis", nullptr, &showAxis);

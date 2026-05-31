@@ -106,7 +106,7 @@ void Game::Run()
 			ImGui::End();
 
 			mGUISystem->RenderMenus();
-			mSystemManager->RenderGUI();
+			mSystemManager->RenderGUI(deltaTime);
 			mGUISystem->GUIEndFrame();
 
 			mWindowContext->EndFrame(mRenderSystem->GetCommands(), mRenderSystem->GetCommandQueue());

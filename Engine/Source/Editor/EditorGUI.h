@@ -16,7 +16,7 @@ public:
 	EditorGUI(std::weak_ptr<InputHandler> inputHandler, std::weak_ptr<World> world, WindowContext& windowContext,
 	          ResourceManager& resourceManager, RenderSystem& renderSystem);
 
-	void RenderGUI() override;
+	void RenderGUI(float dt) override;
 
 	void RenderAxis();
 

@@ -21,7 +21,7 @@ public:
 	{
 	}
 
-	virtual void RenderGUI()
+	virtual void RenderGUI(float dt)
 	{
 	}
 };
