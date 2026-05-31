@@ -5,6 +5,7 @@
 #include <glm/ext/matrix_transform.hpp>
 #include <entt/entt.hpp>
 
+struct CameraData;
 class Entity;
 class SceneManager;
 class World;
@@ -12,7 +13,7 @@ class World;
 class Camera
 {
 public:
-	Camera(const World* world, glm::vec3 position, glm::vec3 front, glm::vec3 up, bool followCam = true);
+	Camera(const World* world, const CameraData& data);
 
 	void Update();
 

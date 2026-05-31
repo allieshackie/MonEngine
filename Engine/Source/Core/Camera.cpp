@@ -1,14 +1,15 @@
 #include "Entity/Entity.h"
 #include "Entity/Components/PlayerComponent.h"
 #include "Entity/Components/TransformComponent.h"
+#include "Scene.h"
 #include "World.h"
 
 #include "Camera.h"
 
-Camera::Camera(const World* world, glm::vec3 position, glm::vec3 front, glm::vec3 up, bool followCam)
-	: mCameraPos(position), mCameraFront(front), mCameraUp(up)
+Camera::Camera(const World* world, const CameraData& data)
+	: mCameraPos(data.mCameraPos), mCameraFront(data.mCameraFront), mCameraUp(data.mCameraUp), mCameraFollowOffset(data.mCameraFollowOffset), mCameraLookOffset(data.mCameraLookOffset)
 {
-	mFollowCam = followCam;
+	mFollowCam = data.mFollowCam;
 
 	EventFunc func = [this](Entity* entity)
 	{
@@ -16,7 +17,7 @@ Camera::Camera(const World* world, glm::vec3 position, glm::vec3 front, glm::vec
 	};
 	world->ConnectOnConstruct<PlayerComponent>(func);
 
-	mCameraTarget = position + front;
+	mCameraTarget = data.mCameraPos + data.mCameraFront;
 
 	UpdateView();
 }

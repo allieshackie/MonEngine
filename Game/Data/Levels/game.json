@@ -3,7 +3,9 @@
         "position": [0,5,10],
         "front": [0,0,1],
         "up": [0,1,0],
-        "follow_cam": true
+        "follow_cam": true,
+        "camera_follow_offset": [0,4.5,-11.5],
+        "camera_look_offset": [0,2.7,-2.7]
     },
     "entities": [
         {

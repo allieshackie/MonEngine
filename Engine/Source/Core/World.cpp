@@ -107,9 +107,5 @@ Entity* World::GetEntityForId(entt::entity id)
 
 void World::CreateCamera(const MonScene* scene)
 {
-	mCamera = std::make_unique<Camera>(this,
-	                                   scene->GetCameraData().mCameraPos,
-	                                   scene->GetCameraData().mCameraFront,
-	                                   scene->GetCameraData().mCameraUp,
-	                                   scene->GetCameraData().mFollowCam);
+	mCamera = std::make_unique<Camera>(this, scene->GetCameraData());
 }
