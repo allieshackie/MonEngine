@@ -48,7 +48,6 @@ void PhysicsSystem::RegisterCollider(Entity* entity)
 	const auto physics = entity->TryGetComponent<PhysicsComponent>();
 	const auto& position = transform.mPosition;
 	const auto& size = transform.mSize;
-	const auto& rotation = transform.mRotation;
 	const auto& model = mResourceManager.GetModelFromId(mesh.mModelPath);
 	glm::vec3 worldBounds = model.CalculateWorldBounds(size) + collider.mSize;
 	glm::vec3 halfExtents = worldBounds * 0.5f;
@@ -132,7 +131,7 @@ void PhysicsSystem::RegisterCollider(Entity* entity)
 		originY,
 		position.z + scaledCenter.z
 	));
-	boxTransform.setRotation(_ConvertDegreesToQuat(rotation));
+	boxTransform.setRotation(transform.ToBulletQuat());
 
 	const auto motionState = new btDefaultMotionState(boxTransform);
 	const btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, motionState, shape, localInertia);
@@ -180,7 +179,6 @@ void PhysicsSystem::FixedUpdate(float dt)
 				body->getMotionState()->getWorldTransform(worldTransform);
 
 				btVector3 pos = worldTransform.getOrigin();
-				btQuaternion orn = worldTransform.getRotation();
 				transform.mPosition = {pos.x(), pos.y() - (size.y / 2), pos.z()};
 			}
 		});

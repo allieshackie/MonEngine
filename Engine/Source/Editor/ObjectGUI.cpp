@@ -1,4 +1,5 @@
 #include <imgui.h>
+#include <glm/gtc/type_ptr.hpp>
 #include "Core/World.h"
 #include "Entity/Components/AnimationComponent.h"
 #include "Entity/Components/ModelComponent.h"
@@ -166,10 +167,9 @@ void ObjectGUI::_RenderModelBones(RenderSystem& renderSystem, Model& model, cons
 
 void ObjectGUI::_ObjectTransform(TransformComponent& transform)
 {
-	const auto rot = transform.mRotation;
-	float tempPosition[3] = {rot.x, rot.y, rot.z};
-	if (ImGui::InputFloat3("Rotation", tempPosition))
+	glm::vec3 euler = transform.GetEulerAngles();
+	if (ImGui::DragFloat3("Rotation", glm::value_ptr(euler), 0.5f))
 	{
-		transform.mRotation = {tempPosition[0], tempPosition[1], tempPosition[2]};
+		transform.SetEulerAngles(euler);
 	}
 }

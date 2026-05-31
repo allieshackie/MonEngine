@@ -34,6 +34,8 @@ void MovementSystem::Update(float dt)
 				_ApplyVelocityFromDirection(player, physics, world->GetCamera());
 				_ApplyMovementForce(physics, collider, transform);
 				_UpdateMovementAnim(anim, physics);
+
+				transform.mRotation = glm::slerp(transform.mRotation, transform.mQueuedRotation, 10.0f * dt);
 			});
 	}
 }
@@ -104,8 +106,9 @@ static void _ApplyMovementForce(const PhysicsComponent& physics, const Collision
 
 		// Turn towards movement
 		glm::vec3 flatDir = glm::normalize(glm::vec3(moveDir.x, 0.0f, moveDir.z));
-		transform.mRotation.y = glm::degrees(atan2(-flatDir.x, -flatDir.z));
-
+		float angle = atan2(-flatDir.x, -flatDir.z); // stays in radians
+		transform.mQueuedRotation = glm::angleAxis(angle, glm::vec3(0.0f, 1.0f, 0.0f));
+		
 		// Actually move in direction
 		btVector3 currentVel = collider.mRigidBody->getLinearVelocity();
 		btVector3 moveVelocity(physics.mVelocity.x * speed, currentVel.y(), physics.mVelocity.z * speed);

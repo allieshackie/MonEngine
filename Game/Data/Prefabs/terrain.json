@@ -3,8 +3,7 @@
     "components" : {
         "transform" : {
             "position": [0,0,0],
-            "size": [100,4,100],
-            "rotation": [0,0,0]
+            "size": [100,4,100]
         },
         "model": {
             "model_path": "dogeTerrain.gltf" 

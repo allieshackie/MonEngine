@@ -49,10 +49,6 @@ void Game::Run()
 	double fps = 0;
 	double fpsTimer = 0.0;
 
-	//auto text = mRenderSystem->AddText("Text", { 0,0 }, { -0.05,-0.05 }, { 1,1,1,1 });
-
-	//mInputHandler->RegisterButtonUpHandler(LLGL::Key::P, [=]() { mRenderSystem->UpdateText(text, "Wooooo"); });
-
 	while (mWindowContext->ProcessEvents() && mRunning)
 	{
 		auto newTime = Clock::now();

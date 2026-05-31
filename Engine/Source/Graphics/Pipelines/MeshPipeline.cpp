@@ -60,19 +60,7 @@ void MeshPipeline::_RenderNode(LLGL::CommandBuffer& commands, const Model& model
 
 	if (const auto meshData = model.GetMeshAt(node->mMeshIndex); meshData != nullptr)
 	{
-		// Update
-		auto modelTransform = glm::mat4(1.0f);
-
-		// Translation matrix
-		modelTransform = glm::translate(modelTransform, transform.mPosition);
-
-		// Apply rotation in ZXY order
-		modelTransform = glm::rotate(modelTransform, glm::radians(transform.mRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-		modelTransform = glm::rotate(modelTransform, glm::radians(transform.mRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-		modelTransform = glm::rotate(modelTransform, glm::radians(transform.mRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-
-		auto calculatedSize = model.CalculateModelScaling(transform.mSize);
-		modelTransform = glm::scale(modelTransform, calculatedSize);
+		glm::mat4 modelTransform = transform.GetMatrix(model.CalculateModelScaling(transform.mSize));
 
 		int lightsSize = static_cast<int>(mLights.size());
 		if (lightsSize != lightSettings.numLights || mUpdateLights)
