@@ -7,6 +7,7 @@
 #include "Entity/Descriptions/DescriptionFactory.h"
 #include "Graphics/WindowContext.h"
 #include "Graphics/Core/ResourceManager.h"
+#include "Input/InputContext.h"
 #include "Input/InputHandler.h"
 #include "Terrain/TerrainSystem.h"
 
@@ -49,6 +50,7 @@ private:
 
 	// systems
 	std::shared_ptr<InputHandler> mInputHandler;
+	std::shared_ptr<InputContext> mInputContext;
 	std::shared_ptr<RenderSystem> mRenderSystem;
 
 	bool mRunning = true;

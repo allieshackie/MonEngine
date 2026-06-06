@@ -34,9 +34,9 @@ public:
 		for (auto& sys : mSystems) sys->Render(world);
 	}
 
-	void RenderGUI(float dt) const
+	void RenderGUI(float dt, float fps) const
 	{
-		for (auto& sys : mSystems) sys->RenderGUI(dt);
+		for (auto& sys : mSystems) sys->RenderGUI(dt, fps);
 	}
 
 	void Shutdown()

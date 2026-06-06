@@ -1,4 +1,5 @@
 #pragma once
+#include <glm/vec2.hpp>
 #include "Script/LuaBindable.h"
 
 class GUIMenu;

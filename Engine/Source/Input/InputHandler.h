@@ -7,7 +7,6 @@
 #include "LLGL/Window.h"
 
 class Camera;
-class GUISystem;
 class Window;
 
 enum class KeyStates
@@ -42,7 +41,7 @@ struct HoldHandler
 	std::function<void()> onRelease;
 };
 
-class InputHandler : public LLGL::Window::EventListener
+class InputHandler
 {
 public:
 	void RegisterButtonUpHandler(LLGL::Key keyCode, const std::function<void()>& callback);
@@ -62,28 +61,21 @@ public:
 
 	void Update();
 
-	void SetGUISystem(std::weak_ptr<GUISystem> system);
+	void HandleKeyDown(LLGL::Key keyCode);
+	void HandleKeyUp(LLGL::Key keyCode);
 
-protected:
-	void OnKeyDown(LLGL::Window& sender, LLGL::Key keyCode) override;
-	void OnKeyUp(LLGL::Window& sender, LLGL::Key keyCode) override;
-	void OnWheelMotion(LLGL::Window& sender, int motion) override;
-	void OnLocalMotion(LLGL::Window& sender, const LLGL::Offset2D& position) override;
-	// Global motion is mouse direction, not screen position
-	//void OnGlobalMotion(LLGL::Window& sender, const LLGL::Offset2D& position) override;
-	void OnChar(LLGL::Window& sender, wchar_t chr) override;
+	void HandleKeyDownGUI(LLGL::Key keyCode);
+	void HandleKeyUpGUI(LLGL::Key keyCode);
 
-	ImGuiKey LLGLKeyToImGuiKey(LLGL::Key key);
+	void TriggerZoomInCallback();
+	void TriggerZoomOutCallback();
+	void TriggerMouseMoveCallbacks(const LLGL::Offset2D& position);
+
+	void AddToDebugKeys(LLGL::Key keyCode);
+	void RemoveFromDebugKeys(LLGL::Key keyCode);
 
 private:
-	void _handleKeyDown(LLGL::Key keyCode);
-	void _handleKeyUp(LLGL::Key keyCode);
-
-	void _handleKeyDownGUI(LLGL::Key keyCode);
-	void _handleKeyUpGUI(LLGL::Key keyCode);
-
-	void _AddToDebugKeys(LLGL::Key keyCode);
-	void _RemoveFromDebugKeys(LLGL::Key keyCode);
+	ImGuiKey LLGLKeyToImGuiKey(LLGL::Key key);
 
 	std::unordered_map<LLGL::Key, std::vector<std::function<void()>>> mButtonUpHandlers;
 	std::unordered_map<LLGL::Key, std::vector<std::function<void()>>> mButtonDownHandlers;
@@ -109,6 +101,4 @@ private:
 		{LLGL::Key::Space, "Space"},
 		{LLGL::Key::C, "C"},
 	};
-
-	std::weak_ptr<GUISystem> mGUISystemWPtr;
 };

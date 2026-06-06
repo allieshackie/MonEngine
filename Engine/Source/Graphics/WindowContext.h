@@ -3,15 +3,13 @@
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp> //translate, rotate, scale, perspective
 
-class InputHandler;
 class RenderSystem;
 
 class WindowContext
 {
 public:
 	WindowContext(RenderSystem& system, const LLGL::Extent2D screenSize, const LLGL::ColorRGBAf backgroundColor,
-	              const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler,
-	              bool transparent);
+	              const LLGL::UTF8String& title, bool transparent);
 	~WindowContext() = default;
 
 	// Copy constructor/assignment operator
@@ -27,6 +25,9 @@ public:
 
 	bool GetSurfaceNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const;
 	LLGL::Extent2D GetResolution() const;
+	LLGL::Window& GetSurface() const { return LLGL::CastTo<LLGL::Window>(mSwapChain->GetSurface());}
+
+	void AddEventListener(const std::shared_ptr<LLGL::Window::EventListener>& eventListener);
 
 	void UpdateProjection();
 
@@ -40,11 +41,9 @@ public:
 	void SetViewportSizeChanged(bool changed) { mViewportSizeChanged = changed; }
 
 private:
-	void _CreateWindow(const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler,
-	                   bool transparent);
+	void _CreateWindow(const LLGL::UTF8String& title, bool transparent);
 
 	static LLGL::Extent2D _ScaleResolution(const LLGL::Extent2D& res, float scale);
-
 
 	RenderSystem& mSystem;
 	LLGL::SwapChain* mSwapChain = nullptr; // Main render context

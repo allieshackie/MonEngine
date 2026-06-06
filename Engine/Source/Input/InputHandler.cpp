@@ -1,5 +1,4 @@
 #include "Core/Camera.h"
-#include "GUI/GUISystem.h"
 
 #include "InputHandler.h"
 
@@ -95,109 +94,6 @@ void InputHandler::Update()
 				handler.onHold(); // Call the hold function while the key is held down
 			}
 		}
-	}
-}
-
-void InputHandler::SetGUISystem(std::weak_ptr<GUISystem> system)
-{
-	mGUISystemWPtr = system;
-}
-
-void InputHandler::OnKeyDown(LLGL::Window& sender, LLGL::Key keyCode)
-{
-	if (const auto guiSystem = mGUISystemWPtr.lock(); guiSystem->IsGUIContext())
-	{
-		_handleKeyDownGUI(keyCode);
-	}
-	else
-	{
-		_handleKeyDown(keyCode);
-
-		if (mButtonHoldHandlers.find(keyCode) != mButtonHoldHandlers.end())
-		{
-			if (mKeysHeld.find(keyCode) == mKeysHeld.end())
-			{
-				// First press, invoke the hold function
-				for (auto& handler : mButtonHoldHandlers[keyCode])
-					handler.onHold();
-			}
-			// Add key to the set of held keys
-			mKeysHeld.insert(keyCode);
-		}
-	}
-
-	_AddToDebugKeys(keyCode);
-}
-
-void InputHandler::OnKeyUp(LLGL::Window& sender, LLGL::Key keyCode)
-{
-	_handleKeyUpGUI(keyCode);
-	_handleKeyUp(keyCode);
-
-	if (mButtonHoldHandlers.find(keyCode) != mButtonHoldHandlers.end() && mKeysHeld.find(keyCode) != mKeysHeld.
-		end())
-	{
-		// Call the release function
-		for (auto& handler : mButtonHoldHandlers[keyCode])
-		{
-			handler.onRelease();
-		}
-
-		// Remove the key from the held keys set
-		mKeysHeld.erase(keyCode);
-	}
-
-	_RemoveFromDebugKeys(keyCode);
-}
-
-void InputHandler::OnWheelMotion(LLGL::Window& sender, int motion)
-{
-	if (const auto guiSystem = mGUISystemWPtr.lock(); guiSystem->IsGUIContext())
-	{
-		ImGuiIO& io = ImGui::GetIO();
-		if (motion > 0)
-		{
-			io.MouseWheel += 1;
-		}
-		else
-		{
-			io.MouseWheel += -1;
-		}
-	}
-
-	else
-	{
-		if (motion > 0)
-		{
-			if (mZoomOutCallback)
-			{
-				mZoomOutCallback();
-			}
-		}
-		else
-		{
-			if (mZoomInCallback)
-			{
-				mZoomInCallback();
-			}
-		}
-	}
-}
-
-void InputHandler::OnLocalMotion(LLGL::Window& sender, const LLGL::Offset2D& position)
-{
-	for (const auto& fn : mMouseMoveCallbacks)
-	{
-		fn(position);
-	}
-}
-
-void InputHandler::OnChar(LLGL::Window& sender, wchar_t chr)
-{
-	if (const auto guiSystem = mGUISystemWPtr.lock(); guiSystem->IsGUIContext())
-	{
-		ImGuiIO& io = ImGui::GetIO();
-		io.AddInputCharacterUTF16(chr);
 	}
 }
 
@@ -298,7 +194,7 @@ ImGuiKey InputHandler::LLGLKeyToImGuiKey(LLGL::Key key)
 	}
 }
 
-void InputHandler::_handleKeyDown(LLGL::Key keyCode)
+void InputHandler::HandleKeyDown(LLGL::Key keyCode)
 {
 	const auto& handler = mButtonDownHandlers.find(keyCode);
 	if (handler != mButtonDownHandlers.end())
@@ -308,9 +204,21 @@ void InputHandler::_handleKeyDown(LLGL::Key keyCode)
 			cb();
 		}
 	}
+
+	if (mButtonHoldHandlers.find(keyCode) != mButtonHoldHandlers.end())
+	{
+		if (mKeysHeld.find(keyCode) == mKeysHeld.end())
+		{
+			// First press, invoke the hold function
+			for (auto& handler : mButtonHoldHandlers[keyCode])
+				handler.onHold();
+		}
+		// Add key to the set of held keys
+		mKeysHeld.insert(keyCode);
+	}
 }
 
-void InputHandler::_handleKeyUp(LLGL::Key keyCode)
+void InputHandler::HandleKeyUp(LLGL::Key keyCode)
 {
 	const auto& handler = mButtonUpHandlers.find(keyCode);
 	if (handler != mButtonUpHandlers.end())
@@ -320,9 +228,22 @@ void InputHandler::_handleKeyUp(LLGL::Key keyCode)
 			cb();
 		}
 	}
+
+	if (mButtonHoldHandlers.find(keyCode) != mButtonHoldHandlers.end() && mKeysHeld.find(keyCode) != mKeysHeld.
+		end())
+	{
+		// Call the release function
+		for (auto& handler : mButtonHoldHandlers[keyCode])
+		{
+			handler.onRelease();
+		}
+
+		// Remove the key from the held keys set
+		mKeysHeld.erase(keyCode);
+	}
 }
 
-void InputHandler::_handleKeyDownGUI(LLGL::Key keyCode)
+void InputHandler::HandleKeyDownGUI(LLGL::Key keyCode)
 {
 	ImGuiIO& io = ImGui::GetIO();
 	switch (keyCode)
@@ -346,7 +267,7 @@ void InputHandler::_handleKeyDownGUI(LLGL::Key keyCode)
 	}
 }
 
-void InputHandler::_handleKeyUpGUI(LLGL::Key keyCode)
+void InputHandler::HandleKeyUpGUI(LLGL::Key keyCode)
 {
 	ImGuiIO& io = ImGui::GetIO();
 	switch (keyCode)
@@ -370,7 +291,31 @@ void InputHandler::_handleKeyUpGUI(LLGL::Key keyCode)
 	}
 }
 
-void InputHandler::_AddToDebugKeys(LLGL::Key keyCode)
+void InputHandler::TriggerZoomInCallback()
+{
+	if (mZoomInCallback)
+	{
+		mZoomInCallback();
+	}
+}
+
+void InputHandler::TriggerZoomOutCallback()
+{
+	if (mZoomOutCallback)
+	{
+		mZoomOutCallback();
+	}
+}
+
+void InputHandler::TriggerMouseMoveCallbacks(const LLGL::Offset2D& position)
+{
+	for (const auto& fn : mMouseMoveCallbacks)
+	{
+		fn(position);
+	}
+}
+
+void InputHandler::AddToDebugKeys(LLGL::Key keyCode)
 {
 	bool duplicate = false;
 	for (const auto key : mDebugKeysPressed)
@@ -388,7 +333,7 @@ void InputHandler::_AddToDebugKeys(LLGL::Key keyCode)
 	}
 }
 
-void InputHandler::_RemoveFromDebugKeys(LLGL::Key keyCode)
+void InputHandler::RemoveFromDebugKeys(LLGL::Key keyCode)
 {
 	mPreviousKeysPressed = mDebugKeysPressed;
 	for (auto it = mDebugKeysPressed.begin(); it != mDebugKeysPressed.end();)

@@ -29,12 +29,14 @@ std::shared_ptr<World> SceneManager::GetCurrentWorld() const
 	return mCurrentWorld;
 }
 
-void SceneManager::LoadScene(const std::string& sceneName) const
+void SceneManager::LoadScene(const std::string& sceneName)
 {
 	if (mCurrentWorld != nullptr)
 	{
 		mCurrentWorld->Close();
 	}
+
+	mCurrentSceneName = sceneName;
 
 	// parse and serialize JSON
 	std::string fullFileName = LEVELS_FOLDER;
@@ -60,6 +62,14 @@ void SceneManager::LoadScene(const std::string& sceneName) const
 	}
 
 	mCurrentWorld->Init(scene, *mPrefabRegistry, mTerrainSystem, mResourceManager, mLuaSystem);
+}
+
+void SceneManager::RestartScene()
+{
+	if (!mCurrentSceneName.empty())
+	{
+		LoadScene(mCurrentSceneName);
+	}
 }
 
 const std::vector<const char*>& SceneManager::GetSceneNames() const

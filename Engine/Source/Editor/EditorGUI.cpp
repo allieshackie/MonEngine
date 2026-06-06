@@ -1,6 +1,7 @@
 #include "imgui.h"
 #include <filesystem>
 
+#include "Core/SceneManager.h"
 #include "Core/World.h"
 #include "ContextMenus/EntityMenu.h"
 #include "Input/InputHandler.h"
@@ -10,17 +11,18 @@
 
 #include "EditorGUI.h"
 
-EditorGUI::EditorGUI(std::weak_ptr<InputHandler> inputHandler, std::weak_ptr<World> world, WindowContext& windowContext,
-                     ResourceManager& resourceManager, RenderSystem& renderSystem)
-	: mInputHandler(inputHandler), mWorld(world), mResourceManager(resourceManager), mWindowContext(windowContext),
-	  mRenderSystem(renderSystem)
+EditorGUI::EditorGUI(std::weak_ptr<InputHandler> inputHandler, RenderSystem& renderSystem,
+					 ResourceManager& resourceManager, SceneManager& sceneManager,
+					 WindowContext& windowContext, std::weak_ptr<World> world)
+	: mInputHandler(inputHandler), mRenderSystem(renderSystem), mResourceManager(resourceManager),
+	   mSceneManager(sceneManager), mWindowContext(windowContext), mWorld(world)
 {
 	//mMapEditor = std::make_unique<MapEditor>(engineContext, inputHandler, levelManager, mapRegistry, WindowContext);
 	mObjectGUI = std::make_unique<ObjectGUI>();
 	mEntityMenu = std::make_unique<EntityMenu>(inputHandler, mWorld, renderSystem);
 }
 
-void EditorGUI::RenderGUI(float dt)
+void EditorGUI::RenderGUI(float dt, float fps)
 {
 	if (ImGui::BeginMainMenuBar())
 	{
@@ -28,7 +30,7 @@ void EditorGUI::RenderGUI(float dt)
 		{
 			if (ImGui::MenuItem("Restart"))
 			{
-
+				mSceneManager.RestartScene();
 			}
 			if (ImGui::MenuItem("Save"))
 			{
@@ -38,6 +40,7 @@ void EditorGUI::RenderGUI(float dt)
 		}
 		if (ImGui::BeginMenu("Editor"))
 		{
+			ImGui::MenuItem("FPS", nullptr, &showFPS);
 			ImGui::MenuItem("Axis", nullptr, &showAxis);
 			ImGui::MenuItem("Bones Outline", nullptr, &showBonesOutline);
 			ImGui::EndMenu();
@@ -55,6 +58,7 @@ void EditorGUI::RenderGUI(float dt)
 	_RenderCameraWindow();
 	_RenderInputWindow();
 	_RenderPropertiesWindow();
+	_RenderFPSWindow(fps);
 
 	RenderAxis();
 
@@ -188,5 +192,23 @@ void EditorGUI::_RenderPropertiesWindow()
 		mObjectGUI->RenderMaterialGUI(mRenderSystem);
 	}
 
+	ImGui::End();
+}
+
+void EditorGUI::_RenderFPSWindow(float fps)
+{
+	if (!showFPS)
+	{
+		return;
+	}
+
+	ImGuiIO& io = ImGui::GetIO();
+	ImGui::SetNextWindowPos(ImVec2(0, io.DisplaySize.y), ImGuiCond_Always,ImVec2(0.0f, 1.0f));
+
+	ImGui::SetNextWindowBgAlpha(0.0f);      
+	if (ImGui::Begin("Fps", nullptr, mHiddenWindowFlags))
+	{
+		ImGui::Text("FPS: %.1f", fps);
+	}
 	ImGui::End();
 }

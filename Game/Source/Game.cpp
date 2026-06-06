@@ -99,14 +99,8 @@ void Game::Run()
 
 			// Render GUI last so menus draw on top
 			mGUISystem->GUIStartFrame();
-			if (ImGui::Begin("Test"))
-			{
-				ImGui::Text("FPS: %.1f", fps);
-			}
-			ImGui::End();
-
 			mGUISystem->RenderMenus();
-			mSystemManager->RenderGUI(deltaTime);
+			mSystemManager->RenderGUI(deltaTime, fps);
 			mGUISystem->GUIEndFrame();
 
 			mWindowContext->EndFrame(mRenderSystem->GetCommands(), mRenderSystem->GetCommandQueue());
@@ -157,11 +151,12 @@ void Game::InitDependentSystems(const LLGL::Extent2D screenSize, const LLGL::UTF
 	const LLGL::ColorRGBAf backgroundClearColor, bool transparent)
 {
 	mRenderSystem = mSystemManager->RegisterSystem<RenderSystem>();
-	mWindowContext = std::make_unique<WindowContext>(*mRenderSystem, screenSize, backgroundClearColor, title, mInputHandler, transparent);
+	mWindowContext = std::make_unique<WindowContext>(*mRenderSystem, screenSize, backgroundClearColor, title, transparent);
 	mRenderSystem->OnWindowCreated(*mResourceManager);
 	mGUISystem = std::make_shared<GUISystem>(*mWindowContext);
+	mInputContext = std::make_unique<InputContext>(*mInputHandler, *mGUISystem);
+	mWindowContext->AddEventListener(mInputContext);
 	mSceneManager = std::make_unique<SceneManager>(*mDescriptionFactory, *mTerrainSystem, *mResourceManager);
-	mInputHandler->SetGUISystem(mGUISystem);
 	mInputHandler->RegisterButtonUpHandler(LLGL::Key::Escape, [=]() { mRunning = false; });
 	mResourceManager->LoadAllResources(*mRenderSystem);
 }
@@ -174,7 +169,7 @@ void Game::InitGameplaySystems()
 	const auto physicsSystem = mSystemManager->RegisterSystem<PhysicsSystem>(*mRenderSystem, *mResourceManager, world);
 	mSystemManager->RegisterSystem<MovementSystem>(*physicsSystem, world);
 	mSystemManager->RegisterSystem<PlayerSystem>(mInputHandler, world);
-	mSystemManager->RegisterSystem<EditorGUI>(mInputHandler, world, *mWindowContext, *mResourceManager, *mRenderSystem);
+	mSystemManager->RegisterSystem<EditorGUI>(mInputHandler, *mRenderSystem, *mResourceManager, *mSceneManager, *mWindowContext, world);
 }
 
 void Game::SetupLuaBindings()

@@ -16,7 +16,8 @@ public:
 	std::shared_ptr<World> GetCurrentWorld() const;
 	void SetLuaSystem(std::weak_ptr<LuaSystem> luaSystem) { mLuaSystem = luaSystem; }
 
-	void LoadScene(const std::string& sceneName) const;
+	void LoadScene(const std::string& sceneName);
+	void RestartScene();
 	const std::vector<const char*>& GetSceneNames() const;
 
 	void BindMethods(lua_State* state) override;
@@ -25,6 +26,7 @@ public:
 
 private:
 	std::shared_ptr<World> mCurrentWorld = nullptr;
+	std::string mCurrentSceneName;
 
 	std::vector<const char*> mSceneFileNames;
 	std::unique_ptr<PrefabRegistry> mPrefabRegistry = nullptr;

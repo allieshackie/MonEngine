@@ -21,7 +21,7 @@ public:
 	{
 	}
 
-	virtual void RenderGUI(float dt)
+	virtual void RenderGUI(float dt, float fps)
 	{
 	}
 

@@ -34,6 +34,10 @@ public:
 	void ConnectOnConstruct(EventFunc& handler) const;
 	template <typename Component>
 	void ConnectOnDestroy(EventFunc& handler) const;
+	template <typename Component>
+	void RegisterComponentLifecycle();
+	template <typename Component>
+	void OnComponentDestroyed(entt::entity entity);
 
 private:
 	std::unique_ptr<Camera> mCamera = nullptr;
@@ -55,4 +59,20 @@ template <typename Component>
 void World::ConnectOnDestroy(EventFunc& handler) const
 {
 	mEventPublisher->AddListener<Component>("on_destroy", handler);
+}
+
+template <typename Component>
+void World::RegisterComponentLifecycle()
+{
+	mRegistry.on_destroy<Component>().connect<&World::OnComponentDestroyed<Component>>(this);
+}
+
+template <typename Component>
+void World::OnComponentDestroyed(entt::entity entity)
+{
+	auto it = mEntityMap.find(entity);
+	if (it != mEntityMap.end())
+	{
+		mEventPublisher->Notify<Component>("on_destroy", it->second);
+	}
 }

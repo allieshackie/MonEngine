@@ -8,8 +8,7 @@
 #include "WindowContext.h"
 
 WindowContext::WindowContext(RenderSystem& system, const LLGL::Extent2D screenSize, const LLGL::ColorRGBAf backgroundColor,
-                             const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler,
-                             bool transparent)
+                             const LLGL::UTF8String& title, bool transparent)
 	: mBackgroundColor(backgroundColor), mSystem(system)
 {
 	const auto display = LLGL::Display::GetPrimary();
@@ -46,7 +45,7 @@ WindowContext::WindowContext(RenderSystem& system, const LLGL::Extent2D screenSi
 
 	// NOTE: Projection update must occur after debug shader is initialized
 	UpdateProjection();
-	_CreateWindow(title, inputHandler, transparent);
+	_CreateWindow(title, transparent);
 }
 
 bool WindowContext::GetSurfaceNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const
@@ -54,10 +53,15 @@ bool WindowContext::GetSurfaceNativeHandle(void* nativeHandle, std::size_t nativ
 	return mSwapChain->GetSurface().GetNativeHandle(nativeHandle, nativeHandleSize);
 }
 
-
 LLGL::Extent2D WindowContext::GetResolution() const
 {
 	return mSwapChain->GetResolution();
+}
+
+void WindowContext::AddEventListener(const std::shared_ptr<LLGL::Window::EventListener>& eventListener)
+{
+	auto& window = LLGL::CastTo<LLGL::Window>(mSwapChain->GetSurface());
+	window.AddEventListener(eventListener);
 }
 
 void WindowContext::SetBackgroundClearColor(const LLGL::ColorRGBAf color)
@@ -117,8 +121,7 @@ void WindowContext::ResizeBuffers(const LLGL::Extent2D& size)
 	mViewportSizeChanged = true;
 }
 
-void WindowContext::_CreateWindow(const LLGL::UTF8String& title, const std::shared_ptr<InputHandler>& inputHandler,
-                                  bool transparent)
+void WindowContext::_CreateWindow(const LLGL::UTF8String& title,bool transparent)
 {
 	// get window from context surface
 	auto& window = LLGL::CastTo<LLGL::Window>(mSwapChain->GetSurface());
@@ -138,7 +141,6 @@ void WindowContext::_CreateWindow(const LLGL::UTF8String& title, const std::shar
 
 	// Add window resize listener
 	window.AddEventListener(std::make_shared<ResizeEventHandler>(*this));
-	window.AddEventListener(inputHandler);
 	if (transparent)
 	{
 		LLGL::NativeHandle mainWindowHandle;

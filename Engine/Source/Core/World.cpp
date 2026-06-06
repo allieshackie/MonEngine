@@ -3,6 +3,7 @@
 #include "Entity/PrefabRegistry.h"
 #include "Entity/Components/CollisionComponent.h"
 #include "Entity/Components/TransformComponent.h"
+#include "Entity/Components/LightComponent.h"
 #include "Entity/Descriptions/DescriptionBase.h"
 #include "Graphics/Core/ResourceManager.h"
 #include "Script/LuaSystem.h"
@@ -13,6 +14,7 @@
 World::World()
 {
 	mEventPublisher = std::make_unique<EventPublisher>();
+	RegisterComponentLifecycle<LightComponent>();
 }
 
 void World::Close()
@@ -90,10 +92,8 @@ void World::RemoveEntity(const entt::entity id)
 
 void World::FlushEntities()
 {
-	for (const auto& entity : mRegistry.view<entt::entity>())
-	{
-		mRegistry.destroy(entity);
-	}
+	mRegistry.clear();
+	mEntityMap.clear();
 }
 
 Entity* World::GetEntityForId(entt::entity id)
