@@ -40,16 +40,13 @@ void MeshPipeline::Render(LLGL::CommandBuffer& commands, const glm::mat4 project
 		});
 }
 
-void MeshPipeline::OnWorldCreated(std::weak_ptr<World> world)
+void MeshPipeline::OnWorldCreated(World* world)
 {
-	if (const auto worldPtr = world.lock())
-	{
-		EventFunc func = [this](Entity* entity)
-			{
-				AddLight(entity);
-			};
-		worldPtr->ConnectOnConstruct<LightComponent>(func);
-	}
+	EventFunc func = [this](Entity* entity)
+		{
+			AddLight(entity);
+		};
+	world->ConnectOnConstruct<LightComponent>(func);
 }
 
 void MeshPipeline::_RenderNode(LLGL::CommandBuffer& commands, const Model& model, int nodeIndex,

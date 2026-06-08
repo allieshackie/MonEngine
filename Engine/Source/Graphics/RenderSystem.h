@@ -57,7 +57,7 @@ public:
 	bool GetBackendNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const;
 	bool GetCommandBufferNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const;
 
-	void OnWorldCreated(std::weak_ptr<World> world);
+	void OnWorldCreated(World* world);
 	void OnWindowCreated(ResourceManager& resourceManager);
 
 private:

@@ -6,7 +6,7 @@
 
 #include "Camera.h"
 
-Camera::Camera(const World* world, const CameraData& data)
+Camera::Camera(World* world, const CameraData& data)
 	: mCameraPos(data.mCameraPos), mCameraFront(data.mCameraFront), mCameraUp(data.mCameraUp), mCameraFollowOffset(data.mCameraFollowOffset), mCameraLookOffset(data.mCameraLookOffset)
 {
 	mFollowCam = data.mFollowCam;

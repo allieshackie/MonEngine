@@ -7,45 +7,49 @@ class EventSubscription;
 using EventFunc = std::function<void(Entity*)>;
 using PublishList = std::vector<std::shared_ptr<EventSubscription>>;
 using PublishMap = std::unordered_map<std::string, PublishList>;
+using SubscriptionHandle = uint32_t;
 
 class EventPublisher
 {
 public:
 	template <typename Component>
-	void AddListener(const std::string& eventType, EventFunc& callback);
-	//void RemoveListener(const std::unique_ptr<EventSubscription>& sub);
+	SubscriptionHandle AddListener(const std::string& eventType, EventFunc& callback);
+	void RemoveListener(const std::string& eventType, SubscriptionHandle handle);
 
 	template <typename Component>
 	void Notify(const std::string& eventType, Entity* entity);
 
 private:
 	PublishMap mList;
+	SubscriptionHandle mNextHandle = 0;
 };
 
 class EventSubscription
 {
 public:
-	EventSubscription(EventFunc handlerFunc, std::string eventType, std::type_index type) :
-		mHandlerFunc(std::move(handlerFunc)),
-		mEventType(std::move(eventType)),
-		mType(type)
+	EventSubscription(EventFunc handlerFunc, std::string eventType, std::type_index type, SubscriptionHandle handle) 
+		: mHandlerFunc(std::move(handlerFunc)), mEventType(std::move(eventType)), mType(type), mHandle(handle)
 	{
 	}
 
 	const EventFunc& GetHandlerFunc() const;
 	const std::type_index& GetType() const { return mType; }
+	SubscriptionHandle GetHandle() const { return mHandle; }
 
 private:
 	EventFunc mHandlerFunc;
 	std::string mEventType;
 	std::type_index mType;
+	SubscriptionHandle mHandle;
 };
 
 template <typename Component>
-void EventPublisher::AddListener(const std::string& eventType, EventFunc& callback)
+SubscriptionHandle EventPublisher::AddListener(const std::string& eventType, EventFunc& callback)
 {
-	auto sub = std::make_shared<EventSubscription>(callback, eventType, typeid(Component));
+	SubscriptionHandle handle = mNextHandle++;
+	auto sub = std::make_shared<EventSubscription>(callback, eventType, typeid(Component), handle);
 	mList[eventType].push_back(sub);
+	return handle;
 }
 
 template <typename Component>

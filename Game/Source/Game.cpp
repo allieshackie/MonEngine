@@ -37,7 +37,6 @@ void Game::Run()
 	mGUISystem->LoadGUITheme("DarkStyle");
 
 	mSceneManager->LoadScene("menu.json");
-	mRenderSystem->OnWorldCreated(mSceneManager->GetCurrentWorld());
 
 	ToggleEditorMode(true);
 
@@ -156,7 +155,7 @@ void Game::InitDependentSystems(const LLGL::Extent2D screenSize, const LLGL::UTF
 	mGUISystem = std::make_shared<GUISystem>(*mWindowContext);
 	mInputContext = std::make_unique<InputContext>(*mInputHandler, *mGUISystem);
 	mWindowContext->AddEventListener(mInputContext);
-	mSceneManager = std::make_unique<SceneManager>(*mDescriptionFactory, *mTerrainSystem, *mResourceManager);
+	mSceneManager = std::make_unique<SceneManager>(*mDescriptionFactory, *mRenderSystem, *mResourceManager);
 	mInputHandler->RegisterButtonUpHandler(LLGL::Key::Escape, [=]() { mRunning = false; });
 	mResourceManager->LoadAllResources(*mRenderSystem);
 }

@@ -39,7 +39,7 @@ public:
 
 	void UpdateLights() { mUpdateLights = true; }
 
-	void OnWorldCreated(std::weak_ptr<World> world);
+	void OnWorldCreated(World* world);
 
 private:
 	void _RenderNode(LLGL::CommandBuffer& commands, const Model& model, int nodeIndex,

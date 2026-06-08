@@ -13,7 +13,7 @@ class World;
 class Camera
 {
 public:
-	Camera(const World* world, const CameraData& data);
+	Camera(World* world, const CameraData& data);
 
 	void Update();
 

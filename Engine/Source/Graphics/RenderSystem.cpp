@@ -155,7 +155,7 @@ bool RenderSystem::GetCommandBufferNativeHandle(void* nativeHandle, std::size_t 
 	return mCommands->GetNativeHandle(nativeHandle, nativeHandleSize);
 }
 
-void RenderSystem::OnWorldCreated(std::weak_ptr<World> world)
+void RenderSystem::OnWorldCreated(World* world)
 {
 	mMeshPipeline->OnWorldCreated(world);
 }

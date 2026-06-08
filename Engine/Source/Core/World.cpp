@@ -6,6 +6,7 @@
 #include "Entity/Components/LightComponent.h"
 #include "Entity/Descriptions/DescriptionBase.h"
 #include "Graphics/Core/ResourceManager.h"
+#include "Graphics/RenderSystem.h"
 #include "Script/LuaSystem.h"
 #include "Terrain/TerrainSystem.h"
 
@@ -23,9 +24,10 @@ void World::Close()
 	FlushEntities();
 }
 
-void World::Init(MonScene* scene, PrefabRegistry& prefabRegistry, const TerrainSystem& terrainSystem, ResourceManager& resourceManager,
+void World::Init(MonScene* scene, PrefabRegistry& prefabRegistry, RenderSystem& renderSystem, ResourceManager& resourceManager,
                  std::weak_ptr<LuaSystem> luaSystem)
 {
+	renderSystem.OnWorldCreated(this);
 	/* 
 	*  NOTE: Terrain is essentially a regular entity with no physics, so treat it normally? 
 	// Create Map

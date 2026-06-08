@@ -1,12 +1,13 @@
 #include "Scene.h"
+#include "Graphics/RenderSystem.h"
 #include "Entity/Descriptions/DescriptionFactory.h"
 #include "Util/FileSystem.h"
 #include "Util/LuaUtil.h"
 
 #include "SceneManager.h"
 
-SceneManager::SceneManager(DescriptionFactory& descriptionFactory, TerrainSystem& terrainSystem, ResourceManager& resourceManager)
-	: LuaBindable("SceneManager"), mTerrainSystem(terrainSystem), mResourceManager(resourceManager)
+SceneManager::SceneManager(DescriptionFactory& descriptionFactory, RenderSystem& renderSystem, ResourceManager& resourceManager)
+	: LuaBindable("SceneManager"), mRenderSystem(renderSystem), mResourceManager(resourceManager)
 {
 	mPrefabRegistry = std::make_unique<PrefabRegistry>(descriptionFactory);
 
@@ -61,7 +62,7 @@ void SceneManager::LoadScene(const std::string& sceneName)
 		return;
 	}
 
-	mCurrentWorld->Init(scene, *mPrefabRegistry, mTerrainSystem, mResourceManager, mLuaSystem);
+	mCurrentWorld->Init(scene, *mPrefabRegistry, mRenderSystem, mResourceManager, mLuaSystem);
 }
 
 void SceneManager::RestartScene()

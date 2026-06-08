@@ -7,7 +7,7 @@
 class LuaSystem;
 class MonScene;
 class PrefabRegistry;
-class TerrainSystem;
+class RenderSystem;
 class ResourceManager;
 
 class World
@@ -17,7 +17,7 @@ public:
 
 	void Close();
 
-	void Init(MonScene* scene, PrefabRegistry& prefabRegistry, const TerrainSystem& terrainSystem, ResourceManager& resourceManager,
+	void Init(MonScene* scene, PrefabRegistry& prefabRegistry, RenderSystem& renderSystem, ResourceManager& resourceManager,
 	          std::weak_ptr<LuaSystem> luaSystem);
 	Camera& GetCamera() const { return *mCamera; }
 	entt::registry& GetRegistry() { return mRegistry; }
