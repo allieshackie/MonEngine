@@ -8,7 +8,7 @@ class World;
 class MovementSystem : public ISystem
 {
 public:
-	MovementSystem(PhysicsSystem& physicsSystem, std::weak_ptr<World> world);
+	MovementSystem(PhysicsSystem& physicsSystem, EventPublisher& eventPublisher);
 
 	void Update(float dt) override;
 

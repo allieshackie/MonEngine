@@ -22,23 +22,20 @@ void World::Close()
 {
 	//luaSystem.QueueClose();
 	FlushEntities();
+	DisconnectAll();
 }
 
-void World::Init(MonScene* scene, PrefabRegistry& prefabRegistry, RenderSystem& renderSystem, ResourceManager& resourceManager,
-                 std::weak_ptr<LuaSystem> luaSystem)
+void World::DisconnectAll()
 {
-	renderSystem.OnWorldCreated(this);
-	/* 
-	*  NOTE: Terrain is essentially a regular entity with no physics, so treat it normally? 
-	// Create Map
-	if (!scene->GetTerrainData().mName.empty())
+	for (const auto& [eventType, handle] : mSubscriptions)
 	{
-		//auto heightMap = resourceManager.CreateHeightMap(scene->GetTerrainData().mName);
-		//mTerrain = std::make_unique<TerrainMesh>(heightMap);
-		terrainSystem.CreateTerrain(this, scene->GetTerrainData());
+		mEventPublisher->RemoveListener(eventType, handle);
 	}
-	*/
+	mSubscriptions.clear();
+}
 
+void World::Init(MonScene* scene, PrefabRegistry& prefabRegistry, RenderSystem& renderSystem, ResourceManager& resourceManager, std::weak_ptr<LuaSystem> luaSystem)
+{
 	CreateCamera(scene);
 
 	for (const auto& entity : scene->GetEntityDefinitions())

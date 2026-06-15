@@ -6,6 +6,7 @@
 
 class Camera;
 class InputHandler;
+class EventPublisher;
 class ResourceManager;
 class SceneManager;
 class WindowContext;
@@ -14,9 +15,8 @@ class World;
 class EditorGUI : public ISystem
 {
 public:
-	EditorGUI(std::weak_ptr<InputHandler> inputHandler, RenderSystem& renderSystem, 
-			  ResourceManager& resourceManager,SceneManager& sceneManager, 
-			  WindowContext& windowContext, std::weak_ptr<World> world);
+	EditorGUI(std::weak_ptr<InputHandler> inputHandler, RenderSystem& renderSystem, ResourceManager& resourceManager,
+			SceneManager& sceneManager, WindowContext& windowContext, EventPublisher& eventPublisher);
 
 	void RenderGUI(float dt, float fps) override;
 

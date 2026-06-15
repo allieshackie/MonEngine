@@ -18,11 +18,9 @@ void MeshPipeline::Render(LLGL::CommandBuffer& commands, const glm::mat4 project
 	{
 		return;
 	}
-	if (!mQueuedLightEntities.empty())
-	{
-		_ProcessLights();
-	}
 
+	_ProcessLights();
+	
 	commands.SetPipelineState(*mPipeline);
 	commands.SetResourceHeap(*mResourceHeap);
 
@@ -38,15 +36,6 @@ void MeshPipeline::Render(LLGL::CommandBuffer& commands, const glm::mat4 project
 
 			_RenderNode(commands, model, model.GetRootSceneIndex(), transform, modelComponent, worldPtr);
 		});
-}
-
-void MeshPipeline::OnWorldCreated(World* world)
-{
-	EventFunc func = [this](Entity* entity)
-		{
-			AddLight(entity);
-		};
-	world->ConnectOnConstruct<LightComponent>(func);
 }
 
 void MeshPipeline::_RenderNode(LLGL::CommandBuffer& commands, const Model& model, int nodeIndex,
@@ -112,7 +101,7 @@ void MeshPipeline::SetPipeline(LLGL::CommandBuffer& commands) const
 	commands.SetPipelineState(*mPipeline);
 }
 
-MeshPipeline::MeshPipeline(const LLGL::RenderSystemPtr& renderSystem, const ResourceManager& resourceManager)
+MeshPipeline::MeshPipeline(const LLGL::RenderSystemPtr& renderSystem, const ResourceManager& resourceManager, EventPublisher& eventPublisher)
 	: PipelineBase(), mRenderSystem(renderSystem), mResourceManager(resourceManager)
 {
 	// Initialization
@@ -210,6 +199,24 @@ MeshPipeline::MeshPipeline(const LLGL::RenderSystemPtr& renderSystem, const Reso
 		};
 		InitResourceHeap(renderSystem, resourceViews);
 	}
+
+	eventPublisher.AddWorldCreatedListener(
+		[this](std::weak_ptr<World> world) {
+			if (const auto worldShared = world.lock())
+			{
+				EventFunc func = [this](Entity* entity)
+					{
+						AddLight(entity);
+					};
+				worldShared->ConnectOnConstruct<TransformComponent>(func);
+
+				EventFunc removeFunc = [this](Entity* entity)
+					{
+						RemoveLight(entity);
+					};
+				worldShared->ConnectOnDestroy<LightComponent>(removeFunc);
+			}
+		});
 }
 
 void MeshPipeline::SetResourceHeapTexture(LLGL::CommandBuffer& commands, LLGL::Texture& texture) const
@@ -218,17 +225,36 @@ void MeshPipeline::SetResourceHeapTexture(LLGL::CommandBuffer& commands, LLGL::T
 	commands.SetResource(0, texture);
 }
 
-void MeshPipeline::AddLight(Entity* entity)
-{
-	mQueuedLightEntities.push_back(entity);
-}
-
 Material& MeshPipeline::GetMaterial()
 {
 	return mCurrentMaterial;
 }
 
-void MeshPipeline::UpdateLightBuffer() const
+void MeshPipeline::UpdateMaterialBuffer() const
+{
+	mRenderSystem->WriteBuffer(*mMaterialBuffer, 0, &(mCurrentMaterial), sizeof(Material));
+}
+
+void MeshPipeline::AddLight(Entity* entity)
+{
+	const auto light = entity->TryGetComponent<LightComponent>();
+	if (light != nullptr)
+	{
+		mQueuedLightEntities.push_back(entity);
+	}
+}
+
+void MeshPipeline::RemoveLight(Entity* entity)
+{
+	auto it = std::find(mLightEntities.begin(), mLightEntities.end(), entity);
+	if (it != mLightEntities.end())
+	{
+		mLightEntities.erase(it);
+		mLightsDirty = true;
+	}
+}
+
+void MeshPipeline::UpdateLightBuffer()
 {
 	std::uint64_t lightOffset = 0;
 	for (const auto& light : mLights)
@@ -238,26 +264,42 @@ void MeshPipeline::UpdateLightBuffer() const
 	}
 }
 
-void MeshPipeline::UpdateMaterialBuffer() const
+void MeshPipeline::_RebuildLights()
 {
-	mRenderSystem->WriteBuffer(*mMaterialBuffer, 0, &(mCurrentMaterial), sizeof(Material));
+	mLights.clear();
+	for (const auto& entity : mLightEntities)
+	{
+		const auto& light = entity->GetComponent<LightComponent>();
+		const auto transform = entity->TryGetComponent<TransformComponent>();
+		if (transform != nullptr)
+		{
+			mLights.push_back({ light.mColor, glm::vec4(transform->mPosition, 1.0),
+				{light.mIntensity, static_cast<int>(light.mLightType), 0, 0} });
+		}
+	}
 }
 
 void MeshPipeline::_ProcessLights()
 {
 	for (auto it = mQueuedLightEntities.begin(); it != mQueuedLightEntities.end();)
 	{
-		const auto& light = (*it)->GetComponent<LightComponent>();
 		const auto transform = (*it)->TryGetComponent<TransformComponent>();
 		if (transform != nullptr)
 		{
-			mLights.push_back( { light.mColor, glm::vec4(transform->mPosition, 1.0), {light.mIntensity, static_cast<int>(light.mLightType), 0, 0}});
+			mLightEntities.push_back(*it);
 			it = mQueuedLightEntities.erase(it);
+			mLightsDirty = true;
 		}
 		else
 		{
-			// Move to the next element
 			++it;
 		}
+	}
+
+	if (mLightsDirty)
+	{
+		_RebuildLights();
+		UpdateLightBuffer();
+		mLightsDirty = false;
 	}
 }

@@ -155,18 +155,13 @@ bool RenderSystem::GetCommandBufferNativeHandle(void* nativeHandle, std::size_t 
 	return mCommands->GetNativeHandle(nativeHandle, nativeHandleSize);
 }
 
-void RenderSystem::OnWorldCreated(World* world)
-{
-	mMeshPipeline->OnWorldCreated(world);
-}
-
-void RenderSystem::OnWindowCreated(ResourceManager& resourceManager)
+void RenderSystem::OnWindowCreated(ResourceManager& resourceManager, EventPublisher& eventPublisher)
 {
 	// Get command queue to record and submit command buffers
 	mCommandQueue = mSystem->GetCommandQueue();
 
 	mImmediatePipeline = std::make_unique<ImmediatePipeline>(mSystem);
 	mTextPipeline = std::make_unique<TextPipeline>(mSystem);
-	mMeshPipeline = std::make_unique<MeshPipeline>(mSystem, resourceManager);
+	mMeshPipeline = std::make_unique<MeshPipeline>(mSystem, resourceManager, eventPublisher);
 	mOverlayPipeline = std::make_unique<OverlayPipeline>(mSystem);
 }

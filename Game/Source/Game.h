@@ -9,7 +9,6 @@
 #include "Graphics/Core/ResourceManager.h"
 #include "Input/InputContext.h"
 #include "Input/InputHandler.h"
-#include "Terrain/TerrainSystem.h"
 
 class Game
 {
@@ -46,7 +45,6 @@ private:
 
 	std::unique_ptr<EventPublisher> mEventPublisher;
 	std::unique_ptr<SystemManager> mSystemManager;
-	std::unique_ptr<TerrainSystem> mTerrainSystem;
 
 	// systems
 	std::shared_ptr<InputHandler> mInputHandler;

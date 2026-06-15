@@ -8,17 +8,22 @@
 
 #include "Animator.h"
 
-AnimatorSystem::AnimatorSystem(ResourceManager& resourceManager, std::weak_ptr<World> world) :
-	mWorld(world), mResourceManager(resourceManager)
+AnimatorSystem::AnimatorSystem(ResourceManager& resourceManager, EventPublisher& eventPublisher) :
+	mResourceManager(resourceManager)
 {
-	if (const auto worldShared = mWorld.lock())
-	{
-		EventFunc func = [this](Entity* entity)
-		{
-			_SetJointMatrixCount(entity);
-		};
-		worldShared->ConnectOnConstruct<ModelComponent>(func);
-	}
+	eventPublisher.AddWorldCreatedListener(
+		[this](std::weak_ptr<World> world) {
+			if (const auto worldShared = world.lock())
+			{
+				EventFunc func = [this](Entity* entity)
+				{
+					_SetJointMatrixCount(entity);
+				};
+				worldShared->ConnectOnConstruct<ModelComponent>(func);
+			}
+			mWorld = world;
+		}
+	);
 }
 
 void AnimatorSystem::Update(float dt)

@@ -9,8 +9,8 @@
 
 #include "PhysicsSystem.h"
 
-PhysicsSystem::PhysicsSystem(RenderSystem& renderSystem, ResourceManager& resourceManager, std::weak_ptr<World> world)
-	: mResourceManager(resourceManager), mWorld(world)
+PhysicsSystem::PhysicsSystem(RenderSystem& renderSystem, ResourceManager& resourceManager, EventPublisher& eventPublisher)
+	: mResourceManager(resourceManager)
 {
 	mBroadPhase = std::make_unique<btDbvtBroadphase>();
 	mConstraintSolver = std::make_unique<btSequentialImpulseConstraintSolver>();
@@ -24,14 +24,19 @@ PhysicsSystem::PhysicsSystem(RenderSystem& renderSystem, ResourceManager& resour
 
 	mDynamicWorld->setGravity(mGravityConst);
 
-	if (const auto worldShared = mWorld.lock())
-	{
-		EventFunc func = [this](Entity* entity)
-		{
-			AddEntityToInitialize(entity);
-		};
-		worldShared->ConnectOnConstruct<CollisionComponent>(func);
-	}
+	eventPublisher.AddWorldCreatedListener(
+		[this](std::weak_ptr<World> world) {
+			if (const auto worldShared = world.lock())
+			{
+				EventFunc func = [this](Entity* entity)
+					{
+						AddEntityToInitialize(entity);
+					};
+				worldShared->ConnectOnConstruct<CollisionComponent>(func);
+			}
+			mWorld = world;
+		}
+	);
 
 	// Uncomment to turn on debug draw
 	//mPhysicsDebugDraw = std::make_unique<PhysicsDebugDraw>(renderSystem);

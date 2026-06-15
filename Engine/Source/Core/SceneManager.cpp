@@ -6,8 +6,8 @@
 
 #include "SceneManager.h"
 
-SceneManager::SceneManager(DescriptionFactory& descriptionFactory, RenderSystem& renderSystem, ResourceManager& resourceManager)
-	: LuaBindable("SceneManager"), mRenderSystem(renderSystem), mResourceManager(resourceManager)
+SceneManager::SceneManager(DescriptionFactory& descriptionFactory, RenderSystem& renderSystem, ResourceManager& resourceManager, EventPublisher& eventPublisher)
+	: LuaBindable("SceneManager"), mRenderSystem(renderSystem), mResourceManager(resourceManager), mEventPublisher(eventPublisher)
 {
 	mPrefabRegistry = std::make_unique<PrefabRegistry>(descriptionFactory);
 
@@ -22,7 +22,7 @@ SceneManager::SceneManager(DescriptionFactory& descriptionFactory, RenderSystem&
 		mSceneFileNames.push_back(_strdup(fileName.c_str()));
 	}
 
-	mCurrentWorld = std::make_shared<World>();
+	//mCurrentWorld = std::make_shared<World>();
 }
 
 std::shared_ptr<World> SceneManager::GetCurrentWorld() const
@@ -61,6 +61,9 @@ void SceneManager::LoadScene(const std::string& sceneName)
 		printf("Scene Data could not be parsed");
 		return;
 	}
+
+	mCurrentWorld = std::make_shared<World>();
+	mEventPublisher.NotifyWorldCreated(mCurrentWorld);
 
 	mCurrentWorld->Init(scene, *mPrefabRegistry, mRenderSystem, mResourceManager, mLuaSystem);
 }

@@ -3,10 +3,12 @@
 
 #include "LuaContext.h"
 
+class EventPublisher;
+
 class LuaSystem : public ISystem
 {
 public:
-	LuaSystem(std::weak_ptr<World> world);
+	LuaSystem(EventPublisher& eventPublisher);
 
 	lua_State* GetState() const;
 

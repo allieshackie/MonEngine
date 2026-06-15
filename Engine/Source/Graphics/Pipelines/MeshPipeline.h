@@ -9,6 +9,7 @@
 #define MAX_BONES 100
 
 class Entity;
+class EventPublisher;
 class World;
 
 struct ModelComponent;
@@ -24,27 +25,27 @@ struct Material
 class MeshPipeline : public PipelineBase
 {
 public:
-	MeshPipeline(const LLGL::RenderSystemPtr& renderSystem, const ResourceManager& resourceManager);
+	MeshPipeline(const LLGL::RenderSystemPtr& renderSystem, const ResourceManager& resourceManager, EventPublisher& eventPublisher);
 
 	void Render(LLGL::CommandBuffer& commands, const glm::mat4 projection, std::weak_ptr<World> world);
 
 	void SetPipeline(LLGL::CommandBuffer& commands) const;
 	void SetResourceHeapTexture(LLGL::CommandBuffer& commands, LLGL::Texture& texture) const;
 
-	void UpdateLightBuffer() const;
+	void UpdateLightBuffer();
 	void AddLight(Entity* entity);
+	void RemoveLight(Entity* entity);
 
 	Material& GetMaterial();
 	void UpdateMaterialBuffer() const;
 
 	void UpdateLights() { mUpdateLights = true; }
 
-	void OnWorldCreated(World* world);
-
 private:
 	void _RenderNode(LLGL::CommandBuffer& commands, const Model& model, int nodeIndex,
 	                 const TransformComponent& transform, const ModelComponent& modelComponent,
 	                 std::shared_ptr<World> world);
+	void _RebuildLights();
 	void _ProcessLights();
 
 	LLGL::Buffer* mLightBuffer = nullptr;
@@ -89,8 +90,10 @@ private:
 		glm::vec4 params = { 1.0f,0,0,0 }; // x = intensity, y = lightType
 	};
 
+	std::vector<Entity*> mLightEntities;
 	std::vector<LightUniform> mLights;
 	bool mUpdateLights = false;
+	bool mLightsDirty = false;
 
 	std::vector<Entity*> mQueuedLightEntities;
 

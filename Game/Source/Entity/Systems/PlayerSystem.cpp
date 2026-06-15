@@ -7,17 +7,21 @@
 
 #include "PlayerSystem.h"
 
-PlayerSystem::PlayerSystem(std::weak_ptr<InputHandler> inputHandler, std::weak_ptr<World> world)
+PlayerSystem::PlayerSystem(std::weak_ptr<InputHandler> inputHandler, EventPublisher& eventPublisher)
 	: mInputHandler(inputHandler)
 {
-	if (auto worldPtr = world.lock())
-	{
-		EventFunc func = [this](Entity* entity)
-		{
-			SpawnPlayer(entity);
-		};
-		worldPtr->ConnectOnConstruct<PlayerComponent>(func);
-	}
+	eventPublisher.AddWorldCreatedListener(
+		[this](std::weak_ptr<World> world) {
+			if (const auto worldPtr = world.lock())
+			{
+				EventFunc func = [this](Entity* entity)
+					{
+						SpawnPlayer(entity);
+					};
+				worldPtr->ConnectOnConstruct<PlayerComponent>(func);
+			}
+		}
+	);
 }
 
 void PlayerSystem::SpawnPlayer(Entity* entity) const

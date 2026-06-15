@@ -11,15 +11,19 @@
 
 #include "EditorGUI.h"
 
-EditorGUI::EditorGUI(std::weak_ptr<InputHandler> inputHandler, RenderSystem& renderSystem,
-					 ResourceManager& resourceManager, SceneManager& sceneManager,
-					 WindowContext& windowContext, std::weak_ptr<World> world)
-	: mInputHandler(inputHandler), mRenderSystem(renderSystem), mResourceManager(resourceManager),
-	   mSceneManager(sceneManager), mWindowContext(windowContext), mWorld(world)
+EditorGUI::EditorGUI(std::weak_ptr<InputHandler> inputHandler, RenderSystem& renderSystem, ResourceManager& resourceManager, 
+					SceneManager& sceneManager, WindowContext& windowContext, EventPublisher& eventPublisher)
+	: mInputHandler(inputHandler), mRenderSystem(renderSystem), mResourceManager(resourceManager), mSceneManager(sceneManager), mWindowContext(windowContext)
 {
 	//mMapEditor = std::make_unique<MapEditor>(engineContext, inputHandler, levelManager, mapRegistry, WindowContext);
 	mObjectGUI = std::make_unique<ObjectGUI>();
-	mEntityMenu = std::make_unique<EntityMenu>(inputHandler, mWorld, renderSystem);
+
+	eventPublisher.AddWorldCreatedListener(
+		[this](std::weak_ptr<World> world) {
+			mWorld = world;
+			mEntityMenu = std::make_unique<EntityMenu>(mInputHandler, mWorld, mRenderSystem);
+		}
+	);
 }
 
 void EditorGUI::RenderGUI(float dt, float fps)
@@ -61,6 +65,11 @@ void EditorGUI::RenderGUI(float dt, float fps)
 	_RenderFPSWindow(fps);
 
 	RenderAxis();
+
+	if (mEntityMenu == nullptr)
+	{
+		return;
+	}
 
 	if (showBonesOutline)
 	{
@@ -175,7 +184,7 @@ void EditorGUI::_RenderInputWindow()
 
 void EditorGUI::_RenderPropertiesWindow()
 {
-	if (!showEntityWindow)
+	if (!showEntityWindow || mEntityMenu == nullptr)
 	{
 		return;
 	}

@@ -129,7 +129,6 @@ void Game::InitCoreSystems()
 	mResourceManager = std::make_unique<ResourceManager>();
 	mDescriptionFactory = std::make_unique<DescriptionFactory>();
 	mEventPublisher = std::make_unique<EventPublisher>();
-	mTerrainSystem = std::make_unique<TerrainSystem>();
 }
 
 void Game::RegisterDescriptions()
@@ -146,35 +145,35 @@ void Game::RegisterDescriptions()
 	mDescriptionFactory->RegisterDescription<TransformDescription>(TransformDescription::JsonName);
 }
 
+// Add an engine level onWOrldCreate event for all systems to subscribe to
+
 void Game::InitDependentSystems(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
 	const LLGL::ColorRGBAf backgroundClearColor, bool transparent)
 {
 	mRenderSystem = mSystemManager->RegisterSystem<RenderSystem>();
 	mWindowContext = std::make_unique<WindowContext>(*mRenderSystem, screenSize, backgroundClearColor, title, transparent);
-	mRenderSystem->OnWindowCreated(*mResourceManager);
+	mRenderSystem->OnWindowCreated(*mResourceManager, *mEventPublisher);
 	mGUISystem = std::make_shared<GUISystem>(*mWindowContext);
 	mInputContext = std::make_unique<InputContext>(*mInputHandler, *mGUISystem);
 	mWindowContext->AddEventListener(mInputContext);
-	mSceneManager = std::make_unique<SceneManager>(*mDescriptionFactory, *mRenderSystem, *mResourceManager);
+	mSceneManager = std::make_unique<SceneManager>(*mDescriptionFactory, *mRenderSystem, *mResourceManager, *mEventPublisher);
 	mInputHandler->RegisterButtonUpHandler(LLGL::Key::Escape, [=]() { mRunning = false; });
 	mResourceManager->LoadAllResources(*mRenderSystem);
 }
 
 void Game::InitGameplaySystems()
 {
-	auto world = mSceneManager->GetCurrentWorld();
 	// Gameplay systems
-	mSystemManager->RegisterSystem<AnimatorSystem>(*mResourceManager, world);
-	const auto physicsSystem = mSystemManager->RegisterSystem<PhysicsSystem>(*mRenderSystem, *mResourceManager, world);
-	mSystemManager->RegisterSystem<MovementSystem>(*physicsSystem, world);
-	mSystemManager->RegisterSystem<PlayerSystem>(mInputHandler, world);
-	mSystemManager->RegisterSystem<EditorGUI>(mInputHandler, *mRenderSystem, *mResourceManager, *mSceneManager, *mWindowContext, world);
+	mSystemManager->RegisterSystem<AnimatorSystem>(*mResourceManager, *mEventPublisher);
+	const auto physicsSystem = mSystemManager->RegisterSystem<PhysicsSystem>(*mRenderSystem, *mResourceManager, *mEventPublisher);
+	mSystemManager->RegisterSystem<MovementSystem>(*physicsSystem, *mEventPublisher);
+	mSystemManager->RegisterSystem<PlayerSystem>(mInputHandler, *mEventPublisher);
+	mSystemManager->RegisterSystem<EditorGUI>(mInputHandler, *mRenderSystem, *mResourceManager, *mSceneManager, *mWindowContext, *mEventPublisher);
 }
 
 void Game::SetupLuaBindings()
 {
-	auto world = mSceneManager->GetCurrentWorld();
-	const auto luaSystem = mSystemManager->RegisterSystem<LuaSystem>(world);
+	const auto luaSystem = mSystemManager->RegisterSystem<LuaSystem>(*mEventPublisher);
 	mSceneManager->SetLuaSystem(luaSystem);
 
 	mSceneManager->Bind(luaSystem->GetState());

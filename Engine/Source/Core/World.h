@@ -17,8 +17,7 @@ public:
 
 	void Close();
 
-	void Init(MonScene* scene, PrefabRegistry& prefabRegistry, RenderSystem& renderSystem, ResourceManager& resourceManager,
-	          std::weak_ptr<LuaSystem> luaSystem);
+	void Init(MonScene* scene, PrefabRegistry& prefabRegistry, RenderSystem& renderSystem, ResourceManager& resourceManager, std::weak_ptr<LuaSystem> luaSystem);
 	Camera& GetCamera() const { return *mCamera; }
 	entt::registry& GetRegistry() { return mRegistry; }
 	Entity* GetEntityForId(entt::entity id);
@@ -29,11 +28,13 @@ public:
 	Entity& CreateEntity();
 	void RemoveEntity(const entt::entity id);
 	void FlushEntities();
+	void DisconnectAll();
 
 	template <typename Component>
-	void ConnectOnConstruct(EventFunc& handler) const;
+	SubscriptionHandle ConnectOnConstruct(EventFunc& handler);
 	template <typename Component>
-	void ConnectOnDestroy(EventFunc& handler) const;
+	SubscriptionHandle ConnectOnDestroy(EventFunc& handler);
+
 	template <typename Component>
 	void RegisterComponentLifecycle();
 	template <typename Component>
@@ -47,18 +48,26 @@ private:
 	std::unordered_map<std::string, entt::entity> mEntityNameIdMap;
 	std::unique_ptr<EventPublisher> mEventPublisher;
 	std::unique_ptr<TerrainMesh> mTerrain;
+
+	std::vector<std::pair<std::string, SubscriptionHandle>> mSubscriptions;
 };
 
 template <typename Component>
-void World::ConnectOnConstruct(EventFunc& handler) const
+SubscriptionHandle World::ConnectOnConstruct(EventFunc& handler)
 {
-	mEventPublisher->AddListener<Component>("on_construct", handler);
+	SubscriptionHandle handle = mEventPublisher->AddListener<Component>("on_construct", handler);
+	mSubscriptions.emplace_back("on_construct", handle);
+
+	return handle;
 }
 
 template <typename Component>
-void World::ConnectOnDestroy(EventFunc& handler) const
+SubscriptionHandle World::ConnectOnDestroy(EventFunc& handler)
 {
-	mEventPublisher->AddListener<Component>("on_destroy", handler);
+	SubscriptionHandle handle = mEventPublisher->AddListener<Component>("on_destroy", handler);
+	mSubscriptions.emplace_back("on_destroy", handle);
+
+	return handle;
 }
 
 template <typename Component>

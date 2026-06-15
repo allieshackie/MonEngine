@@ -8,6 +8,7 @@
 #include "Core/ISystem.h"
 
 class Entity;
+class EventPublisher;
 class RenderSystem;
 class ResourceManager;
 class World;
@@ -15,7 +16,7 @@ class World;
 class PhysicsSystem : public ISystem
 {
 public:
-	PhysicsSystem(RenderSystem& renderSystem, ResourceManager& resourceManager, std::weak_ptr<World> world);
+	PhysicsSystem(RenderSystem& renderSystem, ResourceManager& resourceManager, EventPublisher& eventPublisher);
 
 	void RegisterCollider(Entity* entity);
 	void AddEntityToInitialize(Entity* entity);

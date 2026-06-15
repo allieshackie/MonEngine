@@ -9,6 +9,7 @@
 struct ModelComponent;
 
 class Entity;
+class EventPublisher;
 class Model;
 class ResourceManager;
 class World;
@@ -16,7 +17,7 @@ class World;
 class AnimatorSystem : public ISystem
 {
 public:
-	AnimatorSystem(ResourceManager& resourceManager, std::weak_ptr<World> world);
+	AnimatorSystem(ResourceManager& resourceManager, EventPublisher& eventPublisher);
 
 	void Update(float dt) override;
 

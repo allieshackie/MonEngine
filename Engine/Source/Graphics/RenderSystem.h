@@ -7,6 +7,7 @@
 #include "Graphics/Pipelines/TextPipeline.h"
 
 class Camera;
+class EventPublisher;
 class InputHandler;
 class ResourceManager;
 class World;
@@ -57,8 +58,7 @@ public:
 	bool GetBackendNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const;
 	bool GetCommandBufferNativeHandle(void* nativeHandle, std::size_t nativeHandleSize) const;
 
-	void OnWorldCreated(World* world);
-	void OnWindowCreated(ResourceManager& resourceManager);
+	void OnWindowCreated(ResourceManager& resourceManager, EventPublisher& eventPublisher);
 
 private:
 

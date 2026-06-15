@@ -4,10 +4,15 @@
 
 class Entity;
 class EventSubscription;
+class World;
+
 using EventFunc = std::function<void(Entity*)>;
 using PublishList = std::vector<std::shared_ptr<EventSubscription>>;
 using PublishMap = std::unordered_map<std::string, PublishList>;
 using SubscriptionHandle = uint32_t;
+
+using WorldFunc = std::function<void(std::weak_ptr<World>)>;
+using WorldPublishList = std::vector<WorldFunc>;
 
 class EventPublisher
 {
@@ -19,9 +24,14 @@ public:
 	template <typename Component>
 	void Notify(const std::string& eventType, Entity* entity);
 
+	void AddWorldCreatedListener(WorldFunc callback);
+	void NotifyWorldCreated(std::weak_ptr<World> world);
+
 private:
 	PublishMap mList;
 	SubscriptionHandle mNextHandle = 0;
+
+	WorldPublishList mWorldListeners;
 };
 
 class EventSubscription

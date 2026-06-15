@@ -16,9 +16,14 @@
 glm::vec3 rotateAxis(0.0f, 1.0f, 0.0f);
 float speed = 5.0f;
 
-MovementSystem::MovementSystem(PhysicsSystem& physicsSystem, std::weak_ptr<World> world)
-	: mPhysicsSystem(physicsSystem), mWorld(world)
+MovementSystem::MovementSystem(PhysicsSystem& physicsSystem, EventPublisher& eventPublisher)
+	: mPhysicsSystem(physicsSystem)
 {
+	eventPublisher.AddWorldCreatedListener(
+		[this](std::weak_ptr<World> world) {
+			mWorld = world;
+		}
+	);
 }
 
 void MovementSystem::Update(float dt)

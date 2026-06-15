@@ -5,13 +5,14 @@
 
 class DescriptionFactory;
 class Entity;
+class EventPublisher;
 class RenderSystem;
 class ResourceManager;
 
 class SceneManager : public LuaBindable
 {
 public:
-	SceneManager(DescriptionFactory& descriptionFactory, RenderSystem& renderSystem, ResourceManager& resourceManager);
+	SceneManager(DescriptionFactory& descriptionFactory, RenderSystem& renderSystem, ResourceManager& resourceManager, EventPublisher& eventPublisher);
 
 	std::shared_ptr<World> GetCurrentWorld() const;
 	void SetLuaSystem(std::weak_ptr<LuaSystem> luaSystem) { mLuaSystem = luaSystem; }
@@ -34,6 +35,7 @@ private:
 	RenderSystem& mRenderSystem;
 	std::weak_ptr<LuaSystem> mLuaSystem;
 	ResourceManager& mResourceManager;
+	EventPublisher& mEventPublisher;
 
 	const char* EDITOR_SCENE = "editor";
 };

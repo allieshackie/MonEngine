@@ -7,31 +7,36 @@
 
 //#define PROFILE_LUA
 
-LuaSystem::LuaSystem(std::weak_ptr<World> world) : mWorld(world)
+LuaSystem::LuaSystem(EventPublisher& eventPublisher)
 {
 	mLuaContext = std::make_unique<LuaContext>();
 
 	lua_newtable(mLuaContext->GetState());
 	lua_setglobal(mLuaContext->GetState(), LuaUtil::mGameData.c_str());
 
-	if (const auto worldPtr = mWorld.lock())
-	{
-		EventFunc func = [this](Entity* entity)
-		{
-			ScriptComponent& script = entity->GetComponent<ScriptComponent>();
-			script.mLuaTableRef = LuaUtil::CreateLuaTable<Entity>(mLuaContext->GetState(), entity);
-			mLuaContext->ExecuteWithInstance(script.mPath.c_str(), script.mLuaTableRef);
-			mLuaContext->Initialize(script.mLuaTableRef);
-		};
-		worldPtr->ConnectOnConstruct<ScriptComponent>(func);
+	eventPublisher.AddWorldCreatedListener(
+		[this](std::weak_ptr<World> world) {
+			if (const auto worldPtr = world.lock())
+			{
+				EventFunc func = [this](Entity* entity)
+					{
+						ScriptComponent& script = entity->GetComponent<ScriptComponent>();
+						script.mLuaTableRef = LuaUtil::CreateLuaTable<Entity>(mLuaContext->GetState(), entity);
+						mLuaContext->ExecuteWithInstance(script.mPath.c_str(), script.mLuaTableRef);
+						mLuaContext->Initialize(script.mLuaTableRef);
+					};
+				worldPtr->ConnectOnConstruct<ScriptComponent>(func);
 
-		EventFunc onDestroy = [this](Entity* entity)
-		{
-			const ScriptComponent& script = entity->GetComponent<ScriptComponent>();
-			luaL_unref(mLuaContext->GetState(), LUA_REGISTRYINDEX, script.mLuaTableRef);
-		};
-		worldPtr->ConnectOnDestroy<ScriptComponent>(func);
-	}
+				EventFunc onDestroy = [this](Entity* entity)
+					{
+						const ScriptComponent& script = entity->GetComponent<ScriptComponent>();
+						luaL_unref(mLuaContext->GetState(), LUA_REGISTRYINDEX, script.mLuaTableRef);
+					};
+				worldPtr->ConnectOnDestroy<ScriptComponent>(func);
+			}
+			mWorld = world;
+		}
+	);
 }
 
 lua_State* LuaSystem::GetState() const
