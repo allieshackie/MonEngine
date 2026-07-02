@@ -28,6 +28,7 @@ public:
 
 		// Component with the given ID not found
 		std::cout << "tried to create an undefined description: " << descriptionName << std::endl;
+		std::cout << "Check if a RegisterDescription line has been added" << std::endl;
 		assert(false);
 		return nullptr;
 	}

@@ -16,6 +16,7 @@ local function ExitGame()
 end
 
 function Initialize()
+    _G.print("Initializing Main Menu")
     local guiSystem = gGameData.GetGUISystem()
 
     mainMenu = guiSystem:CreatePopup("Main Menu", {0,0}, {400, 400})

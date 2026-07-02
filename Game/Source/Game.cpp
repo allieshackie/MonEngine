@@ -10,6 +10,7 @@
 #include "Entity/Descriptions/ScriptDescription.h"
 #include "Entity/Descriptions/SpriteDescription.h"
 #include "Entity/Descriptions/TransformDescription.h"
+#include "Entity/Descriptions/TriggerVolumeDescription.h"
 #include "Entity/Systems/MovementSystem.h"
 #include "Entity/Systems/PlayerSystem.h"
 #include "Graphics/Animation/Animator.h"
@@ -143,6 +144,7 @@ void Game::RegisterDescriptions()
 	mDescriptionFactory->RegisterDescription<ScriptDescription>(ScriptDescription::JsonName);
 	mDescriptionFactory->RegisterDescription<SpriteDescription>(SpriteDescription::JsonName);
 	mDescriptionFactory->RegisterDescription<TransformDescription>(TransformDescription::JsonName);
+	mDescriptionFactory->RegisterDescription<TriggerVolumeDescription>(TriggerVolumeDescription::JsonName);
 }
 
 // Add an engine level onWOrldCreate event for all systems to subscribe to
