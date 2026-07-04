@@ -12,6 +12,16 @@ PlayerSystem::PlayerSystem(std::weak_ptr<InputHandler> inputHandler, EventPublis
 {
 	eventPublisher.AddWorldCreatedListener(
 		[this](std::weak_ptr<World> world) {
+			if (!mHandlers.empty())
+			{
+				if (const auto inputHandlerPtr = mInputHandler.lock())
+				{
+					for (auto handler : mHandlers)
+					{
+						inputHandlerPtr->Unregister(handler);
+					}
+				}
+			}
 			if (const auto worldPtr = world.lock())
 			{
 				EventFunc func = [this](Entity* entity)
@@ -24,60 +34,71 @@ PlayerSystem::PlayerSystem(std::weak_ptr<InputHandler> inputHandler, EventPublis
 	);
 }
 
-void PlayerSystem::SpawnPlayer(Entity* entity) const
+void PlayerSystem::SpawnPlayer(Entity* entity)
 {
 	auto& player = entity->GetComponent<PlayerComponent>();
 
 	if (const auto inputHandler = mInputHandler.lock())
 	{
 		// Forward
-		inputHandler->RegisterButtonDownHandler(LLGL::Key::W, [&player]()
+		HandlerId wDownHandler = inputHandler->RegisterButtonDownHandler(LLGL::Key::W, [&player]()
 		{
 			player.mMovementInput |= MovementInput::Forward;
 		});
 
-		inputHandler->RegisterButtonUpHandler(LLGL::Key::W, [&player]()
+		HandlerId wUpHandler = inputHandler->RegisterButtonUpHandler(LLGL::Key::W, [&player]()
 		{
 			player.mMovementInput &= ~(MovementInput::Forward);
 		});
+		
 
 		// Back
-		inputHandler->RegisterButtonDownHandler(LLGL::Key::S, [&player]()
+		HandlerId sDownHandler = inputHandler->RegisterButtonDownHandler(LLGL::Key::S, [&player]()
 		{
 			player.mMovementInput |= MovementInput::Backward;
 		});
 
-		inputHandler->RegisterButtonUpHandler(LLGL::Key::S, [&player]()
+		HandlerId sUpHandler = inputHandler->RegisterButtonUpHandler(LLGL::Key::S, [&player]()
 		{
 			player.mMovementInput &= ~(MovementInput::Backward);
 		});
 
 		// Left
-		inputHandler->RegisterButtonDownHandler(LLGL::Key::A, [&player]()
+		HandlerId aDownHandler = inputHandler->RegisterButtonDownHandler(LLGL::Key::A, [&player]()
 		{
 			player.mMovementInput |= MovementInput::Left;
 		});
 
-		inputHandler->RegisterButtonUpHandler(LLGL::Key::A, [&player]()
+		HandlerId aUpHandler = inputHandler->RegisterButtonUpHandler(LLGL::Key::A, [&player]()
 		{
 			player.mMovementInput &= ~(MovementInput::Left);
 		});
 
 		// Right
-		inputHandler->RegisterButtonDownHandler(LLGL::Key::D, [&player]()
+		HandlerId dDownHandler = inputHandler->RegisterButtonDownHandler(LLGL::Key::D, [&player]()
 		{
 			player.mMovementInput |= MovementInput::Right;
 		});
 
-		inputHandler->RegisterButtonUpHandler(LLGL::Key::D, [&player]()
+		HandlerId dUpHandler = inputHandler->RegisterButtonUpHandler(LLGL::Key::D, [&player]()
 		{
 			player.mMovementInput &= ~(MovementInput::Right);
 		});
 
 		// Jump
-		inputHandler->RegisterButtonDownHandler(LLGL::Key::Space, [&player]()
+		HandlerId jumpHandler = inputHandler->RegisterButtonDownHandler(LLGL::Key::Space, [&player]()
 		{
 			player.mMovementInput |= MovementInput::Jump;
 		});
+
+		mHandlers.push_back(wDownHandler);
+		mHandlers.push_back(wUpHandler);
+		mHandlers.push_back(sDownHandler);
+		mHandlers.push_back(sUpHandler);
+		mHandlers.push_back(aDownHandler);
+		mHandlers.push_back(aUpHandler);
+		mHandlers.push_back(dDownHandler);
+		mHandlers.push_back(dUpHandler);
+		mHandlers.push_back(jumpHandler);
 	}
 }

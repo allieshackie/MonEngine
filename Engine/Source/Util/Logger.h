@@ -1,4 +1,5 @@
 #pragma once
+#include <assert.h>
 
 #define MON_LOG(message) std::cout << (message) << std::endl
 #define MON_WARN(message) std::cerr << "Warning: " << (message) << std::endl

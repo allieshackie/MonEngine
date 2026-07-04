@@ -35,23 +35,38 @@ struct InputEvent
 	wchar_t mChar = '_';
 };
 
-struct HoldHandler
+using HandlerId = size_t;
+
+struct HandlerEntry {
+	HandlerId mId;
+	std::function<void()> mCallback;
+};
+struct HoldHandlerEntry
 {
+	HandlerId mId;
 	std::function<void()> onHold;
 	std::function<void()> onRelease;
+};
+struct MouseMoveHandlerEntry
+{
+	HandlerId mId;
+	std::function<void(LLGL::Offset2D)> mCallback;
 };
 
 class InputHandler
 {
 public:
-	void RegisterButtonUpHandler(LLGL::Key keyCode, const std::function<void()>& callback);
-	void RegisterButtonDownHandler(LLGL::Key keyCode, const std::function<void()>& callback);
-	void RegisterButtonHoldHandler(LLGL::Key keyCode, const std::function<void()>& onHold,
+	HandlerId RegisterButtonUpHandler(LLGL::Key keyCode, const std::function<void()>& callback);
+	HandlerId RegisterButtonDownHandler(LLGL::Key keyCode, const std::function<void()>& callback);
+	HandlerId RegisterButtonHoldHandler(LLGL::Key keyCode, const std::function<void()>& onHold,
 	                               const std::function<void()>& onRelease);
 
-	void RegisterMouseMoveHandler(const std::function<void(LLGL::Offset2D)>& callback);
+	HandlerId RegisterMouseMoveHandler(const std::function<void(LLGL::Offset2D)>& callback);
 	void RegisterZoomInHandler(const std::function<void()>& callback);
 	void RegisterZoomOutHandler(const std::function<void()>& callback);
+
+	void Unregister(HandlerId id);
+	void UnregisterZoomHandlers();
 
 	const std::vector<LLGL::Key>& GetKeysPressed() const { return mDebugKeysPressed; }
 	const std::vector<LLGL::Key>& GetPreviousKeysHeld() const { return mPreviousKeysPressed; }
@@ -77,14 +92,15 @@ public:
 private:
 	ImGuiKey LLGLKeyToImGuiKey(LLGL::Key key);
 
-	std::unordered_map<LLGL::Key, std::vector<std::function<void()>>> mButtonUpHandlers;
-	std::unordered_map<LLGL::Key, std::vector<std::function<void()>>> mButtonDownHandlers;
-	std::unordered_map<LLGL::Key, std::vector<HoldHandler>> mButtonHoldHandlers;
-	std::vector<std::function<void(LLGL::Offset2D)>> mMouseMoveCallbacks;
-	std::vector<std::function<void(InputEvent)>> mMouseScrollCallbacks;
+	std::unordered_map<LLGL::Key, std::vector<HandlerEntry>> mButtonUpHandlers;
+	std::unordered_map<LLGL::Key, std::vector<HandlerEntry>> mButtonDownHandlers;
+	std::unordered_map<LLGL::Key, std::vector<HoldHandlerEntry>> mButtonHoldHandlers;
+	std::vector<MouseMoveHandlerEntry> mMouseMoveCallbacks;
 	std::function<void()> mZoomInCallback;
 	std::function<void()> mZoomOutCallback;
 	std::unordered_set<LLGL::Key> mKeysHeld;
+
+	HandlerId mID = 0;
 
 	LLGL::Offset2D mCurrentMousePos = {0, 0};
 

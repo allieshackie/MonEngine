@@ -2,41 +2,51 @@
 
 #include "InputHandler.h"
 
-void InputHandler::RegisterButtonUpHandler(LLGL::Key keyCode, const std::function<void()>& callback)
+HandlerId InputHandler::RegisterButtonUpHandler(LLGL::Key keyCode, const std::function<void()>& callback)
 {
+	HandlerId id = mID++;
 	const auto& handler = mButtonUpHandlers.find(keyCode);
 	if (handler != mButtonUpHandlers.end())
 	{
-		handler->second.push_back({callback});
+		handler->second.push_back({id, callback});
 	}
 	else
 	{
-		mButtonUpHandlers.insert({keyCode, {callback}});
+		mButtonUpHandlers.insert({ keyCode, {{id, callback}} });
 	}
+
+	return id;
 }
 
-void InputHandler::RegisterButtonDownHandler(LLGL::Key keyCode, const std::function<void()>& callback)
+HandlerId InputHandler::RegisterButtonDownHandler(LLGL::Key keyCode, const std::function<void()>& callback)
 {
+	HandlerId id = mID++;
 	const auto& handler = mButtonDownHandlers.find(keyCode);
 	if (handler != mButtonDownHandlers.end())
 	{
-		handler->second.push_back({callback});
+		handler->second.push_back({id, callback});
 	}
 	else
 	{
-		mButtonDownHandlers.insert({keyCode, {callback}});
+		mButtonDownHandlers.insert({ keyCode, {{id, callback}} });
 	}
+
+	return id;
 }
 
-void InputHandler::RegisterButtonHoldHandler(LLGL::Key keyCode, const std::function<void()>& onHold,
+HandlerId InputHandler::RegisterButtonHoldHandler(LLGL::Key keyCode, const std::function<void()>& onHold,
                                              const std::function<void()>& onRelease)
 {
-	mButtonHoldHandlers[keyCode].push_back({onHold, onRelease});
+	HandlerId id = mID++;
+	mButtonHoldHandlers[keyCode].push_back({id, onHold, onRelease});
+	return id;
 }
 
-void InputHandler::RegisterMouseMoveHandler(const std::function<void(LLGL::Offset2D)>& callback)
+HandlerId InputHandler::RegisterMouseMoveHandler(const std::function<void(LLGL::Offset2D)>& callback)
 {
-	mMouseMoveCallbacks.push_back(callback);
+	HandlerId id = mID++;
+	mMouseMoveCallbacks.push_back({ id, callback });
+	return id;
 }
 
 void InputHandler::RegisterZoomInHandler(const std::function<void()>& callback)
@@ -47,6 +57,78 @@ void InputHandler::RegisterZoomInHandler(const std::function<void()>& callback)
 void InputHandler::RegisterZoomOutHandler(const std::function<void()>& callback)
 {
 	mZoomOutCallback = callback;
+}
+
+void InputHandler::Unregister(HandlerId id)
+{
+	// Up Handler
+	for (auto entry : mButtonUpHandlers)
+	{
+		for (auto it = entry.second.begin(); it != entry.second.end();)
+		{
+			if ((*it).mId == id)
+			{
+				it = entry.second.erase(it);
+				return;
+			}
+			else
+			{
+				++it;
+			}
+		}
+	}
+	// Down Handler
+	for (auto entry : mButtonDownHandlers)
+	{
+		for (auto it = entry.second.begin(); it != entry.second.end();)
+		{
+			if ((*it).mId == id)
+			{
+				it = entry.second.erase(it);
+				return;
+			}
+			else
+			{
+				++it;
+			}
+		}
+	}
+	// Hold Handler
+	for (auto entry : mButtonHoldHandlers)
+	{
+		for (auto it = entry.second.begin(); it != entry.second.end();)
+		{
+			if ((*it).mId == id)
+			{
+				it = entry.second.erase(it);
+				return;
+			}
+			else
+			{
+				++it;
+			}
+		}
+	}
+	// Mouse Move Handler
+	for (auto it = mMouseMoveCallbacks.begin(); it != mMouseMoveCallbacks.end();)
+	{
+		if ((*it).mId == id)
+		{
+			it = mMouseMoveCallbacks.erase(it);
+			return;
+		}
+		else
+		{
+			++it;
+		}
+	}
+	
+}
+
+void InputHandler::UnregisterZoomHandlers()
+{
+	mZoomInCallback = NULL;
+	mZoomOutCallback = NULL;
 }
 
 const char* InputHandler::GetNameForKey(LLGL::Key key) const
@@ -201,7 +283,7 @@ void InputHandler::HandleKeyDown(LLGL::Key keyCode)
 	{
 		for (const auto& cb : handler->second)
 		{
-			cb();
+			cb.mCallback();
 		}
 	}
 
@@ -225,7 +307,7 @@ void InputHandler::HandleKeyUp(LLGL::Key keyCode)
 	{
 		for (const auto& cb : handler->second)
 		{
-			cb();
+			cb.mCallback();
 		}
 	}
 
@@ -309,9 +391,9 @@ void InputHandler::TriggerZoomOutCallback()
 
 void InputHandler::TriggerMouseMoveCallbacks(const LLGL::Offset2D& position)
 {
-	for (const auto& fn : mMouseMoveCallbacks)
+	for (const auto& cb : mMouseMoveCallbacks)
 	{
-		fn(position);
+		cb.mCallback(position);
 	}
 }
 
