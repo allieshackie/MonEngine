@@ -202,6 +202,7 @@ MeshPipeline::MeshPipeline(const LLGL::RenderSystemPtr& renderSystem, const Reso
 
 	eventPublisher.AddWorldCreatedListener(
 		[this](std::weak_ptr<World> world) {
+			mLightEntities.clear();
 			if (const auto worldShared = world.lock())
 			{
 				World* worldPtr = worldShared.get();

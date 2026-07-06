@@ -26,6 +26,7 @@ PhysicsSystem::PhysicsSystem(RenderSystem& renderSystem, ResourceManager& resour
 
 	eventPublisher.AddWorldCreatedListener(
 		[this](std::weak_ptr<World> world) {
+			mQueueFlush = true;
 			if (const auto worldShared = world.lock())
 			{
 				EventFunc func = [this](entt::entity entityId)
@@ -162,6 +163,12 @@ void PhysicsSystem::RegisterCollider(entt::entity entityId)
 
 void PhysicsSystem::FixedUpdate(float dt)
 {
+	if (mQueueFlush)
+	{
+		mQueueFlush = false;
+		Flush();
+	}
+
 	for (auto it = mEntitiesToInitialize.begin(); it != mEntitiesToInitialize.end();)
 	{
 		if (const auto worldShared = mWorld.lock())
@@ -204,21 +211,8 @@ void PhysicsSystem::FixedUpdate(float dt)
 
 void PhysicsSystem::Update(float dt)
 {
-	auto& objects = mDynamicWorld->getCollisionObjectArray();
-
-	for (int i = 0; i < objects.size(); ++i)
-	{
-		auto* obj = objects[i];
-
-		assert(obj);
-		assert(obj->getCollisionShape());
-		assert(obj->getBroadphaseHandle());
-
-		obj->getWorldTransform();
-	}
-
 	mDynamicWorld->stepSimulation(dt, 10, 1.0f / 60.0f);
-	mDynamicWorld->debugDrawWorld();
+	//mDynamicWorld->debugDrawWorld();
 }
 
 btRigidBody* PhysicsSystem::GetRigidbody(entt::entity entityId)
@@ -237,6 +231,19 @@ bool PhysicsSystem::Raycast(btVector3 start, btVector3 end)
 	btCollisionWorld::ClosestRayResultCallback rayCallback(start, end);
 	mDynamicWorld->rayTest(start, end, rayCallback);
 	return rayCallback.hasHit();
+}
+
+void PhysicsSystem::Flush()
+{
+	for (auto& [entity, obj] :mPhysicsObjects)
+	{
+		if (obj.mRigidBody)
+		{
+			mDynamicWorld->removeRigidBody(obj.mRigidBody.get());
+		}
+	}
+
+	mPhysicsObjects.clear();
 }
 
 btQuaternion PhysicsSystem::_ConvertDegreesToQuat(glm::vec3 rot)

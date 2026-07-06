@@ -35,6 +35,8 @@ public:
 	btRigidBody* GetRigidbody(entt::entity entityId);
 	bool Raycast(btVector3 start, btVector3 end);
 
+	void Flush();
+
 private:
 	btQuaternion _ConvertDegreesToQuat(glm::vec3 rot);
 
@@ -53,4 +55,6 @@ private:
 	std::vector<entt::entity> mEntitiesToInitialize;
 	ResourceManager& mResourceManager;
 	std::weak_ptr<World> mWorld;
+
+	bool mQueueFlush = false;
 };
