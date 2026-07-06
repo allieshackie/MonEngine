@@ -11,9 +11,12 @@ Camera::Camera(World* world, const CameraData& data)
 {
 	mFollowCam = data.mFollowCam;
 
-	EventFunc func = [this](Entity* entity)
+	EventFunc func = [this, world](entt::entity entityId)
 	{
-		SetLookTarget(entity);
+		if (Entity* entity = world->GetEntityForId(entityId))
+		{
+			SetLookTarget(entity);
+		}
 	};
 	world->ConnectOnConstruct<PlayerComponent>(func);
 

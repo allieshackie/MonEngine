@@ -5,7 +5,7 @@
 
 void SpriteDescription::ApplyToEntity(Entity* entity, entt::registry& registry)
 {
-	SpriteComponent sprite;
+	SpriteComponent& sprite = entity->AddComponent<SpriteComponent>();
 	try
 	{
 		auto archive = FileSystem::CreateArchive(mJson);
@@ -16,6 +16,4 @@ void SpriteDescription::ApplyToEntity(Entity* entity, entt::registry& registry)
 		std::cerr << "SpriteComponent deserialization error: " << e.what() << std::endl;
 		assert(false);
 	}
-
-	entity->AddComponent<SpriteComponent>(sprite);
 }

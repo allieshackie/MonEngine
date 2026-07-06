@@ -4,7 +4,7 @@
 
 void PhysicsDescription::ApplyToEntity(Entity* entity, entt::registry& registry)
 {
-	PhysicsComponent physics;
+	PhysicsComponent& physics = entity->AddComponent<PhysicsComponent>();
 	try
 	{
 		auto archive = FileSystem::CreateArchive(mJson);
@@ -15,6 +15,4 @@ void PhysicsDescription::ApplyToEntity(Entity* entity, entt::registry& registry)
 		std::cerr << "PhysicsComponent deserialization error: " << e.what() << std::endl;
 		assert(false);
 	}
-
-	entity->AddComponent<PhysicsComponent>(physics);
 }

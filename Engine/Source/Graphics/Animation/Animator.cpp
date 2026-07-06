@@ -15,9 +15,13 @@ AnimatorSystem::AnimatorSystem(ResourceManager& resourceManager, EventPublisher&
 		[this](std::weak_ptr<World> world) {
 			if (const auto worldShared = world.lock())
 			{
-				EventFunc func = [this](Entity* entity)
+				World* worldPtr = worldShared.get();
+				EventFunc func = [this, worldPtr](entt::entity entityId)
 				{
-					_SetJointMatrixCount(entity);
+					if (Entity* entity = worldPtr->GetEntityForId(entityId))
+					{
+						_SetJointMatrixCount(entity);
+					}
 				};
 				worldShared->ConnectOnConstruct<ModelComponent>(func);
 			}
@@ -103,6 +107,11 @@ void AnimatorSystem::_UpdateJointHierarchy(Model& model, AnimationComponent& ani
                                            const Animation* animation, const Animation* prevAnimation, int nodeIndex,
                                            const glm::mat4 parentTransform)
 {
+	if (mesh.mFinalTransforms.empty())
+	{
+		return;
+	}
+
 	const auto node = model.GetNodeAt(nodeIndex);
 
 	if (node == nullptr)
@@ -142,7 +151,6 @@ void AnimatorSystem::_UpdateJointHierarchy(Model& model, AnimationComponent& ani
 	}
 
 	glm::mat4 globalTransform = parentTransform * transform;
-
 	if (jointNode)
 	{
 		mesh.mFinalTransforms[nodeIndex] = globalTransform * jointNode->mInverseBindMatrix;
@@ -151,7 +159,7 @@ void AnimatorSystem::_UpdateJointHierarchy(Model& model, AnimationComponent& ani
 	{
 		mesh.mFinalTransforms[nodeIndex] = globalTransform;
 	}
-
+	
 	for (const auto child : node->mChildren)
 	{
 		_UpdateJointHierarchy(model, animComp, mesh, animation, prevAnimation, child, globalTransform);

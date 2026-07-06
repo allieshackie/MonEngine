@@ -18,8 +18,5 @@ struct CollisionComponent
 	}
 
 	// Runtime
-	int mColliderIndex = -1;
-	btRigidBody* mRigidBody = nullptr;
 	bool mInitialized = false;
-	float mSimulateTimeout = 5.0f;
 };

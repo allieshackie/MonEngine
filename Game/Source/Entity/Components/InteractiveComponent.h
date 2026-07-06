@@ -2,4 +2,5 @@
 
 struct InteractiveComponent
 {
+	bool _unused = false;
 };

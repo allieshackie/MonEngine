@@ -4,7 +4,7 @@
 
 void TransformDescription::ApplyToEntity(Entity* entity, entt::registry& registry)
 {
-	TransformComponent transform;
+	TransformComponent& transform = entity->AddComponent<TransformComponent>();
 	try
 	{
 		auto archive = FileSystem::CreateArchive(mJson);
@@ -15,6 +15,4 @@ void TransformDescription::ApplyToEntity(Entity* entity, entt::registry& registr
 		std::cerr << "TransformComponent deserialization error: " << e.what() << std::endl;
 		assert(false);
 	}
-
-	entity->AddComponent<TransformComponent>(transform);
 }

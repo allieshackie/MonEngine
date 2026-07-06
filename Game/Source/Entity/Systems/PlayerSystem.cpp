@@ -22,13 +22,17 @@ PlayerSystem::PlayerSystem(std::weak_ptr<InputHandler> inputHandler, EventPublis
 					}
 				}
 			}
-			if (const auto worldPtr = world.lock())
+			if (const auto worldShared = world.lock())
 			{
-				EventFunc func = [this](Entity* entity)
+				World* worldPtr = worldShared.get();
+				EventFunc func = [this, worldPtr](entt::entity entityId)
+				{
+					if (Entity* entity = worldPtr->GetEntityForId(entityId))
 					{
 						SpawnPlayer(entity);
-					};
-				worldPtr->ConnectOnConstruct<PlayerComponent>(func);
+					}
+				};
+				worldShared->ConnectOnConstruct<PlayerComponent>(func);
 			}
 		}
 	);

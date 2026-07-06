@@ -4,6 +4,5 @@
 
 void PlayerDescription::ApplyToEntity(Entity* entity, entt::registry& registry)
 {
-	PlayerComponent player;
-	entity->AddComponent<PlayerComponent>(player);
+	entity->AddComponent<PlayerComponent>();
 }

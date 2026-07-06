@@ -1,4 +1,5 @@
 #include "Core/Timer.h"
+#include "Core/World.h"
 #include "Entity/Components/ModelComponent.h"
 #include "Entity/Descriptions/AnimationDescription.h"
 #include "Entity/Descriptions/CollisionDescription.h"
@@ -84,11 +85,16 @@ void Game::Run()
 			mSystemManager->FixedUpdate(timer->mDT);
 			timer->mAccumulator -= timer->mDT;
 		}
+		auto world = mSceneManager->GetCurrentWorld();
+
+		if (world)
+		{
+			world->FlushEvents();
+		}
 
 		mInputHandler->Update();
 		mSystemManager->Update(deltaTime);
 
-		auto world = mSceneManager->GetCurrentWorld();
 		if (world)
 		{
 			world->GetCamera().Update();

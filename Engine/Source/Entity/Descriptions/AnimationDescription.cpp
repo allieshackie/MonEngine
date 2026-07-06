@@ -4,7 +4,7 @@
 
 void AnimationDescription::ApplyToEntity(Entity* entity, entt::registry& registry)
 {
-	AnimationComponent anim;
+	AnimationComponent& anim = entity->AddComponent<AnimationComponent>();
 	try
 	{
 		auto archive = FileSystem::CreateArchive(mJson);
@@ -15,6 +15,4 @@ void AnimationDescription::ApplyToEntity(Entity* entity, entt::registry& registr
 		std::cerr << "AnimationComponent deserialization error: " << e.what() << std::endl;
 		assert(false);
 	}
-
-	entity->AddComponent<AnimationComponent>(anim);
 }

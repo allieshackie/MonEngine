@@ -36,6 +36,7 @@ private:
 	// example
 	static bool show_demo_window;
 	std::vector<std::shared_ptr<GUIMenu>> mGUIMenus;
+	std::vector<std::shared_ptr<GUIMenu>> mPendingMenus;
 	WindowContext& mWindowContext;
 
 	glm::vec2 mViewportSize = { 0,0 };

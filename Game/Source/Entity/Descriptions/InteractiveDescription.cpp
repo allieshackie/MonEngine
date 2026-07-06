@@ -4,5 +4,5 @@
 
 void InteractiveDescription::ApplyToEntity(Entity* entity, entt::registry& registry)
 {
-	entity->AddComponentWithArgs<InteractiveComponent>();
+	entity->AddComponent<InteractiveComponent>();
 }

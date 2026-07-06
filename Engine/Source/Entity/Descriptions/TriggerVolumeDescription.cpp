@@ -4,5 +4,5 @@
 
 void TriggerVolumeDescription::ApplyToEntity(Entity* entity, entt::registry& registry)
 {
-	entity->AddComponentWithArgs<TriggerVolumeComponent>();
+	entity->AddComponent<TriggerVolumeComponent>();
 }

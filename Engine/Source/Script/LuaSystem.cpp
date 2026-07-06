@@ -16,23 +16,30 @@ LuaSystem::LuaSystem(EventPublisher& eventPublisher)
 
 	eventPublisher.AddWorldCreatedListener(
 		[this](std::weak_ptr<World> world) {
-			if (const auto worldPtr = world.lock())
+			if (const auto worldShared = world.lock())
 			{
-				EventFunc func = [this](Entity* entity)
+				World* worldPtr = worldShared.get();
+				EventFunc func = [this, worldPtr](entt::entity entityId)
+				{
+					if (Entity* entity = worldPtr->GetEntityForId(entityId))
 					{
 						ScriptComponent& script = entity->GetComponent<ScriptComponent>();
 						script.mLuaTableRef = LuaUtil::CreateLuaTable<Entity>(mLuaContext->GetState(), entity);
 						mLuaContext->ExecuteWithInstance(script.mPath.c_str(), script.mLuaTableRef);
 						mLuaContext->Initialize(script.mLuaTableRef);
-					};
-				worldPtr->ConnectOnConstruct<ScriptComponent>(func);
+					}
+				};
+				worldShared->ConnectOnConstruct<ScriptComponent>(func);
 
-				EventFunc onDestroy = [this](Entity* entity)
+				EventFunc onDestroy = [this, worldPtr](entt::entity entityId)
+				{
+					if (Entity* entity = worldPtr->GetEntityForId(entityId))
 					{
 						const ScriptComponent& script = entity->GetComponent<ScriptComponent>();
 						luaL_unref(mLuaContext->GetState(), LUA_REGISTRYINDEX, script.mLuaTableRef);
-					};
-				worldPtr->ConnectOnDestroy<ScriptComponent>(func);
+					}
+				};
+				worldShared->ConnectOnDestroy<ScriptComponent>(func);
 			}
 			mWorld = world;
 		}
@@ -54,7 +61,7 @@ void LuaSystem::Update(float dt)
 	if (const auto world = mWorld.lock())
 	{
 		const auto view = world->GetRegistry().view<ScriptComponent>();
-		view.each([=](auto& script)
+		view.each([this](auto& script)
 		{
 			mLuaContext->Update(script.mLuaTableRef);
 		});

@@ -4,7 +4,7 @@
 
 void ModelDescription::ApplyToEntity(Entity* entity, entt::registry& registry)
 {
-	ModelComponent model;
+	ModelComponent& model = entity->AddComponent<ModelComponent>();
 	try
 	{
 		auto archive = FileSystem::CreateArchive(mJson);
@@ -15,6 +15,4 @@ void ModelDescription::ApplyToEntity(Entity* entity, entt::registry& registry)
 		std::cerr << "ModelComponent deserialization error: " << e.what() << std::endl;
 		assert(false);
 	}
-
-	entity->AddComponent<ModelComponent>(model);
 }

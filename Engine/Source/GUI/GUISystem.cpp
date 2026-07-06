@@ -65,6 +65,12 @@ void GUISystem::RenderMenus()
 		(*it)->Render(mViewportSize, hasChanged);
 		++it;
 	}
+
+	if (!mPendingMenus.empty())
+	{
+		mGUIMenus.insert(mGUIMenus.end(), mPendingMenus.begin(), mPendingMenus.end());
+		mPendingMenus.clear();
+	}
 }
 
 void GUISystem::BindMethods(lua_State* state)
@@ -219,8 +225,7 @@ void GUISystem::GUIEndFrame() const
 std::shared_ptr<GUIMenu> GUISystem::CreatePopup(const std::string& name, glm::vec2 pos, glm::vec2 size)
 {
 	auto menu = std::make_shared<GUIMenu>(name, pos, size);
-
-	mGUIMenus.push_back(menu);
+	mPendingMenus.push_back(menu);
 
 	return menu;
 }

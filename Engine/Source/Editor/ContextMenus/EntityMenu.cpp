@@ -19,15 +19,22 @@ EntityMenu::EntityMenu(std::weak_ptr<InputHandler> inputHandler, std::weak_ptr<W
 
 	if (const auto sharedWorld = mWorld.lock())
 	{
+		World* worldPtr = sharedWorld.get();
 		// All entities should have a transform
-		EventFunc addedFunc = [this](Entity* entity)
+		EventFunc addedFunc = [this, worldPtr](entt::entity entityId)
 		{
-			OnEntityAdded(entity);
+			if (Entity* entity = worldPtr->GetEntityForId(entityId))
+			{
+				OnEntityAdded(entity);
+			}
 		};
 		sharedWorld->ConnectOnConstruct<TransformComponent>(addedFunc);
-		EventFunc destroyFunc = [this](Entity* entity)
+		EventFunc destroyFunc = [this, worldPtr](entt::entity entityId)
 		{
-			OnEntityRemoved(entity);
+			if (Entity* entity = worldPtr->GetEntityForId(entityId))
+			{
+				OnEntityRemoved(entity);
+			}
 		};
 		sharedWorld->ConnectOnDestroy<TransformComponent>(destroyFunc);
 	}

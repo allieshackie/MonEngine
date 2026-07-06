@@ -19,6 +19,27 @@ void EventPublisher::RemoveListener(const std::string& eventType, SubscriptionHa
 	}
 }
 
+void EventPublisher::Flush()
+{
+	for (const auto& event : mQueueEvents)
+	{
+		const auto it = mList.find(event.eventType);
+		if (it != mList.end())
+		{
+			const auto& eventListeners = it->second;
+			for (const auto& listener : eventListeners)
+			{
+				if (event.componentType == listener->GetType())
+				{
+					listener->GetHandlerFunc()(event.entity);
+				}
+			}
+		}
+	}
+
+	mQueueEvents.clear();
+}
+
 void EventPublisher::AddWorldCreatedListener(WorldFunc callback)
 {
 	mWorldListeners.push_back(callback);

@@ -1,18 +1,24 @@
 #pragma once
 #include <functional>
 #include <typeindex>
+#include <entt/entt.hpp>
 
-class Entity;
 class EventSubscription;
 class World;
 
-using EventFunc = std::function<void(Entity*)>;
+using EventFunc = std::function<void(entt::entity)>;
 using PublishList = std::vector<std::shared_ptr<EventSubscription>>;
 using PublishMap = std::unordered_map<std::string, PublishList>;
 using SubscriptionHandle = uint32_t;
 
 using WorldFunc = std::function<void(std::weak_ptr<World>)>;
 using WorldPublishList = std::vector<WorldFunc>;
+
+struct EventEntry {
+	std::string eventType;
+	std::type_index componentType;
+	entt::entity entity;
+};
 
 class EventPublisher
 {
@@ -22,7 +28,9 @@ public:
 	void RemoveListener(const std::string& eventType, SubscriptionHandle handle);
 
 	template <typename Component>
-	void Notify(const std::string& eventType, Entity* entity);
+	void Notify(const std::string& eventType, entt::entity entity);
+
+	void Flush();
 
 	void AddWorldCreatedListener(WorldFunc callback);
 	void NotifyWorldCreated(std::weak_ptr<World> world);
@@ -32,6 +40,8 @@ private:
 	SubscriptionHandle mNextHandle = 0;
 
 	WorldPublishList mWorldListeners;
+
+	std::vector<EventEntry> mQueueEvents;
 };
 
 class EventSubscription
@@ -57,24 +67,13 @@ template <typename Component>
 SubscriptionHandle EventPublisher::AddListener(const std::string& eventType, EventFunc& callback)
 {
 	SubscriptionHandle handle = mNextHandle++;
-	auto sub = std::make_shared<EventSubscription>(callback, eventType, typeid(Component), handle);
+	auto sub = std::make_shared<EventSubscription>(callback, eventType, std::type_index(typeid(Component)), handle);
 	mList[eventType].push_back(sub);
 	return handle;
 }
 
 template <typename Component>
-void EventPublisher::Notify(const std::string& eventType, Entity* entity)
+void EventPublisher::Notify(const std::string& eventType, entt::entity entity)
 {
-	const auto it = mList.find(eventType);
-	if (it != mList.end())
-	{
-		const auto& eventListeners = it->second;
-		for (const auto& listener : eventListeners)
-		{
-			if (std::type_index(typeid(Component)) == listener->GetType())
-			{
-				listener->GetHandlerFunc()(entity);
-			}
-		}
-	}
+	mQueueEvents.push_back({ std::string(eventType), std::type_index(typeid(Component)), entity });
 }

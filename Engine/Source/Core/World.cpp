@@ -34,6 +34,11 @@ void World::DisconnectAll()
 	mSubscriptions.clear();
 }
 
+void World::FlushEvents()
+{
+	mEventPublisher->Flush();
+}
+
 void World::Init(MonScene* scene, PrefabRegistry& prefabRegistry, RenderSystem& renderSystem, ResourceManager& resourceManager, std::weak_ptr<LuaSystem> luaSystem)
 {
 	CreateCamera(scene);

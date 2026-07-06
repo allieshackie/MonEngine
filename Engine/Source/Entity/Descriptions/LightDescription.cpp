@@ -4,7 +4,7 @@
 
 void LightDescription::ApplyToEntity(Entity* entity, entt::registry& registry)
 {
-	LightComponent light;
+	LightComponent& light = entity->AddComponent<LightComponent>();
 	try
 	{
 		auto archive = FileSystem::CreateArchive(mJson);
@@ -15,6 +15,4 @@ void LightDescription::ApplyToEntity(Entity* entity, entt::registry& registry)
 		std::cerr << "LightComponent deserialization error: " << e.what() << std::endl;
 		assert(false);
 	}
-
-	entity->AddComponent<LightComponent>(light);
 }

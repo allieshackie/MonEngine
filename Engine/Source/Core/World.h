@@ -30,6 +30,8 @@ public:
 	void FlushEntities();
 	void DisconnectAll();
 
+	void FlushEvents();
+
 	template <typename Component>
 	SubscriptionHandle ConnectOnConstruct(EventFunc& handler);
 	template <typename Component>
@@ -79,9 +81,5 @@ void World::RegisterComponentLifecycle()
 template <typename Component>
 void World::OnComponentDestroyed(entt::entity entity)
 {
-	auto it = mEntityMap.find(entity);
-	if (it != mEntityMap.end())
-	{
-		mEventPublisher->Notify<Component>("on_destroy", it->second);
-	}
+	mEventPublisher->Notify<Component>("on_destroy", entity);
 }

@@ -33,11 +33,11 @@ void MovementSystem::Update(float dt)
 		const auto playerView = world->GetRegistry().view<
 			PlayerComponent, AnimationComponent, PhysicsComponent, CollisionComponent, TransformComponent>();
 		playerView.each(
-			[=](auto& player, auto& anim, auto& physics, const auto& collider, auto& transform)
+			[=](entt::entity entityId, auto& player, auto& anim, auto& physics, const auto& collider, auto& transform)
 			{
-				_ApplyJump(collider, player, mPhysicsSystem);
+				_ApplyJump(entityId, player, mPhysicsSystem);
 				_ApplyVelocityFromDirection(player, physics, world->GetCamera());
-				_ApplyMovementForce(physics, collider, transform);
+				_ApplyMovementForce(entityId, mPhysicsSystem, physics, transform);
 				_UpdateMovementAnim(anim, physics);
 
 				transform.mRotation = glm::slerp(transform.mRotation, transform.mQueuedRotation, 10.0f * dt);
@@ -45,7 +45,7 @@ void MovementSystem::Update(float dt)
 	}
 }
 
-static void _ApplyJump(const CollisionComponent& collider, PlayerComponent& player, PhysicsSystem& physicsSystem)
+static void _ApplyJump(entt::entity entityId, PlayerComponent& player, PhysicsSystem& physicsSystem)
 {
 	if (!(player.mMovementInput & MovementInput::Jump))
 	{
@@ -55,16 +55,17 @@ static void _ApplyJump(const CollisionComponent& collider, PlayerComponent& play
 	// Consume the input immediately so it only fires once per press
 	player.mMovementInput &= ~MovementInput::Jump;
 	// Check if player is on the ground (no double jumping yet)
-	btVector3 start = collider.mRigidBody->getWorldTransform().getOrigin();
-	btVector3 end = start - btVector3(0, 3.0, 0);
-
-	btCollisionWorld::ClosestRayResultCallback rayCallback(start, end);
-	physicsSystem.GetDynamicWorld().rayTest(start, end, rayCallback);
-
-	if (rayCallback.hasHit())
+	auto rigidBody = physicsSystem.GetRigidbody(entityId);
+	if (rigidBody)
 	{
-		auto upwardImpulse = btVector3(0, 10.0f, 0);
-		collider.mRigidBody->applyCentralImpulse(upwardImpulse);
+		btVector3 start = rigidBody->getWorldTransform().getOrigin();
+		btVector3 end = start - btVector3(0, 3.0, 0);
+
+		if (physicsSystem.Raycast(start,end))
+		{
+			auto upwardImpulse = btVector3(0, 10.0f, 0);
+			rigidBody->applyCentralImpulse(upwardImpulse);
+		}
 	}
 }
 
@@ -99,9 +100,10 @@ static void _ApplyVelocityFromDirection(const PlayerComponent& player, PhysicsCo
 	physics.mVelocity = velocity;
 }
 
-static void _ApplyMovementForce(const PhysicsComponent& physics, const CollisionComponent& collider, TransformComponent& transform)
+static void _ApplyMovementForce(entt::entity entityId, PhysicsSystem& physicsSystem, const PhysicsComponent& physics, TransformComponent& transform)
 {
-	if (collider.mRigidBody)
+	auto rigidBody = physicsSystem.GetRigidbody(entityId);
+	if (rigidBody)
 	{
 		glm::vec3 moveDir = physics.mVelocity;
 		if (glm::length(moveDir) < 0.1f)
@@ -115,10 +117,10 @@ static void _ApplyMovementForce(const PhysicsComponent& physics, const Collision
 		transform.mQueuedRotation = glm::angleAxis(angle, glm::vec3(0.0f, 1.0f, 0.0f));
 		
 		// Actually move in direction
-		btVector3 currentVel = collider.mRigidBody->getLinearVelocity();
+		btVector3 currentVel = rigidBody->getLinearVelocity();
 		btVector3 moveVelocity(physics.mVelocity.x * speed, currentVel.y(), physics.mVelocity.z * speed);
-		collider.mRigidBody->activate(true);
-		collider.mRigidBody->setLinearVelocity(moveVelocity);
+		rigidBody->activate(true);
+		rigidBody->setLinearVelocity(moveVelocity);
 	}
 }
 

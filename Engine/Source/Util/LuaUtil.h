@@ -246,8 +246,9 @@ namespace LuaUtil
 		using Ret = typename Traits::Return;
 		using ArgsTuple = typename Traits::ArgsTuple;
 
-		C** selfPtr = static_cast<C**>(luaL_checkudata(state, 1, C::LuaName));
-		C* self = *selfPtr;
+		// Userdata holds a real std::shared_ptr<C>, not a raw C*
+		auto* selfPtr = static_cast<std::shared_ptr<C>*>(luaL_checkudata(state, 1, C::LuaName));
+		C* self = selfPtr->get();
 
 		return LuaUtil::PushMethod<Method, Ret, ArgsTuple>(state, self);
 	}

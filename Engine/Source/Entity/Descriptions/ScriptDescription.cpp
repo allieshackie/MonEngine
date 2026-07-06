@@ -4,7 +4,7 @@
 
 void ScriptDescription::ApplyToEntity(Entity* entity, entt::registry& registry)
 {
-	ScriptComponent script;
+	ScriptComponent& script = entity->AddComponent<ScriptComponent>();
 	try
 	{
 		auto archive = FileSystem::CreateArchive(mJson);
@@ -15,6 +15,4 @@ void ScriptDescription::ApplyToEntity(Entity* entity, entt::registry& registry)
 		std::cerr << "ScriptComponent deserialization error: " << e.what() << std::endl;
 		assert(false);
 	}
-
-	entity->AddComponent<ScriptComponent>(script);
 }

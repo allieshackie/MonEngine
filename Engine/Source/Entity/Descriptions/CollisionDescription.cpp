@@ -4,7 +4,7 @@
 
 void CollisionDescription::ApplyToEntity(Entity* entity, entt::registry& registry)
 {
-	CollisionComponent collider;
+	CollisionComponent& collider = entity->AddComponent<CollisionComponent>();
 	try
 	{
 		auto archive = FileSystem::CreateArchive(mJson);
@@ -15,6 +15,4 @@ void CollisionDescription::ApplyToEntity(Entity* entity, entt::registry& registr
 		std::cerr << "CollisionComponent deserialization error: " << e.what() << std::endl;
 		assert(false);
 	}
-
-	entity->AddComponent<CollisionComponent>(collider);
 }

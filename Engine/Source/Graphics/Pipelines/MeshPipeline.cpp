@@ -204,16 +204,23 @@ MeshPipeline::MeshPipeline(const LLGL::RenderSystemPtr& renderSystem, const Reso
 		[this](std::weak_ptr<World> world) {
 			if (const auto worldShared = world.lock())
 			{
-				EventFunc func = [this](Entity* entity)
+				World* worldPtr = worldShared.get();
+				EventFunc func = [this, worldPtr](entt::entity entityId)
+				{
+					if (Entity* entity = worldPtr->GetEntityForId(entityId))
 					{
 						AddLight(entity);
-					};
+					}
+				};
 				worldShared->ConnectOnConstruct<TransformComponent>(func);
 
-				EventFunc removeFunc = [this](Entity* entity)
+				EventFunc removeFunc = [this, worldPtr](entt::entity entityId)
+				{
+					if (Entity* entity = worldPtr->GetEntityForId(entityId))
 					{
 						RemoveLight(entity);
-					};
+					}
+				};
 				worldShared->ConnectOnDestroy<LightComponent>(removeFunc);
 			}
 		});

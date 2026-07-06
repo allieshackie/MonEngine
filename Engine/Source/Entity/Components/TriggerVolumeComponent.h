@@ -3,4 +3,5 @@
 
 struct TriggerVolumeComponent
 {
+	bool _unused = false;
 };

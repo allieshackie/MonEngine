@@ -15,7 +15,7 @@ void MapCollisionSystem::Update(float dt)
 	if (const auto world = mWorld.lock())
 	{
 		const auto view = world->GetRegistry().view<CollisionComponent, TransformComponent>();
-		view.each([=](const auto& collider, auto& transform)
+		view.each([this](const auto& collider, auto& transform)
 		{
 		});
 	}
