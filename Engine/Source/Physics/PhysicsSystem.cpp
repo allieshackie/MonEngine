@@ -76,8 +76,12 @@ void PhysicsSystem::RegisterCollider(entt::entity entityId)
 				object.mShape = std::make_unique<btSphereShape>(halfExtents.x);
 				break;
 			case ColliderShapes::CAPSULE:
-				object.mShape = std::make_unique<btCapsuleShape>(halfExtents.x, worldBounds.y - (halfExtents.x * 2.0f));
-				break;
+				{
+
+					float capsuleHeight = std::max(kMinCapsuleHeight, worldBounds.y - (halfExtents.x * 2.0f));
+					object.mShape = std::make_unique<btCapsuleShape>(halfExtents.x, capsuleHeight);
+					break;
+				}
 			case ColliderShapes::CONVEX:
 				{
 					auto convex = std::make_unique<btConvexHullShape>();
@@ -95,7 +99,7 @@ void PhysicsSystem::RegisterCollider(entt::entity entityId)
 				}
 			case ColliderShapes::TRI_MESH:
 				{
-					const auto meshes = model.GetMeshes();
+					const auto& meshes = model.GetMeshes();
 					object.mTriangleMesh = std::make_unique<btTriangleMesh>();
 					for (const auto& mesh : meshes)
 					{
@@ -156,6 +160,9 @@ void PhysicsSystem::RegisterCollider(entt::entity entityId)
 			}
 			mDynamicWorld->addRigidBody(object.mRigidBody.get());
 
+			std::cout << "Add Rigidbody: " << std::endl;
+			std::cout << object.mRigidBody->getBroadphaseProxy() << std::endl;
+
 			mPhysicsObjects[entityId] = std::move(object);
 		}
 	}
@@ -207,12 +214,17 @@ void PhysicsSystem::FixedUpdate(float dt)
 			}
 		});
 	}
+
+	mDynamicWorld->stepSimulation(dt, 10, 1.0f / 60.0f);
+	if (mPhysicsDebugDraw)
+	{
+		mDynamicWorld->debugDrawWorld();
+	}
 }
 
 void PhysicsSystem::Update(float dt)
 {
-	mDynamicWorld->stepSimulation(dt, 10, 1.0f / 60.0f);
-	//mDynamicWorld->debugDrawWorld();
+	
 }
 
 btRigidBody* PhysicsSystem::GetRigidbody(entt::entity entityId)

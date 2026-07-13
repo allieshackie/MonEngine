@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Graphics/Animation/Animation.h"
+#include "Node.h"
 #include "Vertex.h"
 
 #define VEC2_STEP 2
@@ -9,10 +10,6 @@
 
 class Shader;
 class RenderSystem;
-
-struct JointData;
-struct MeshData;
-struct MeshNode;
 
 class Model
 {
@@ -24,14 +21,14 @@ public:
 	int GetId() const { return mId; }
 	int GetRootJointIndex() const { return mRootJointIndex; }
 	int GetRootSceneIndex() const { return mRootSceneIndex; }
-	const std::vector<MeshData*>& GetMeshes() const { return mMeshes; }
-	const std::vector<MeshNode*>& GetNodes() const { return mNodes; }
+	const std::vector<std::unique_ptr<MeshData>>& GetMeshes() const { return mMeshes; }
+	const std::vector<std::unique_ptr<MeshNode>>& GetNodes() const { return mNodes; }
 
 	JointData* GetJointDataAt(int nodeIndex) const;
 	size_t GetNumJoints() const { return mNumNodes; }
 
 	const Animation* GetAnimation(int index) const;
-	const std::vector<Animation*>& GetAllAnimations() const { return mAnimations; }
+	const std::vector<std::unique_ptr<Animation>>& GetAllAnimations() const { return mAnimations; }
 
 	glm::vec3 CalculateModelScaling(const glm::vec3& targetSize) const;
 	glm::vec3 CalculateWorldBounds(const glm::vec3& targetSize) const;
@@ -39,12 +36,12 @@ public:
 	const std::unordered_map<std::string, int>& GetBoneNamesToIndex() const { return mBoneNameToIndex; }
 
 	// Setup
-	void AddMesh(MeshData* mesh) { mMeshes.push_back(mesh); }
+	void AddMesh(std::unique_ptr<MeshData> mesh) { mMeshes.push_back(std::move(mesh)); }
 	void SetRootJointIndex(int index) { mRootJointIndex = index; }
 	void SetRootSceneIndex(int index) { mRootSceneIndex = index; }
 	void AddBoneNameToIndex(const std::string& name, int index) { mBoneNameToIndex[name] = index; }
-	void AddJointData(int index, JointData* node) { mJointData[index] = node; }
-	void AddAnimation(Animation* modelAnim) { mAnimations.push_back(modelAnim); }
+	void AddJointData(int index, std::unique_ptr<JointData> node) { mJointData[index] = std::move(node); }
+	void AddAnimation(std::unique_ptr<Animation> modelAnim) { mAnimations.push_back(std::move(modelAnim)); }
 
 	// Setup helpers
 	MeshNode* GetNodeAt(int nodeIndex) const;
@@ -58,13 +55,13 @@ public:
 
 private:
 	int mId;
-	std::vector<MeshNode*> mNodes;
-	std::vector<MeshData*> mMeshes;
+	std::vector<std::unique_ptr<MeshNode>> mNodes;
+	std::vector<std::unique_ptr<MeshData>> mMeshes;
 
 	std::unordered_map<std::string, int> mBoneNameToIndex;
-	std::vector<Animation*> mAnimations;
+	std::vector<std::unique_ptr<Animation>> mAnimations;
 
-	std::unordered_map<int, JointData*> mJointData;
+	std::unordered_map<int, std::unique_ptr<JointData>> mJointData;
 	int mRootJointIndex = 0;
 	int mRootSceneIndex = 0;
 	size_t mNumNodes = 0;

@@ -57,4 +57,5 @@ private:
 	std::weak_ptr<World> mWorld;
 
 	bool mQueueFlush = false;
+	const float kMinCapsuleHeight = 1.0f;
 };

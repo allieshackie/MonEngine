@@ -43,23 +43,17 @@ void SceneManager::LoadScene(const std::string& sceneName)
 	std::string fullFileName = LEVELS_FOLDER;
 	fullFileName.append(sceneName);
 
-	auto scene = new MonScene();
+	MonScene scene;
 
 	try
 	{
 		auto archive = FileSystem::CreateArchive(fullFileName, true);
-		scene->serialize(archive);
+		scene.serialize(archive);
 	}
 	catch (const cereal::Exception& e)
 	{
 		std::cerr << "MonScene deserialization error: " << e.what() << std::endl;
 		assert(false);
-	}
-
-	if (scene == nullptr)
-	{
-		printf("Scene Data could not be parsed");
-		return;
 	}
 
 	mCurrentWorld = std::make_shared<World>();

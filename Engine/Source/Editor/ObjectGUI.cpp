@@ -25,7 +25,7 @@ void ObjectGUI::RenderBonesGUI(std::weak_ptr<World> weakWorld, ResourceManager& 
 		return;
 	}
 
-	const auto model = resourceManager.GetModelFromId(mesh->mModelPath);
+	const auto& model = resourceManager.GetModelFromId(mesh->mModelPath);
 	if (model.GetNumJoints() == 0)
 	{
 		return;
@@ -98,7 +98,7 @@ void ObjectGUI::RenderBonesOutline(std::weak_ptr<World> weakWorld, ResourceManag
 		return;
 	}
 
-	auto model = resourceManager.GetModelFromId(modelComponent->mModelPath);
+	auto& model = resourceManager.GetModelFromId(modelComponent->mModelPath);
 	_RenderModelBones(renderSystem, model, *modelComponent, model.GetRootJointIndex(), glm::mat4(1.0f));
 }
 

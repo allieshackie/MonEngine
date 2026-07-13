@@ -29,5 +29,5 @@ struct Animation
 	std::string mName;
 	float mStartFrameTime = 0.0f;
 	float mEndFrameTime = 0.0f;
-	std::vector<AnimNode*> mAnimNodes;
+	std::vector<std::unique_ptr<AnimNode>> mAnimNodes;
 };

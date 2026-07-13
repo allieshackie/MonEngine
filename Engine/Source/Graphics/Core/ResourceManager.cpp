@@ -223,12 +223,12 @@ void ResourceManager::_LoadModel(const RenderSystem& renderSystem, const std::st
 	mModels.push_back(std::move(newModel));
 }
 
-MeshData* ResourceManager::_ProcessMesh(const RenderSystem& renderSystem, const tinygltf::Model& model,
+std::unique_ptr<MeshData> ResourceManager::_ProcessMesh(const RenderSystem& renderSystem, const tinygltf::Model& model,
                                         int meshIndex)
 {
 	const auto& mesh = model.meshes[meshIndex];
 
-	auto meshData = new MeshData();
+	auto meshData = std::make_unique<MeshData>();
 	meshData->mName = mesh.name;
 
 	for (const auto& primitive : mesh.primitives)
@@ -396,7 +396,7 @@ void ResourceManager::_ProcessSkin(const tinygltf::Model& model, Model& newModel
 		int nodeIndex = skin.joints[i];
 		const tinygltf::Node& node = model.nodes[nodeIndex];
 
-		auto joint = new JointData();
+		auto joint = std::make_unique<JointData>();
 		joint->mId = node.name;
 		//joint->mLocalTransform = gltfHelpers::GetNodeTransform(node);
 		joint->mInverseBindMatrix = glm::make_mat4(&matrixData[i * 16]);
@@ -404,7 +404,7 @@ void ResourceManager::_ProcessSkin(const tinygltf::Model& model, Model& newModel
 		newModel.AddBoneNameToIndex(node.name, nodeIndex);
 
 		// Store the bone info in the map (using node index as the key)
-		newModel.AddJointData(nodeIndex, joint);
+		newModel.AddJointData(nodeIndex, std::move(joint));
 
 		auto newNode = newModel.GetNodeAt(nodeIndex);
 		newNode->mJointIndex = nodeIndex;
@@ -415,7 +415,7 @@ void ResourceManager::_ProcessAnimations(const tinygltf::Model& model, Model& ne
 {
 	for (const auto& animation : model.animations)
 	{
-		auto modelAnim = new Animation();
+		auto modelAnim = std::make_unique<Animation>();
 		modelAnim->mName = animation.name;
 		for (const auto& channel : animation.channels)
 		{
@@ -424,11 +424,11 @@ void ResourceManager::_ProcessAnimations(const tinygltf::Model& model, Model& ne
 			bool newNode = false;
 
 			AnimNode* animNode = nullptr;
-			for (const auto node : modelAnim->mAnimNodes)
+			for (auto& node : modelAnim->mAnimNodes)
 			{
 				if (node->mNodeIndex == channel.target_node)
 				{
-					animNode = node;
+					animNode = node.get();
 					break;
 				}
 			}
@@ -497,13 +497,14 @@ void ResourceManager::_ProcessAnimations(const tinygltf::Model& model, Model& ne
 
 			if (newNode)
 			{
-				modelAnim->mAnimNodes.push_back(std::move(animNode));
+				modelAnim->mAnimNodes.push_back(std::unique_ptr<AnimNode>(animNode));
+				animNode = nullptr;
 			}
 		}
 
 		if (modelAnim->mAnimNodes.size() > 1)
 		{
-			newModel.AddAnimation(modelAnim);
+			newModel.AddAnimation(std::move(modelAnim));
 		}
 	}
 }

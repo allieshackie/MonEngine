@@ -17,13 +17,13 @@ public:
 
 	void Close();
 
-	void Init(MonScene* scene, PrefabRegistry& prefabRegistry, RenderSystem& renderSystem, ResourceManager& resourceManager, std::weak_ptr<LuaSystem> luaSystem);
+	void Init(const MonScene&, PrefabRegistry& prefabRegistry, RenderSystem& renderSystem, ResourceManager& resourceManager, std::weak_ptr<LuaSystem> luaSystem);
 	Camera& GetCamera() const { return *mCamera; }
 	entt::registry& GetRegistry() { return mRegistry; }
 	Entity* GetEntityForId(entt::entity id);
 	const std::unique_ptr<TerrainMesh>& GetTerrain() const { return mTerrain; }
 
-	void CreateCamera(const MonScene* scene);
+	void CreateCamera(const MonScene& scene);
 	Entity& CreateEntityFromTemplate(const char* templateName, PrefabRegistry& prefabRegistry);
 	Entity& CreateEntity();
 	void RemoveEntity(const entt::entity id);
@@ -46,7 +46,7 @@ private:
 	std::unique_ptr<Camera> mCamera = nullptr;
 	entt::registry mRegistry;
 	std::unordered_map<std::string, int> mTypeCounters;
-	std::unordered_map<entt::entity, Entity*> mEntityMap;
+	std::unordered_map<entt::entity, std::unique_ptr<Entity>> mEntityMap;
 	std::unordered_map<std::string, entt::entity> mEntityNameIdMap;
 	std::unique_ptr<EventPublisher> mEventPublisher;
 	std::unique_ptr<TerrainMesh> mTerrain;

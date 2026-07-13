@@ -279,11 +279,11 @@ glm::mat4 AnimatorSystem::_GetJointNodeTransformFromScene(Model& model, const gl
 
 const AnimNode* AnimatorSystem::GetAnimNode(const Animation* animation, int nodeId)
 {
-	for (const auto animNode : animation->mAnimNodes)
+	for (auto& animNode : animation->mAnimNodes)
 	{
 		if (animNode->mNodeIndex == nodeId)
 		{
-			return animNode;
+			return animNode.get();
 		}
 	}
 

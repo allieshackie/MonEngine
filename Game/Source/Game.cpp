@@ -43,8 +43,8 @@ void Game::Run()
 	ToggleEditorMode(true);
 
 	// Init current time
-	auto timer = new Timer();
-	timer->mCurrentTime = Clock::now();
+	Timer timer;
+	timer.mCurrentTime = Clock::now();
 
 	double frames = 0;
 	double fps = 0;
@@ -53,8 +53,8 @@ void Game::Run()
 	while (mWindowContext->ProcessEvents() && mRunning)
 	{
 		auto newTime = Clock::now();
-		Duration frameDuration = newTime - timer->mCurrentTime;
-		timer->mCurrentTime = newTime;
+		Duration frameDuration = newTime - timer.mCurrentTime;
+		timer.mCurrentTime = newTime;
 
 		double deltaTime = frameDuration.count();
 		if (deltaTime > 0.25)
@@ -74,16 +74,16 @@ void Game::Run()
 			fpsTimer = 0.0;
 		}
 
-		timer->mAccumulator += deltaTime;
-		if (timer->mAccumulator > timer->mAccumulatorMax)
+		timer.mAccumulator += deltaTime;
+		if (timer.mAccumulator > timer.mAccumulatorMax)
 		{
-			timer->mAccumulator = timer->mAccumulatorMax;
+			timer.mAccumulator = timer.mAccumulatorMax;
 		}
 
-		while (timer->mAccumulator >= timer->mDT)
+		while (timer.mAccumulator >= timer.mDT)
 		{
-			mSystemManager->FixedUpdate(timer->mDT);
-			timer->mAccumulator -= timer->mDT;
+			mSystemManager->FixedUpdate(timer.mDT);
+			timer.mAccumulator -= timer.mDT;
 		}
 		auto world = mSceneManager->GetCurrentWorld();
 
@@ -95,22 +95,21 @@ void Game::Run()
 		mInputHandler->Update();
 		mSystemManager->Update(deltaTime);
 
+		mWindowContext->BeginFrame(mRenderSystem->GetCommands());
 		if (world)
 		{
 			world->GetCamera().Update();
 
-			mWindowContext->BeginFrame(mRenderSystem->GetCommands());
-
 			mSystemManager->Render(world);
 
-			// Render GUI last so menus draw on top
-			mGUISystem->GUIStartFrame();
-			mGUISystem->RenderMenus();
-			mSystemManager->RenderGUI(deltaTime, fps);
-			mGUISystem->GUIEndFrame();
-
-			mWindowContext->EndFrame(mRenderSystem->GetCommands(), mRenderSystem->GetCommandQueue());
 		}
+		// Render GUI last so menus draw on top
+		mGUISystem->GUIStartFrame();
+		mGUISystem->RenderMenus();
+		mSystemManager->RenderGUI(deltaTime, fps);
+		mGUISystem->GUIEndFrame();
+
+		mWindowContext->EndFrame(mRenderSystem->GetCommands(), mRenderSystem->GetCommandQueue());
 	}
 
 	mGUISystem->CloseGUI();

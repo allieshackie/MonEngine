@@ -36,7 +36,7 @@ private:
 
 	// Process GLTF Models
 	void _LoadModel(const RenderSystem& renderSystem, const std::string& fullPath, int modelId);
-	MeshData* _ProcessMesh(const RenderSystem& renderSystem, const tinygltf::Model& model,
+	std::unique_ptr<MeshData> _ProcessMesh(const RenderSystem& renderSystem, const tinygltf::Model& model,
 	                       int meshIndex);
 	void _ProcessSkin(const tinygltf::Model& model, Model& newModel, int skinIndex) const;
 	void _ProcessAnimations(const tinygltf::Model& model, Model& newModel) const;

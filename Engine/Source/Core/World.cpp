@@ -39,11 +39,11 @@ void World::FlushEvents()
 	mEventPublisher->Flush();
 }
 
-void World::Init(MonScene* scene, PrefabRegistry& prefabRegistry, RenderSystem& renderSystem, ResourceManager& resourceManager, std::weak_ptr<LuaSystem> luaSystem)
+void World::Init(const MonScene& scene, PrefabRegistry& prefabRegistry, RenderSystem& renderSystem, ResourceManager& resourceManager, std::weak_ptr<LuaSystem> luaSystem)
 {
 	CreateCamera(scene);
 
-	for (const auto& entity : scene->GetEntityDefinitions())
+	for (const auto& entity : scene.GetEntityDefinitions())
 	{
 		auto& gameObj = CreateEntityFromTemplate(entity.mName.c_str(), prefabRegistry);
 		auto& transformComponent = gameObj.GetComponent<TransformComponent>();
@@ -56,7 +56,7 @@ void World::Init(MonScene* scene, PrefabRegistry& prefabRegistry, RenderSystem& 
 
 	if (const auto luaPtr = luaSystem.lock())
 	{
-		for (const auto& script : scene->GetScripts())
+		for (const auto& script : scene.GetScripts())
 		{
 			luaPtr->LoadScript(script.c_str());
 		}
@@ -68,13 +68,12 @@ Entity& World::CreateEntityFromTemplate(const char* templateName, PrefabRegistry
 	const auto& descriptions = prefabRegistry.GetPrefabsDescriptions(templateName);
 	auto id = mRegistry.create();
 	std::string name = templateName + std::to_string(mEntityMap.size());
-	const auto entity = new Entity(id, mRegistry, *mEventPublisher, name);
-	mEntityMap[id] = entity;
+	mEntityMap[id] = std::make_unique<Entity>(id, mRegistry, *mEventPublisher, name);
 	mEntityNameIdMap[std::to_string(static_cast<uint32_t>(id))] = id;
 
 	for (const auto& description : descriptions)
 	{
-		description->ApplyToEntity(entity, mRegistry);
+		description->ApplyToEntity(mEntityMap[id].get(), mRegistry);
 	}
 
 	return *mEntityMap[id];
@@ -83,8 +82,7 @@ Entity& World::CreateEntityFromTemplate(const char* templateName, PrefabRegistry
 Entity& World::CreateEntity()
 {
 	auto id = mRegistry.create();
-	const auto entity = new Entity(id, mRegistry, *mEventPublisher);
-	mEntityMap[id] = entity;
+	mEntityMap[id] = std::make_unique<Entity>(id, mRegistry, *mEventPublisher);;
 
 	return *mEntityMap[id];
 }
@@ -104,12 +102,12 @@ Entity* World::GetEntityForId(entt::entity id)
 {
 	if (const auto it = mEntityMap.find(id); it != mEntityMap.end())
 	{
-		return it->second;
+		return it->second.get();
 	}
 	return nullptr;
 }
 
-void World::CreateCamera(const MonScene* scene)
+void World::CreateCamera(const MonScene& scene)
 {
-	mCamera = std::make_unique<Camera>(this, scene->GetCameraData());
+	mCamera = std::make_unique<Camera>(this, scene.GetCameraData());
 }

@@ -4,9 +4,8 @@
 #include "LLGL/Utils/Utility.h"
 
 #include "Graphics/RenderSystem.h"
-#include "Graphics/Core/Node.h"
-#include "Graphics/Core/Shader.h"
-#include "Graphics/Core/Vertex.h"
+#include "Shader.h"
+#include "Vertex.h"
 #include "Util/gltfHelpers.h"
 
 #include "Model.h"
@@ -15,13 +14,13 @@ Model::Model(int id, size_t nodesSize): mId(id), mNumNodes(nodesSize)
 {
 	for (int i = 0; i < nodesSize; i++)
 	{
-		mNodes.push_back(new MeshNode());
+		mNodes.push_back(std::make_unique<MeshNode>());
 	}
 }
 
 void Model::InitializeBuffers(const RenderSystem& renderSystem) const
 {
-	for (const auto mesh : mMeshes)
+	for (auto& mesh : mMeshes)
 	{
 		mesh->mVertexBuffer = renderSystem.GetSystem()->CreateBuffer(
 			LLGL::VertexBufferDesc(static_cast<std::uint32_t>(mesh->mVertices.size() * sizeof(Vertex)),
@@ -40,7 +39,7 @@ JointData* Model::GetJointDataAt(int nodeIndex) const
 {
 	if (const auto it = mJointData.find(nodeIndex); it != mJointData.end())
 	{
-		return it->second;
+		return it->second.get();
 	}
 
 	return nullptr;
@@ -53,7 +52,7 @@ const Animation* Model::GetAnimation(int index) const
 		return nullptr;
 	}
 
-	return mAnimations[index];
+	return mAnimations[index].get();
 }
 
 glm::vec3 Model::CalculateModelScaling(const glm::vec3& targetSize) const
@@ -91,7 +90,7 @@ MeshNode* Model::GetNodeAt(int nodeIndex) const
 		return nullptr;
 	}
 
-	return mNodes[nodeIndex];
+	return mNodes[nodeIndex].get();
 }
 
 MeshData* Model::GetMeshAt(int nodeIndex) const
@@ -101,5 +100,5 @@ MeshData* Model::GetMeshAt(int nodeIndex) const
 		return nullptr;
 	}
 
-	return mMeshes[nodeIndex];
+	return mMeshes[nodeIndex].get();
 }
