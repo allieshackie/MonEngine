@@ -1,0 +1,16 @@
+{
+    "prefab_name": "nextLevelTrigger", 
+    "components" : {
+        "transform" : {
+            "position": [0,0,0],
+            "size": [1,1,1]
+        },
+        "triggerVolume": {
+            "size": [1, 1, 1]
+        },
+        "script": {
+            "path": "nextLevelTrigger.lua",
+            "is_trigger": true
+        }
+    }
+}

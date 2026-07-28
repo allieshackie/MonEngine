@@ -27,5 +27,5 @@ void TerrainSystem::_ParseData(const TerrainData& data, Entity& entity) const
 	entity.SetName(data.mName);
 	entity.AddComponent<TransformComponent>(data.mPosition, data.mSize, data.mRotation);
 	entity.AddComponent<ModelComponent>(fullMapPath);
-	entity.AddComponent<CollisionComponent>(ColliderShapes::BOX, data.mSize, false, true);
+	entity.AddComponent<CollisionComponent>(ColliderShapes::BOX, data.mSize, false);
 }

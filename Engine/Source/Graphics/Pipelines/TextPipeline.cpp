@@ -23,8 +23,8 @@ struct FontData
 	const uint32_t mSize = 40;
 	const uint32_t mAtlasWidth = 1024;
 	const uint32_t mAtlasHeight = 1024;
-	const uint32_t mFontOverSampleX = 2;
-	const uint32_t mFontOverSampleY = 2;
+	const uint32_t mFontOverSampleX = 1;
+	const uint32_t mFontOverSampleY = 1;
 	const uint32_t mFirstChar = ' ';
 	const uint32_t mCharCount = '~' - ' ';
 	std::unique_ptr<stbtt_packedchar[]> mCharInfo;
@@ -99,7 +99,7 @@ void TextPipeline::LoadFont(const char* fontFile)
 	fullPath.append(fontFile);
 
 	ImGuiIO& io = ImGui::GetIO();
-	io.Fonts->AddFontFromFileTTF(fullPath.c_str(), 25.0f);
+	io.Fonts->AddFontFromFileTTF(fullPath.c_str(), _font.mSize);
 
 	auto fontData = FileSystem::ReadBytes(fullPath);
 	std::vector<uint8_t> atlasData(_font.mAtlasWidth * _font.mAtlasHeight);
@@ -351,9 +351,7 @@ TextPipeline::TextPipeline(const LLGL::RenderSystemPtr& renderSystem) : Pipeline
 				}
 		};
 		layoutDesc.staticSamplers = {
-			LLGL::StaticSamplerDescriptor{
-				"textureAtlasSampler", LLGL::StageFlags::FragmentStage, 3, LLGL::Parse("lod.bias=1")
-			}
+			LLGL::StaticSamplerDescriptor{ "textureAtlasSampler", LLGL::StageFlags::FragmentStage, 3, LLGL::Parse("") }
 		};
 	}
 	InitPipeline(renderSystem, layoutDesc, LLGL::PrimitiveTopology::TriangleList, false);

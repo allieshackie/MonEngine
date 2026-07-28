@@ -19,7 +19,7 @@ LuaSystem::LuaSystem(EventPublisher& eventPublisher)
 			if (const auto worldShared = world.lock())
 			{
 				World* worldPtr = worldShared.get();
-				EventFunc func = [this, worldPtr](entt::entity entityId)
+				EntityEventFunc func = [this, worldPtr](entt::entity entityId)
 				{
 					if (Entity* entity = worldPtr->GetEntityForId(entityId))
 					{
@@ -31,7 +31,7 @@ LuaSystem::LuaSystem(EventPublisher& eventPublisher)
 				};
 				worldShared->ConnectOnConstruct<ScriptComponent>(func);
 
-				EventFunc onDestroy = [this, worldPtr](entt::entity entityId)
+				EntityEventFunc onDestroy = [this, worldPtr](entt::entity entityId)
 				{
 					if (Entity* entity = worldPtr->GetEntityForId(entityId))
 					{
@@ -40,6 +40,26 @@ LuaSystem::LuaSystem(EventPublisher& eventPublisher)
 					}
 				};
 				worldShared->ConnectOnDestroy<ScriptComponent>(func);
+
+				PhysicsEventFunc onEnterFunc = [this, worldPtr](entt::entity entityA, entt::entity entityB)
+				{
+					if (Entity* entity = worldPtr->GetEntityForId(entityA))
+					{
+						const ScriptComponent& script = entity->GetComponent<ScriptComponent>();
+						mLuaContext->CallMethod(script.mLuaTableRef, "OnTriggerEnter");
+					}
+				};
+				worldShared->ConnectOnPhysicsEvent(PhysicsEventType::TriggerEnter, onEnterFunc);
+				PhysicsEventFunc onExitFunc = [this, worldPtr](entt::entity entityA, entt::entity entityB)
+				{
+					if (Entity* entity = worldPtr->GetEntityForId(entityA))
+					{
+						const ScriptComponent& script = entity->GetComponent<ScriptComponent>();
+						mLuaContext->CallMethod(script.mLuaTableRef, "OnTriggerExit");
+					}
+				};
+				worldShared->ConnectOnPhysicsEvent(PhysicsEventType::TriggerExit, onExitFunc);
+				
 			}
 			mWorld = world;
 		}
@@ -63,7 +83,10 @@ void LuaSystem::Update(float dt)
 		const auto view = world->GetRegistry().view<ScriptComponent>();
 		view.each([this](auto& script)
 		{
-			mLuaContext->Update(script.mLuaTableRef);
+			if (!script.mIsTrigger)
+			{
+				mLuaContext->Update(script.mLuaTableRef);
+			}	
 		});
 	}
 }

@@ -16,7 +16,4 @@ struct CollisionComponent
 		archive(cereal::make_nvp("collider_shape", mColliderShape),
 		        cereal::make_nvp("size", mSize));
 	}
-
-	// Runtime
-	bool mInitialized = false;
 };

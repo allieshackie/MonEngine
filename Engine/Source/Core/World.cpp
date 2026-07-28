@@ -32,11 +32,30 @@ void World::DisconnectAll()
 		mEventPublisher->RemoveListener(eventType, handle);
 	}
 	mSubscriptions.clear();
+
+	for (const auto& [eventType, handle] : mPhysicsSubscriptions)
+	{
+		mEventPublisher->RemoveListener(eventType, handle);
+	}
+	mPhysicsSubscriptions.clear();
 }
 
 void World::FlushEvents()
 {
 	mEventPublisher->Flush();
+}
+
+SubscriptionHandle World::ConnectOnPhysicsEvent(PhysicsEventType type, PhysicsEventFunc& handler)
+{
+	SubscriptionHandle handle = mEventPublisher->AddListener(type, handler);
+	mPhysicsSubscriptions.emplace_back(type, handle);
+
+	return handle;
+}
+
+void World::NotifyPhysicsEvent(PhysicsEventType type, entt::entity entityA, entt::entity entityB)
+{
+	mEventPublisher->Notify(type, entityA, entityB);
 }
 
 void World::Init(const MonScene& scene, PrefabRegistry& prefabRegistry, RenderSystem& renderSystem, ResourceManager& resourceManager, std::weak_ptr<LuaSystem> luaSystem)
@@ -48,10 +67,6 @@ void World::Init(const MonScene& scene, PrefabRegistry& prefabRegistry, RenderSy
 		auto& gameObj = CreateEntityFromTemplate(entity.mName.c_str(), prefabRegistry);
 		auto& transformComponent = gameObj.GetComponent<TransformComponent>();
 		transformComponent.mPosition = entity.mPosition;
-		if (const auto collider = gameObj.TryGetComponent<CollisionComponent>(); collider != nullptr)
-		{
-			collider->mInitialized = true;
-		}
 	}
 
 	if (const auto luaPtr = luaSystem.lock())

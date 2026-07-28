@@ -11,7 +11,7 @@ Camera::Camera(World* world, const CameraData& data)
 {
 	mFollowCam = data.mFollowCam;
 
-	EventFunc func = [this, world](entt::entity entityId)
+	EntityEventFunc func = [this, world](entt::entity entityId)
 	{
 		if (Entity* entity = world->GetEntityForId(entityId))
 		{

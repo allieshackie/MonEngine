@@ -4,7 +4,7 @@ local function StartGame()
     _G.print("Start Game")
     mainMenu:Close()
     local sceneManager = gGameData.GetSceneManager()
-    sceneManager:LoadScene("game.json")
+    sceneManager:LoadScene("level1.json")
 end
 
 local function OpenOptions()

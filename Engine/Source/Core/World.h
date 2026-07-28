@@ -33,14 +33,17 @@ public:
 	void FlushEvents();
 
 	template <typename Component>
-	SubscriptionHandle ConnectOnConstruct(EventFunc& handler);
+	SubscriptionHandle ConnectOnConstruct(EntityEventFunc& handler);
 	template <typename Component>
-	SubscriptionHandle ConnectOnDestroy(EventFunc& handler);
+	SubscriptionHandle ConnectOnDestroy(EntityEventFunc& handler);
 
 	template <typename Component>
 	void RegisterComponentLifecycle();
 	template <typename Component>
 	void OnComponentDestroyed(entt::entity entity);
+
+	SubscriptionHandle ConnectOnPhysicsEvent(PhysicsEventType type, PhysicsEventFunc& handler);
+	void NotifyPhysicsEvent(PhysicsEventType type, entt::entity entityA, entt::entity entityB);
 
 private:
 	std::unique_ptr<Camera> mCamera = nullptr;
@@ -52,21 +55,22 @@ private:
 	std::unique_ptr<TerrainMesh> mTerrain;
 
 	std::vector<std::pair<std::string, SubscriptionHandle>> mSubscriptions;
+	std::vector<std::pair<PhysicsEventType, SubscriptionHandle>> mPhysicsSubscriptions;
 };
 
 template <typename Component>
-SubscriptionHandle World::ConnectOnConstruct(EventFunc& handler)
+SubscriptionHandle World::ConnectOnConstruct(EntityEventFunc& handler)
 {
-	SubscriptionHandle handle = mEventPublisher->AddListener<Component>("on_construct", handler);
+	SubscriptionHandle handle = mEventPublisher->AddListener("on_construct", std::type_index(typeid(Component)), handler);
 	mSubscriptions.emplace_back("on_construct", handle);
 
 	return handle;
 }
 
 template <typename Component>
-SubscriptionHandle World::ConnectOnDestroy(EventFunc& handler)
+SubscriptionHandle World::ConnectOnDestroy(EntityEventFunc& handler)
 {
-	SubscriptionHandle handle = mEventPublisher->AddListener<Component>("on_destroy", handler);
+	SubscriptionHandle handle = mEventPublisher->AddListener("on_destroy", std::type_index(typeid(Component)), handler);
 	mSubscriptions.emplace_back("on_destroy", handle);
 
 	return handle;
@@ -81,5 +85,5 @@ void World::RegisterComponentLifecycle()
 template <typename Component>
 void World::OnComponentDestroyed(entt::entity entity)
 {
-	mEventPublisher->Notify<Component>("on_destroy", entity);
+	mEventPublisher->Notify("on_destroy", std::type_index(typeid(Component)), entity);
 }

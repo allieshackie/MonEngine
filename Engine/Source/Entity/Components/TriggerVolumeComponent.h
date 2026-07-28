@@ -3,5 +3,13 @@
 
 struct TriggerVolumeComponent
 {
-	bool _unused = false;
+    glm::vec3 mSize;
+    bool mEnabled = true;
+
+	template <class Archive>
+	void serialize(Archive& archive)
+	{
+		cereal::make_optional_nvp(archive, "enabled", mEnabled);
+		archive(cereal::make_nvp("size", mSize));
+	}
 };

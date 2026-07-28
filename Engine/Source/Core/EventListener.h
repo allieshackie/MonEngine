@@ -3,77 +3,116 @@
 #include <typeindex>
 #include <entt/entt.hpp>
 
-class EventSubscription;
+class EntityEventSubscription;
+class PhysicsEventSubscription;
 class World;
 
-using EventFunc = std::function<void(entt::entity)>;
-using PublishList = std::vector<std::shared_ptr<EventSubscription>>;
-using PublishMap = std::unordered_map<std::string, PublishList>;
 using SubscriptionHandle = uint32_t;
 
-using WorldFunc = std::function<void(std::weak_ptr<World>)>;
-using WorldPublishList = std::vector<WorldFunc>;
-
-struct EventEntry {
+struct EntityEventEntry
+{
 	std::string eventType;
 	std::type_index componentType;
 	entt::entity entity;
 };
 
+enum class PhysicsEventType
+{
+	CollisionEnter,
+	CollisionStay,
+	CollisionExit,
+
+	TriggerEnter,
+	TriggerStay,
+	TriggerExit
+};
+
+struct PhysicsEventEntry
+{
+	PhysicsEventType type;
+	entt::entity entityA;
+	entt::entity entityB;
+};
+
+using EntityEventFunc = std::function<void(entt::entity)>;
+
+using EntityPublishList = std::vector<std::shared_ptr<EntityEventSubscription>>;
+using EntityPublishMap = std::unordered_map<std::string, EntityPublishList>;
+
+using PhysicsEventFunc = std::function<void(entt::entity, entt::entity)>;
+using PhysicsPublishList = std::vector<std::shared_ptr<PhysicsEventSubscription>>;
+using PhysicsPublishMap = std::unordered_map<PhysicsEventType, PhysicsPublishList>;
+
+using WorldFunc = std::function<void(std::weak_ptr<World>)>;
+using WorldPublishList = std::vector<WorldFunc>;
+
 class EventPublisher
 {
 public:
-	template <typename Component>
-	SubscriptionHandle AddListener(const std::string& eventType, EventFunc& callback);
+	EventPublisher() = default;
+
+	EventPublisher(const EventPublisher&) = delete;
+	EventPublisher& operator=(const EventPublisher&) = delete;
+
+	EventPublisher(EventPublisher&&) = delete;
+	EventPublisher& operator=(EventPublisher&&) = delete;
+
+	SubscriptionHandle AddListener(const std::string& eventType, std::type_index componentType, EntityEventFunc& callback);
 	void RemoveListener(const std::string& eventType, SubscriptionHandle handle);
 
-	template <typename Component>
-	void Notify(const std::string& eventType, entt::entity entity);
+	SubscriptionHandle AddListener(PhysicsEventType type, PhysicsEventFunc& callback);
+	void RemoveListener(PhysicsEventType type, SubscriptionHandle handle);
+
+	void Notify(const std::string& eventType, std::type_index componentType, entt::entity entity); // Entity
+	void Notify(std::weak_ptr<World> world); // World
+	void Notify(PhysicsEventType type, entt::entity entityA, entt::entity entityB); // Physics
 
 	void Flush();
 
 	void AddWorldCreatedListener(WorldFunc callback);
-	void NotifyWorldCreated(std::weak_ptr<World> world);
 
 private:
-	PublishMap mList;
 	SubscriptionHandle mNextHandle = 0;
 
+	EntityPublishMap mEntityListeners;
+	PhysicsPublishMap mPhysicsListeners;
 	WorldPublishList mWorldListeners;
 
-	std::vector<EventEntry> mQueueEvents;
+	std::vector<EntityEventEntry> mEntityQueueEvents;
+	std::vector<PhysicsEventEntry> mPhysicsQueueEvents;
 };
 
-class EventSubscription
+class EntityEventSubscription
 {
 public:
-	EventSubscription(EventFunc handlerFunc, std::string eventType, std::type_index type, SubscriptionHandle handle) 
+	EntityEventSubscription(EntityEventFunc handlerFunc, std::string eventType, std::type_index type, SubscriptionHandle handle)
 		: mHandlerFunc(std::move(handlerFunc)), mEventType(std::move(eventType)), mType(type), mHandle(handle)
-	{
-	}
+	{}
 
-	const EventFunc& GetHandlerFunc() const;
+	const EntityEventFunc& GetHandlerFunc() const { return mHandlerFunc; }
 	const std::type_index& GetType() const { return mType; }
 	SubscriptionHandle GetHandle() const { return mHandle; }
 
 private:
-	EventFunc mHandlerFunc;
+	EntityEventFunc mHandlerFunc;
 	std::string mEventType;
 	std::type_index mType;
 	SubscriptionHandle mHandle;
 };
 
-template <typename Component>
-SubscriptionHandle EventPublisher::AddListener(const std::string& eventType, EventFunc& callback)
+class PhysicsEventSubscription
 {
-	SubscriptionHandle handle = mNextHandle++;
-	auto sub = std::make_shared<EventSubscription>(callback, eventType, std::type_index(typeid(Component)), handle);
-	mList[eventType].push_back(sub);
-	return handle;
-}
+public:
+	PhysicsEventSubscription(PhysicsEventFunc handlerFunc, PhysicsEventType type, SubscriptionHandle handle)
+		: mHandlerFunc(std::move(handlerFunc)), mType(type), mHandle(handle)
+	{}
 
-template <typename Component>
-void EventPublisher::Notify(const std::string& eventType, entt::entity entity)
-{
-	mQueueEvents.push_back({ std::string(eventType), std::type_index(typeid(Component)), entity });
-}
+	const PhysicsEventFunc& GetHandlerFunc() const { return mHandlerFunc; }
+	PhysicsEventType GetType() const { return mType; }
+	SubscriptionHandle GetHandle() const { return mHandle; }
+
+private:
+	PhysicsEventFunc mHandlerFunc;
+	PhysicsEventType mType;
+	SubscriptionHandle mHandle;
+};

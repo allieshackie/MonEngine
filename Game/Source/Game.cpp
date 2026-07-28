@@ -37,10 +37,9 @@ void Game::Run()
 	mWindowContext->SetBackgroundClearColor({0.1f, 0.1f, 0.1f});
 	mRenderSystem->LoadFont("PixelLettersFull.ttf");
 	mGUISystem->LoadGUITheme("DarkStyle");
+	ToggleEditorMode(true);
 
 	mSceneManager->LoadScene("menu.json");
-
-	ToggleEditorMode(true);
 
 	// Init current time
 	Timer timer;

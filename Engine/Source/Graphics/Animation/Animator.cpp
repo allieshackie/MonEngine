@@ -16,7 +16,7 @@ AnimatorSystem::AnimatorSystem(ResourceManager& resourceManager, EventPublisher&
 			if (const auto worldShared = world.lock())
 			{
 				World* worldPtr = worldShared.get();
-				EventFunc func = [this, worldPtr](entt::entity entityId)
+				EntityEventFunc func = [this, worldPtr](entt::entity entityId)
 				{
 					if (Entity* entity = worldPtr->GetEntityForId(entityId))
 					{

@@ -156,7 +156,7 @@ MeshPipeline::MeshPipeline(const LLGL::RenderSystemPtr& renderSystem, const Reso
 			};
 			layoutDesc.staticSamplers = {
 				LLGL::StaticSamplerDescriptor{
-					"colorMapSampler", LLGL::StageFlags::FragmentStage, 3, LLGL::Parse("lod.bias=1")
+					"colorMapSampler", LLGL::StageFlags::FragmentStage, 3, LLGL::Parse("")
 				}
 			};
 		}
@@ -206,7 +206,7 @@ MeshPipeline::MeshPipeline(const LLGL::RenderSystemPtr& renderSystem, const Reso
 			if (const auto worldShared = world.lock())
 			{
 				World* worldPtr = worldShared.get();
-				EventFunc func = [this, worldPtr](entt::entity entityId)
+				EntityEventFunc func = [this, worldPtr](entt::entity entityId)
 				{
 					if (Entity* entity = worldPtr->GetEntityForId(entityId))
 					{
@@ -215,7 +215,7 @@ MeshPipeline::MeshPipeline(const LLGL::RenderSystemPtr& renderSystem, const Reso
 				};
 				worldShared->ConnectOnConstruct<TransformComponent>(func);
 
-				EventFunc removeFunc = [this, worldPtr](entt::entity entityId)
+				EntityEventFunc removeFunc = [this, worldPtr](entt::entity entityId)
 				{
 					if (Entity* entity = worldPtr->GetEntityForId(entityId))
 					{

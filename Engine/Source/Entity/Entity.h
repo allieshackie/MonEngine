@@ -31,7 +31,7 @@ public:
 	Component& AddComponent(Args&&... args)
 	{
 		mRegistry.emplace<Component>(mId, std::forward<Args>(args)...);
-		mEventPublisher.Notify<Component>("on_construct", mId);
+		mEventPublisher.Notify("on_construct", std::type_index(typeid(Component)), mId);
 		return mRegistry.get<Component>(mId);
 	}
 
@@ -39,7 +39,7 @@ public:
 	void RemoveComponent() const
 	{
 		mRegistry.remove<Component>(mId);
-		mEventPublisher.Notify<Component>("on_destroy", mId);
+		mEventPublisher.Notify("on_destroy", std::type_index(typeid(Component)), mId);
 	}
 
 	template <typename... Components>

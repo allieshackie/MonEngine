@@ -57,7 +57,7 @@ void SceneManager::LoadScene(const std::string& sceneName)
 	}
 
 	mCurrentWorld = std::make_shared<World>();
-	mEventPublisher.NotifyWorldCreated(mCurrentWorld);
+	mEventPublisher.Notify(mCurrentWorld);
 
 	mCurrentWorld->Init(scene, *mPrefabRegistry, mRenderSystem, mResourceManager, mLuaSystem);
 }

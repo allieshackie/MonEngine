@@ -5,6 +5,7 @@
 struct ScriptComponent
 {
 	std::string mPath;
+	bool mIsTrigger = false;
 
 	// runtime
 	int mLuaTableRef = -1;
@@ -12,6 +13,7 @@ struct ScriptComponent
 	template <class Archive>
 	void serialize(Archive& archive)
 	{
+		cereal::make_optional_nvp(archive, "is_trigger", mIsTrigger);
 		archive(cereal::make_nvp("path", mPath));
 	}
 };

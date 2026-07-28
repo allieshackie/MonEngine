@@ -1,0 +1,28 @@
+{
+    "camera": {
+        "position": [0,5,10],
+        "front": [0,0,1],
+        "up": [0,1,0],
+        "follow_cam": true,
+        "camera_follow_offset": [0,4.5,-11.5],
+        "camera_look_offset": [0,2.7,-2.7]
+    },
+    "entities": [
+        {
+            "name": "player",
+            "position": [0,2,0]
+        },
+        {
+            "name": "pointLightRed",
+            "position": [2,4,0]
+        },
+        {
+            "name": "terrain",
+            "position": [0,0,0]
+        },
+        {
+            "name": "nextLevelTrigger",
+            "position": [4,2,0]
+        }
+    ]
+}

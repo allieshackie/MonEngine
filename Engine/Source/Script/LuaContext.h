@@ -23,6 +23,8 @@ public:
 	void Initialize(int tableRefIndex) const;
 	void Update(int tableRefIndex) const;
 
+	void CallMethod(int tableRefIndex, const char* methodName);
+
 private:
 	lua_State* mLuaState = nullptr;
 };
