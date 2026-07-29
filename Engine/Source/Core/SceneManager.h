@@ -19,6 +19,7 @@ public:
 
 	void LoadScene(const std::string& sceneName);
 	void RestartScene();
+	void CloseScene();
 	const std::vector<const char*>& GetSceneNames() const;
 
 	void BindMethods(lua_State* state) override;

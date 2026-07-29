@@ -18,26 +18,12 @@ World::World()
 	RegisterComponentLifecycle<LightComponent>();
 }
 
-void World::Close()
+void World::Update()
 {
-	//luaSystem.QueueClose();
-	FlushEntities();
-	DisconnectAll();
-}
-
-void World::DisconnectAll()
-{
-	for (const auto& [eventType, handle] : mSubscriptions)
+	if (mCamera)
 	{
-		mEventPublisher->RemoveListener(eventType, handle);
+		mCamera->Update();
 	}
-	mSubscriptions.clear();
-
-	for (const auto& [eventType, handle] : mPhysicsSubscriptions)
-	{
-		mEventPublisher->RemoveListener(eventType, handle);
-	}
-	mPhysicsSubscriptions.clear();
 }
 
 void World::FlushEvents()
@@ -105,6 +91,29 @@ Entity& World::CreateEntity()
 void World::RemoveEntity(const entt::entity id)
 {
 	mRegistry.destroy(id);
+}
+
+void World::Close()
+{
+	mIsClosing = true;
+	mCamera = nullptr;
+	FlushEntities();
+	DisconnectAll();
+}
+
+void World::DisconnectAll()
+{
+	for (const auto& [eventType, handle] : mSubscriptions)
+	{
+		mEventPublisher->RemoveListener(eventType, handle);
+	}
+	mSubscriptions.clear();
+
+	for (const auto& [eventType, handle] : mPhysicsSubscriptions)
+	{
+		mEventPublisher->RemoveListener(eventType, handle);
+	}
+	mPhysicsSubscriptions.clear();
 }
 
 void World::FlushEntities()

@@ -27,7 +27,7 @@ Camera::Camera(World* world, const CameraData& data)
 
 void Camera::Update()
 {
-	if (mFollowCam && mCameraTargetEntity != nullptr)
+	if (mFollowCam && mCameraTargetEntity != nullptr && mCameraTargetEntity->IsValid())
 	{
 		const auto& transform = mCameraTargetEntity->GetComponent<TransformComponent>();
 		if (transform.mPosition != mCameraFollowTarget)

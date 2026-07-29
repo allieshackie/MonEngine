@@ -4,6 +4,8 @@ end
 
 function OnTriggerEnter()
     _G.print("OnTriggerEnter called")
+    local sceneManager = gGameData.GetSceneManager()
+    sceneManager:LoadScene("level2.json")
 end
 
 function OnTriggerExit()

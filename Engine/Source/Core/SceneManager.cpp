@@ -21,8 +21,6 @@ SceneManager::SceneManager(DescriptionFactory& descriptionFactory, RenderSystem&
 		}
 		mSceneFileNames.push_back(_strdup(fileName.c_str()));
 	}
-
-	//mCurrentWorld = std::make_shared<World>();
 }
 
 std::shared_ptr<World> SceneManager::GetCurrentWorld() const
@@ -32,10 +30,8 @@ std::shared_ptr<World> SceneManager::GetCurrentWorld() const
 
 void SceneManager::LoadScene(const std::string& sceneName)
 {
-	if (mCurrentWorld != nullptr)
-	{
-		mCurrentWorld->Close();
-	}
+	// Cleanup previous scene
+	CloseScene();
 
 	mCurrentSceneName = sceneName;
 
@@ -67,6 +63,15 @@ void SceneManager::RestartScene()
 	if (!mCurrentSceneName.empty())
 	{
 		LoadScene(mCurrentSceneName);
+	}
+}
+
+void SceneManager::CloseScene()
+{
+	if (mCurrentWorld != nullptr)
+	{
+		mCurrentWorld->Close();
+		mCurrentWorld = nullptr;
 	}
 }
 

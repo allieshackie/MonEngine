@@ -16,8 +16,9 @@ public:
 	World();
 
 	void Close();
+	bool IsClosing() const { return mIsClosing; }
 
-	void Init(const MonScene&, PrefabRegistry& prefabRegistry, RenderSystem& renderSystem, ResourceManager& resourceManager, std::weak_ptr<LuaSystem> luaSystem);
+	void Init(const MonScene& scene, PrefabRegistry& prefabRegistry, RenderSystem& renderSystem, ResourceManager& resourceManager, std::weak_ptr<LuaSystem> luaSystem);
 	Camera& GetCamera() const { return *mCamera; }
 	entt::registry& GetRegistry() { return mRegistry; }
 	Entity* GetEntityForId(entt::entity id);
@@ -30,6 +31,7 @@ public:
 	void FlushEntities();
 	void DisconnectAll();
 
+	void Update();
 	void FlushEvents();
 
 	template <typename Component>
@@ -46,7 +48,7 @@ public:
 	void NotifyPhysicsEvent(PhysicsEventType type, entt::entity entityA, entt::entity entityB);
 
 private:
-	std::unique_ptr<Camera> mCamera = nullptr;
+	std::unique_ptr<Camera> mCamera;
 	entt::registry mRegistry;
 	std::unordered_map<std::string, int> mTypeCounters;
 	std::unordered_map<entt::entity, std::unique_ptr<Entity>> mEntityMap;
@@ -56,6 +58,8 @@ private:
 
 	std::vector<std::pair<std::string, SubscriptionHandle>> mSubscriptions;
 	std::vector<std::pair<PhysicsEventType, SubscriptionHandle>> mPhysicsSubscriptions;
+
+	bool mIsClosing = false;
 };
 
 template <typename Component>

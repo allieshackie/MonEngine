@@ -86,7 +86,7 @@ void Game::Run()
 		}
 		auto world = mSceneManager->GetCurrentWorld();
 
-		if (world)
+		if (world && !world->IsClosing())
 		{
 			world->FlushEvents();
 		}
@@ -95,10 +95,9 @@ void Game::Run()
 		mSystemManager->Update(deltaTime);
 
 		mWindowContext->BeginFrame(mRenderSystem->GetCommands());
-		if (world)
+		if (world && !world->IsClosing())
 		{
-			world->GetCamera().Update();
-
+			world->Update();
 			mSystemManager->Render(world);
 
 		}
@@ -151,8 +150,7 @@ void Game::RegisterDescriptions()
 	mDescriptionFactory->RegisterDescription<TriggerVolumeDescription>(TriggerVolumeDescription::JsonName);
 }
 
-// Add an engine level onWOrldCreate event for all systems to subscribe to
-
+// Add an engine level onWorldCreate event for all systems to subscribe to
 void Game::InitDependentSystems(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
 	const LLGL::ColorRGBAf backgroundClearColor, bool transparent)
 {
@@ -169,7 +167,6 @@ void Game::InitDependentSystems(const LLGL::Extent2D screenSize, const LLGL::UTF
 
 void Game::InitGameplaySystems()
 {
-	// Gameplay systems
 	mSystemManager->RegisterSystem<AnimatorSystem>(*mResourceManager, *mEventPublisher);
 	const auto physicsSystem = mSystemManager->RegisterSystem<PhysicsSystem>(*mRenderSystem, *mResourceManager, *mEventPublisher);
 	mSystemManager->RegisterSystem<MovementSystem>(*physicsSystem, *mEventPublisher);

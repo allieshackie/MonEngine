@@ -36,6 +36,10 @@ void EditorGUI::RenderGUI(float dt, float fps)
 			{
 				mSceneManager.RestartScene();
 			}
+			if (ImGui::MenuItem("Close"))
+			{
+				mSceneManager.CloseScene();
+			}
 			if (ImGui::MenuItem("Save"))
 			{
 

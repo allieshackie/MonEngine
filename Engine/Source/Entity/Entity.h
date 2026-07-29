@@ -48,6 +48,8 @@ public:
 		return mRegistry.all_of<Components>(mId);
 	}
 
+	bool IsValid() const { return mRegistry.valid(mId); }
+
 	static void Bind(lua_State* state)
 	{
 		luaL_newmetatable(state, LuaName);
