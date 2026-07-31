@@ -2,18 +2,17 @@
 #include <glm/mat4x4.hpp>
 
 #include "PipelineBase.h"
+#include "Entity/Entity.h"
 #include "Entity/Components/LightComponent.h"
+#include "Entity/Components/ModelComponent.h"
+#include "Entity/Components/TransformComponent.h"
 #include "Graphics/Core/ResourceManager.h"
 
 #define MAX_LIGHTS 4
 #define MAX_BONES 100
 
-class Entity;
 class EventPublisher;
 class World;
-
-struct ModelComponent;
-struct TransformComponent;
 
 struct Material
 {

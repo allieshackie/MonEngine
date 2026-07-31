@@ -5,8 +5,6 @@
 #include "Core/Camera.h"
 #include "Core/World.h"
 #include "Entity/Entity.h"
-#include "Entity/Components/ModelComponent.h"
-#include "Entity/Components/TransformComponent.h"
 #include "Graphics/Core/Node.h"
 
 #include "MeshPipeline.h"

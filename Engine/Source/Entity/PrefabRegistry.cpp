@@ -1,25 +1,11 @@
 #include <cereal/archives/json.hpp>
-
-#include "Descriptions/DescriptionFactory.h"
 #include "Util/FileSystem.h"
 
 #include "PrefabRegistry.h"
 
 namespace fs = std::filesystem;
 
-PrefabRegistry::PrefabRegistry(const DescriptionFactory& descriptionFactory)
-{
-	RegisterPrefabs(descriptionFactory);
-}
-
-const std::vector<std::shared_ptr<DescriptionBase>>& PrefabRegistry::GetPrefabsDescriptions(
-	const std::string& templateName)
-{
-	const auto it = mPrefabs.find(templateName);
-	return it->second;
-}
-
-void PrefabRegistry::RegisterPrefabs(const DescriptionFactory& descriptionFactory)
+void PrefabRegistry::RegisterPrefabs()
 {
 	for (const auto& entry : fs::directory_iterator(PREFABS_FOLDER))
 	{
@@ -28,11 +14,11 @@ void PrefabRegistry::RegisterPrefabs(const DescriptionFactory& descriptionFactor
 
 		std::string templateName = entityJson[PREFAB_NAME_STRING];
 
-		std::vector<std::shared_ptr<DescriptionBase>> descriptions;
+		std::vector<SerializedComponent> components;
 		for (const auto& [key, value] : entityJson[COMPONENTS_STRING].items())
 		{
-			descriptions.push_back(descriptionFactory.CreateDescription(key, value.dump()));
+			components.push_back({key, mComponentLoaders[key], value});
 		}
-		mPrefabs.insert({templateName, descriptions});
+		mPrefabs.insert({templateName, components });
 	}
 }

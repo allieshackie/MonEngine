@@ -1,19 +1,17 @@
 #include "Core/Timer.h"
 #include "Core/World.h"
+#include "Entity/Entity.h"
+#include "Entity/Components/AnimationComponent.h"
+#include "Entity/Components/CollisionComponent.h"
 #include "Entity/Components/ModelComponent.h"
-#include "Entity/Descriptions/AnimationDescription.h"
-#include "Entity/Descriptions/CollisionDescription.h"
-#include "Entity/Descriptions/InteractiveDescription.h"
-#include "Entity/Descriptions/LightDescription.h"
-#include "Entity/Descriptions/ModelDescription.h"
-#include "Entity/Descriptions/PhysicsDescription.h"
-#include "Entity/Descriptions/PlayerDescription.h"
-#include "Entity/Descriptions/ScriptDescription.h"
-#include "Entity/Descriptions/SpriteDescription.h"
-#include "Entity/Descriptions/TransformDescription.h"
-#include "Entity/Descriptions/TriggerVolumeDescription.h"
+#include "Entity/Components/PhysicsComponent.h"
+#include "Entity/Components/PlayerComponent.h"
+#include "Entity/Components/ScriptComponent.h"
+#include "Entity/Components/SpriteComponent.h"
+#include "Entity/Components/TriggerVolumeComponent.h"
 #include "Entity/Systems/MovementSystem.h"
 #include "Entity/Systems/PlayerSystem.h"
+#include "Entity/PrefabRegistry.h"
 #include "Graphics/Animation/Animator.h"
 #include "Graphics/RenderSystem.h"
 #include "GUI/GUISystem.h"
@@ -120,7 +118,7 @@ Game::Game(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
 {
 	
 	InitCoreSystems();
-	RegisterDescriptions();
+	RegisterComponents();
 	InitDependentSystems(screenSize, title, backgroundClearColor, transparent);
 	InitGameplaySystems();
 	SetupLuaBindings();
@@ -131,23 +129,24 @@ void Game::InitCoreSystems()
 	mSystemManager = std::make_unique<SystemManager>();
 	mInputHandler = std::make_shared<InputHandler>();
 	mResourceManager = std::make_unique<ResourceManager>();
-	mDescriptionFactory = std::make_unique<DescriptionFactory>();
 	mEventPublisher = std::make_unique<EventPublisher>();
+	mPrefabRegistry = std::make_unique<PrefabRegistry>();
 }
 
-void Game::RegisterDescriptions()
+void Game::RegisterComponents()
 {
-	mDescriptionFactory->RegisterDescription<AnimationDescription>(AnimationDescription::JsonName);
-	mDescriptionFactory->RegisterDescription<CollisionDescription>(CollisionDescription::JsonName);
-	mDescriptionFactory->RegisterDescription<InteractiveDescription>(InteractiveDescription::JsonName);
-	mDescriptionFactory->RegisterDescription<LightDescription>(LightDescription::JsonName);
-	mDescriptionFactory->RegisterDescription<ModelDescription>(ModelDescription::JsonName);
-	mDescriptionFactory->RegisterDescription<PhysicsDescription>(PhysicsDescription::JsonName);
-	mDescriptionFactory->RegisterDescription<PlayerDescription>(PlayerDescription::JsonName);
-	mDescriptionFactory->RegisterDescription<ScriptDescription>(ScriptDescription::JsonName);
-	mDescriptionFactory->RegisterDescription<SpriteDescription>(SpriteDescription::JsonName);
-	mDescriptionFactory->RegisterDescription<TransformDescription>(TransformDescription::JsonName);
-	mDescriptionFactory->RegisterDescription<TriggerVolumeDescription>(TriggerVolumeDescription::JsonName);
+	mPrefabRegistry->RegisterComponent<AnimationComponent>("animation");
+	mPrefabRegistry->RegisterComponent<CollisionComponent>("collider");
+	mPrefabRegistry->RegisterComponent<LightComponent>("light");
+	mPrefabRegistry->RegisterComponent<ModelComponent>("model");
+	mPrefabRegistry->RegisterComponent<PhysicsComponent>("rigidbody");
+	mPrefabRegistry->RegisterComponent<PlayerComponent>("player");
+	mPrefabRegistry->RegisterComponent<ScriptComponent>("script");
+	mPrefabRegistry->RegisterComponent<SpriteComponent>("sprite");
+	mPrefabRegistry->RegisterComponent<TransformComponent>("transform");
+	mPrefabRegistry->RegisterComponent<TriggerVolumeComponent>("triggerVolume");
+
+	mPrefabRegistry->RegisterPrefabs();
 }
 
 // Add an engine level onWorldCreate event for all systems to subscribe to
@@ -160,7 +159,7 @@ void Game::InitDependentSystems(const LLGL::Extent2D screenSize, const LLGL::UTF
 	mGUISystem = std::make_shared<GUISystem>(*mWindowContext);
 	mInputContext = std::make_unique<InputContext>(*mInputHandler, *mGUISystem);
 	mWindowContext->AddEventListener(mInputContext);
-	mSceneManager = std::make_unique<SceneManager>(*mDescriptionFactory, *mRenderSystem, *mResourceManager, *mEventPublisher);
+	mSceneManager = std::make_unique<SceneManager>(*mPrefabRegistry, *mRenderSystem, *mResourceManager, *mEventPublisher);
 	mInputHandler->RegisterButtonUpHandler(LLGL::Key::Escape, [=]() { mRunning = false; });
 	mResourceManager->LoadAllResources(*mRenderSystem);
 }

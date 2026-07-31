@@ -1,18 +1,17 @@
 #pragma once
-#include "Entity/PrefabRegistry.h"
 #include "Script/LuaBindable.h"
 #include "World.h"
 
-class DescriptionFactory;
 class Entity;
 class EventPublisher;
+class PrefabRegistry;
 class RenderSystem;
 class ResourceManager;
 
 class SceneManager : public LuaBindable
 {
 public:
-	SceneManager(DescriptionFactory& descriptionFactory, RenderSystem& renderSystem, ResourceManager& resourceManager, EventPublisher& eventPublisher);
+	SceneManager(PrefabRegistry& prefabRegistry, RenderSystem& renderSystem, ResourceManager& resourceManager, EventPublisher& eventPublisher);
 
 	std::shared_ptr<World> GetCurrentWorld() const;
 	void SetLuaSystem(std::weak_ptr<LuaSystem> luaSystem) { mLuaSystem = luaSystem; }
@@ -31,12 +30,12 @@ private:
 	std::string mCurrentSceneName;
 
 	std::vector<const char*> mSceneFileNames;
-	std::unique_ptr<PrefabRegistry> mPrefabRegistry = nullptr;
 
 	RenderSystem& mRenderSystem;
 	std::weak_ptr<LuaSystem> mLuaSystem;
 	ResourceManager& mResourceManager;
 	EventPublisher& mEventPublisher;
+	PrefabRegistry& mPrefabRegistry;
 
 	const char* EDITOR_SCENE = "editor";
 };

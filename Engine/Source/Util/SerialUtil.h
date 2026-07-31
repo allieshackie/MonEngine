@@ -60,14 +60,12 @@ namespace cereal
 	{
 	};
 
-	// Save function for writing the enum as a string
 	template <class Archive>
 	void save(Archive& archive, const ColliderShapes& state)
 	{
 		archive(COLLIDER_STRINGS[state]);
 	}
 
-	// Load function for reading a string and converting it to an enum
 	template <class Archive>
 	void load(Archive& archive, ColliderShapes& state)
 	{

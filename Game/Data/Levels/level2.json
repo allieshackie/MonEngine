@@ -9,16 +9,31 @@
     },
     "entities": [
         {
-            "name": "player",
-            "position": [4,2,0]
+            "prefab": "player",
+            "components": 
+            {
+                "transform" : {
+                    "position": [4,2,0]
+                }
+            }
         },
         {
-            "name": "pointLight",
-            "position": [2,4,0]
+            "prefab": "pointLight",
+            "components": 
+            {
+                "transform" : {
+                    "position": [2,4,0]
+                }
+            }
         },
         {
-            "name": "terrain",
-            "position": [0,0,0]
+            "prefab": "terrain",
+            "components": 
+            {
+                "transform" : {
+                    "position": [0,0,0]
+                }
+            }
         }
     ]
 }

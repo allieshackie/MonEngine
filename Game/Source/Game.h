@@ -4,7 +4,6 @@
 #include "Core/SceneManager.h"
 #include "Core/SystemManager.h"
 #include "Editor/EditorGUI.h"
-#include "Entity/Descriptions/DescriptionFactory.h"
 #include "Graphics/WindowContext.h"
 #include "Graphics/Core/ResourceManager.h"
 #include "Input/InputContext.h"
@@ -20,23 +19,17 @@ public:
 
 	void Run();
 
-	template <typename T>
-	void RegisterDescription(const std::string& descriptionName) const
-	{
-		mDescriptionFactory->RegisterDescription<T>(descriptionName);
-	}
-
 	void ToggleEditorMode(bool toggle);
 
 private:
 	void InitCoreSystems(); // Init all systems **without** dependencies
-	void RegisterDescriptions(); // Must be called before SceneManager sets up description factory
+	void RegisterComponents(); // Must be called before SceneManager sets up description factory
 	void InitDependentSystems(const LLGL::Extent2D screenSize, const LLGL::UTF8String& title,
 		const LLGL::ColorRGBAf backgroundClearColor, bool transparent);
 	void InitGameplaySystems();
 	void SetupLuaBindings();
 
-	std::unique_ptr<DescriptionFactory> mDescriptionFactory;
+	std::unique_ptr<PrefabRegistry> mPrefabRegistry;
 	std::unique_ptr<WindowContext> mWindowContext;
 	std::unique_ptr<ResourceManager> mResourceManager;
 

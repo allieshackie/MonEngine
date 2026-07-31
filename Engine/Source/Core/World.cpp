@@ -1,14 +1,11 @@
 #include "Core/Scene.h"
 #include "Entity/Entity.h"
-#include "Entity/PrefabRegistry.h"
 #include "Entity/Components/CollisionComponent.h"
 #include "Entity/Components/TransformComponent.h"
 #include "Entity/Components/LightComponent.h"
-#include "Entity/Descriptions/DescriptionBase.h"
 #include "Graphics/Core/ResourceManager.h"
 #include "Graphics/RenderSystem.h"
 #include "Script/LuaSystem.h"
-#include "Terrain/TerrainSystem.h"
 
 #include "World.h"
 
@@ -48,11 +45,9 @@ void World::Init(const MonScene& scene, PrefabRegistry& prefabRegistry, RenderSy
 {
 	CreateCamera(scene);
 
-	for (const auto& entity : scene.GetEntityDefinitions())
+	for (const auto& entity : scene.GetEntityOverrides())
 	{
-		auto& gameObj = CreateEntityFromTemplate(entity.mName.c_str(), prefabRegistry);
-		auto& transformComponent = gameObj.GetComponent<TransformComponent>();
-		transformComponent.mPosition = entity.mPosition;
+		auto& gameObj = CreateEntityFromTemplate(entity.mPrefab.c_str(), prefabRegistry, entity.mOverrides);
 	}
 
 	if (const auto luaPtr = luaSystem.lock())
@@ -64,17 +59,23 @@ void World::Init(const MonScene& scene, PrefabRegistry& prefabRegistry, RenderSy
 	}
 }
 
-Entity& World::CreateEntityFromTemplate(const char* templateName, PrefabRegistry& prefabRegistry)
+Entity& World::CreateEntityFromTemplate(const char* templateName, PrefabRegistry& prefabRegistry, const std::vector<SerializedComponent>& overrides)
 {
-	const auto& descriptions = prefabRegistry.GetPrefabsDescriptions(templateName);
+	auto& components = prefabRegistry.GetPrefabComponents(templateName);
 	auto id = mRegistry.create();
 	std::string name = templateName + std::to_string(mEntityMap.size());
 	mEntityMap[id] = std::make_unique<Entity>(id, mRegistry, *mEventPublisher, name);
 	mEntityNameIdMap[std::to_string(static_cast<uint32_t>(id))] = id;
 
-	for (const auto& description : descriptions)
+	for (auto& component : components)
 	{
-		description->ApplyToEntity(mEntityMap[id].get(), mRegistry);
+		auto& componentKey = component.key;
+		auto it = std::find_if(overrides.begin(), overrides.end(), [componentKey](const SerializedComponent& u) {return u.key == componentKey;});
+		if (it != overrides.end())
+		{
+			component.json.update(it->json);
+		}
+		component.loader(mEntityMap[id].get(), component.json);
 	}
 
 	return *mEntityMap[id];

@@ -15,4 +15,9 @@ enum MovementInput
 struct PlayerComponent
 {
 	int mMovementInput = MovementInput::None;
+
+	template <class Archive>
+	void serialize(Archive& archive)
+	{
+	}
 };

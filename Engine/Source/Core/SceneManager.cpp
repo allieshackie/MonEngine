@@ -1,16 +1,14 @@
 #include "Scene.h"
 #include "Graphics/RenderSystem.h"
-#include "Entity/Descriptions/DescriptionFactory.h"
+#include "Entity/PrefabRegistry.h"
 #include "Util/FileSystem.h"
 #include "Util/LuaUtil.h"
 
 #include "SceneManager.h"
 
-SceneManager::SceneManager(DescriptionFactory& descriptionFactory, RenderSystem& renderSystem, ResourceManager& resourceManager, EventPublisher& eventPublisher)
-	: LuaBindable("SceneManager"), mRenderSystem(renderSystem), mResourceManager(resourceManager), mEventPublisher(eventPublisher)
+SceneManager::SceneManager(PrefabRegistry& prefabRegistry, RenderSystem& renderSystem, ResourceManager& resourceManager, EventPublisher& eventPublisher)
+	: LuaBindable("SceneManager"), mRenderSystem(renderSystem), mResourceManager(resourceManager), mEventPublisher(eventPublisher), mPrefabRegistry(prefabRegistry)
 {
-	mPrefabRegistry = std::make_unique<PrefabRegistry>(descriptionFactory);
-
 	mSceneFileNames.clear();
 	for (const auto& entry : std::filesystem::directory_iterator(LEVELS_FOLDER))
 	{
@@ -45,6 +43,21 @@ void SceneManager::LoadScene(const std::string& sceneName)
 	{
 		auto archive = FileSystem::CreateArchive(fullFileName, true);
 		scene.serialize(archive);
+		auto readJson = FileSystem::ReadJson(fullFileName);
+		if (readJson.find("entities") != readJson.end())
+		{
+			for (const auto& [entityName, entityJson] : readJson["entities"].items())
+			{
+				EntityData data;
+				data.mPrefab = entityJson["prefab"];
+				for (const auto& [componentName, componentJson] : entityJson["components"].items())
+				{
+					const auto& componentInfo = mPrefabRegistry.GetComponentLoader(componentName);
+					data.mOverrides.push_back({ componentName, componentInfo, componentJson });
+				}
+				scene.AddEntityOverride(data);
+			}
+		}
 	}
 	catch (const cereal::Exception& e)
 	{
@@ -52,10 +65,11 @@ void SceneManager::LoadScene(const std::string& sceneName)
 		assert(false);
 	}
 
+
 	mCurrentWorld = std::make_shared<World>();
 	mEventPublisher.Notify(mCurrentWorld);
 
-	mCurrentWorld->Init(scene, *mPrefabRegistry, mRenderSystem, mResourceManager, mLuaSystem);
+	mCurrentWorld->Init(scene, mPrefabRegistry, mRenderSystem, mResourceManager, mLuaSystem);
 }
 
 void SceneManager::RestartScene()

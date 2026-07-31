@@ -1,12 +1,12 @@
 #pragma once
 
-#include "Core/Camera.h"
 #include "EventListener.h"
+#include "Core/Camera.h"
+#include "Entity/PrefabRegistry.h"
 #include "Graphics/Core/TerrainMesh.h"
 
 class LuaSystem;
 class MonScene;
-class PrefabRegistry;
 class RenderSystem;
 class ResourceManager;
 
@@ -25,7 +25,7 @@ public:
 	const std::unique_ptr<TerrainMesh>& GetTerrain() const { return mTerrain; }
 
 	void CreateCamera(const MonScene& scene);
-	Entity& CreateEntityFromTemplate(const char* templateName, PrefabRegistry& prefabRegistry);
+	Entity& CreateEntityFromTemplate(const char* templateName, PrefabRegistry& prefabRegistry, const std::vector<SerializedComponent>& overrides);
 	Entity& CreateEntity();
 	void RemoveEntity(const entt::entity id);
 	void FlushEntities();
