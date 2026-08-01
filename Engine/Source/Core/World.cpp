@@ -64,18 +64,19 @@ Entity& World::CreateEntityFromTemplate(const char* templateName, PrefabRegistry
 	auto& components = prefabRegistry.GetPrefabComponents(templateName);
 	auto id = mRegistry.create();
 	std::string name = templateName + std::to_string(mEntityMap.size());
-	mEntityMap[id] = std::make_unique<Entity>(id, mRegistry, *mEventPublisher, name);
+	mEntityMap[id] = std::make_unique<Entity>(id, mRegistry, *mEventPublisher, name, templateName);
 	mEntityNameIdMap[std::to_string(static_cast<uint32_t>(id))] = id;
 
 	for (auto& component : components)
 	{
 		auto& componentKey = component.key;
+		auto updateJson = component.json;
 		auto it = std::find_if(overrides.begin(), overrides.end(), [componentKey](const SerializedComponent& u) {return u.key == componentKey;});
 		if (it != overrides.end())
 		{
-			component.json.update(it->json);
+			updateJson.update(it->json);
 		}
-		component.loader(mEntityMap[id].get(), component.json);
+		component.saveLoader.loader(mEntityMap[id].get(), updateJson);
 	}
 
 	return *mEntityMap[id];

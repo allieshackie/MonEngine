@@ -32,17 +32,21 @@ void EditorGUI::RenderGUI(float dt, float fps)
 	{
 		if (ImGui::BeginMenu("Level"))
 		{
+			if (ImGui::MenuItem("Open"))
+			{
+				
+			}
 			if (ImGui::MenuItem("Restart"))
 			{
 				mSceneManager.RestartScene();
 			}
+			if (ImGui::MenuItem("Save"))
+			{
+				mSceneManager.SaveScene();
+			}
 			if (ImGui::MenuItem("Close"))
 			{
 				mSceneManager.CloseScene();
-			}
-			if (ImGui::MenuItem("Save"))
-			{
-
 			}
 			ImGui::EndMenu();
 		}

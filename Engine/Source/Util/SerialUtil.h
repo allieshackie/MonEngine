@@ -77,16 +77,14 @@ namespace cereal
 	// Optionally load an NVP if its name equals to the current node's name
 	// Loading members should be done in the same order they were saved
 	// return true if NVP found
-	template <class Archive, class T>
-	bool make_optional_nvp(Archive& ar, const char* name, T&& value)
+	template<class T>
+	bool make_optional_nvp(cereal::JSONInputArchive& ar,const char* name, T&& value)
 	{
-		const auto node_name = ar.getNodeName();
+		auto node_name = ar.getNodeName();
 
-		// if names are equal
-		if (node_name != nullptr &&
-			strcmp(name, node_name) == 0)
+		if (node_name && strcmp(name, node_name) == 0)
 		{
-			ar(make_nvp(name, std::forward<T>(value))); // load the NVP. Advances to the next node
+			ar(cereal::make_nvp(name, std::forward<T>(value)));
 			return true;
 		}
 

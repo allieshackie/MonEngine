@@ -43,9 +43,9 @@ PhysicsSystem::PhysicsSystem(RenderSystem& renderSystem, ResourceManager& resour
 	);
 
 	// Uncomment to turn on debug draw
-	mPhysicsDebugDraw = std::make_unique<PhysicsDebugDraw>(renderSystem);
-	mDynamicWorld->setDebugDrawer(mPhysicsDebugDraw.get());
-	mDynamicWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe | btIDebugDraw::DBG_DrawAabb);
+	//mPhysicsDebugDraw = std::make_unique<PhysicsDebugDraw>(renderSystem);
+	//mDynamicWorld->setDebugDrawer(mPhysicsDebugDraw.get());
+	//mDynamicWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe | btIDebugDraw::DBG_DrawAabb);
 }
 
 void PhysicsSystem::FixedUpdate(float dt)
@@ -320,11 +320,14 @@ void PhysicsSystem::_UpdateTriggers()
 	{
 		std::unordered_set<Entity*> currentOverlaps;
 
-		int count = trigger.mGhostObject->getNumOverlappingObjects();
-		for (int i = 0; i < count; i++)
+		if (trigger.mGhostObject)
 		{
-			btCollisionObject* object = trigger.mGhostObject->getOverlappingObject(i);
-			currentOverlaps.insert(static_cast<Entity*>(object->getUserPointer()));
+			int count = trigger.mGhostObject->getNumOverlappingObjects();
+			for (int i = 0; i < count; i++)
+			{
+				btCollisionObject* object = trigger.mGhostObject->getOverlappingObject(i);
+				currentOverlaps.insert(static_cast<Entity*>(object->getUserPointer()));
+			}
 		}
 
 		for (Entity* other : currentOverlaps)

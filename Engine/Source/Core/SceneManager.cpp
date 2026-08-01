@@ -65,11 +65,38 @@ void SceneManager::LoadScene(const std::string& sceneName)
 		assert(false);
 	}
 
-
 	mCurrentWorld = std::make_shared<World>();
 	mEventPublisher.Notify(mCurrentWorld);
 
 	mCurrentWorld->Init(scene, mPrefabRegistry, mRenderSystem, mResourceManager, mLuaSystem);
+}
+
+void SceneManager::SaveScene()
+{
+	nlohmann::json levelJson;
+	levelJson["level"] = mCurrentSceneName;
+	levelJson["camera"] = mCurrentWorld->GetCamera().GetSaveData();
+
+	for (auto& [entityId, entity] : mCurrentWorld->GetAllEntities())
+	{
+		nlohmann::json entityJson;
+		entityJson["prefab"] = entity->GetTemplateTag();
+		
+		for (auto& [tag, info] : mPrefabRegistry.GetAllComponentLoaders())
+		{
+			nlohmann::json componentJson;
+			if (info.saver(entity.get(), componentJson))
+			{
+				entityJson["components"][tag] = componentJson;
+			}
+		}
+
+		levelJson["entities"].push_back(std::move(entityJson));
+	}
+
+	std::string saveName = LEVELS_FOLDER;
+	saveName.append("save1.json");
+	FileSystem::WriteJson(saveName, levelJson);
 }
 
 void SceneManager::RestartScene()

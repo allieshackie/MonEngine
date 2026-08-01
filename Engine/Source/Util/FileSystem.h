@@ -3,6 +3,7 @@
 #include <cereal/archives/json.hpp>
 #include <fstream>
 #include <ios>
+#include "Logger.h"
 
 namespace FileSystem
 {
@@ -10,6 +11,19 @@ namespace FileSystem
 	{
 		std::ifstream ifs(filePath.c_str());
 		return nlohmann::json::parse(ifs, nullptr, false, true);
+	}
+
+	static void WriteJson(const std::string& filePath, const nlohmann::json& json)
+	{
+		std::ofstream file(filePath);
+
+		if (!file.is_open())
+		{
+			MON_WARN("Filed to open" + filePath);
+			return;
+		}
+
+		file << json.dump(4);
 	}
 
 	static cereal::JSONInputArchive CreateArchive(const std::string& fileName, bool openFile = false)

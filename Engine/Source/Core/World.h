@@ -23,6 +23,7 @@ public:
 	entt::registry& GetRegistry() { return mRegistry; }
 	Entity* GetEntityForId(entt::entity id);
 	const std::unique_ptr<TerrainMesh>& GetTerrain() const { return mTerrain; }
+	std::unordered_map<entt::entity, std::unique_ptr<Entity>>& GetAllEntities() { return mEntityMap; }
 
 	void CreateCamera(const MonScene& scene);
 	Entity& CreateEntityFromTemplate(const char* templateName, PrefabRegistry& prefabRegistry, const std::vector<SerializedComponent>& overrides);

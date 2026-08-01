@@ -18,11 +18,14 @@
             }
         },
         {
-            "prefab": "pointLightRed",
+            "prefab": "pointLight",
             "components": 
             {
                 "transform" : {
                     "position": [2,4,0]
+                },
+                "light": {
+                    "color": [1,0,0,1]
                 }
             }
         },

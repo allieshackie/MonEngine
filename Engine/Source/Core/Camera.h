@@ -4,6 +4,8 @@
 #include <glm/vec3.hpp>
 #include <glm/ext/matrix_transform.hpp>
 #include <entt/entt.hpp>
+#include <nlohmann/json.hpp>
+#include "Util/SerialUtil.h"
 
 struct CameraData;
 class Entity;
@@ -48,6 +50,27 @@ public:
 	void SetLookTarget(Entity* entity);
 
 	void UpdateView();
+
+	template <class Archive>
+	void serialize(Archive& archive)
+	{
+		archive(cereal::make_nvp("position", mCameraPos),
+			cereal::make_nvp("front", mCameraFront),
+			cereal::make_nvp("up", mCameraUp),
+			cereal::make_nvp("follow_cam", mFollowCam),
+			cereal::make_nvp("camera_follow_offset", mCameraFollowOffset),
+			cereal::make_nvp("camera_look_offset", mCameraLookOffset));
+	}
+
+	nlohmann::json GetSaveData()
+	{
+		std::stringstream stream;
+		{
+			cereal::JSONOutputArchive archive(stream);
+			serialize(archive);
+		}
+		return nlohmann::json::parse(stream.str());
+	}
 
 private:
 	Entity* mCameraTargetEntity = nullptr;

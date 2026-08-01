@@ -6,13 +6,14 @@
 class Entity
 {
 public:
-	Entity(entt::entity id, entt::registry& registry, EventPublisher& eventPub, std::string name = "")
-		: mRegistry(registry), mEventPublisher(eventPub), mId(id), mName(std::move(name))
+	Entity(entt::entity id, entt::registry& registry, EventPublisher& eventPub, std::string name = "", std::string templateTag = "")
+		: mRegistry(registry), mEventPublisher(eventPub), mId(id), mName(std::move(name)), mTemplateTag(std::move(templateTag))
 	{
 	}
 
 	const entt::entity& GetId() const { return mId; }
 	const std::string& GetName() const { return mName; }
+	const std::string& GetTemplateTag() const { return mTemplateTag; }
 	void SetName(const std::string& name) { mName = name; }
 
 	template <typename Component>
@@ -45,7 +46,7 @@ public:
 	template <typename... Components>
 	bool HasComponent() const
 	{
-		return mRegistry.all_of<Components>(mId);
+		return mRegistry.all_of<Components...>(mId);
 	}
 
 	bool IsValid() const { return mRegistry.valid(mId); }
@@ -69,4 +70,5 @@ private:
 
 	entt::entity mId{entt::null};
 	std::string mName;
+	std::string mTemplateTag;
 };

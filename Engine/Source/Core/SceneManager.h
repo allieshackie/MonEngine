@@ -17,6 +17,7 @@ public:
 	void SetLuaSystem(std::weak_ptr<LuaSystem> luaSystem) { mLuaSystem = luaSystem; }
 
 	void LoadScene(const std::string& sceneName);
+	void SaveScene();
 	void RestartScene();
 	void CloseScene();
 	const std::vector<const char*>& GetSceneNames() const;
