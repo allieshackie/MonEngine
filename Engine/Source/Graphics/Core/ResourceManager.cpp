@@ -11,6 +11,13 @@
 
 void ResourceManager::LoadAllResources(const RenderSystem& renderSystem)
 {
+	if (mTextures.empty())
+	{
+		// Default texture for fallback
+		const unsigned char whitePixel[] = {255, 255, 255, 255};
+		mTextures.push_back(std::make_unique<Texture>(renderSystem.GetSystem(), whitePixel, 1, 1));
+		textureNum = 1;
+	}
 	_LoadAllModels(renderSystem);
 	InitModelVertexBuffers(renderSystem);
 }
@@ -25,7 +32,11 @@ void ResourceManager::InitModelVertexBuffers(const RenderSystem& renderSystem) c
 
 LLGL::Texture& ResourceManager::GetTexture(int textureId) const
 {
-	if (textureId == -1)
+	if (mTextures.empty())
+	{
+		MON_ASSERT(!mTextures.empty(), "Textures empty");
+	}
+	if (textureId < 0 || static_cast<size_t>(textureId) >= mTextures.size())
 	{
 		return mTextures[0]->GetTextureData();
 	}
@@ -34,7 +45,11 @@ LLGL::Texture& ResourceManager::GetTexture(int textureId) const
 
 LLGL::Sampler& ResourceManager::GetSampler(int textureId) const
 {
-	if (textureId == -1)
+	if (mTextures.empty())
+	{
+		MON_ASSERT(!mTextures.empty(), "Textures empty");
+	}
+	if (textureId < 0 || static_cast<size_t>(textureId) >= mTextures.size())
 	{
 		return mTextures[0]->GetSamplerData();
 	}
@@ -106,7 +121,7 @@ std::vector<std::vector<float>> ResourceManager::CreateHeightMap(const std::stri
 	{
 		for (int j = 0; j < image_height; j++)
 		{
-			heightMap[i][j] = image_data[j * image_width + i] / 255.0f;
+			heightMap[i][j] = image_data[(j * image_width + i) * 4] / 255.0f;
 		}
 	}
 
@@ -122,6 +137,7 @@ void ResourceManager::Shutdown()
 
 	mTextures.clear();
 	mTextureIds.clear();
+	textureNum = 0;
 }
 
 int ResourceManager::_LoadNewTexture(const RenderSystem& renderSystem, const tinygltf::Image& image)

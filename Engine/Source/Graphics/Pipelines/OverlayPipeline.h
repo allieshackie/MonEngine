@@ -34,11 +34,7 @@ public:
 	void DrawOverlay(const OverlayElement& element, LLGL::CommandBuffer& commands, const glm::mat4 projMat);
 	void DrawLine(glm::vec3 from, glm::vec3 to, glm::vec4 color);
 
-	void ClearOverlays()
-	{
-		mOverlayElements.clear();
-		mOverlayVertices.clear();
-	}
+	void ClearOverlays();
 
 private:
 	const std::array<glm::vec3, 4> mBoxVertices{
@@ -52,6 +48,7 @@ private:
 	std::vector<DebugVertex> mOverlayVertices;
 	std::vector<std::unique_ptr<OverlayElement>> mOverlayElements;
 	LLGL::Buffer* mOverlayVertexBuffer = nullptr;
+	size_t mOverlayBufferCapacity = 50;
 
 	struct OverlaySettings
 	{

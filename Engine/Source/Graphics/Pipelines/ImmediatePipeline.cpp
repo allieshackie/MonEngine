@@ -50,11 +50,13 @@ void ImmediatePipeline::_RenderPoints(LLGL::CommandBuffer& commandBuffer, const 
 	{
 		return;
 	}
+
+	_CheckBufferSize(mPointVertexBuffer, mPointBufferMaxSize, mFramePointVertices.size());
+
 	// If point size change is needed, confirm works
 	// glPointSize(5.0);
 	commandBuffer.UpdateBuffer(*mPointVertexBuffer, 0, mFramePointVertices.data(),
-	                           static_cast<std::uint32_t>(mFramePointVertices.size() * sizeof(
-		                           DebugVertex)));
+	                           static_cast<std::uint32_t>(mFramePointVertices.size() * sizeof(DebugVertex)));
 
 	// set graphics pipeline
 	commandBuffer.SetPipelineState(*mPointPipeline);
@@ -70,11 +72,13 @@ void ImmediatePipeline::_RenderLines(LLGL::CommandBuffer& commandBuffer, const g
 	{
 		return;
 	}
+
+	_CheckBufferSize(mLineVertexBuffer, mLineBufferMaxSize, mFrameLineVertices.size());
+
 	// If point size change is needed, confirm works
 	// glPointSize(5.0);
 	commandBuffer.UpdateBuffer(*mLineVertexBuffer, 0, mFrameLineVertices.data(),
-	                           static_cast<std::uint32_t>(mFrameLineVertices.size() * sizeof(
-		                           DebugVertex)));
+	                           static_cast<std::uint32_t>(mFrameLineVertices.size() * sizeof(DebugVertex)));
 
 	// set graphics pipeline
 	commandBuffer.SetPipelineState(*mLinePipeline);
@@ -90,11 +94,13 @@ void ImmediatePipeline::_RenderCircles(LLGL::CommandBuffer& commandBuffer, const
 	{
 		return;
 	}
+
+	_CheckBufferSize(mCircleVertexBuffer, mCircleBufferMaxSize, mFrameCircleVertices.size());
+
 	// If point size change is needed, confirm works
 	// glPointSize(5.0);
 	commandBuffer.UpdateBuffer(*mCircleVertexBuffer, 0, mFrameCircleVertices.data(),
-	                           static_cast<std::uint32_t>(mFrameCircleVertices.size() * sizeof(
-		                           DebugVertex)));
+	                           static_cast<std::uint32_t>(mFrameCircleVertices.size() * sizeof(DebugVertex)));
 
 	// set graphics pipeline
 	commandBuffer.SetPipelineState(*mCirclePipeline);
@@ -109,6 +115,18 @@ void ImmediatePipeline::_ClearVertices()
 	mFramePointVertices.clear();
 	mFrameLineVertices.clear();
 	mFrameCircleVertices.clear();
+}
+
+void ImmediatePipeline::_CheckBufferSize(LLGL::Buffer*& buffer, size_t& maxSize, size_t requiredVertices)
+{
+	if (requiredVertices <= maxSize)
+	{
+		return;
+	}
+
+	maxSize = std::max(maxSize * 2, requiredVertices);
+	mRenderSystem->Release(*buffer);
+	buffer = mRenderSystem->CreateBuffer(VertexBufferDesc(static_cast<std::uint32_t>(maxSize * sizeof(DebugVertex)), mShader->GetVertexFormat()));
 }
 
 void ImmediatePipeline::_InitResourceHeap(const LLGL::RenderSystemPtr& renderSystem)
@@ -256,7 +274,7 @@ void ImmediatePipeline::_DrawOutlinedBox(glm::vec3 pos, glm::vec3 size, glm::vec
 	mFrameLineVertices.push_back({MonUtil::CalculateModelPoint(pos, size, MonUtil::mBoxVertices[0]), color});
 }
 
-ImmediatePipeline::ImmediatePipeline(const LLGL::RenderSystemPtr& renderSystem)
+ImmediatePipeline::ImmediatePipeline(const LLGL::RenderSystemPtr& renderSystem) : mRenderSystem(renderSystem)
 {
 	mConstantBuffer = renderSystem->CreateBuffer(LLGL::ConstantBufferDesc(sizeof(Settings)),
 	                                             &settings);

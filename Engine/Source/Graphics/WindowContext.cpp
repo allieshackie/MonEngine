@@ -74,13 +74,13 @@ void WindowContext::BeginFrame(LLGL::CommandBuffer& commands) const
 	// Render Commands to Queue
 	commands.Begin();
 
-	commands.Clear(LLGL::ClearFlags::ColorDepth | LLGL::ClearFlags::Color, {
-		                 mBackgroundColor.r, mBackgroundColor.g, mBackgroundColor.b, mBackgroundColor.a
-	                 });
 	// set viewport and scissor rectangle
 	commands.SetViewport(mSwapChain->GetResolution());
 
 	commands.BeginRenderPass(*mSwapChain);
+	commands.Clear(LLGL::ClearFlags::ColorDepth, {
+		                 mBackgroundColor.r, mBackgroundColor.g, mBackgroundColor.b, mBackgroundColor.a
+	                 });
 }
 
 void WindowContext::EndFrame(LLGL::CommandBuffer& commands, LLGL::CommandQueue& queue) const

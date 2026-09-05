@@ -43,13 +43,13 @@ const vec3 boneColors[4] = vec3[](vec3(1.0, 0.0, 0.0),  // Red for Bone 0
 
 vec4 debugShowBoneWeights() 
 {
-    vec4 weightColor;
+	vec4 weightColor = vec4(0.0);
     if (TARGET_BONE != -1) {
         for (int i = 0 ; i < 4; i++) {
             if (boneIds[i] == TARGET_BONE) {
                 if (weights[i] >= 0.7) {
                     weightColor = vec4(1.0, 0.0, 0.0, 1.0) * weights[i];
-                } else if (weights[i] >= 0.4 && weights[i] <= 0.6) {
+				} else if (weights[i] >= 0.4) {
                     weightColor = vec4(0.0, 1.0, 0.0, 1.0) * weights[i];
                 } else if (weights[i] >= 0.1) {
                     weightColor = vec4(1.0, 1.0, 0.0, 1.0) * weights[i];
@@ -65,11 +65,15 @@ vec4 getAppliedTransform(vec4 value)
 {
     if (HAS_BONES != 0) {
         vec4 result = vec4(0.0); 
+		float totalWeight = 0.0;
         for (int i = 0; i < MAX_BONE_INFLUENCE; i++) {
-            mat4 boneTransform = boneMatrices[boneIds[i]];
-            result += weights[i] * (boneTransform * value);  
+			if (weights[i] > 0.0 && boneIds[i] >= 0 && boneIds[i] < MAX_BONES) {
+				mat4 boneTransform = boneMatrices[boneIds[i]];
+				result += weights[i] * (boneTransform * value);
+				totalWeight += weights[i];
+			}
         }
-        return result;
+		return totalWeight > 0.0 ? result / totalWeight : value;
     }
     return value;
 }

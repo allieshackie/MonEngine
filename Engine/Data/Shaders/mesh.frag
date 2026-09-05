@@ -91,7 +91,7 @@ vec3 CalcPointLight(LightUniform light, vec3 normal, vec3 color, vec3 viewDir)
     vec3 ambient = color * AMBIENT_FLOOR(material);
     vec3 diffuse = color * diff * light.color.xyz;
     vec3 specular = light.color.xyz * spec * vec3(SPEC_STRENGTH(material));
-    return (attenuation * (ambient + diffuse + specular) * INTENSITY(light)) + material.emission.xyz;
+	return attenuation * (ambient + diffuse + specular) * INTENSITY(light);
 }
 
 vec3 CalcDirectionalLight(LightUniform light, vec3 normal, vec3 color, vec3 viewDir)
@@ -116,7 +116,7 @@ vec3 CalcDirectionalLight(LightUniform light, vec3 normal, vec3 color, vec3 view
     float spec = smoothstep(0.5 - TOON_SMOOTHNESS(material), 0.5 + TOON_SMOOTHNESS(material), specRaw);
     vec3 specular = spec * SPEC_STRENGTH(material) * light.color.xyz;
         
-    return ambient + diffuse + specular;
+	return (ambient + diffuse + specular) * INTENSITY(light);
 }
 
 void main()
@@ -141,6 +141,7 @@ void main()
             result += CalcDirectionalLight(lights[i], norm, color, viewDir);  
         }
     }
+	result += material.emission.xyz;
 
     if (TARGET_BONE != -1) {
         fragColor = vBoneDebugColor;

@@ -26,7 +26,7 @@ struct FontData
 	const uint32_t mFontOverSampleX = 1;
 	const uint32_t mFontOverSampleY = 1;
 	const uint32_t mFirstChar = ' ';
-	const uint32_t mCharCount = '~' - ' ';
+	const uint32_t mCharCount = '~' - ' ' + 1;
 	std::unique_ptr<stbtt_packedchar[]> mCharInfo;
 } _font;
 
@@ -78,7 +78,6 @@ void TextPipeline::Render(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pv
 	// Set up rendering state
 	commandBuffer.SetPipelineState(*mPipeline);
 	commandBuffer.SetResource(0, mTextureAtlas->GetTextureData());
-	commandBuffer.SetResource(1, mTextureAtlas->GetSamplerData());
 	commandBuffer.SetVertexBuffer(*mVertexBuffer);
 	commandBuffer.SetIndexBuffer(*mIndexBuffer);
 
@@ -102,6 +101,11 @@ void TextPipeline::LoadFont(const char* fontFile)
 	io.Fonts->AddFontFromFileTTF(fullPath.c_str(), _font.mSize);
 
 	auto fontData = FileSystem::ReadBytes(fullPath);
+	if (fontData.empty())
+	{
+		LLGL::Log::Errorf("Failed to read font: %s\n", fullPath.c_str());
+		return;
+	}
 	std::vector<uint8_t> atlasData(_font.mAtlasWidth * _font.mAtlasHeight);
 
 	_font.mCharInfo = std::make_unique<stbtt_packedchar[]>(_font.mCharCount);
@@ -255,9 +259,19 @@ void TextPipeline::_RebuildBatch()
 		float offsetX = 0.0f;
 		float offsetY = static_cast<float>(_font.mSize) / 2.0f;
 
-		for (const char c : entry.text)
+		for (const unsigned char c : entry.text)
 		{
-			const auto glyphInfo = _GenerateGlyphInfo(c, offsetX, offsetY);
+			if (c == '\n')
+			{
+				offsetX = 0.0f;
+				offsetY += static_cast<float>(_font.mSize);
+				continue;
+			}
+
+			const uint32_t character = (c >= _font.mFirstChar && c < _font.mFirstChar + _font.mCharCount)
+				? c
+				: static_cast<uint32_t>('?');
+			const auto glyphInfo = _GenerateGlyphInfo(character, offsetX, offsetY);
 			offsetX = glyphInfo.mOffsetX;
 			offsetY = glyphInfo.mOffsetY;
 
@@ -294,6 +308,10 @@ void TextPipeline::_RebuildBatch()
 
 GlyphInfo TextPipeline::_GenerateGlyphInfo(uint32_t character, float offsetX, float offsetY)
 {
+	if (character < _font.mFirstChar || character >= _font.mFirstChar + _font.mCharCount)
+	{
+		character = '?';
+	}
 	stbtt_aligned_quad quad;
 
 	stbtt_GetPackedQuad(_font.mCharInfo.get(), _font.mAtlasWidth, _font.mAtlasHeight,

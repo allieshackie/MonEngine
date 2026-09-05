@@ -326,7 +326,10 @@ void PhysicsSystem::_UpdateTriggers()
 			for (int i = 0; i < count; i++)
 			{
 				btCollisionObject* object = trigger.mGhostObject->getOverlappingObject(i);
-				currentOverlaps.insert(static_cast<Entity*>(object->getUserPointer()));
+				if (object && object->getUserPointer())
+				{
+					currentOverlaps.insert(static_cast<Entity*>(object->getUserPointer()));
+				}
 			}
 		}
 

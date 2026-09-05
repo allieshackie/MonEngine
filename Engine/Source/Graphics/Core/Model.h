@@ -26,6 +26,7 @@ public:
 
 	JointData* GetJointDataAt(int nodeIndex) const;
 	size_t GetNumJoints() const { return mNumNodes; }
+	bool HasJoints() const { return !mJointData.empty(); }
 
 	const Animation* GetAnimation(int index) const;
 	const std::vector<std::unique_ptr<Animation>>& GetAllAnimations() const { return mAnimations; }

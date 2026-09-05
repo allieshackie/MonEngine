@@ -41,6 +41,10 @@ void MeshPipeline::_RenderNode(LLGL::CommandBuffer& commands, const Model& model
                                std::shared_ptr<World> world)
 {
 	const auto node = model.GetNodeAt(nodeIndex);
+	if (node == nullptr)
+	{
+		return;
+	}
 
 	if (const auto meshData = model.GetMeshAt(node->mMeshIndex); meshData != nullptr)
 	{
@@ -66,9 +70,10 @@ void MeshPipeline::_RenderNode(LLGL::CommandBuffer& commands, const Model& model
 
 		meshSettings.model = modelTransform;
 		std::uint64_t transformOffset = 0;
-		for (const auto& finalTransform : modelComponent.mFinalTransforms)
+		const size_t transformCount = std::min(modelComponent.mFinalTransforms.size(), static_cast<size_t>(MAX_BONES));
+		for (size_t i = 0; i < transformCount; ++i)
 		{
-			mRenderSystem->WriteBuffer(*mBoneBuffer, transformOffset, &(finalTransform), sizeof(glm::mat4));
+			mRenderSystem->WriteBuffer(*mBoneBuffer, transformOffset, &modelComponent.mFinalTransforms[i], sizeof(glm::mat4));
 			transformOffset += sizeof(glm::mat4);
 		}
 
@@ -76,13 +81,11 @@ void MeshPipeline::_RenderNode(LLGL::CommandBuffer& commands, const Model& model
 
 		// x = hasTexture, y = hasBones, z = gTargetBone
 		meshSettings.params.x = meshData->mTextureId != -1;
-		meshSettings.params.y = model.GetNumJoints() > 1;
+		meshSettings.params.y = model.HasJoints();
 		meshSettings.params.z = static_cast<float>(modelComponent.mCurrentBoneIndex);
 		commands.UpdateBuffer(*mConstantBuffer, 0, &meshSettings, sizeof(meshSettings));
 		auto& texture = mResourceManager.GetTexture(meshData->mTextureId);
-		auto& sampler = mResourceManager.GetSampler(meshData->mTextureId);
 		commands.SetResource(0, texture);
-		commands.SetResource(1, sampler);
 		commands.SetVertexBuffer(*meshData->mVertexBuffer);
 		commands.SetIndexBuffer(*meshData->mIndexBuffer);
 		commands.DrawIndexed(meshData->mNumIndices, 0);
@@ -188,7 +191,8 @@ MeshPipeline::MeshPipeline(const LLGL::RenderSystemPtr& renderSystem, const Reso
 			boneBufferDesc.bindFlags = LLGL::BindFlags::Storage;
 			boneBufferDesc.cpuAccessFlags = LLGL::CPUAccessFlags::Write;
 		}
-		mBoneBuffer = renderSystem->CreateBuffer(boneBufferDesc);
+		const std::vector<glm::mat4> identityBoneTransforms(MAX_BONES, glm::mat4(1.0f));
+		mBoneBuffer = renderSystem->CreateBuffer(boneBufferDesc, identityBoneTransforms.data());
 
 		renderSystem->WriteBuffer(*mMaterialBuffer, 0, &(mCurrentMaterial), sizeof(Material));
 
@@ -275,6 +279,10 @@ void MeshPipeline::_RebuildLights()
 	mLights.clear();
 	for (const auto& entity : mLightEntities)
 	{
+		if (mLights.size() >= MAX_LIGHTS)
+		{
+			break;
+		}
 		const auto& light = entity->GetComponent<LightComponent>();
 		const auto transform = entity->TryGetComponent<TransformComponent>();
 		if (transform != nullptr)

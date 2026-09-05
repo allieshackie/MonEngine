@@ -24,6 +24,8 @@ public:
 	void DrawGrid();
 
 private:
+	void _CheckBufferSize(LLGL::Buffer*& buffer, size_t& maxSize, size_t requiredVertices);
+
 	void _RenderPoints(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat);
 	void _RenderLines(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat);
 	void _RenderCircles(LLGL::CommandBuffer& commandBuffer, const glm::mat4 pvMat);
@@ -53,6 +55,10 @@ private:
 	LLGL::Buffer* mLineVertexBuffer = nullptr;
 	LLGL::Buffer* mCircleVertexBuffer = nullptr;
 
+	size_t mPointBufferMaxSize = 200;
+	size_t mLineBufferMaxSize = 2000;
+	size_t mCircleBufferMaxSize = 1000;
+
 	std::unique_ptr<Shader> mShader;
 
 	std::vector<DebugVertex> mFramePointVertices;
@@ -60,4 +66,5 @@ private:
 	std::vector<DebugVertex> mFrameCircleVertices;
 
 	LLGL::ResourceHeap* mResourceHeap = nullptr;
+	const LLGL::RenderSystemPtr& mRenderSystem;
 };

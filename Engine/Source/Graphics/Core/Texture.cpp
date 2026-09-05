@@ -129,12 +129,11 @@ bool Texture::_CreateRGBAFromData(const LLGL::RenderSystemPtr& renderSystem, con
 	LLGL::ImageView imageDesc;
 	{
 		// Set color format depending on alpha channel
-		imageDesc.format = LLGL::ImageFormat::RGB; // ImageFormat::RGB
+		imageDesc.format = LLGL::ImageFormat::RGBA;
 		// Set image data type (unsigned char = 8 bit unsigned int)
 		imageDesc.dataType = LLGL::DataType::UInt8;
 		imageDesc.data = imageData;
-		// TODO: * 4 for alpha channel as well? 
-		imageDesc.dataSize = mTextureWidth * mTextureHeight * 3;
+		imageDesc.dataSize = static_cast<std::size_t>(mTextureWidth) * mTextureHeight * 4;
 	}
 
 	{
@@ -171,7 +170,7 @@ bool Texture::_CreateSingleChannelTextureFromData(const LLGL::RenderSystemPtr& r
 		// Set image data type (unsigned char = 8 bit unsigned int)
 		imageDesc.dataType = LLGL::DataType::UInt8;
 		imageDesc.data = imageData;
-		imageDesc.dataSize = static_cast<std::size_t>(mTextureWidth * mTextureHeight * 4);
+		imageDesc.dataSize = static_cast<std::size_t>(mTextureWidth) * mTextureHeight;
 	}
 
 	{

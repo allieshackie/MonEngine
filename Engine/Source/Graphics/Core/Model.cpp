@@ -47,7 +47,7 @@ JointData* Model::GetJointDataAt(int nodeIndex) const
 
 const Animation* Model::GetAnimation(int index) const
 {
-	if (index > mAnimations.size())
+	if (index < 0 || static_cast<size_t>(index) >= mAnimations.size())
 	{
 		return nullptr;
 	}
@@ -85,7 +85,7 @@ glm::vec3 Model::CalculateWorldBounds(const glm::vec3& targetSize) const
 
 MeshNode* Model::GetNodeAt(int nodeIndex) const
 {
-	if (nodeIndex > mNodes.size())
+	if (nodeIndex < 0 || static_cast<size_t>(nodeIndex) >= mNodes.size())
 	{
 		return nullptr;
 	}
@@ -95,7 +95,7 @@ MeshNode* Model::GetNodeAt(int nodeIndex) const
 
 MeshData* Model::GetMeshAt(int nodeIndex) const
 {
-	if (nodeIndex > mMeshes.size())
+	if (nodeIndex < 0 || static_cast<size_t>(nodeIndex) >= mMeshes.size())
 	{
 		return nullptr;
 	}

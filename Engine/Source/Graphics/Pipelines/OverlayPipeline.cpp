@@ -14,8 +14,16 @@ void OverlayPipeline::Render(LLGL::CommandBuffer& commands, const glm::mat4 proj
 
 	if (mNumOverlayVertices != mOverlayVertices.size())
 	{
+		if (mOverlayVertices.size() > mOverlayBufferCapacity)
+		{
+			mOverlayBufferCapacity = std::max(mOverlayBufferCapacity * 2, mOverlayVertices.size());
+			mRenderSystem->Release(*mOverlayVertexBuffer);
+			mOverlayVertexBuffer = mRenderSystem->CreateBuffer(
+				VertexBufferDesc(static_cast<std::uint32_t>(mOverlayBufferCapacity * sizeof(DebugVertex)),
+				                 mShader->GetVertexFormat()));
+		}
 		commands.UpdateBuffer(*mOverlayVertexBuffer, 0, mOverlayVertices.data(),
-		                      static_cast<std::uint16_t>(mOverlayVertices.size() * sizeof(DebugVertex)));
+		                      static_cast<std::uint32_t>(mOverlayVertices.size() * sizeof(DebugVertex)));
 		mNumOverlayVertices = mOverlayVertices.size();
 	}
 
@@ -51,7 +59,24 @@ int OverlayPipeline::AddOverlay(const std::vector<DebugVertex>& vertices, glm::m
 
 void OverlayPipeline::UpdateOverlayTransform(int id, glm::mat4 transform) const
 {
-	mOverlayElements[id]->transform = transform;
+	if (id >= 0 && static_cast<size_t>(id) < mOverlayElements.size())
+	{
+		mOverlayElements[id]->transform = transform;
+	}
+}
+
+void OverlayPipeline::ClearOverlays()
+{
+	for (const auto& element : mOverlayElements)
+	{
+		if (element->mVertexBuffer != nullptr)
+		{
+			mRenderSystem->Release(*element->mVertexBuffer);
+		}
+	}
+	mOverlayElements.clear();
+	mOverlayVertices.clear();
+	mNumOverlayVertices = 0;
 }
 
 void OverlayPipeline::DrawOverlay(const OverlayElement& element, LLGL::CommandBuffer& commands, const glm::mat4 projMat)
