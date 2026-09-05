@@ -420,3 +420,4 @@ FodyWeavers.xsd
 /Build
 /bin
 .vscode
+CMakeUserPresets.json

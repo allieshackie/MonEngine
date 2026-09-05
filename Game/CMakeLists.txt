@@ -1,19 +1,12 @@
-# Generate Solution -> cmake -B ./Solution
-# set cmake version
-cmake_minimum_required(VERSION 3.18.2)
-
-# Include the function
-include(${CMAKE_UTILS}/CmakeUtils.cmake)
-
 # Add the source files with proper folder structure
-file(GLOB_RECURSE SOURCES "Source/*")
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/Source/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Source/*.h"
+)
 source_group(TREE ${PROJECT_SOURCE_DIR}/Game/Source PREFIX "Source Files/" FILES ${SOURCES})
 
 add_executable(Game ${SOURCES})
-set_target_properties(Game PROPERTIES LINKER_LANGUAGE CXX)
-
-# Call the function to copy the Data folder contents to the Build folder
-copy_data_contents(${CMAKE_CURRENT_SOURCE_DIR}/Data/ ${CMAKE_BINARY_DIR}/Data)
+copy_runtime_data(Game "${CMAKE_CURRENT_SOURCE_DIR}/Data" game)
 
 target_precompile_headers(
     Game 
@@ -26,8 +19,6 @@ target_precompile_headers(
     <unordered_map>
     <functional>
 )
-
-message("CMAKE_CURRENT_SOURCE_DIR Game: ${CMAKE_CURRENT_SOURCE_DIR}")
 
 target_include_directories(
     Game

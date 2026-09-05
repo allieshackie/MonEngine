@@ -1,0 +1,65 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 25,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "binaryDir": "${sourceDir}/Build/${presetName}",
+      "toolchainFile": "${sourceDir}/ThirdParty/vcpkg/scripts/buildsystems/vcpkg.cmake"
+    },
+    {
+      "name": "game",
+      "displayName": "Game",
+      "inherits": "base",
+      "binaryDir": "${sourceDir}/Build/game",
+      "cacheVariables": {
+        "PROJ_TO_BUILD": "game"
+      }
+    },
+    {
+      "name": "sandbox",
+      "displayName": "Sandbox",
+      "inherits": "base",
+      "binaryDir": "${sourceDir}/Build/sandbox",
+      "cacheVariables": {
+        "PROJ_TO_BUILD": "sandbox"
+      }
+    },
+    {
+      "name": "engine",
+      "displayName": "Engine only",
+      "inherits": "base",
+      "binaryDir": "${sourceDir}/Build/engine",
+      "cacheVariables": {
+        "PROJ_TO_BUILD": "engine"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "game-debug",
+      "configurePreset": "game",
+      "configuration": "Debug"
+    },
+    {
+      "name": "game-release",
+      "configurePreset": "game",
+      "configuration": "Release"
+    },
+    {
+      "name": "sandbox-debug",
+      "configurePreset": "sandbox",
+      "configuration": "Debug"
+    },
+    {
+      "name": "engine-debug",
+      "configurePreset": "engine",
+      "configuration": "Debug"
+    }
+  ]
+}

@@ -1,167 +1,110 @@
-# cmake -B ./Build
-# Building Sandbox: cmake -B ./Build -DPROJ_TO_BUILD=sandbox
-# Building Game: cmake -B ./Build -DPROJ_TO_BUILD=game
+cmake_minimum_required(VERSION 3.25...4.2)
 
-cmake_minimum_required(VERSION 4.2.1)
-
-#  ============== PROJECT ================
-set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/vcpkg/scripts/buildsystems/vcpkg.cmake")
-
-project(MonDev)
-
-# ============== CONFIG ================
-
-set(THIRD_PARTY_DIR ${PROJECT_SOURCE_DIR}/ThirdParty)
-set(CMAKE_UTILS "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-include(${CMAKE_UTILS}/CmakeUtils.cmake)
-
-macro(ADD_DEFINE IDENT)
-    add_definitions("-D${IDENT}")
-endmacro()
-
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
-set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
-set(BUILD_SHARED_LIBS OFF)
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CmakeGenerated")
-
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
-
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
-
-add_compile_definitions(BUILD_GAME)
-add_definitions(-DGLM_ENABLE_EXPERIMENTAL)
-
-# Macros must be defined before subdirectories are added
-# ============== MACROS ===============
-add_compile_definitions(ASSETS_FOLDER="${CMAKE_BINARY_DIR}/Data/Assets/")
-add_compile_definitions(LEVELS_FOLDER="${CMAKE_BINARY_DIR}/Data/Levels/")
-add_compile_definitions(PREFABS_FOLDER="${CMAKE_BINARY_DIR}/Data/Prefabs/")
-add_compile_definitions(SHADERS_FOLDER="${CMAKE_BINARY_DIR}/Data/Shaders/")
-add_compile_definitions(SCRIPTS_FOLDER="${CMAKE_BINARY_DIR}/Data/Scripts/")
-
-# ============== ENGINE ==============
-message("=== BUILDING ENGINE ===")
-add_subdirectory(${PROJECT_SOURCE_DIR}/Engine)
-
-# ====== BUILD SELECTED GAME =========
-if(PROJ_TO_BUILD STREQUAL "sandbox")
-  message("=== BUILDING SANDBOX ===")
-  add_subdirectory(${PROJECT_SOURCE_DIR}/Sandbox)
-  set(PROJ_NAME "Sandbox")
-elseif(PROJ_TO_BUILD STREQUAL "game")
-  message("=== BUILDING GAME ===")
-  add_subdirectory(${PROJECT_SOURCE_DIR}/Game)
-  set(PROJ_NAME "Game")
-else()
-  message("=== Building Engine standalone ===")
-  set(PROJ_NAME "Engine")
+if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+    set(CMAKE_TOOLCHAIN_FILE
+        "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/vcpkg/scripts/buildsystems/vcpkg.cmake"
+        CACHE FILEPATH "CMake toolchain file"
+    )
 endif()
 
-set_property(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJ_NAME})
+project(MonDev LANGUAGES C CXX)
 
-# ============== THIRD PARTY ================
+set(THIRD_PARTY_DIR "${PROJECT_SOURCE_DIR}/ThirdParty")
+set(CMAKE_UTILS "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+include("${CMAKE_UTILS}/CmakeUtils.cmake")
 
-## ENTT
-message("=== BUILDING ENTT ===")
+set(BUILD_SHARED_LIBS OFF)
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CMakeGenerated")
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+
+set(PROJ_TO_BUILD "engine" CACHE STRING "Application target to configure: engine, game, or sandbox")
+set_property(CACHE PROJ_TO_BUILD PROPERTY STRINGS engine game sandbox)
+
+# Only build the third-party targets used by MonDev.
+set(LLGL_BUILD_RENDERER_NULL OFF CACHE BOOL "" FORCE)
+set(LLGL_BUILD_RENDERER_DIRECT3D11 OFF CACHE BOOL "" FORCE)
+set(LLGL_BUILD_RENDERER_OPENGL ON CACHE BOOL "" FORCE)
+set(TINYGLTF_BUILD_LOADER_EXAMPLE OFF CACHE BOOL "" FORCE)
+set(TINYGLTF_INSTALL OFF CACHE BOOL "" FORCE)
+
+message(STATUS "Building Engine")
+add_subdirectory("${PROJECT_SOURCE_DIR}/Engine")
+
+if(PROJ_TO_BUILD STREQUAL "sandbox")
+    message(STATUS "Building Sandbox")
+    add_subdirectory("${PROJECT_SOURCE_DIR}/Sandbox")
+    set(PROJ_NAME Sandbox)
+elseif(PROJ_TO_BUILD STREQUAL "game")
+    message(STATUS "Building Game")
+    add_subdirectory("${PROJECT_SOURCE_DIR}/Game")
+    set(PROJ_NAME Game)
+elseif(PROJ_TO_BUILD STREQUAL "engine")
+    message(STATUS "Building Engine standalone")
+    set(PROJ_NAME Engine)
+else()
+    message(FATAL_ERROR "Invalid PROJ_TO_BUILD='${PROJ_TO_BUILD}'. Expected engine, game, or sandbox.")
+endif()
+
+set_property(DIRECTORY "${CMAKE_SOURCE_DIR}" PROPERTY VS_STARTUP_PROJECT "${PROJ_NAME}")
+
+message(STATUS "Finding EnTT")
 find_package(entt CONFIG REQUIRED)
 target_link_libraries(Engine PUBLIC EnTT::EnTT)
 
-## JSON
-message("=== BUILDING JSON ===")
+message(STATUS "Finding nlohmann-json")
 find_package(nlohmann_json CONFIG REQUIRED)
 target_link_libraries(Engine PUBLIC nlohmann_json::nlohmann_json)
 
-## GLM
-message("=== BUILDING GLM ===")
+message(STATUS "Finding GLM")
 find_package(glm CONFIG REQUIRED)
-target_link_libraries(Engine PUBLIC glm::glm)
-target_link_libraries(Engine PUBLIC glad)
+target_link_libraries(Engine PUBLIC glm::glm glad)
 
-## LLGL
-message("=== BUILDING LLGL ===")
-add_subdirectory(${THIRD_PARTY_DIR}/LLGL)
-set (LLGL_TARGETS
-  LLGL
-  LLGL_Direct3D11
-  LLGL_Null
-  LLGL_OpenGL
-)
+message(STATUS "Building LLGL")
+add_subdirectory("${THIRD_PARTY_DIR}/LLGL")
+set(LLGL_TARGETS LLGL LLGL_OpenGL)
 set_target_folder_prop(LLGL_TARGETS LLGL)
 target_link_libraries(Engine PUBLIC LLGL)
 
-## IMGUI
-message("=== BUILDING IMGUI ===")
-set(IMGUI_SRC 
-  ${THIRD_PARTY_DIR}/imgui/imgui.cpp
-  ${THIRD_PARTY_DIR}/imgui/imgui_widgets.cpp
-  ${THIRD_PARTY_DIR}/imgui/imgui_tables.cpp
-  ${THIRD_PARTY_DIR}/imgui/imgui_draw.cpp
-  ${THIRD_PARTY_DIR}/imgui/imgui_demo.cpp
-  ${THIRD_PARTY_DIR}/imgui/backends/imgui_impl_opengl3.cpp
-  ${THIRD_PARTY_DIR}/imgui/backends/imgui_impl_win32.cpp
+message(STATUS "Building ImGui")
+set(IMGUI_SRC
+    "${THIRD_PARTY_DIR}/imgui/imgui.cpp"
+    "${THIRD_PARTY_DIR}/imgui/imgui_widgets.cpp"
+    "${THIRD_PARTY_DIR}/imgui/imgui_tables.cpp"
+    "${THIRD_PARTY_DIR}/imgui/imgui_draw.cpp"
+    "${THIRD_PARTY_DIR}/imgui/imgui_demo.cpp"
+    "${THIRD_PARTY_DIR}/imgui/backends/imgui_impl_opengl3.cpp"
+    "${THIRD_PARTY_DIR}/imgui/backends/imgui_impl_win32.cpp"
 )
 add_library(imgui ${IMGUI_SRC})
+set_property(TARGET imgui PROPERTY FOLDER ThirdParty)
+target_include_directories(imgui PUBLIC "${THIRD_PARTY_DIR}/imgui")
 
-set_property(TARGET imgui PROPERTY FOLDER "ThirdParty")
-
-target_include_directories(imgui PUBLIC
-    ${THIRD_PARTY_DIR}/imgui
-)
-
-## TINYGLTF
-message("=== BUILDING TINYGLTF ===")
-add_subdirectory(${THIRD_PARTY_DIR}/tinygltf)
-set(TINYGLTF_TARGETS
-    tinygltf
-    loader_example
-)
+message(STATUS "Building tinygltf")
+add_subdirectory("${THIRD_PARTY_DIR}/tinygltf")
+set(TINYGLTF_TARGETS tinygltf)
 set_target_folder_prop(TINYGLTF_TARGETS ThirdParty)
 
-## LUA
-message("=== BUILDING LUA ===")
+message(STATUS "Finding Lua")
 find_package(lua CONFIG REQUIRED)
 target_link_libraries(Engine PUBLIC lua)
 
-## BULLET PHYSICS
-message("=== BUILDING BULLET ===")
+message(STATUS "Finding Bullet")
 find_package(bullet CONFIG REQUIRED)
-
-set (BULLET_LIBRARIES
-  LinearMath
-  Bullet3Common
-  BulletInverseDynamics
-  BulletCollision
-  BulletDynamics
-  BulletSoftBody
+set(BULLET_LIBRARIES
+    LinearMath
+    Bullet3Common
+    BulletInverseDynamics
+    BulletCollision
+    BulletDynamics
+    BulletSoftBody
 )
-
 target_link_libraries(Engine PUBLIC ${BULLET_LIBRARIES})
 
-# ================== DATA COPY ==================
-set(GAME_DATA_DIR "${PROJECT_SOURCE_DIR}/${PROJ_NAME}/Data")
-
-message("Game Data dir: " ${GAME_DATA_DIR})
-
-if (EXISTS ${GAME_DATA_DIR})
-    file(GLOB_RECURSE GAME_DATA_FILES "${GAME_DATA_DIR}/*")
-
-    add_custom_target(copy_data ALL
-        COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/Data"
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-                "${GAME_DATA_DIR}"
-                "${CMAKE_BINARY_DIR}/Data"
-        DEPENDS ${GAME_DATA_FILES}
-    )
-
-    add_dependencies(${PROJ_NAME} copy_data)
-else()
-    message(WARNING "No Data folder found for ${PROJ_NAME}")
-endif()
-
-# target_include_directories = Include Directories
-# target_link_libraries = Additional Dependencies (lib)
-# link_directories = Additional Library Directories (dll) x64
+message(STATUS "Finding Cereal")
+find_package(cereal CONFIG REQUIRED)
+target_link_libraries(Engine PUBLIC cereal::cereal)
