@@ -9,6 +9,7 @@
         "glm",
         "lua",
         "bullet3",
-        "cereal"
+        "cereal",
+        "catch2"
     ]
 }

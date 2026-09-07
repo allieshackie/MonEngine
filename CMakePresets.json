@@ -38,6 +38,15 @@
       "cacheVariables": {
         "PROJ_TO_BUILD": "engine"
       }
+    },
+    {
+      "name": "tests",
+      "displayName": "Unit tests",
+      "inherits": "base",
+      "binaryDir": "${sourceDir}/Build/tests",
+      "cacheVariables": {
+        "PROJ_TO_BUILD": "tests"
+      }
     }
   ],
   "buildPresets": [
@@ -60,6 +69,21 @@
       "name": "engine-debug",
       "configurePreset": "engine",
       "configuration": "Debug"
+    },
+    {
+      "name": "tests-debug",
+      "configurePreset": "tests",
+      "configuration": "Debug"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "tests-debug",
+      "configurePreset": "tests",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      }
     }
   ]
 }
