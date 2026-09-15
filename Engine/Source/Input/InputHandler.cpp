@@ -62,7 +62,7 @@ void InputHandler::RegisterZoomOutHandler(const std::function<void()>& callback)
 void InputHandler::Unregister(HandlerId id)
 {
 	// Up Handler
-	for (auto entry : mButtonUpHandlers)
+	for (auto& entry : mButtonUpHandlers)
 	{
 		for (auto it = entry.second.begin(); it != entry.second.end();)
 		{
@@ -78,7 +78,7 @@ void InputHandler::Unregister(HandlerId id)
 		}
 	}
 	// Down Handler
-	for (auto entry : mButtonDownHandlers)
+	for (auto& entry : mButtonDownHandlers)
 	{
 		for (auto it = entry.second.begin(); it != entry.second.end();)
 		{
@@ -94,7 +94,7 @@ void InputHandler::Unregister(HandlerId id)
 		}
 	}
 	// Hold Handler
-	for (auto entry : mButtonHoldHandlers)
+	for (auto& entry : mButtonHoldHandlers)
 	{
 		for (auto it = entry.second.begin(); it != entry.second.end();)
 		{

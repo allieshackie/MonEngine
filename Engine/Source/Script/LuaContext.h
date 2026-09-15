@@ -9,12 +9,10 @@ public:
 	LuaContext();
 	~LuaContext();
 
-	// Copy constructor/assignment operator
-	LuaContext(const LuaContext& other) = default;
-	LuaContext& operator=(const LuaContext& other) = default;
-	// Move constructor/assignment operator
-	LuaContext(LuaContext&& other) noexcept = default;
-	LuaContext& operator=(LuaContext&& rhs) noexcept = default;
+	LuaContext(const LuaContext& other) = delete;
+	LuaContext& operator=(const LuaContext& other) = delete;
+	LuaContext(LuaContext&& other) noexcept = delete;
+	LuaContext& operator=(LuaContext&& rhs) noexcept = delete;
 
 	lua_State* GetState() const;
 	void Execute(const char* scriptFile) const;

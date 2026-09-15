@@ -8,13 +8,13 @@
 #include "EntityMenu.h"
 
 EntityMenu::EntityMenu(std::weak_ptr<InputHandler> inputHandler, std::weak_ptr<World> world,
-                       RenderSystem& renderSystem) : mWorld(world), mRenderSystem(renderSystem)
+                       RenderSystem& renderSystem) : mWorld(world), mInputHandler(inputHandler), mRenderSystem(renderSystem)
 {
 	// TODO: Handle mouse hover + selection
 	if (const auto inputHandlerPtr = inputHandler.lock())
 	{
-		inputHandlerPtr->RegisterMouseMoveHandler([this](LLGL::Offset2D mousePos) { _HandleMouseMove(mousePos); });
-		inputHandlerPtr->RegisterButtonDownHandler(LLGL::Key::LButton, [this]() { QueueClick(); });
+		mInputHandlers.push_back(inputHandlerPtr->RegisterMouseMoveHandler([this](LLGL::Offset2D mousePos) { _HandleMouseMove(mousePos); }));
+		mInputHandlers.push_back(inputHandlerPtr->RegisterButtonDownHandler(LLGL::Key::LButton, [this]() { QueueClick(); }));
 	}
 
 	if (const auto sharedWorld = mWorld.lock())
@@ -37,6 +37,17 @@ EntityMenu::EntityMenu(std::weak_ptr<InputHandler> inputHandler, std::weak_ptr<W
 			}
 		};
 		sharedWorld->ConnectOnDestroy<TransformComponent>(destroyFunc);
+	}
+}
+
+EntityMenu::~EntityMenu()
+{
+	if (const auto inputHandler = mInputHandler.lock())
+	{
+		for (const auto handler : mInputHandlers)
+		{
+			inputHandler->Unregister(handler);
+		}
 	}
 }
 

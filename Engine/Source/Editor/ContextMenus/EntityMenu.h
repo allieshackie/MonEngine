@@ -11,6 +11,7 @@ class EntityMenu
 {
 public:
 	EntityMenu(std::weak_ptr<InputHandler> inputHandler, std::weak_ptr<World> world, RenderSystem& renderSystem);
+	~EntityMenu();
 
 	void Render(RenderSystem& renderSystem);
 
@@ -39,5 +40,7 @@ private:
 	bool mQueuedClick = false;
 
 	std::weak_ptr<World> mWorld;
+	std::weak_ptr<InputHandler> mInputHandler;
+	std::vector<size_t> mInputHandlers;
 	RenderSystem& mRenderSystem;
 };

@@ -19,6 +19,12 @@ Camera::Camera(World* world, const CameraData& data)
 		}
 	};
 	world->ConnectOnConstruct<PlayerComponent>(func);
+	EntityEventFunc removeFunc = [this](entt::entity)
+	{
+		mCameraTargetEntity = nullptr;
+		mFollowCam = false;
+	};
+	world->ConnectOnDestroy<PlayerComponent>(removeFunc);
 
 	mCameraTarget = data.mCameraPos + data.mCameraFront;
 
