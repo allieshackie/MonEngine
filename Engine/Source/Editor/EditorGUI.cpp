@@ -21,7 +21,15 @@ EditorGUI::EditorGUI(std::weak_ptr<InputHandler> inputHandler, RenderSystem& ren
 	eventPublisher.AddWorldCreatedListener(
 		[this](std::weak_ptr<World> world) {
 			mWorld = world;
-			mEntityMenu = std::make_unique<EntityMenu>(mInputHandler, mWorld, mRenderSystem);
+			if (world.expired())
+			{
+				// In event world expires as we register
+				mEntityMenu = nullptr;
+			}
+			else
+			{
+				mEntityMenu = std::make_unique<EntityMenu>(mInputHandler, mWorld, mRenderSystem);
+			}
 		}
 	);
 }

@@ -37,6 +37,18 @@ PhysicsSystem::PhysicsSystem(RenderSystem& renderSystem, ResourceManager& resour
 				};
 				worldShared->ConnectOnConstruct<CollisionComponent>(func);
 				worldShared->ConnectOnConstruct<TriggerVolumeComponent>(func);
+
+				EntityEventFunc removeCollider = [this](entt::entity entityId)
+				{
+					_RemovePhysicsBody(entityId);
+				};
+				worldShared->ConnectOnDestroy<CollisionComponent>(removeCollider);
+
+				EntityEventFunc removeTrigger = [this](entt::entity entityId)
+				{
+					_RemoveTrigger(entityId);
+				};
+				worldShared->ConnectOnDestroy<TriggerVolumeComponent>(removeTrigger);
 			}
 			mWorld = world;
 		}
@@ -140,6 +152,34 @@ void PhysicsSystem::Flush()
 	}
 
 	mTriggerObjects.clear();
+}
+
+void PhysicsSystem::_RemovePhysicsBody(entt::entity entityId)
+{
+	const auto it = mPhysicsObjects.find(entityId);
+	if (it == mPhysicsObjects.end())
+	{
+		return;
+	}
+	if (it->second.mRigidBody)
+	{
+		mDynamicWorld->removeRigidBody(it->second.mRigidBody.get());
+	}
+	mPhysicsObjects.erase(it);
+}
+
+void PhysicsSystem::_RemoveTrigger(entt::entity entityId)
+{
+	const auto it = mTriggerObjects.find(entityId);
+	if (it == mTriggerObjects.end())
+	{
+		return;
+	}
+	if (it->second.mGhostObject)
+	{
+		mDynamicWorld->removeCollisionObject(it->second.mGhostObject.get());
+	}
+	mTriggerObjects.erase(it);
 }
 
 btQuaternion PhysicsSystem::_ConvertDegreesToQuat(glm::vec3 rot)

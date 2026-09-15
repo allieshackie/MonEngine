@@ -26,10 +26,31 @@ std::shared_ptr<World> SceneManager::GetCurrentWorld() const
 	return mCurrentWorld;
 }
 
+void SceneManager::Update()
+{
+	if (!mPendingSceneName.empty())
+	{
+		auto sceneName = std::move(mPendingSceneName);
+		mPendingSceneName.clear();
+		_LoadScene(sceneName);
+	}
+	else if (mCloseScenePending)
+	{
+		mCloseScenePending = false;
+		_CloseScene();
+	}
+}
+
 void SceneManager::LoadScene(const std::string& sceneName)
 {
+	mPendingSceneName = sceneName;
+	mCloseScenePending = false;
+}
+
+void SceneManager::_LoadScene(const std::string& sceneName)
+{
 	// Cleanup previous scene
-	CloseScene();
+	_CloseScene();
 
 	mCurrentSceneName = sceneName;
 
@@ -109,10 +130,17 @@ void SceneManager::RestartScene()
 
 void SceneManager::CloseScene()
 {
+	mPendingSceneName.clear();
+	mCloseScenePending = true;
+}
+
+void SceneManager::_CloseScene()
+{
 	if (mCurrentWorld != nullptr)
 	{
 		mCurrentWorld->Close();
 		mCurrentWorld = nullptr;
+		mEventPublisher.Notify(std::weak_ptr<World>{});
 	}
 }
 

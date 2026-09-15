@@ -16,6 +16,8 @@ LuaSystem::LuaSystem(EventPublisher& eventPublisher)
 
 	eventPublisher.AddWorldCreatedListener(
 		[this](std::weak_ptr<World> world) {
+			_ReleaseAllScripts();
+
 			if (const auto worldShared = world.lock())
 			{
 				World* worldPtr = worldShared.get();
@@ -25,21 +27,18 @@ LuaSystem::LuaSystem(EventPublisher& eventPublisher)
 					{
 						ScriptComponent& script = entity->GetComponent<ScriptComponent>();
 						script.mLuaTableRef = LuaUtil::CreateLuaTable<Entity>(mLuaContext->GetState(), entity);
+						mScriptRefs[entityId] = script.mLuaTableRef;
 						mLuaContext->ExecuteWithInstance(script.mPath.c_str(), script.mLuaTableRef);
 						mLuaContext->Initialize(script.mLuaTableRef);
 					}
 				};
 				worldShared->ConnectOnConstruct<ScriptComponent>(func);
 
-				EntityEventFunc onDestroy = [this, worldPtr](entt::entity entityId)
+				EntityEventFunc onDestroy = [this](entt::entity entityId)
 				{
-					if (Entity* entity = worldPtr->GetEntityForId(entityId))
-					{
-						const ScriptComponent& script = entity->GetComponent<ScriptComponent>();
-						luaL_unref(mLuaContext->GetState(), LUA_REGISTRYINDEX, script.mLuaTableRef);
-					}
+					_ReleaseScript(entityId);
 				};
-				worldShared->ConnectOnDestroy<ScriptComponent>(func);
+				worldShared->ConnectOnDestroy<ScriptComponent>(onDestroy);
 
 				PhysicsEventFunc onEnterFunc = [this, worldPtr](entt::entity entityA, entt::entity entityB)
 				{
@@ -64,6 +63,25 @@ LuaSystem::LuaSystem(EventPublisher& eventPublisher)
 			mWorld = world;
 		}
 	);
+}
+
+void LuaSystem::_ReleaseScript(entt::entity entityId)
+{
+	const auto it = mScriptRefs.find(entityId);
+	if (it != mScriptRefs.end())
+	{
+		luaL_unref(mLuaContext->GetState(), LUA_REGISTRYINDEX, it->second);
+		mScriptRefs.erase(it);
+	}
+}
+
+void LuaSystem::_ReleaseAllScripts()
+{
+	for (const auto& [entityId, tableRef] : mScriptRefs)
+	{
+		luaL_unref(mLuaContext->GetState(), LUA_REGISTRYINDEX, tableRef);
+	}
+	mScriptRefs.clear();
 }
 
 lua_State* LuaSystem::GetState() const

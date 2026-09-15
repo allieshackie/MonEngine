@@ -69,12 +69,15 @@ void EventPublisher::AddWorldCreatedListener(WorldFunc callback)
 
 void EventPublisher::Flush()
 {
-	for (const auto& event : mEntityQueueEvents)
+	// To prevent issues where mEntityQueueEvents changes while events are being handled
+	auto entityEvents = std::move(mEntityQueueEvents);
+	mEntityQueueEvents.clear();
+	for (const auto& event : entityEvents)
 	{
 		const auto it = mEntityListeners.find(event.eventType);
 		if (it != mEntityListeners.end())
 		{
-			const auto& eventListeners = it->second;
+			const auto eventListeners = it->second;
 			for (const auto& listener : eventListeners)
 			{
 				if (event.componentType == listener->GetType())
@@ -85,14 +88,14 @@ void EventPublisher::Flush()
 		}
 	}
 
-	mEntityQueueEvents.clear();
-
-	for (const auto& event : mPhysicsQueueEvents)
+	auto physicsEvents = std::move(mPhysicsQueueEvents);
+	mPhysicsQueueEvents.clear();
+	for (const auto& event : physicsEvents)
 	{
 		const auto it = mPhysicsListeners.find(event.type);
 		if (it != mPhysicsListeners.end())
 		{
-			const auto& eventListeners = it->second;
+			const auto eventListeners = it->second;
 			for (const auto& listener : eventListeners)
 			{
 				if (event.type == listener->GetType())
@@ -103,6 +106,5 @@ void EventPublisher::Flush()
 		}
 	}
 
-	mPhysicsQueueEvents.clear();
 }
 

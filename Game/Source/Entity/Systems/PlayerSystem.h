@@ -16,6 +16,8 @@ public:
 	void SpawnPlayer(Entity* entity);
 
 private:
+	void _ClearInputHandlers();
+
 	std::weak_ptr<InputHandler> mInputHandler;
 	std::vector<HandlerId> mHandlers;
 };

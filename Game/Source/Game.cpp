@@ -49,6 +49,14 @@ void Game::Run()
 
 	while (mWindowContext->ProcessEvents() && mRunning)
 	{
+		// Make sure scene changes happen at the right time
+		mSceneManager->Update();
+		auto world = mSceneManager->GetCurrentWorld();
+		if (world && !world->IsClosing())
+		{
+			world->FlushEvents();
+		}
+
 		auto newTime = Clock::now();
 		Duration frameDuration = newTime - timer.mCurrentTime;
 		timer.mCurrentTime = newTime;
@@ -82,13 +90,6 @@ void Game::Run()
 			mSystemManager->FixedUpdate(timer.mDT);
 			timer.mAccumulator -= timer.mDT;
 		}
-		auto world = mSceneManager->GetCurrentWorld();
-
-		if (world && !world->IsClosing())
-		{
-			world->FlushEvents();
-		}
-
 		mInputHandler->Update();
 		mSystemManager->Update(deltaTime);
 

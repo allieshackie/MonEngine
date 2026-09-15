@@ -12,16 +12,8 @@ PlayerSystem::PlayerSystem(std::weak_ptr<InputHandler> inputHandler, EventPublis
 {
 	eventPublisher.AddWorldCreatedListener(
 		[this](std::weak_ptr<World> world) {
-			if (!mHandlers.empty())
-			{
-				if (const auto inputHandlerPtr = mInputHandler.lock())
-				{
-					for (auto handler : mHandlers)
-					{
-						inputHandlerPtr->Unregister(handler);
-					}
-				}
-			}
+			_ClearInputHandlers();
+
 			if (const auto worldShared = world.lock())
 			{
 				World* worldPtr = worldShared.get();
@@ -33,9 +25,27 @@ PlayerSystem::PlayerSystem(std::weak_ptr<InputHandler> inputHandler, EventPublis
 					}
 				};
 				worldShared->ConnectOnConstruct<PlayerComponent>(func);
+
+				EntityEventFunc removeFunc = [this](entt::entity)
+				{
+					_ClearInputHandlers();
+				};
+				worldShared->ConnectOnDestroy<PlayerComponent>(removeFunc);
 			}
 		}
 	);
+}
+
+void PlayerSystem::_ClearInputHandlers()
+{
+	if (const auto inputHandler = mInputHandler.lock())
+	{
+		for (const auto handler : mHandlers)
+		{
+			inputHandler->Unregister(handler);
+		}
+	}
+	mHandlers.clear();
 }
 
 void PlayerSystem::SpawnPlayer(Entity* entity)

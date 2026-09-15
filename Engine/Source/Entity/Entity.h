@@ -40,7 +40,6 @@ public:
 	void RemoveComponent() const
 	{
 		mRegistry.remove<Component>(mId);
-		mEventPublisher.Notify("on_destroy", std::type_index(typeid(Component)), mId);
 	}
 
 	template <typename... Components>

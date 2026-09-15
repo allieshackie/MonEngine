@@ -49,6 +49,8 @@ private:
 	void _RegisterPhysicsBody(entt::entity entityId);
 	void _RegisterCollider(entt::entity entityId, Entity* entity);
 	void _RegisterTrigger(entt::entity entityId, Entity* entity);
+	void _RemovePhysicsBody(entt::entity entityId);
+	void _RemoveTrigger(entt::entity entityId);
 
 	void _UpdateTriggers();
 

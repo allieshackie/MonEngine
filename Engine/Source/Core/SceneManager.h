@@ -16,10 +16,13 @@ public:
 	std::shared_ptr<World> GetCurrentWorld() const;
 	void SetLuaSystem(std::weak_ptr<LuaSystem> luaSystem) { mLuaSystem = luaSystem; }
 
+	void Update();
+
 	void LoadScene(const std::string& sceneName);
+	void CloseScene();
+
 	void SaveScene();
 	void RestartScene();
-	void CloseScene();
 	const std::vector<const char*>& GetSceneNames() const;
 
 	void BindMethods(lua_State* state) override;
@@ -27,8 +30,13 @@ public:
 	static constexpr char LuaName[] = "SceneManager";
 
 private:
+	void _LoadScene(const std::string& sceneName);
+	void _CloseScene();
+
 	std::shared_ptr<World> mCurrentWorld = nullptr;
 	std::string mCurrentSceneName;
+	std::string mPendingSceneName;
+	bool mCloseScenePending = false;
 
 	std::vector<const char*> mSceneFileNames;
 

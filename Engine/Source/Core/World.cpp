@@ -1,8 +1,16 @@
 #include "Core/Scene.h"
 #include "Entity/Entity.h"
 #include "Entity/Components/CollisionComponent.h"
+#include "Entity/Components/AnimationComponent.h"
 #include "Entity/Components/TransformComponent.h"
 #include "Entity/Components/LightComponent.h"
+#include "Entity/Components/MapComponent.h"
+#include "Entity/Components/ModelComponent.h"
+#include "Entity/Components/PhysicsComponent.h"
+#include "Entity/Components/PlayerComponent.h"
+#include "Entity/Components/ScriptComponent.h"
+#include "Entity/Components/SpriteComponent.h"
+#include "Entity/Components/TriggerVolumeComponent.h"
 #include "Graphics/Core/ResourceManager.h"
 #include "Graphics/RenderSystem.h"
 #include "Script/LuaSystem.h"
@@ -12,7 +20,22 @@
 World::World()
 {
 	mEventPublisher = std::make_unique<EventPublisher>();
+	RegisterComponentLifecycle<AnimationComponent>();
+	RegisterComponentLifecycle<CollisionComponent>();
 	RegisterComponentLifecycle<LightComponent>();
+	RegisterComponentLifecycle<MapComponent>();
+	RegisterComponentLifecycle<ModelComponent>();
+	RegisterComponentLifecycle<PhysicsComponent>();
+	RegisterComponentLifecycle<PlayerComponent>();
+	RegisterComponentLifecycle<ScriptComponent>();
+	RegisterComponentLifecycle<SpriteComponent>();
+	RegisterComponentLifecycle<TransformComponent>();
+	RegisterComponentLifecycle<TriggerVolumeComponent>();
+}
+
+World::~World()
+{
+	Close();
 }
 
 void World::Update()
@@ -26,6 +49,31 @@ void World::Update()
 void World::FlushEvents()
 {
 	mEventPublisher->Flush();
+
+	auto entitiesToDestroy = std::move(mEntitiesToDestroy);
+	mEntitiesToDestroy.clear();
+	for (const auto id : entitiesToDestroy)
+	{
+		if (!mRegistry.valid(id))
+		{
+			continue;
+		}
+
+		mRegistry.destroy(id);
+		mEventPublisher->Flush();
+		mEntityMap.erase(id);
+		for (auto nameIt = mEntityNameIdMap.begin(); nameIt != mEntityNameIdMap.end();)
+		{
+			if (nameIt->second == id)
+			{
+				nameIt = mEntityNameIdMap.erase(nameIt);
+			}
+			else
+			{
+				++nameIt;
+			}
+		}
+	}
 }
 
 SubscriptionHandle World::ConnectOnPhysicsEvent(PhysicsEventType type, PhysicsEventFunc& handler)
@@ -92,7 +140,10 @@ Entity& World::CreateEntity()
 
 void World::RemoveEntity(const entt::entity id)
 {
-	mRegistry.destroy(id);
+	if (mRegistry.valid(id) && std::find(mEntitiesToDestroy.begin(), mEntitiesToDestroy.end(), id) == mEntitiesToDestroy.end())
+	{
+		mEntitiesToDestroy.push_back(id);
+	}
 }
 
 void World::Close()
@@ -122,6 +173,8 @@ void World::FlushEntities()
 {
 	mRegistry.clear();
 	mEntityMap.clear();
+	mEntityNameIdMap.clear();
+	mEntitiesToDestroy.clear();
 }
 
 Entity* World::GetEntityForId(entt::entity id)

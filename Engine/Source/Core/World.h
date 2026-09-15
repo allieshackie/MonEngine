@@ -14,6 +14,7 @@ class World
 {
 public:
 	World();
+	~World();
 
 	void Close();
 	bool IsClosing() const { return mIsClosing; }
@@ -59,6 +60,7 @@ private:
 
 	std::vector<std::pair<std::string, SubscriptionHandle>> mSubscriptions;
 	std::vector<std::pair<PhysicsEventType, SubscriptionHandle>> mPhysicsSubscriptions;
+	std::vector<entt::entity> mEntitiesToDestroy;
 
 	bool mIsClosing = false;
 };
