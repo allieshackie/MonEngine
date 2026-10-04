@@ -3,6 +3,7 @@
 #include "Entity/Entity.h"
 #include "Entity/Components/AnimationComponent.h"
 #include "Entity/Components/CollisionComponent.h"
+#include "Entity/Components/InteractComponent.h"
 #include "Entity/Components/ModelComponent.h"
 #include "Entity/Components/PhysicsComponent.h"
 #include "Entity/Components/PlayerComponent.h"
@@ -138,6 +139,7 @@ void Game::RegisterComponents()
 {
 	mPrefabRegistry->RegisterComponent<AnimationComponent>("animation");
 	mPrefabRegistry->RegisterComponent<CollisionComponent>("collider");
+	mPrefabRegistry->RegisterComponent<InteractComponent>("interact");
 	mPrefabRegistry->RegisterComponent<LightComponent>("light");
 	mPrefabRegistry->RegisterComponent<ModelComponent>("model");
 	mPrefabRegistry->RegisterComponent<PhysicsComponent>("rigidbody");
